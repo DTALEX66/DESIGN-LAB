@@ -3,7 +3,7 @@
   "authorityId": "DL-AUTHORITY-2026-09-18-R2",
   "status": "TOP_LEVEL_CURRENT",
   "dynamicBaseline": {
-    "observedMainSha": "0e9f687ca306226f984f9ac49d222c0d8ff8a1e5",
+    "observedMainSha": "efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823",
     "mergedFormerCandidateSha": "fc4aa0f775c102d18365c386fe712b42fd9d018a",
     "canonicalRun": {
       "id": 35289564056,
@@ -22,7 +22,7 @@
     "docs/architecture/BOUNDARY_CONTRACT.md",
     "docs/architecture/ARCHITECTURE.md",
     "docs/architecture/LANGUAGE-POLICY.md",
-    "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
+    "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md",
     "design-lab/config/task-ledger-r3.json"
   ],
   "current": [
@@ -35,10 +35,16 @@
     "docs/architecture/LANGUAGE-POLICY.md",
     "design-lab/config/product-manifest.json",
     "design-lab/config/task-ledger-r3.json",
-    "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
+    "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md"
   ],
   "currentButDrifted": [],
   "historicalSpecific": [
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
+      "classification": "SUPERSEDED_DISPATCH_ENTRY_LINEAGE",
+      "reason": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1 取代其派工入口身份；该包原字节与它对定位、范围、冻结面的裁定保留为血统，不据其旧 DONE 关闭新需求",
+      "replacement": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md"
+    },
     {
       "path": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
       "classification": "SUPERSEDED_SCOPE_PRESERVED",
@@ -87,12 +93,13 @@
     "design-lab/VISUAL_QUALITY_V*.md"
   ],
   "taskpackClassificationRule": {
-    "currentIntegrated": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
+    "currentIntegrated": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md",
     "lineage": [
       "docs/history/taskpacks/r5-20260908/tasks.json",
       "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
       "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md",
-      "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+      "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
+      "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
     ],
     "default": "other active-looking taskpacks are SUPERSEDED_SCOPE_PRESERVED/HISTORICAL until explicitly promoted"
   },
@@ -114,7 +121,7 @@
     "irreversible asset deletion",
     "license acceptance"
   ],
-  "authorityRevision": "DIRECTION-20261019-R1",
+  "authorityRevision": "DESKTOP-KB-20261023-R1",
   "ownerAdoption": {
     "date": "2026-10-09",
     "decision": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
@@ -160,5 +167,35 @@
   },
   "frozenLegacyLedgers": [
     "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json"
-  ]
+  ],
+  "desktopKbAdoption": {
+    "date": "2026-10-23",
+    "authorityRevision": "DESKTOP-KB-20261023-R1",
+    "decision": "docs/taskpacks/20261023-ui-kb/OWNER-DECISION-2026-10-23.md",
+    "sourceManifest": "docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json",
+    "integratedTaskpack": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md",
+    "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
+    "positioning": "专业设计知识管理、跨媒介创意方案与模型应用辅助系统；不做制作落地与成品交付，不建第二套 Agent/画布/剪辑器",
+    "supersedes": "DL-TP-20261019-DIRECTION-R1 作为唯一派工入口的身份；该包原字节保留为血统",
+    "dispatchDefinitions": "docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json",
+    "dispatchSegment": "DL-KB-01…DL-KB-16，共 16 项；批次 K0…K8 即执行顺序",
+    "frozenSegmentUntouched": "原 34 项 currentExecution 任务仍全部 FROZEN_DEFERRED；本次不是解冻",
+    "frontend": "DESKTOP_UI_IN_DISPATCH — 三个日常入口（设计辅助／知识与提示词库／我的方案）＋设置；不换栈，仍在 apps/workbench 的 Vanilla TypeScript + Vite 上",
+    "mobile": "EXCLUDED_NOT_A_TODO — 「再说一遍 不做手机端 只做桌面端」",
+    "models": "NOT_LOCKED_USER_PICKS_LOCAL_OR_CLOUD；本轮不部署模型、不自行下载权重；executed=false 合同不得翻义",
+    "identifiers": "USER_FILLABLE_OR_EXPLICITLY_UNUSED",
+    "thirdPartyAssetsAndFonts": "OUT_OF_SCOPE",
+    "aaos": "FUTURE_CONTRACT_ONLY_NOT_A_DEPENDENCY — 「未来的时候，不是现在，现在是各自项目独立」",
+    "recordArchive": "docs/history/record-archive-2026-10-23/ARCHIVE-MANIFEST.json",
+    "stillFrozen": [
+      "RELEASE",
+      "INSTALLED_DISTRIBUTION",
+      "REAL_HOST_E3",
+      "HUMAN_E4",
+      "COMFYUI",
+      "MINIMAX_H3",
+      "EXTERNAL_SOFTWARE_AUTOMATION"
+    ],
+    "natureOfThisDelivery": "规划、权威与派工的覆盖替换；不是功能实现，不是 E3/E4/release 证据"
+  }
 }

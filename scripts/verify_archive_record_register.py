@@ -72,7 +72,12 @@ def main() -> int:
         print(f"RECORD_REGISTER_GATE=FAIL checks={len(checks)} problems={problems!r}")
         return 1
 
-    tracked = set(git("ls-files").decode("utf-8").splitlines())
+    # `-z`, not newline splitting: git porcelain octal-quotes non-ASCII paths, so `ls-files` text
+    # would read a landed Chinese-named member as `"docs/...\345\261\202..."` and convict a register
+    # row or a section path that is actually tracked. Observed 2026-10-23 on the Record package whose
+    # 17 members are named in Chinese.
+    tracked = set(git("ls-files", "-z").decode("utf-8").split("\0"))
+    tracked.discard("")
     rows = re.findall(r"^\| (\d) \| `([^`]+)` \|[^|]*\|[^|]*\| `([0-9a-f]{12})` \| ([\d,]+) B \| "
                       r"`([0-9a-f]{16})…`", body, re.M)
     bullets = re.findall(r"^- (\d)\. `([^`]+)` → `([0-9a-f]{64})`", body, re.M)

@@ -107,9 +107,19 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # bytes are NOT touched — it stays frozen lineage, superseded in part by the newer owner clause):
 #   AUTHORITY.md                        4f7bd6c0… -> 7cd2db03…
 #   authority-index.json                7658dfc5… -> fd01ce37…
+# 2026-10-23 re-pin (AUTHORITY §17: owner intent = 「读取分析，按照这个执行（前端UI有新规划），并且归档到统一项目里,
+# 更新覆盖替换到权威和规划里」「先分析拆解，加入到优先到任务台账里」; reason = 桌面 UI 与知识库进入当前派工、Record 投递包
+# 归档、权威与规划覆盖替换; superseded = the 2026-10-20 digests; impact = AUTHORITY.md gains the
+# DESKTOP-KB-20261023-R1 adoption block and marks the 2026-10-19 「当前唯一 integrated TaskPack」 sentence as a
+# dated reading, and authority-index.json gains desktopKbAdoption plus the current/classification repoint to
+# docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md. The three pinned taskpacks and
+# HISTORY-FREEZE-RULES.md are NOT touched — the direction pack stays frozen lineage, superseded in its
+# dispatch-entry role only):
+#   AUTHORITY.md                        7cd2db03… -> 00126066
+#   authority-index.json                fd01ce37… -> 9a0e1a58
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "7cd2db03544a3008c613e6730eeca859a1f73626e9010cb8eafa963d18a6022a",
-    ".project/governance/authority-index.json": "fd01ce37148e183deab6a2064ba80062327e351b97eb78f66361573684fe4744",
+    "AUTHORITY.md": "00126066fd7715c3e4d2d5daceaf0b9d894be6ee8339c622c87621d6b0adfb58",
+    ".project/governance/authority-index.json": "9a0e1a58190767cf39709242ec429254a018415c9cb6e0219293b414ff3a8a07",
     "docs/current/HISTORY-FREEZE-RULES.md": "3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
     "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",

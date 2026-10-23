@@ -51,13 +51,17 @@ def registry_adapters() -> int:
     return _require(len(rows), 'adapter-registry')
 
 
-def frozen_current_tasks() -> int:
-    """Every parent and child under `currentExecution`, and they must all still be frozen.
+def current_execution_states() -> tuple[int, int]:
+    """`(still-frozen, dispatched)` for `currentExecution`, read from the one ledger.
 
-    The prose says "34 项父/子任务全部 FROZEN_DEFERRED" in several places. That sentence carries a
-    boundary, not just a count: unfreezing is an owner decision. So the measurement refuses to
-    report a number while any task has left the frozen state, instead of quietly matching a count
-    over a set that no longer means what the sentence says.
+    Until 2026-10-23 this measurement refused to report a number at all while any task had left the
+    frozen state, because every prose sentence said "all 34 are frozen" and the gate would not help
+    hide a silent unfreeze. The owner then recorded the decision to dispatch a new segment
+    (docs/taskpacks/20261023-ui-kb/OWNER-DECISION-2026-10-23.md), so the honest shape is two
+    separately measured numbers: the 34 that stay frozen keep their sentences, and the new dispatch
+    gets its own. A silent move of any old row out of `FROZEN_DEFERRED` now changes the frozen count
+    and reddens all four of those sentences at once -- the protection is the measurement, not a
+    refusal to measure.
     """
     ledger = json.loads((REPO / 'design-lab/config/task-ledger-r3.json').read_text(encoding='utf-8'))
 
@@ -68,13 +72,16 @@ def frozen_current_tasks() -> int:
 
     tasks = list(walk(ledger.get('currentExecution') or {}))
     _require(len(tasks), 'currentExecution task walk')
-    loose = [str(t.get('id') or '?') for t in tasks if t.get('state') != 'FROZEN_DEFERRED']
-    if loose:
-        raise SystemExit(f'DOCUMENTED_COUNTS=FAIL {len(loose)} currentExecution task(s) are no '
-                         f'longer FROZEN_DEFERRED ({loose[:5]}). Unfreezing is an owner decision; '
-                         'until that is recorded, the sentences claiming all of them are frozen '
-                         'are false and this gate will not help hide it.')
-    return len(tasks)
+    frozen = len([t for t in tasks if t.get('state') == 'FROZEN_DEFERRED'])
+    return frozen, len(tasks) - frozen
+
+
+def frozen_current_tasks() -> int:
+    return current_execution_states()[0]
+
+
+def dispatched_current_tasks() -> int:
+    return current_execution_states()[1]
 
 
 def http_routes() -> int:
@@ -214,12 +221,11 @@ def payload_gate_bindings() -> int:
 # (file, template, measurement). Templates carry enough words to be unambiguous and to fail loudly
 # when the sentence is rewritten rather than updated.
 #
-# The frozen-count sentence appears on four authority surfaces that all restate the same ledger fact.
-# The 2026-10-20 owner unfreeze does NOT move this number: it authorizes three product segments that
-# are not ledger tasks (`currentExecution` keeps its 34 `FROZEN_DEFERRED` rows, measured here), so the
-# walk still refusing to report a count while any row has left the frozen state remains the honest
-# guard -- if a future batch unfreezes a ledger task, every one of these four sentences goes red at
-# once rather than quietly agreeing with a stale ledger.
+# The two ledger-count sentences are separate denominators on purpose. The frozen one appears on four
+# authority surfaces that all restate the same fact about the 2026-10-09 dispatch; the dispatched one
+# appears on the two surfaces that describe the 2026-10-23 segment. Neither may be quoted from the
+# other: a session that read "34" and wrote it as the size of the current dispatch would match a real
+# sentence and still be wrong.
 CLAIMS = [
     ('DESIGN.md', '导航 {n} 项', route_views),
     ('docs/current/NEXT-AGENT-PROMPT.md', '{n} 个子命令（`src/design_lab/cli.py`', cli_subcommands),
@@ -247,7 +253,13 @@ CLAIMS = [
     ('docs/current/PRODUCT_DEFINITION.md', '其余 {n} 项仍 `FROZEN_DEFERRED`', frozen_current_tasks),
     ('docs/taskpacks/20261020-unfreeze/OWNER-DECISION-2026-10-20.md',
      '其余 {n} 项仍 `FROZEN_DEFERRED`', frozen_current_tasks),
+    # The 2026-10-23 dispatch segment, on the two surfaces that describe it. Counted from the ledger
+    # itself, so a task added there without a sentence here -- or a sentence without a task -- is red.
+    ('docs/current/NEXT-AGENT-PROMPT.md', '当前可派工 **{n} 项**', dispatched_current_tasks),
+    ('docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md',
+     '新派工 **{n} 项**', dispatched_current_tasks),
 ]
+
 
 
 def check(verbose: bool = False) -> int:

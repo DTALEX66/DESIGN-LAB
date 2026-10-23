@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-18T17:40:30Z",
+  "updated_at": "2026-10-23T11:31:54Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -8318,13 +8318,13 @@
     }
   ],
   "currentExecution": {
-    "taskpack": "DL-TP-20261009-UI-FIRST-R1",
-    "plan_path": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
+    "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
+    "plan_path": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md",
     "source": {
-      "path": "docs/history/taskpacks/20261009-adoption/TASK-DEFINITIONS.json",
-      "sha256": "9ebf45ac2c0539b5227893799d417af3dbbb90c4a9b90e5861d869dd40b07681"
+      "path": "docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json",
+      "sha256": "e54f55f3246263926f45eef70bfbc0d6839301b680235c4e37cab8e0e70176ed"
     },
-    "decision_path": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
+    "decision_path": "docs/taskpacks/20261023-ui-kb/OWNER-DECISION-2026-10-23.md",
     "legacy_snapshot": {
       "path": "docs/history/taskpacks/20261009-adoption/pre-adoption/design-lab/config/task-ledger-r3.json",
       "sha256": "cbffb0c062077818de26a391d54522e3d367d2bdb010f55b959923f9fe8f7f13"
@@ -8709,6 +8709,86 @@
       {
         "id": "DL-UI-U12",
         "state": "FROZEN_DEFERRED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-01",
+        "state": "IN_PROGRESS",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-02",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-03",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-04",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-05",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-06",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-07",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-08",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-09",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-10",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-11",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-12",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-13",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-14",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-15",
+        "state": "NOT_STARTED",
+        "evidence": []
+      },
+      {
+        "id": "DL-KB-16",
+        "state": "NOT_STARTED",
         "evidence": []
       }
     ],
@@ -11090,6 +11170,6 @@
         "observed_at": "2026-10-13T16:27:32+00:00"
       }
     ],
-    "note": "2026-10-19 owner方向调整：其他任务冻结，currentExecution全部34项任务FROZEN_DEFERRED，本区不再派工，未来能力延期。任务定义、证据与legacy_snapshot保持原字节；唯一当前权威为 docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md。owner 2026-10-19 授权去掉手机端：手机工作零派工，且不再作为待排期能力，本区 mobile 字段保持 schema const FROZEN_DEFERRED 的语义即不派工。"
+    "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
   }
 }

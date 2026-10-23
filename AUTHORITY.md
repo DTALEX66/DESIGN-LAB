@@ -7,6 +7,37 @@
 
 > 本文件是 DESIGN-LAB 所有人类、GPT、Codex、DeepSeek、Hermes、CI/Agent 在审计、规划和修改项目时的第一权威入口。
 
+## 2026-10-23 OWNER ADOPTION — 桌面 UI 与知识库进入当前派工
+
+本条根据 owner 2026-10-23 直接指令生效，优先于下文 2026-10-20 / 10-19 / 10-09 的冲突条款；Authority 稳定 ID 保留，
+修订号 `DESKTOP-KB-20261023-R1`。Owner 原话：**「读取分析，按照这个执行（前端UI有新规划），并且归档到统一项目里，
+更新覆盖替换到权威和规划里」「先分析拆解，加入到优先到任务台账里」**。逐字转录与解释见
+`docs/taskpacks/20261023-ui-kb/OWNER-DECISION-2026-10-23.md`；来源投递包 17 名成员逐字节入仓，摘要与 ZIP 原件登记在
+`docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json` 与 `docs/history/record-archive-2026-10-23/ARCHIVE-MANIFEST.json`。
+
+1. **当前唯一 integrated TaskPack** 改为 `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`
+   （`DL-TP-20261023-DESKTOP-KB-R1`）；`DL-TP-20261019-DIRECTION-R1` 降为 `SUPERSEDED / LINEAGE`，原字节与其中对定位、
+   范围、冻结面的裁定继续有效，只停止"唯一派工入口"这一身份。
+2. **桌面 UI 进入当前派工**：三个日常入口——设计辅助／知识与提示词库／我的方案——外加设置；不换栈，仍在
+   `apps/workbench` 的 Vanilla TypeScript + Vite 与 `src/design_lab` 的 Python 服务上。`DL-KB-01`…`DL-KB-16` 是唯一新增
+   派工段，按批次 K0…K8 顺序执行：知识管理与中文检索 → 中立方案与目标档案/导出 → 一个方案助手模型的真实接入 →
+   内容方法与反馈。
+3. **定位按本包采纳**：面向职业设计的**专业设计知识管理、跨媒介创意方案与模型应用辅助系统**，覆盖平面/品牌/UIUX/
+   3D/2D 动效/粒子/视频/音频/短剧/漫剧/小说/广告/说唱。本项目生成可交外部软件实施的专业材料，不负责制作落地与成品
+   交付，不建第二套 Agent／模型网关／画布／3D 编辑器／剪辑时间线；外部软件自动操作属未来能力。
+4. **一条都没放松**：手机端仍是排除项；三方素材与字库仍在范围外；模型不锁死但默认 fail-closed、显式选择只是被记录、
+   `UNKNOWN` 不写成合格、云端选项必须披露离开本机的数据、**本轮不部署模型也不自行下载权重**；编号仍由用户填写或显式
+   选择"不使用"；验收与签字仍只接受具名真人；候选导出仍是读回不是发送；AAOS 仍只是未来合同而非依赖或门；E 盘不动；
+   release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 继续冻结，`currentExecution` 原 34 项不在本条解冻。
+5. **既有 `executed=false` 合同不得为"通过"而解除**：真实推理必须走新的运行记录与版本演进，选择成功、连接成功、
+   返回文本、内容可用四件事分别验证；新登记的界面必须映射真实 API，不以效果图宣称接通。
+
+Authority §17 变化依据：owner intent 落仓于上文裁决件；reason=前端 UI 新规划入派工、方案包归档、权威与规划覆盖替换；
+superseded=`DL-TP-20261019-DIRECTION-R1` 的唯一派工入口身份，以及活动阅读面上"本轮只做文档、不动前端"的表述；
+impact=同步 AUTHORITY.md、authority-index.json、AGENTS.md、PRODUCT_DEFINITION.md、NEXT-AGENT-PROMPT.md、
+task-document-states、唯一账本 `currentExecution` 与其定义原件，冻结原件与历史证据字节不改写，re-pin 见
+`docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json` revisions[] 末条（checks 仍为 10）。
+
 ## 2026-10-20 OWNER ADOPTION — 定点解冻与范围收口
 
 本条根据 owner 2026-10-20 直接指令生效，优先于下文 2026-10-19 / 2026-10-09 的冲突条款；Authority 稳定 ID 保留，
@@ -44,6 +75,9 @@ AGENTS.md、PRODUCT_DEFINITION.md、NEXT-AGENT-PROMPT.md 五面，冻结原件�
 本条根据 owner 2026-10-19 直接指令生效，优先于下文 2026-10-09 / 0918 的冲突条款；Authority 稳定 ID 保留，修订号 `DIRECTION-20261019-R1`。
 Owner 原话：**其他任务冻结，以这份任务为当前权威与闭环目标（更新项目内的权威和规划），未来能力暂时冻结和延期延后**。
 当前唯一 integrated TaskPack：`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`（`DL-TP-20261019-DIRECTION-R1`）。2026-10-09 UI-FIRST 包降为 `SUPERSEDED / LINEAGE`；其 `currentExecution` 34 项任务全部 `FROZEN_DEFERRED`，不再派工；原字节、定义、历史证据保留。
+（上文"当前唯一 integrated TaskPack"与"不再派工"是 2026-10-19 当日原文，保留不改写。2026-10-23 起当前入口是
+`DL-TP-20261023-DESKTOP-KB-R1`，本包降为血统；"不再派工"仍只对那 34 项成立——owner 同日在 `currentExecution`
+加入了 16 项新派工，两者不是同一批任务，不得互相顶替。）
 正式定位：面向职业视觉设计的 AI 原生、平台中立的**专业视觉智能与可复用设计能力系统**。产品本体是视觉智能 + 审美能力工程化 + 设计能力库 + 设计软件自动化 + 受控知识回流。六大能力域：Visual Intelligence / Aesthetic Analysis / Prompt Intelligence / Design Capability Library / Creative Tool Automation / Knowledge Candidate & Evaluation。
 永久非目标：第二画布或通用编辑器、以全流程设计文件制作交付为产品本体、通用 Agent Runtime / 聊天客户端 / 模型网关 / 跨项目调度器；不接管 WORK-LAB 通用治理，不取代 AAOS 正式知识真源，不把热门资源或模型输出直接认定为合格能力或可信知识。
 模型策略：本地/云端/混合，可替换、按能力与隐私/成本/延迟路由；模型输出是候选判断。工具策略：官方 API/SDK → 原生插件 → MCP → 脚本/CLI → 受控 UI 自动化；握手、HTTP 200、退出码或截图不等于真实任务验证。

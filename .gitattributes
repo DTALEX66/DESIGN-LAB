@@ -58,3 +58,10 @@ AGENTS.md binary
 docs/current/HISTORY-FREEZE-RULES.md binary
 docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md binary
 docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md binary
+
+# 2026-10-23 Record 投递的方案包与其采纳后的定义原件。登记的是落地字节的 sha256/crc32（三份 CSV
+# 原件本身就带 CRLF），`* text=auto eol=lf` 一旦改写，SOURCE-MANIFEST.json 与账本
+# currentExecution.source 记录的摘要就从干净克隆里复现不出来——这正是上面两段注释记过的同一件事。
+docs/taskpacks/20261023-ui-kb/** -text whitespace=cr-at-eol
+docs/history/record-archive-2026-10-23/** -text whitespace=cr-at-eol
+docs/history/taskpacks/20261023-adoption/** -text whitespace=cr-at-eol

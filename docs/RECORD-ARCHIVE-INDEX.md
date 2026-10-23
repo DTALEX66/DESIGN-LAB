@@ -391,3 +391,25 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 
 **定态**：五份都是**波次的登记件**，不是能力索引、不是派工入口，也不改变 `currentExecution` 34 项的 `FROZEN_DEFERRED`。真值仍读 `design-lab/config/capability-evidence-index.json`、`design-lab/config/capability-status.json` 与 `docs/current/NEXT-AGENT-PROMPT.md`。
 
+## 2026-10-23 新增：桌面 UI 与知识库方案包（owner 2026-10-23 指令「归档到统一项目里」）
+
+投递两份，均落在 `D:/All projects/Record`（2026-10-23）：`DESIGN-LAB_今日完整方案与STITCH交接包_20261023.zip`（70,319 B，`9fadae0ae12712c31c41b7e214e549e1a6b32e54ee4eb9f0fde1cf749898aff7`，17 名成员）与`DESIGN-LAB_今日完整需求与可行性方案_20261023.html`（59,898 B，`614b4a7c15bfb6497823aa5d2f818a651b96b84d5bfbe2394ecee55143e893da`）。
+
+**规范位置**：
+
+- 17 名成员逐字节入仓到 `docs/taskpacks/20261023-ui-kb/source/`（155,573 B，按类别 application 2, text 15）；逐份 `member/path/bytes/crc32/sha256/state/disposition` 见 `docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json`（schemaVersion 是 design-lab/taskpack-source-manifest/v1，此处不加反引号：登记闸把反引号里的斜杠串当路径复核）。
+- 卷宗来源、别名、去重与限制见 `docs/history/record-archive-2026-10-23/ARCHIVE-MANIFEST.json`（schemaVersion 同上，写作 design-lab/record-archive/v1）。
+- ZIP 原件不进 Git：本地规范副本在 `.project-local/record-archive-2026-10-23/DESIGN-LAB_今日完整方案与STITCH交接包_20261023.zip`，迁移须按登记摘要补齐，不能假定 `git clone` 带着它。
+
+**去重（同一 sha256 只留一份）**：
+
+- 外部 `DESIGN-LAB_今日完整需求与可行性方案_20261023.html` 与包内同名成员逐字节相同（`614b4a7c15bfb6497823aa5d2f818a651b96b84d5bfbe2394ecee55143e893da`），规范副本 = `docs/taskpacks/20261023-ui-kb/source/DESIGN-LAB_今日完整需求与可行性方案_20261023.html`，另一处登记为别名，不另存第二份。
+
+**包内自查回执**：`SHA256SUMS.txt` 共 16 行，本次逐行重算 16 名成员，不匹配 0、缺失 0；作者自查件 `13_包内一致性核对.json` 的 scope 原文是「artifact consistency only; no product functionality tests」，因此它在本仓库只算投递回执，不算验收证据。
+
+**本次不并入库**：本节是追加投递，独立清单与计数；不改写 2026-10-09 的 Record 普查（101 份 / 180 成员）、2026-10-11 的 DOT 审计清单、2026-10-13 的两处唯一副本登记，也不并入 2026-10-19 波次五份记录的 `summary` 计数。上方那张五件登记件表格由 `scripts/generate_archive_record_register.py` 生成，本节不参与它的行数与摘要校验。
+
+**字节保护**：`docs/taskpacks/20261023-ui-kb/**`、`docs/history/record-archive-2026-10-23/**` 与 `docs/history/taskpacks/20261023-adoption/**` 已在 `.gitattributes` 标 `-text`，因为三份 CSV 原件自带 CRLF，而登记的是落地字节的 sha256——`* text=auto eol=lf` 一旦改写，登记摘要就从干净克隆复现不出来（同一件事在 `design-lab/evidence/**` 与权威五面上已各踩过一次）。
+
+**定态**：本包不是能力索引、不是第二账本。派工入口是 `DL-TP-20261023-DESKTOP-KB-R1` → `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`；落仓时观察 HEAD `efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823`，作者包内基线 `2d6ede51cd0f49e9b99c27f09924a0db29843b89` 保留为作者观察时点。当前 SHA 一律 `git rev-parse HEAD` 自读。
+

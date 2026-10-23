@@ -79,6 +79,13 @@
       "role": "RECORD",
       "basis": "2026-09-28 能力闭环包 5 个成员已在此逐字节存在；任务 #29 的导入清单据此判定该包无需重复落地（ALREADY-IN-REPO）。",
       "replacement": null
+    },
+    {
+      "glob": "docs/taskpacks/20261023-ui-kb/**",
+      "state": "FROZEN",
+      "role": "RECORD",
+      "basis": "2026-10-23 桌面 UI 与知识库任务包的 owner 逐字裁决与来源登记：17 名成员的字节/sha256/crc32 逐份登记在 SOURCE-MANIFEST.json（外部 HTML 与包内同名成员同哈希，只留一份规范副本）；采纳后逐字节冻结，不因后续会话改写。",
+      "replacement": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md"
     }
   ],
   "documents": [
@@ -368,10 +375,11 @@
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
-      "state": "CURRENT",
-      "role": "DISPATCH_ENTRY",
+      "state": "SUPERSEDED",
+      "role": "LINEAGE",
       "frozen": true,
-      "basis": "2026-10-19 owner方向调整直接采纳：唯一当前派工入口；与index taskpackClassificationRule.currentIntegrated一致。"
+      "basis": "2026-10-19 owner 方向调整采纳为唯一派工入口；2026-10-23 owner「前端UI有新规划」后由 DL-TP-20261023-DESKTOP-KB-R1 取代该身份。原字节不动，降为前继血统；它对手机端排除、AAOS 非依赖与定位纠正的裁定继续有效。",
+      "supersededBy": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md"
     },
     {
       "path": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
@@ -458,8 +466,8 @@
       "state": "REFERENCE",
       "role": "RECORD",
       "frozen": false,
-      "basis": "唯一接续入口，就地更新。从2026-10-19起按方向对齐包读取：其他任务冻结，未来能力延期；本文件不派工，TaskPack仍是派工权威。",
-      "replacement": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
+      "basis": "唯一接续入口，就地更新。从 2026-10-23 起按 DL-TP-20261023-DESKTOP-KB-R1 读取：桌面 UI 与知识库进入当前派工，原 34 项仍冻结；本文件不派工，TaskPack 仍是派工权威。",
+      "replacement": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md"
     },
     {
       "path": "docs/history/next-agent-prompts/PROMPT-LINEAGE.json",
@@ -467,6 +475,13 @@
       "role": "RECORD",
       "frozen": false,
       "basis": "被替换的按日期命名的提示词的血统清单：逐份记录路径、字节数与定态时的 sha256。它让\"这一轮之前读的是哪份\"可查，同时不把任何一份旧副本留在 docs/current/。"
+    },
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md",
+      "state": "CURRENT",
+      "role": "DISPATCH_ENTRY",
+      "frozen": true,
+      "basis": "2026-10-23 owner 采纳：唯一当前派工入口；与 index 的 taskpackClassificationRule.currentIntegrated 一致。原 34 项 currentExecution 任务不在本包解冻，仍 FROZEN_DEFERRED。"
     }
   ],
   "promptEntryRule": {

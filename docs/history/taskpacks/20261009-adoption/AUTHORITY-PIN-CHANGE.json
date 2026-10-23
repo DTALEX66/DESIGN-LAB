@@ -159,7 +159,25 @@
    },
    "why": "2026-10-19 的「本轮不实施产品功能」是一条普遍禁止，而 owner 随后点名放行三段产品实施（Prompt Intelligence 入口、KnowledgeCandidate 导出出口、模型选择接口）。若只改 AGENTS.md / PRODUCT_DEFINITION 而不动 Authority，下一会话仍会从冻结的权威面读回「不实施产品功能」并把这三次实施判为越权——这正是本文件存在的目的。AUTHORITY.md 增加 UNFREEZE-20261020-R1 采纳块，并在原句后就地标注该禁止仅在且仅在这三段上失效（原句保留不改写）；索引增加 unfreezeAdoption，把解冻清单、编号=用户可填或显式不用、字体/三方素材权利判定=OUT_OF_SCOPE、DESIGN.md 批准=挂起而非阻塞、仍冻结清单一次性写成机器可读面。被 pin 的 DIRECTION 任务包原字节不动：它仍是冻结血统，其冲突条款由更新的上位 owner 条款取代，而不是被改写。",
    "checks": "两份文件均为 LF 且 eol=lf（无 CR 字节），worktree sha256 与 CI checkout 读回一致；改后 JSON 仍可解析；verify_top_level_authority 仍 10 项且 r2-release-integrity 以新值通过；AGENTS.md 不在 pin 清单内，其 CRLF-CRLF（\\r\\r\\n）行结束按原样保留，插入后 lone-LF 计数不变；本文件同时是 Record 导入清单的 repo 侧绑定件，另跑 declare_record_evolution.py 声明仓库副本演进（归档字节与 leg 1 不动）"
+  },
+  {
+   "when": "2026-10-23",
+   "authority": "owner instruction 2026-10-23: 「读取分析，按照这个执行（前端UI有新规划），并且归档到统一项目里，更新覆盖替换到权威和规划里」「先分析拆解，加入到优先到任务台账里」",
+   "changed": [
+    "AUTHORITY.md",
+    ".project/governance/authority-index.json"
+   ],
+   "from": {
+    "AUTHORITY.md": "7cd2db03544a3008c613e6730eeca859a1f73626e9010cb8eafa963d18a6022a",
+    ".project/governance/authority-index.json": "fd01ce37148e183deab6a2064ba80062327e351b97eb78f66361573684fe4744"
+   },
+   "to": {
+    "AUTHORITY.md": "00126066fd7715c3e4d2d5daceaf0b9d894be6ee8339c622c87621d6b0adfb58",
+    ".project/governance/authority-index.json": "9a0e1a58190767cf39709242ec429254a018415c9cb6e0219293b414ff3a8a07"
+   },
+   "why": "DL-TP-20261023-DESKTOP-KB-R1 becomes the only dispatch entry, so the top authority and the classification index had to change bytes. The change is a repoint plus one adoption block: the 2026-10-19 sentence naming the direction pack as 「当前唯一 integrated TaskPack」 is kept and marked as a dated reading rather than deleted, and the direction pack itself stays byte-frozen and pinned — it is superseded in its dispatch role only, never rewritten. Neither pin move removes a check, and the 34-row frozen segment is untouched: the new dispatch is 16 additional rows in the same currentExecution, which is why `verify_documented_counts.py` now measures the frozen and the dispatched counts as two separate denominators instead of refusing to count.",
+   "checks": "两份文件均为 LF（无 CR 字节），worktree sha256 即 blob sha256（两者都在 .gitattributes 标 binary）；verify_top_level_authority 仍 10 项，除 r2-release-integrity 外九项在改钉前就已 PASS，改钉后十项全绿；TASK_DOC_STATE_GATE 仍 13 项全绿（pinned-files-declared-frozen 的 6 个路径未变，只换 digest）；AGENTS.md 不在 pin 清单内，其 CR-CRLF（\\r\\r\\n）行结束按原样保留，插入后 lone-LF 仍为 0；新任务包与两份登记件、17 名成员逐字节入仓后由 verify_archive_record_register 复核（该闸本轮另修一处：ls-files 需 -z，否则中文文件名被八进制引用而误报 unresolvable path）。"
   }
  ],
- "current_pins_note": "Latest change is revisions[-1] (2026-10-20 partial unfreeze): AUTHORITY.md and .project/governance/authority-index.json re-pinned after the UNFREEZE-20261020-R1 adoption block and the unfreezeAdoption key landed; the pinned direction taskpack bytes are untouched. Earlier revisions are kept as the supersession trail."
+ "current_pins_note": "Latest change is revisions[-1] (2026-10-23 desktop-UI/knowledge-base adoption): AUTHORITY.md and .project/governance/authority-index.json re-pinned after the DESKTOP-KB-20261023-R1 block and the desktopKbAdoption/current repoint landed; the three pinned taskpacks and HISTORY-FREEZE-RULES.md are untouched, and the direction pack stays frozen lineage. Earlier revisions are kept as the supersession trail."
 }

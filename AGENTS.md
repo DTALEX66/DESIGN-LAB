@@ -111,6 +111,15 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立的专业视
 - 零 checksum、许可冲突、模型不存在或硬件不足时，runtime resolver 必须 fail closed
 - 第三方 `AGENTS/CLAUDE/cursorrules/SKILL/install/affiliate` 作为 inert source blobs 保存，不进入根指令、prompt、tool discovery 或能力计数
 
+## 2026-10-23 owner执行决定 — 桌面 UI 与知识库进入当前派工
+
+Owner原话（逐字）：「读取分析，按照这个执行（前端UI有新规划），并且归档到统一项目里，更新覆盖替换到权威和规划里」「先分析拆解，加入到优先到任务台账里」。决策与来源见`docs/taskpacks/20261023-ui-kb/OWNER-DECISION-2026-10-23.md`；来源投递包 17 名成员逐字节入仓，逐份 sha256/crc32/bytes 登记在 `docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json`，卷宗来源、别名与去重登记在 `docs/history/record-archive-2026-10-23/ARCHIVE-MANIFEST.json`，固定资料索引已追加 2026-10-23 日期节。ZIP 原件与外部 HTML 的规范位置也已在该 manifest 写明：HTML 与包内同名成员逐字节相同，只留一份；ZIP 留在 `.project-local/`，不随 Git 克隆，迁移须按摘要补齐。
+
+- 唯一integrated TaskPack 改为 `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`（`DL-TP-20261023-DESKTOP-KB-R1`）。`DL-TP-20261019-DIRECTION-R1` 降为 `SUPERSEDED / LINEAGE`，原字节不动，其对定位、手机端排除、AAOS 非依赖的裁定继续有效，只停止"唯一派工入口"这一身份。
+- 桌面 UI 与知识库进入当前派工：`currentExecution` 新增 `DL-KB-01`…`DL-KB-16` 共 16 项，定义原件在 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`（采纳后逐字节冻结，状态只写在账本）。批次 K0…K8 即执行顺序：知识管理与中文检索 → 中立方案与目标档案/导出 → 一个方案助手模型的真实接入 → 内容方法与反馈。三个日常入口是设计辅助／知识与提示词库／我的方案，外加设置；不换前端栈，仍在 `apps/workbench` 的 Vanilla TypeScript + Vite 与 `src/design_lab` 的 Python 服务上。
+- **这不是对旧 34 项的解冻。** `currentExecution` 原 34 项父/子任务仍全部 `FROZEN_DEFERRED`，解冻任何一项仍需 owner 新的明确授权。两个数字不可互换，各自由 `scripts/verify_documented_counts.py` 现数。
+- 本决定**没有**放松任何边界：手机端仍是排除项；三方素材与字库仍在范围外；模型不锁死但默认 fail-closed、`UNKNOWN` 不写成合格、云端必须披露离开本机的数据、**本轮不部署模型也不自行下载权重**；编号仍由用户填写或显式选择「不使用」（`UNUSED`）；验收与签字仍只接受具名真人；候选导出仍是读回不是发送；AAOS 仍只是未来合同；E 盘不动；release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 与外部软件自动操作继续冻结。
+- 既有 `executed=false` 合同不得为"通过"而解除：真实推理必须走新的运行记录与版本演进；选择成功、连接成功、返回文本、内容可用四件事分别验证；新界面必须映射真实 API，不以效果图宣称接通。
 ## 2026-10-20 owner执行决定 — 定点解冻与范围收口
 
 Owner原话（逐字）：「1 可以做」「大模型可以 但为什么要锁死呢？不锁死 做好菜单导航和接口 用户自行选择本地或者是云端模型」「编号问题留出可填写位置，用户自行填写或者选择用没用」「三方素材和字库不在本项目范围内」「现在都没有真实测试过呢 怎么批准 …设计规范按照网上最专业的先收入库里 后期落地我自行测试」「手机端不是冻结 是不做了」「E盘不动」。决策记录：`docs/taskpacks/20261020-unfreeze/OWNER-DECISION-2026-10-20.md`（会话内指令，无外部包、无源哈希，不得虚构）。
@@ -126,10 +135,10 @@ Owner原话（逐字）：「1 可以做」「大模型可以 但为什么要锁
 Owner原话：其他任务冻结，以这份任务为当前权威与闭环目标（更新项目内的权威和规划），未来能力暂时冻结和延期延后。
 唯一当前包：`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`（`DL-TP-20261019-DIRECTION-R1`）。决策与来源见`docs/taskpacks/20261019-direction/OWNER-DECISION-2026-10-19.md`与`SOURCE-MANIFEST.json`。
 定位纠正为专业视觉智能与可复用设计能力系统；不是第二画布/通用编辑器/全流程设计文件交付平台，不是通用Agent Runtime/聊天客户端/模型网关/跨项目调度器。
-2026-10-09 UI-FIRST包降为SUPERSEDED/LINEAGE；`currentExecution` 34项全部FROZEN_DEFERRED，不再派工；原字节、定义与历史证据保留。
+2026-10-09 UI-FIRST包降为SUPERSEDED/LINEAGE；`currentExecution` 34项全部FROZEN_DEFERRED，不再派工；原字节、定义与历史证据保留。（2026-10-23 起当前入口是 `DL-TP-20261023-DESKTOP-KB-R1`；"不再派工"仍只对这 34 项成立。）
 本轮只做权威/规划对齐、冲突矩阵、能力映射、技术可行性矩阵、最小真实闭环规划与按范围测试；不实施产品功能。
 未执行且继续冻结：release、安装态分发、真实宿主E3、真人E4、ComfyUI/H3。AAOS联调不再是本项目的冻结依赖或门（owner 2026-10-19）。项目目标（owner 2026-10-19）：DESIGN-LAB 按**独立可运行、全链路可跑通**的项目标准推进——视觉输入 → 分析/提示词生成或反推 → 可验证输出或合格工具调用 → 用户/授权 Agent 验收 → 知识候选在本项目内留存。AAOS 不是本项目的依赖、闸门或待排期联调项；保留的是标准、通用、版本化的公共接入接口（Schema/API/Manifest 合同与 `KnowledgeCandidate` 出口），外部知识系统能通过合同连接，但本项目不等待其联调结果才宣布闭环成立。E盘保护、私有数据、Human Gate边界不变。手机端已从冻结待排清单移出并排除出范围（owner 2026-10-19 授权：去掉手机端），不得再作为待办、缺口或派工项出现。
-范围重申（owner 2026-10-19 原话：「再说一遍 不做手机端 只做桌面端」）：手机端是**排除项**，不是「本轮暂缓」。任何后续批次都不得把手机端列为待办、不得为其派工、不得把它计入能力缺口或未交付项；解除只认 owner 新的明确授权。桌面端自适应布局（`apps/workbench/style.css` 的媒体查询等）不等于手机交付，不得当作扩到手机端的依据。实测 `currentExecution` 34 项状态直方图仍全部 `FROZEN_DEFERRED`，即当前不存在任何可派工的手机工作。
+范围重申（owner 2026-10-19 原话：「再说一遍 不做手机端 只做桌面端」）：手机端是**排除项**，不是「本轮暂缓」。任何后续批次都不得把手机端列为待办、不得为其派工、不得把它计入能力缺口或未交付项；解除只认 owner 新的明确授权。桌面端自适应布局（`apps/workbench/style.css` 的媒体查询等）不等于手机交付，不得当作扩到手机端的依据。2026-10-19 至 2026-10-22 实测 `currentExecution` 34 项状态直方图全部 `FROZEN_DEFERRED`，当时确实不存在任何可派工的手机工作。读数保留：owner 2026-10-23 在 `currentExecution` 另加入 16 项新派工（`DL-KB-*`），直方图变成 34 项 `FROZEN_DEFERRED` 加 16 项新段，而这 16 项里没有一项是手机端——手机仍是排除项，不因新派工段变成待办。
 
 ## 2026-10-09 owner执行决定（2026-10-19 起降为前继记录）
 
@@ -141,11 +150,11 @@ Owner原话：其他任务冻结，以这份任务为当前权威与闭环目标
 
 ## 当前任务包
 
-- 唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`（`DL-TP-20261019-DIRECTION-R1`）。六大能力域、非目标、模型/工具策略与WORK-LAB/AAOS边界以该包及其`source/`包为准。
-- 本轮是方向与规划闭环，不是产品实施波次：只交付基线、冲突矩阵、能力映射、可行性矩阵、最小真实闭环规划和按范围测试。不得把文档修订写成功能完成。
-- 唯一可变状态源物理路径仍为`design-lab/config/task-ledger-r3.json`；`currentExecution`的34项父/子任务已全部`FROZEN_DEFERRED`，不再派工；`tasks/evidence`为冻结R5证据区。schemaVersion保持r5-v1作为兼容信封，扩展字段有机器合同。解冻需新的owner明确授权。
+- 唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`（`DL-TP-20261023-DESKTOP-KB-R1`）；六大能力域、非目标与WORK-LAB/AAOS边界仍按`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md` 及其`source/`包读取（现为前继血统），定位与范围的新裁定见上文 2026-10-23 段。
+- 2026-10-19 那句"本轮是方向与规划闭环，不是产品实施波次"是当日原文，保留不改写；2026-10-23 起桌面 UI 与知识库已进入当前派工（见上文），"不得把文档修订写成功能完成"这条继续成立——它约束的是每一轮的完成声明，不是允许做哪些任务。
+- 唯一可变状态源物理路径仍为`design-lab/config/task-ledger-r3.json`；`currentExecution`的34项父/子任务已全部`FROZEN_DEFERRED`，这34项不再派工；owner 2026-10-23 在同一分区另加入 16 项新派工（`DL-KB-*`），两者不是同一批任务，不得互相顶替；`tasks/evidence`为冻结R5证据区。schemaVersion保持r5-v1作为兼容信封，扩展字段有机器合同。解冻需新的owner明确授权。
 - 2026-10-09 UI-FIRST包与20261009任务卡保留为前继记录；旧W00–W17工作分组只用于映射，不构成第二账本，不新增任务编号。
-- 冻结新任务定义：`docs/history/taskpacks/20261009-adoption/TASK-DEFINITIONS.json`；旧28项映射及21件任务文档/58项结构记录普查见该目录OLD-TASK-CROSSWALK.json、OLD-DOCUMENT-CENSUS.json。仅作映射/输入，不是第二账本。
+- 冻结新任务定义：当前绑定的是 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`（owner 2026-10-23 采纳；它逐字携带 20261009 的 34 项定义并另加 16 项新派工。账本 `currentExecution.source` 只钉当前绑定的这一份的 sha256，20261009 原件仍在原位、字节未改，作为被携带定义的出处）；旧28项映射及21件任务文档/58项结构记录普查见该目录OLD-TASK-CROSSWALK.json、OLD-DOCUMENT-CENSUS.json。仅作映射/输入，不是第二账本。
 - 旧20260918统一包、DeepSeek/R5任务定义原字节留在原位置，已在authority-index与task-document-states取代/冻结；正确恢复/安全/证据/Human Gate/双宿主/Golden验收并入新任务。不凭旧DONE重新宣称当前完成。
 - 原始输入：`docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json`记录2原ZIP/170成员；文本/代码/SVG逐字节入档，大包/字体/位图完整存本项目`.project-local/task-artifacts/taskpacks-20261009/`（Git忽略）。不能声称Git克隆带完整视觉参考；跨机器交接须附原ZIP。
 - 对话决定、旧任务取舍、批次与任务卡在`docs/taskpacks/20261009-ui-first/`；**接续入口只有一个**：`docs/current/NEXT-AGENT-PROMPT.md`（就地更新，不是独立Authority）。

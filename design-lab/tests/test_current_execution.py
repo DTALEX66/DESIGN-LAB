@@ -23,7 +23,10 @@ class CurrentExecutionTests(unittest.TestCase):
 
     def test_old_receipts_never_qualify_new_ui(self):
         p = projection(Reader(ROOT), self.ledger)
-        self.assertEqual(p['counts'], {'NOT_STARTED': 34})
+        # The inventory size is read from the ledger this projection is about to replace, not typed
+        # here: the shipped set grew from 34 to 50 when owner 2026-10-23 added the desktop-UI segment,
+        # and a literal would have made this test the thing that had to be edited every round.
+        self.assertEqual(p['counts'], {'NOT_STARTED': len(self.ledger['currentExecution']['tasks'])})
         self.assertEqual(p['ledger_partition'], 'currentExecution')
         self.assertEqual(p['mobile'], 'FROZEN_DEFERRED')
         self.assertTrue(all(t['evidence_level'] == 'NO_EVIDENCE' for t in p['tasks']))

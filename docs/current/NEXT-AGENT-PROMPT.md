@@ -7,7 +7,7 @@
 > 历史条目在 `docs/history/next-agent-prompts/`，逐份登记于 `docs/history/next-agent-prompts/PROMPT-LINEAGE.json`。
 > `verify_task_document_states.py` 的 `entry-not-dated-again` 会在有人重新铸日期副本时直接失败。
 
-- **updatedAt**: 2026-10-20
+- **updatedAt**: 2026-10-23
 - **writtenAtSha**: 自己读 `git rev-parse HEAD`（不要抄任何文档里的数字；本文件也不例外）
 
 ## 0. 这份文件是什么
@@ -22,7 +22,7 @@
 2. `/AUTHORITY.md`
 3. `.project/governance/authority-index.json`
 4. 根 `AGENTS.md`
-5. 唯一当前包 `docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`（`DL-TP-20261019-DIRECTION-R1`）
+5. 唯一当前包 `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`（`DL-TP-20261023-DESKTOP-KB-R1`；2026-10-19 方向包已降为血统，仍读它对定位与边界的裁定）
 6. `design-lab/config/task-ledger-r3.json` 的 `currentExecution`
 7. 本文件
 
@@ -56,11 +56,11 @@ Owner 原话（逐字）：
   通用 Agent Runtime / 聊天客户端 / 模型网关 / 跨项目调度器；接管 WORK-LAB 通用治理；
   取代 AAOS 正式知识真源；把热门资源或模型输出直接认定为合格能力/可信知识；默认外传客户素材。
 - `docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md` 降为 `SUPERSEDED / LINEAGE`；
-  `currentExecution` 的 **34 项父/子任务全部 `FROZEN_DEFERRED`**，不再派工；原字节、任务定义与证据保留。
+  `currentExecution` 的 **34 项父/子任务全部 `FROZEN_DEFERRED`**，这 34 项不再派工；原字节、任务定义与证据保留。（2026-10-23 起 owner 在同一分区另加入 16 项新派工，见 §2.0.1——「不再派工」只对那 34 项成立，不是"账本里没有可做的活"。）
 - 本轮**只做**权威/规划对齐、冲突矩阵、能力映射、技术可行性矩阵、最小真实闭环规划与按范围测试；
   **不实施产品功能**。解冻任何未来能力都需要 owner 明确授权。
-  （2026-10-20 更新：这条普遍禁止已被 owner 后续直接指令在**三段**上取消，见下文「当前授权面」。
-  原句保留，因为它记录 2026-10-19 那一轮的效力范围。）
+  （2026-10-20 更新：这条普遍禁止已被 owner 后续直接指令在**三段**上取消，见下文 §2.0。
+  2026-10-23 更新：桌面 UI 与知识库进入当前派工，见 §2.0.1；原句保留，因为它记录 2026-10-19 那一轮的效力范围。）
 
 ## 2.0 当前授权面（2026-10-20 定点解冻）
 
@@ -79,10 +79,43 @@ Owner 原话（逐字）：
    不把 `UNKNOWN` 写成合格、不宣称推理已验证；云端项必须写明哪些数据离开本机。
 
 仍不做：release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 验收；`currentExecution`
-其余 34 项仍 `FROZEN_DEFERRED`（`scripts/verify_documented_counts.py` 实测，任何一项解冻都会让四处句子同时红）。
+其余 34 项仍 `FROZEN_DEFERRED`（`scripts/verify_documented_counts.py` 实测；这条闸门从 2026-10-23 起把"仍冻结"与"已派工"当成两个分母分别现数，所以悄悄动一项旧任务会让那四处 34 的句子同时红，而不是让闸门拒绝报数——保护是测量，不是沉默）。
 新落地的范围收口：**字体库与第三方素材的权利判定移出本项目范围**，不得再列为缺口或开工前提；
 `source.job_id` / `operation_id` 改为界面可填写 + 可显式选择"不使用"，代理不得自行铸造标识冒充来源证据；
 `DESIGN.md` 在 owner 真实测试前不进已批准状态，逐条配色归属与品牌蓝裁定**挂起不是阻塞**，不要再反复请示。业界规范入库这一步已落地一半（2026-10-21）：`packages/capabilities/standards/INDUSTRY_SPEC_REGISTER.md` 按「可吸收 / 只可引用 / 今日未能核验」三档登记 11 条外部规范的出处、版本与许可原话，取不到的字段一律留 UNKNOWN——WCAG 3.0 草案已在第二轮直接取到（页面原话「W3C Working Draft 10 September 2026」，许可为 W3C 文档使用规则；它是方向不是判据，本项目现行判据仍是 WCAG 2.2 AA）；PDF/UA-1 与 IEC 61966-2-1 两条仍取不到出版方页面（ISO 目录 403、pdfa.org 全站 403/404、IEC 那个编号实测返回 CISPR 25:2008），版次只有二手线索，登记件里原样标为未核验——下一位要重取，而不是补一个日期顶上。
+
+## 2.0.1 当前授权面（2026-10-23 桌面 UI 与知识库进入派工）
+
+owner 原话（逐字）：**「读取分析，按照这个执行（前端UI是新规划——见 §2.0.1 末的原文引用），并且归档到统一项目里，
+更新覆盖替换到权威和规划里」「先分析拆解，加入到优先到任务台账里」**。裁决件
+`docs/taskpacks/20261023-ui-kb/OWNER-DECISION-2026-10-23.md`；机器面读
+`.project/governance/authority-index.json` 的 `desktopKbAdoption`。唯一当前包是
+`docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`（`DL-TP-20261023-DESKTOP-KB-R1`）。
+
+**台账读数（2026-10-23 现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
+仍冻结 **34 项**（`DL-FINAL-T01…T22` 与 `DL-UI-U01…U12`，一行都没被解冻），当前可派工 **16 项**
+（`DL-KB-01…DL-KB-16`；`DL-KB-01` = IN_PROGRESS，其余 NOT_STARTED；`currentExecution.evidence` 仍是
+198 条历史 PASS，一条没新增）。定义原件
+`docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
+
+**四个空白是实测出来的，不是听来的**（同一批字节上）：`capability_library.py` 是只读投影、没有写入面；
+`prompt_intelligence.py` 不调用任何模型；`prompt_results.py` 的存储层仍要求 `executed=false`；
+`model_selection.py` 只记录选择。路由合同账本 68 行里 BOUND_SCHEMA 54、SCHEMA_LESS 14，
+live 载荷比对 35 条绑定，前端调用对账 calls=109 / matched=55 / backend_only=11 / dynamic=3 / special=1，
+`ROUTE_VIEWS` 21 条。所以第一刀不是"接模型"，是**知识条目可写面 + 中文检索 + 三入口外壳**（批次 K0…K2）。
+
+**边界逐字不变**：「再说一遍 不做手机端 只做桌面端」——手机端是排除项，不是待办、缺口或待排期；
+「三方素材和字库不在本项目范围内」；「不锁死 做好菜单导航和接口 用户自行选择本地或者是云端模型」——默认值
+fail-closed、`UNKNOWN` 不写成合格、不宣称推理已验证、云端选项必须写明哪些数据离开本机，且**本轮不部署模型、
+不自行下载权重**；「编号问题留出可填写位置，用户自行填写或者选择用没用」——`UNUSED` 字面量，代理不得自铸标识；
+「E盘不动」；release / 安装态分发 / 真实宿主 E3 / 真人 E4 / ComfyUI / MiniMax H3 与那 34 项继续冻结；
+签字与验收只接受具名真人；导出仍是读回不是发送；AAOS 只是未来合同。
+
+**这条线之前必须同步的门禁**（漏一个就是下一会话的假现状）：`verify_documented_counts.py` 现在有两个账本分母
+（34 冻结 / 16 派工）与 20 条受治句子；`test_current_execution.py` 的计数断言已改为从账本自身取数；
+`current_execution.py` 的 `22父任务＋12UI子任务` 硬写行已改成按投影计数；新增路由要同一改动付齐
+合同行 + schema 打包三件套 + live 载荷用例 + 前端调用可被对账；新增界面要同一改动进 `ROUTE_VIEWS`、`renderRoute`、
+截图 `PAGES` 与各审计 `ROUTES`，并同步 `DESIGN.md` 的「导航 {n} 项」实测句。
 
 本轮同步过的面（都已落盘）：`AUTHORITY.md`、authority index、`AGENTS.md`、
 `docs/current/PRODUCT_DEFINITION.md`、`docs/architecture/BOUNDARY_CONTRACT.md`、`docs/current/ROADMAP.md`、
@@ -353,8 +386,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   `POST_SWEEP layout=installed` 同值、`NATIVE_VERIFY` 两侧同串；信封是**加在回答上的**，不是改回答。
   前端 0 文件。牙在测试里：`design-lab/tests/test_route_payload_contracts.py` 的绑定清单钉从 17 项
   扩到 35 项，另加五条只针对这一族的种红（判别器说谎、链丢 `root_id`、token 列表凭空长出游标、
-  `{}` 冒充"没有选择"、追加与重放键集必须一致），该模块 31 项 OK。**后端 I 状态：IMPL_LOCAL +
-  TESTED_LOCAL**（本机三片 union、聚合与 CI 逐作业读数在本节末与 §5.29 回填，未跑完之前不写成通过）。
+  `{}` 冒充"没有选择"、追加与重放键集必须一致），该模块 31 项 OK。  **后端 I 状态：IMPL_LOCAL + TESTED_LOCAL @ `efa5a8af`，复核后 CI_VERIFIED_EXACT_SHA @ `efa5a8af`**（main 与备份分支同指此枚，两次 push run `39943398842` / `39943381425` 均 completed success，12 作业里除 branch-light 那枚按规则 skipped 外全部非绿为零；Python 作业三分片 exit=0、`PYTHON_TESTS_UNION=OK expected=3183 distinct=3183 ran=3183 duplicates=0 missing=0 unexpected=0`（本机 PASS 3161 / SKIP 22），同作业 `VERIFY_CONTRACT_BINDINGS=PASS … bound=54 schema_less=14`、`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=35 failures=0`、`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=109 …`、`VERIFY_DESIGN_LAB=OK total=76 failed=0`；清轮安装作业给全三行 `GET_SWEEP layout=installed routes=39 reads=39 answered=35 verdicts=4 unmeasured=2`、`POST_SWEEP layout=installed rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`、`NATIVE_VERIFY layout=installed clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED…`。**一处必须点名的本机差异**：同一枚在本机重跑整轮 union 时 shard 3 报 59 FAIL + 1 ERROR （`union.log` 原文，`PYTHON_TESTS_SHARD_FAILURES shard=3/3 n=60 …`）全部集中在机器绑定套件，而抽取其中两个模块（`test_ui_layering`、`test_service_cli`）在静默树上单跑 `Ran 15 tests / OK / exit=0`；那一轮正在同时往 `.project-local` 与 `docs/` 落 20261023 方案包，快照/差分型断言会把自己的并发写当成违规。所以本机整轮读数不写成通过，"全套通过"这条只按 CI 那枚报，下一轮第一件事是在静默树上重跑三片确认这 60 项归零。
   级别仍是 E2：这一批改的是"信封自己说的是不是真的"，不是产物好不好；宿主 E3、真人 E4、release、
   安装态分发、ComfyUI / MiniMax H3 与 `currentExecution` 34 项继续冻结，手机端仍是排除项。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
@@ -469,7 +501,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - **跨轮像素回归没有解释力，除非先冻结 fixture**（本轮实跑证实，不是推定）：23 张 1440 截图与改动前基线比对，品牌块 0 px、导航带每张 48–52 px（其中 4 行 2 px 正是页脚发丝线下移 12 px 的预期变化，其余是导航点同一几何下的亚像素边缘差）、内容带 26 万像素集中在带活数据的屏（`21-records` 一张就 10.6 万，看下去是播种项目名 `Closeout 179…` 与多出一条真实 `RECEIPTED` 作业，版式没动）。两个仪器教训：整页 `getbbox()` 在活数据页上毫无用处（一个十六进制字符就能把框拉到最右），必须按布局带计数；以及**基线没有被覆盖**——按规矩只有 owner 认可实现结果后才能重制。
 - **推 `main` 的取消规则是半条，别按半条办事**：`cancel-in-progress` 的条件写作 `github.event_name == 'pull_request'`，所以**正在跑**的 main run 不会被后一次 push 打断（实测 `37bee232` 在跑时推了 `0c0a50c3`，两个各自跑完、各自 11 个真作业 success）；但**还在排队**的那条会——`9a3a3f37` 一个字作业都没跑就被 `2087509d` 顶掉了（`CONC=cancelled jobs=0`）。所以：不必为"怕取消"压批次，但也别以为每个 tip 都会各自出判定——只有队尾那个会。读到 `cancelled` 就当"被取代"，不要当证据。
 - **`GET /api/projects/<id>/design-layer` 里没有资产实体**（本轮把链路测试的断言从"子串出现"改成"作为身份字段的值出现"时量出来的）：投影只有 `briefs / directions / chosen_direction / bindings / active_binding / design_systems` 六个键，资产仅通过 `design_layer.briefs[i].reference_asset_ids[j]` 被引用。所以桌面端要显示"这个资产的分析/判定"，要么从简报的引用列表拿 id 再单独读，要么走资产自己的路由——别以为聚合读回里能直接找到资产对象。
-- **写进文档的数字现在有闸门了**：`scripts/verify_documented_counts.py` 把契约与提示词里逐条写出的计数对回代码——下面列的是 2026-10-22 那一批的 11 条（条数本身只以它自己输出的 `claims=<n>` 为准，2026-10-23 后端 I 又交进三条设计层分母）：`DESIGN.md` 的"导航 21 项"、CLI 子命令 24、适配器注册表 30、HTTP 路由 66、20 跳验收链、4 跳交付链，剩下五处是同一条账本事实在 `NEXT-AGENT-PROMPT.md`（"34 项父/子任务全部"）、`AUTHORITY.md`、`AGENTS.md`、`docs/current/PRODUCT_DEFINITION.md` 与 20261020 owner 决定件里的逐字复述。测量只读代码、句子只被比对，两边不互相喂数据；任何提取式匹配不到就 `SystemExit`，不会退化成"读到 0 所以没有差异"。它经 `design-lab/tests/test_documented_counts.py` 进 CI（不用改工作流），并且自带播种反证：把 DESIGN.md 那个 21 改成 20，闸门立刻红。今天那两处过期数字（源码注释里的 15、契约里的"11 项 / 587px / ≤720 才溢出"）都是靠人眼撞出来的，这条闸门的作用是让下一处自己红——本句自己就红过两次：一次是 2026-10-21 它写"当前 4 条"并列出 19/16/58 三个对不上代码的数字（闸门看不见，因为那三个数不在它的模板里，是人眼撞出来的）；一次是 2026-10-22 加了两跳之后。**同一批还修了这条闸门自己的一个缺陷**：它在"报告哪句过期"时把模板当正则用，`**{n} 跳验收链**` 以 `**` 开头就是非法模式，于是一次普通的散文过期变成 traceback 而不是 finding；现在先 `re.escape` 再替换占位符，过期必须说得出名字。
+- **写进文档的数字现在有闸门了**：`scripts/verify_documented_counts.py` 把契约与提示词里逐条写出的计数对回代码——下面列的是 2026-10-22 那一批的 11 条（条数本身只以它自己输出的 `claims=<n>` 为准，2026-10-23 后端 I 又交进三条设计层分母，同日规划轮 J0 再交两条账本分母（仍冻结 34 与当前派工 16，两条各自播种皆红），闸门自己现数 `claims=20`）：`DESIGN.md` 的"导航 21 项"、CLI 子命令 24、适配器注册表 30、HTTP 路由 66、20 跳验收链、4 跳交付链，剩下五处是同一条账本事实在 `NEXT-AGENT-PROMPT.md`（"34 项父/子任务全部"）、`AUTHORITY.md`、`AGENTS.md`、`docs/current/PRODUCT_DEFINITION.md` 与 20261020 owner 决定件里的逐字复述。测量只读代码、句子只被比对，两边不互相喂数据；任何提取式匹配不到就 `SystemExit`，不会退化成"读到 0 所以没有差异"。它经 `design-lab/tests/test_documented_counts.py` 进 CI（不用改工作流），并且自带播种反证：把 DESIGN.md 那个 21 改成 20，闸门立刻红。今天那两处过期数字（源码注释里的 15、契约里的"11 项 / 587px / ≤720 才溢出"）都是靠人眼撞出来的，这条闸门的作用是让下一处自己红——本句自己就红过两次：一次是 2026-10-21 它写"当前 4 条"并列出 19/16/58 三个对不上代码的数字（闸门看不见，因为那三个数不在它的模板里，是人眼撞出来的）；一次是 2026-10-22 加了两跳之后。**同一批还修了这条闸门自己的一个缺陷**：它在"报告哪句过期"时把模板当正则用，`**{n} 跳验收链**` 以 `**` 开头就是非法模式，于是一次普通的散文过期变成 traceback 而不是 finding；现在先 `re.escape` 再替换占位符，过期必须说得出名字。
 - **`generate_current_reports.py --check` 的三种词要分清**：`STALE` 退出 0（绑定输入没动、HEAD 前移了，正常）；`DRIFT` 退出 1（**被绑定的输入本身老化**——跟踪的源码/文档/测试改了都算，必须重生成并重钉）；`PASS` 才是当前字节自洽。本轮 `DRIFT` 出现过两次，两次都是我自己刚提交了绑定输入，不是闸门在找事。
 
 - **溢出闸门的高度维度：这一条我先前写错过，现在的版本是重量过的**。把高度做成可覆盖（`OV_HEIGHT` / `OV_SHORT_HEIGHT`，默认仍是 900/620，CI 不变）之后，在宽度 1440 上按名义高 1100 / 900 / 750 各跑一趟：`navEdge overflow` = **299 / 499 / 649**，`gap` 三趟都是 **12**，而被切的元素在 1100 与 900 是 `nav-group` 分组标签、**到 750 变成 `button` 导航项**。所以列表溢出量**随视口高变化**（`.nav` 的 `clientHeight` 跟着窗口长高）；我上一版写的"clientHeight 由 CSS 定死、几何与高度无关"是错的，错因是把 620 那一趟的 `hiddenPx=779` 当成两趟的共同读数——而当时我只覆盖了名义高度，短档根本没变，两次当然同值。真正与高度无关的只有**发丝线与切割线的间距**（固定 token 边距，620/750/900/1100 四档实测恒为 12）。结论不变但理由换了：CI 不加 1100 档，因为 1100 与 900 切到同一个元素、判同一条不变量，属重复；750 会切到另一个元素，说明现有 900+620 两档也不是摆设。
