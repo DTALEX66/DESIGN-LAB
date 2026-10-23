@@ -462,10 +462,16 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   `guidance-paths-resolve` 都把 `AUTHORITY.md` 里的 `docs/...` 当指令。写"某文件已删除"时不要留它的路径字面量，
   留汇总面/恢复清单的路径。
 - **系统 Python 缺 `jsonschema`**；报告生成器必须用 `.venv/Scripts/python.exe scripts/generate_current_reports.py`。
-- **账本身份字段仍钉在 `DL-TP-20261009-UI-FIRST-R1`**（这是设计：定义/证据字节不动，只有状态冻结）。
-  因此 `.project/manifest.yaml#taskpack` 指向新包时，`deepseek_authority_chain.py` 会稳定产出**恰好 1 条**
-  drift finding（`recorded=DL-TP-20261019-DIRECTION-R1`、`current_authority=DL-TP-20261009-UI-FIRST-R1`）。
-  `--check` 通过；不要为了让这条 finding 消失去改写账本身份字段。
+- **账本身份字段今天换了名字，那条唯一的 drift 没有消失，只是换了内容。** 2026-10-23 之前它钉在
+  `DL-TP-20261009-UI-FIRST-R1`（设计如此：定义/证据字节不动，只有状态冻结），`.project/manifest.yaml#taskpack`
+  写的是 `DL-TP-20261019-DIRECTION-R1`，两边不一致 → `deepseek_authority_chain.py` 稳定产出**恰好 1 条**
+  finding。owner 2026-10-23 把派工段重绑到新包，`currentExecution.taskpack` 现在是
+  `DL-TP-20261023-DESKTOP-KB-R1`，而 manifest 仍写 `DL-TP-20261019-DIRECTION-R1`（生成器那句 action 原文是
+  「reconcile in DLDS-B040/B010; not silently rewritten by A010」，所以不由这一轮顺手抹平）：
+  **条数仍是 1，身份两半都变了**，实测读数
+  `recorded=DL-TP-20261019-DIRECTION-R1 / current_authority=DL-TP-20261023-DESKTOP-KB-R1`，
+  `AUTHORITY_CHAIN=PASS (classification matches for 146 entries)`。不要把"改 manifest 让 finding 归零"
+  当成收尾动作——那要另一条 owner 授权，且必须与 `manifest.yaml` 的其他字段同时读回。
 - **新包是 SHA 钉住的**。改它必须走 `docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json` 流程：
   追加 revision + 改 `scripts/verify_top_level_authority.py` 的哈希，不要只改文件。
 - `guidance-paths-resolve`：`AGENTS.md` / `README.md` / `AUTHORITY.md` / 本文件里出现的每个 `docs/...`
