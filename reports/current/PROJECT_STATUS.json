@@ -8,21 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-23T12:18:42+00:00",
+  "generatedAt": "2026-10-23T13:06:28+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823",
-    "sha": "4694778c45f7ef50fc4fe2b861d9063d392be2e5",
-    "source_worktree_clean": false,
+    "origin_main": "a8e802e49827e3c192160e6430a3f652499200fa",
+    "sha": "3fbdd381881497f0ccc0ce863a7da2e04c2936c4",
+    "source_worktree_clean": true,
     "tracked_files": 3797,
-    "worktree_changes": [
-      {
-        "content": "sha256:602c8e333956d0368ef2a92f2c9293ba80e87b1bf2a8278c67984a123b06e96d",
-        "kind": "M",
-        "path": "docs/RECORD-ARCHIVE-INDEX.md"
-      }
-    ],
-    "worktree_digest": "sha256:87a19a66dfe0ce34041124fd4fdf515086280f2362c559d57edbf9179e821180"
+    "worktree_changes": [],
+    "worktree_digest": "sha256:29b18b5912fc3b479fbf6a4592b0d369599e62b158b913faed6954ed160be8fe"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -38,8 +32,8 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "4694778c45f7ef50fc4fe2b861d9063d392be2e5",
-  "subjectType": "WORKTREE",
+  "subjectSha": "3fbdd381881497f0ccc0ce863a7da2e04c2936c4",
+  "subjectType": "COMMIT",
   "taskCounts": {
     "FROZEN_DEFERRED": 34,
     "IN_PROGRESS": 1,
@@ -56,6 +50,6 @@
     "definedTestMethodCount": 3183,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:87a19a66dfe0ce34041124fd4fdf515086280f2362c559d57edbf9179e821180"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:29b18b5912fc3b479fbf6a4592b0d369599e62b158b913faed6954ed160be8fe"
 }
