@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """DL-KB-05 over real HTTP: append a revision, refuse a stale write, keep latest != recommended.
 
 A2 says a correction must append (the parent's digest stays put) and a write prepared against a

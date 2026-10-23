@@ -1083,3 +1083,78 @@ AAOS 仍只是未来合同；E 盘不动；旧 34 项继续冻结。
 与 blob 比，只有归一化后相等才算行尾差异；反证是同一个带未提交编辑的工作树，修复前报 2 份
 （`MANIFEST.json` 1,867 B + 审计 1,267 B），修复后报 1 份（只有真的 `MANIFEST.json`）。
 CI 从 `cf77b2c2` 的 `success` 推进到 `d9a8412b` 的 `success`，中间没有出现红。
+
+### 5.34 第二轮打磨与设计审查入库（`967d3eed` → `8e27a95c`）
+
+**这一轮没有新功能，只把第一刀留下的可见缺陷与证据账收干净。** 三个缺陷在
+`967d3eed` 上修好并逐屏复读：
+
+1. 列表行把修订号印两遍（`r1` + `推荐 r1`）。现在推荐且最新只印一个
+   `最新 r1 · 推荐版本`，非推荐行印 `r1` + `无推荐版本`；`apps/workbench/tests/appshell.mjs`
+   同时断言合并文案存在、`推荐 r2` 不存在、`r2` 只出现一次。
+2. 详情头同样重复。推荐条目详情现在只出现一次合并徽章。
+3. 窄视口下当前导航项不在侧栏视口内。`sync(view)` 里加了 `scrollIntoView({block:'nearest'})`，
+   E2E 新场景 `desktop-nav-active-visible` 要求 `scrollTop>0` 且按钮矩形落在导航视口内，
+   不满足就退出码 13；实测 `scrollTop=751`、按钮 593.5–640.5 落在 124.5–641。
+
+另有一处注释错误：`browser_design_layer_e2e.mjs` 说「ROUTE_VIEWS has 22 entries」，而该文件
+数的是 `.app-nav-item`（22 项，含走空 hash 的工作台）；B10 侧栏是 21 个按钮。`DESIGN.md` 的
+「导航 22 项（侧栏 21 个按钮）」本来就是对的，错的是注释，已在 `8e27a95c` 改回 21 并说明两种计数。
+
+**证据与账本。** 19 条新回执全部绑 `967d3eed`，写入 `currentExecution` 后共 235 条；
+任务状态从「3 PARTIAL + 1 IN_PROGRESS + 1 NOT_STARTED」变为：
+`DL-KB-03/04/06 = DONE`（三条轴各有 PASS 回执），`DL-KB-01/02/05 = PARTIAL`，
+`DL-KB-07…16 = NOT_STARTED`，旧 34 项仍 `FROZEN_DEFERRED`（直方图
+`FROZEN_DEFERRED 34 / DONE 3 / PARTIAL 3 / NOT_STARTED 10`）。三条 PARTIAL 缺的都不是
+"再跑一次绿"，而是尚未存在的断言或路由，逐条写在回执 `command` 里：
+
+- `DL-KB-01`：本地九门只证明这一棵树；干净克隆与 EOL 复现要干净 checkout，等本轮推送后的
+  CI 作业读数回填，回执写明这是它停在 PARTIAL 的原因。
+- `DL-KB-02`：A5「模型服务关闭时仍可写入、检索、编辑与复制」没有直接断言。
+- `DL-KB-05`：A2 已实测（追加、旧摘要不变、409 冲突带修订号、重启读回一致），
+  D5「回退推荐版本后旧方案仍可读、失效来源可标记并替换」既没有回退路由也没有
+  失效来源字段，依赖尚未开工的 `DL-KB-07`。
+
+**门禁。** 更新账本前后各跑一次九门，全部 exit 0：`TOP_AUTHORITY_GATE` 10 项、
+`TASK_DOC_STATE_GATE` 13 项、`DOCUMENTED_COUNTS`（claims=20、route_views=22、cli=24、
+adapters=30、routes=72）、`RECORD_REGISTER_GATE` 5 项、账本合同、上下文完整性、
+投影新鲜度（records=14 / verified=21 / findings=0）、证据工件存在性、账本主题绑定。
+`EVIDENCE_ARTIFACTS` 行如实保留 `tracked_drifted=64`——那是历史可变源文件的预期漂移，
+不是新回执；新回执 19/19 都在盘上且摘要吻合。
+
+**并集首跑不是全绿，两处红灯都已定位并修复。** `run_python_tests_all.py --shards 6` 在
+`967d3eed` 的树上：shard 1/2/3/5/6 `exit=0`，shard 4 `exit=1 tests=476 {'FAIL': 2, 'PASS': 473, 'SKIP': 1}`，
+失败项是 `test_verifier_internals.AggregateChainTests.test_aggregate_verify_runs` 与
+`OpenDesignAssistanceTests.test_boundary_pass`。第一条是根因，第二条是它的下游：
+新入库的 `design-lab/scripts/knowledge_revision_probe.py` 缺 SPDX 头，
+`verify_license_coverage.py` 报 `MISSING SPDX`，连带 Open Design host verifier 与
+`verify_design_lab.py` 的聚合红。补上 SPDX 后第二条转绿，第一条仍红，暴露出第二个真问题：
+`kb-05-implementation-revisions.log` 是 Windows cp936 stdout 写出的日志（第 513 字节
+`0xb7` 起是中文标题），`verify_identity_gate.py` 以 `IDENTITY_GATE=FAIL total=1 scanned=3241`
+判它不可读。修法是按 cp936 解码再以 UTF-8 写回，先证明文本逐字符不变（`b.decode('cp936')`
+与重编码后的 `decode('utf-8')` 相等）再落盘，并在同一个提交里把账本那条回执的
+`artifact_sha256` 重钉为 `b58d862ef24ddfc579fbe45bb208ebe28f6a3dc1ccfad6d454a81f79b2e0c659`
+（1,348 → 1,366 B，内容不变、编码改变）。修复后 `IDENTITY_GATE=OK total=0 scanned=3241`、
+`LICENSE_COVERAGE=OK`，两条失败测试按定向重跑各自通过
+（`test_aggregate_verify_runs` 118.34s、`test_boundary_pass` 1.16s）。
+这次的内容没有变，但**证据文件的编码也是证据的一部分**：一份二进制上不可读的日志
+会让整个聚合链红，而它看起来只是"一份日志"。
+
+**设计审查插件第一次跑全。** `design-review` 插件对 `design.qa.yaml` 的 26 个屏幕
+（22 条桌面路由 + 4 个 390×844 窄窗探针）跑出：
+
+- a11y：26 次扫描、0 findings、`ok=true`。这是自动扫描，不是 WCAG 认证，也不是真人验收。
+- design debt：713 findings、`ok=false`、10 个文件、27 个 token 值。分布
+  px-magic 630 / hard-coded-color 38 / functional-color 14 / custom-shadow 28 /
+  tailwind-arbitrary 3；severity minor 630 / major 52 / debt 31。按文件：
+  `style.css` 683、`shell.ts` 28、`workbench.ts` 2。
+
+这条按**未关闭的登记**入账，不按通过。`style.css` 同时是 token 声明处与组件规则所在地，
+原始值里有一部分就是 token 定义；`shell.ts` 的 28 条里 17 条是注释命中，非注释的 11 条中
+`5985` 是 token 预览样例 JSON、`9273` 是资源 ID 正则、`workbench.ts:377` 是路由正则，均为误报；
+真实内联样式是 `5475/5477` 与 `6856/6860/6870` 五处，`6418/6692` 是 760/840px 断点常量。
+清理属于版式轮次，本轮不把阈值调低，也不写"设计债已清零"。
+
+**`evidence-index.json` 只覆盖第一刀。** 它仍然绑 `7f5e68d7` 的 47 份首刀件；
+本轮 19 份新件由账本 `artifact_sha256` 逐条绑定，不并入那个索引。读证据时以账本为准，
+不要把索引当成"证据包全量清单"。

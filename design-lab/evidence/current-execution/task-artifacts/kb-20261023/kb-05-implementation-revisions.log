@@ -1,7 +1,7 @@
 KB_REVISION_PROBE_COMMIT=967d3eed550f5de819f57006530cb4738a491df0
 KB_REVISION_CREATED {"entry_id": "kentry-ba813f489d4849a0937400053273f778", "revision": 1, "content_sha256": "sha256:d924b869bf036ad5914b4a57ec0ca5c31a8328df21cd8245236a27e6665b3c80", "recommended": true}
 KB_REVISION_APPENDED {"revision": 2, "content_sha256": "sha256:045debce32d10f75edb2e72463296c90845eebe9b33b09e13a6f95dadcb63595", "recommended": false}
-KB_REVISION_DETAIL {"latest_revision": 2, "recommended_revision": 1, "current_title": "·Ö¾µ²ð½âÈý²½·¨£¨ÐÞ¶©£©", "recommended_title": "·Ö¾µ²ð½âÈý²½·¨", "revisions": [1, 2], "parent_sha": "sha256:d924b869bf036ad5914b4a57ec0ca5c31a8328df21cd8245236a27e6665b3c80", "child_sha": "sha256:045debce32d10f75edb2e72463296c90845eebe9b33b09e13a6f95dadcb63595"}
+KB_REVISION_DETAIL {"latest_revision": 2, "recommended_revision": 1, "current_title": "åˆ†é•œæ‹†è§£ä¸‰æ­¥æ³•ï¼ˆä¿®è®¢ï¼‰", "recommended_title": "åˆ†é•œæ‹†è§£ä¸‰æ­¥æ³•", "revisions": [1, 2], "parent_sha": "sha256:d924b869bf036ad5914b4a57ec0ca5c31a8328df21cd8245236a27e6665b3c80", "child_sha": "sha256:045debce32d10f75edb2e72463296c90845eebe9b33b09e13a6f95dadcb63595"}
 KB_REVISION_CONFLICT {"status": 409, "error": "KNOWLEDGE_ENTRY_REVISION_CONFLICT", "detail": "the entry is at revision 2, not 1; re-read it and write against the revision you actually saw"}
 KB_REVISION_AFTER_CONFLICT {"status": 200, "latest_revision": 2, "revisions": [1, 2]}
 KB_REVISION_RESTART_READBACK {"latest_revision": 2, "recommended_revision": 1, "revisions": [1, 2], "parent_sha": "sha256:d924b869bf036ad5914b4a57ec0ca5c31a8328df21cd8245236a27e6665b3c80", "child_sha": "sha256:045debce32d10f75edb2e72463296c90845eebe9b33b09e13a6f95dadcb63595"}

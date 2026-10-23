@@ -1,0 +1,20 @@
+PYTHON_TESTS_SHARDS_START shards=6 expected_tests=3200 plan=none (index %% n)
+PYTHON_TESTS_SHARD_RESULT shard=1/6 exit=0 tests=626 wall_seconds=1341.472 outcomes={'PASS': 626}
+PYTHON_TESTS_SHARD_RESULT shard=2/6 exit=0 tests=626 wall_seconds=77.761 outcomes={'PASS': 625, 'SKIP': 1}
+PYTHON_TESTS_SHARD_RESULT shard=3/6 exit=0 tests=562 wall_seconds=262.106 outcomes={'PASS': 561, 'SKIP': 1}
+PYTHON_TESTS_SHARD_RESULT shard=4/6 exit=1 tests=476 wall_seconds=180.571 outcomes={'FAIL': 2, 'PASS': 473, 'SKIP': 1}
+PYTHON_TESTS_SHARD_FAILURES shard=4/6 n=2 ids=test_verifier_internals.AggregateChainTests.test_aggregate_verify_runs, test_verifier_internals.OpenDesignAssistanceTests.test_boundary_pass
+PYTHON_TESTS_SHARD_RESULT shard=5/6 exit=0 tests=380 wall_seconds=46.04 outcomes={'PASS': 379, 'SKIP': 1}
+PYTHON_TESTS_SHARD_RESULT shard=6/6 exit=0 tests=530 wall_seconds=129.206 outcomes={'PASS': 529, 'SKIP': 1}
+PYTHON_TESTS_UNION=OK expected=3200 distinct=3200 ran=3200 duplicates=0 missing=0 unexpected=0
+PYTHON_TESTS_SHARDS_JSON=WROTE D:\All projects\DESIGN-LAB\.project-local\task-runtime\python-tests-all\72e31d4ad08e41f6a4619cc9479ea9f1\python-tests-shards.json outcomes={'PASS': 3193, 'SKIP': 5, 'FAIL': 2}
+PYTHON_TESTS_MODULE   980.867s tests=37 test_reconstruction_evidence
+PYTHON_TESTS_MODULE   181.671s tests=3 test_workbench_overflow_gate
+PYTHON_TESTS_MODULE   149.138s tests=3 test_workbench_contrast_gate
+PYTHON_TESTS_MODULE   146.223s tests=25 test_projection_freshness
+PYTHON_TESTS_MODULE   119.788s tests=58 test_verifier_internals
+PYTHON_TESTS_MODULE    40.481s tests=40 test_reconstruction_pipeline
+PYTHON_TESTS_MODULE    39.384s tests=36 test_contract_bindings
+PYTHON_TESTS_MODULE    31.161s tests=8 test_protected_state_detection
+PYTHON_TESTS_MODULE    18.673s tests=19 test_ledger_subject_binding
+PYTHON_TESTS_MODULE    16.541s tests=4 test_record_import_fidelity

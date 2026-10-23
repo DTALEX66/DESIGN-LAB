@@ -11582,7 +11582,7 @@
         "exit_code": 0,
         "observed_at": "2026-10-23T21:25:40Z",
         "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
-        "artifact_sha256": "7f47c6bf4f2d9e9435b705e495d1c1030cf9a9790b0025d197407b3cb59256fd"
+        "artifact_sha256": "b58d862ef24ddfc579fbe45bb208ebe28f6a3dc1ccfad6d454a81f79b2e0c659"
       },
       {
         "id": "kb-06-implementation-documented-counts-r2-20261024",

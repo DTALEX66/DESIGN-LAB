@@ -59,9 +59,9 @@ debt:
 # #/records and #/models were added earlier without being scanned, and #/knowledge is
 # the newest screen (DL-KB-03). All four are listed now, so "0 findings" covers every
 # desktop route the sidebar can reach.
-# The four 390x844 screens are the mobile states where the nav and KPI rows have been
-# contested; mobile implementation is FROZEN_DEFERRED by owner decision, but measuring it
-# is evidence, not implementation, so they stay scanned.
+# The four 390x844 screens are the nav/KPI narrow-window states that have been contested.
+# Mobile is an EXCLUSION (owner 2026-10-19: "只做桌面端"), not a pending task: these probes
+# measure the desktop app at a narrow window and are not a mobile deliverable.
 screens:
   - name: workbench
     app: { url: "/workbench", waitUntil: "networkidle", waitForSelector: "#workspace" }
