@@ -697,6 +697,34 @@ AAOS 仍只是未来合同；E 盘不动；release / 安装态分发 / 真实宿
 
 ---
 
+**批次 J 的 CI 第一次是红的，红在我身上，而且红得准确。** `a8e802e4` 上 11 个作业里 Python 作业失败，
+shard 1/3 三条红全在 `test_record_import_fidelity`：`test_every_repo_held_row_is_accounted_for`
+（`475 != 479`）、`test_recorded_hashes_match_the_files_on_disk`、
+`test_the_archive_still_equals_what_the_manifest_recorded`。原因是我为了覆盖替换而改写的四份文件
+（`AUTHORITY.md`、`.project/governance/authority-index.json`、`docs/current/PRODUCT_DEFINITION.md`、
+`docs/current/ROADMAP.md`）**同时也是 2026-10-08 Record 导入清单的 repo 侧持有行**——清单把它们钉在
+"导入后仓库副本"的摘要上，我改了字节却没有声明演进，于是 leg 2 只能报 WORKTREE-MISMATCH，
+把一次诚实的覆盖替换伪装成静默损坏的样子。修法不是放宽断言，而是走仓库自带的声明器
+`scripts/declare_record_evolution.py`：它只写 `repoBytesAfterImport/repoCrc32AfterImport/repoSha256AfterImport`
+与 `evolvedBy`（commit 由 `git log -1 -- <path>` 现读，不手填、不虚构），归档的 `sha256/crc32/bytes` 一个不动，
+leg 1 仍对源 ZIP 可验。声明之后 `RECORD_VERIFY=OK blobs=HEAD`
+（`rows=492 source_verified=492 worktree_verified=479 blob_verified=466 blob_eol_only=13 blob_absent=0 moved_rows=3 skipped=0`），
+`test_record_import_fidelity` 本机 `Ran 4 tests / OK`。
+**这条教训的形状值得单独记一句**：权威面不是自由字节。改一份被别的登记件量着的文件，必须同一轮里跑那个
+登记件的声明器——`AGENTS.md` 不在清单里，`AUTHORITY-PIN-CHANGE.json` 也不在，唯独我改的四份在活动面上。
+第一轮没跑它，是因为我把这四份当"权威"而不是当"被绑定件"看。
+
+**本机整轮那 59 FAIL + 1 ERROR 现在有读数了，不是并发写、也不是代码。** `scripts/verify_spill_census.py`
+在 `RuntimeTests.test_the_check_passes_reports_machine_state_and_writes_nothing` 里报
+`AssertionError: 'INCOMPLETE' != 'PASS'`，报告体是 `rootCensus … truncated=true cappedAt=4096`；
+本机现数 `.project-local/task-runtime` 有 **308,833** 条目、`.project-local/task-artifacts` **9,153**、
+`.project-local/projects` **472**，全部是历轮运行与测试自己写出来的忽略根。也就是说这条闸今天在这台机器上
+**量不出来**（它拒绝把截断当干净，正是它该有的行为），依赖该判定的套件跟着红；CI 是干净 checkout，
+那些根本不存在，所以同一枚 CI 绿。两次静默复跑（`415.7s` / `414.4s`）失败模块与耗时一致，确认是确定性状态、
+不是竞态。**处置也不是"删掉就好"**：`currentExecution` 的多数回执按 `artifact_sha256` 绑在
+`.project-local/task-artifacts/**` 的字节上，删了就把证据面自己删了——要么按审计确认后再清、
+要么由 owner 决定把上限调到能覆盖真实状态并同步那句话，两条都不是本轮可以顺手做的。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
