@@ -8,16 +8,16 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-23T19:39:30+00:00",
+  "generatedAt": "2026-10-23T19:58:24+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "cf77b2c22953aa8a4b2d3561a5cf06252e94e108",
-    "sha": "48a7e030d41c1ba5216335f8424d83fb5efface7",
+    "origin_main": "d9a8412bd93550fdb7983d5535f643b314f90d3e",
+    "sha": "ffbec465b76a374ac5cc082282597adafa8d9c1f",
     "source_worktree_clean": false,
     "tracked_files": 3854,
     "worktree_changes": [
       {
-        "content": "sha256:4e0bc1251c212ddbe4f32ccb22559fb63b463b2528a4c706efa416ebdfab1d22",
+        "content": "sha256:c49b4427cae9103515c06aac71d803458e69c0ca5fb4ad8603926492f9566df3",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
@@ -32,7 +32,7 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:e8380de5bf8f8614f02f5cc5efae0333a6a11670de7c28d53d244f05af0b1b7b"
+    "worktree_digest": "sha256:27b6935d94188a5a1dfad6ae12f9d42ab96aa51f2661d151f916f5bd4161c2fd"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -48,7 +48,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "48a7e030d41c1ba5216335f8424d83fb5efface7",
+  "subjectSha": "ffbec465b76a374ac5cc082282597adafa8d9c1f",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "FROZEN_DEFERRED": 34,
@@ -68,5 +68,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:e8380de5bf8f8614f02f5cc5efae0333a6a11670de7c28d53d244f05af0b1b7b"
+  "worktreeDigest": "sha256:27b6935d94188a5a1dfad6ae12f9d42ab96aa51f2661d151f916f5bd4161c2fd"
 }
