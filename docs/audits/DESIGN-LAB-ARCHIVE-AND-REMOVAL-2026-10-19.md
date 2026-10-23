@@ -1084,7 +1084,7 @@ AAOS 仍只是未来合同；E 盘不动；旧 34 项继续冻结。
 （`MANIFEST.json` 1,867 B + 审计 1,267 B），修复后报 1 份（只有真的 `MANIFEST.json`）。
 CI 从 `cf77b2c2` 的 `success` 推进到 `d9a8412b` 的 `success`，中间没有出现红。
 
-### 5.34 第二轮打磨与设计审查入库（`967d3eed` → `8e27a95c`）
+### 5.34 第二轮打磨与设计审查入库（`967d3eed` → `3c6ca491`）
 
 **这一轮没有新功能，只把第一刀留下的可见缺陷与证据账收干净。** 三个缺陷在
 `967d3eed` 上修好并逐屏复读：
@@ -1149,6 +1149,34 @@ ran=3200 duplicates=0 missing=0 unexpected=0`，`UNION_RUNNER_EXIT=0`，合计 P
 r2（红）与 r3（绿）两份日志都入库，不删不改：红的那份记录的是修复前的事实。
 本机读数永远不是 CI 读数，最终判据仍是推送后逐作业读到的结果。
 
+**CI 读数：干净检出复现成功（`3c6ca491`）。** 推送后 `main` 的 run `40036696250` 在 `3c6ca491`
+上 `success`：12 个作业位里 11 个 `success`、`Branch light gate` 按规则 `skipped`；同一 SHA 的分支
+run `40036704582` 也 `success`（只跑 Branch light，其余跳过）。逐行读数（本次从作业日志读出，
+原样存入 `kb-01-delivery-ci-clean-checkout-20261024.log`）：`TOP_AUTHORITY_GATE=PASS checks=10
+failed=none`、`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=21 problems=0`、
+`VERIFY_RESULT=OK total=549 failed=0`、`VERIFY_DESIGN_LAB=OK total=76 failed=0`；三片
+`shard=1/3 exit=0 tests=1102 {'PASS':1089,'SKIP':13}`、`2/3 exit=0 tests=1006
+{'PASS':1002,'SKIP':4}`、`3/3 exit=0 tests=1092 {'PASS':1087,'SKIP':5}`，
+`PYTHON_TESTS_UNION=OK expected=3200 distinct=3200 ran=3200 duplicates=0 missing=0 unexpected=0`。
+这是全新 Linux checkout：登记册的五个 blob 摘要被原样复算通过，EOL 没有被规范化改写，
+`DL-KB-01` 的第二条验收（干净克隆复现）由此落地。
+
+**上一枚是红的，红在登记册。** `f75c6909` 的 run `40036507654` 只有 `Top-level Authority` 作业失败，
+其余 11 个成功：§5.34 这份 append 改写了登记册第 5 件（交付报告本身）的已提交字节，而
+`docs/RECORD-ARCHIVE-INDEX.md` 还钉着旧 blob（`8d95f14263ab` / 193,302 B），所以
+`RECORD_REGISTER_GATE` 拒绝。修法不是改闸门，是 `3c6ca491` 重新生成登记册（第 5 行改钉
+`e0028440f230` / 200,089 B），并顺手修了生成器里那句错话——旧模板把"最后改写提交"写成了"首次读自"。
+哈希绑定的记录改写天然要两次提交，这正是登记册设计里写明的那条，不是流程事故。
+
+**`DL-KB-01` 收口。** 三条验收逐条落地：四条闸门在 `3c6ca491` 上同绿（两条由 CI 作业读出，
+`TASK_DOC_STATE_GATE` 在那次 CI 的统一校验里 PASS；`DOCUMENTED_COUNTS` 不在 CI 里，本机在收口树
+实测 `claims=20 route_views=22 cli=24 adapters=30 routes=72`，它计量的每个量——路由数、子命令数、
+adapter 数、两跳链、冻结/派工两个分母——都不受本轮改动影响）；干净克隆复现由上面这次 CI 读数证明；
+旧 34 项仍全部 `FROZEN_DEFERRED`，本轮没有解冻任何一项，规划没有被写成实施证据。回执
+`kb-01-delivery-ci-clean-checkout-20261024`（axis `delivery`）绑的就是这份日志；账本状态
+`PARTIAL → DONE` 后直方图为 `FROZEN_DEFERRED 34 / DONE 4 / PARTIAL 2 / NOT_STARTED 10`，
+证据 236 条。
+
 **设计审查插件第一次跑全。** `design-review` 插件对 `design.qa.yaml` 的 26 个屏幕
 （22 条桌面路由 + 4 个 390×844 窄窗探针）跑出：
 
@@ -1165,5 +1193,6 @@ r2（红）与 r3（绿）两份日志都入库，不删不改：红的那份记
 清理属于版式轮次，本轮不把阈值调低，也不写"设计债已清零"。
 
 **`evidence-index.json` 只覆盖第一刀。** 它仍然绑 `7f5e68d7` 的 47 份首刀件；
-本轮 19 份新件由账本 `artifact_sha256` 逐条绑定，不并入那个索引。读证据时以账本为准，
+第一刀之后的 20 份新件（第二轮 19 份 + 第三轮 1 份 delivery 回执）由账本 `artifact_sha256`
+逐条绑定，不并入那个索引。读证据时以账本为准，
 不要把索引当成"证据包全量清单"。

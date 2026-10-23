@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-23T21:25:40Z",
+  "updated_at": "2026-10-23T23:28:13Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -8713,10 +8713,11 @@
       },
       {
         "id": "DL-KB-01",
-        "state": "PARTIAL",
+        "state": "DONE",
         "evidence": [
           "kb-01-implementation-gate-bundle-20261024",
-          "kb-01-unit-ledger-20261024"
+          "kb-01-unit-ledger-20261024",
+          "kb-01-delivery-ci-clean-checkout-20261024"
         ]
       },
       {
@@ -11655,6 +11656,18 @@
         "observed_at": "2026-10-23T21:25:40Z",
         "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
         "artifact_sha256": "b498a95e066daeb3b20619ba5a3acfe830f8216ab59399eeecad4e4e499fe98e"
+      },
+      {
+        "id": "kb-01-delivery-ci-clean-checkout-20261024",
+        "task_id": "DL-KB-01",
+        "axis": "delivery",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-01-delivery-ci-clean-checkout-20261024.log",
+        "command": "clean-checkout CI at 3c6ca491: main run 40036696250 success (11 jobs success, Branch light skipped), branch run 40036704582 success; TOP_AUTHORITY_GATE=PASS checks=10 failed=none, RECORD_REGISTER_GATE=PASS checks=5 pathish_named=21 problems=0, VERIFY_RESULT=OK total=549 failed=0, VERIFY_DESIGN_LAB=OK total=76 failed=0, shards 1102/1006/1092 exit=0, PYTHON_TESTS_UNION=OK expected=3200 distinct=3200 ran=3200; the register digests reproduce from a fresh Linux checkout with EOL not normalized, which is DL-KB-01 acceptance clause 2",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T23:27:47Z",
+        "subject_sha": "3c6ca49133a4995b074182280c0844a9872f039f",
+        "artifact_sha256": "2ab634bbc451a942a26613c53a3620b8df6ac2fe5e3769b0ffdaf77843573894"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

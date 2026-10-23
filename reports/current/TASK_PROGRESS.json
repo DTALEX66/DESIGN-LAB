@@ -2,10 +2,10 @@
   "authorityTaskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "authorityTaskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
   "counts": {
-    "DONE": 3,
+    "DONE": 4,
     "FROZEN_DEFERRED": 34,
     "NOT_STARTED": 10,
-    "PARTIAL": 3
+    "PARTIAL": 2
   },
   "environmentFingerprint": {
     "machine": "AMD64",
@@ -14,7 +14,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-23T22:18:03+00:00",
+  "generatedAt": "2026-10-23T23:28:26+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -29,7 +29,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "8e27a95c2c0476f7f907c7288d31aad2f26e6d5a",
+  "subjectSha": "3c6ca49133a4995b074182280c0844a9872f039f",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
@@ -859,14 +859,15 @@
       "batch": "K0",
       "evidence": [
         "kb-01-implementation-gate-bundle-20261024",
-        "kb-01-unit-ledger-20261024"
+        "kb-01-unit-ledger-20261024",
+        "kb-01-delivery-ci-clean-checkout-20261024"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-01",
       "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_FIRST",
-      "state": "PARTIAL",
+      "state": "DONE",
       "title": "方案包落仓、权威与规划覆盖替换、台账加入"
     },
     {
@@ -969,9 +970,7 @@
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-06",
-      "implementation_unmet": [
-        "DL-KB-01"
-      ],
+      "implementation_unmet": [],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
       "state": "DONE",
@@ -1123,5 +1122,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:4983b4d0c0452636a31fba10220107134cab533807920cbfc0a0db3700fda337"
+  "worktreeDigest": "sha256:453d7c5db1ad263cfb5ab2bdfed26ee37098a7b10a10b3c2db13db678b4ff7dc"
 }

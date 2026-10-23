@@ -1,0 +1,49 @@
+# DL-KB-01 delivery receipt: clean-checkout CI reproduction
+# observed_at_utc: 2026-10-23T23:27:47Z
+# repo: DTALEX66/DESIGN-LAB  workflow: .github/workflows/canonical-verify.yml
+# source: live gh api / gh run view output, transcribed verbatim below
+
+## main push run
+run_id=40036696250 head_sha=3c6ca49133a4995b074182280c0844a9872f039f status=completed conclusion=success event=push
+job success	Python gate (V3 verifiers + unit tests)
+job success	MiniGame node gate (+ drift check)
+job success	DeepSeek authority gate chain (DLDS-H010 / DL-AUDIT-20260914-07)
+job success	Clean wheel install + Workbench launch gate
+job success	Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)
+job success	Workbench browser E2E (exact-SHA controlled-runtime, no-skip)
+job success	Generated-artifact clean-tree gate
+job success	Open Design host adapter gate
+job success	Workbench strict-TS product gate (taskpack 12.2/12.3/12.4/12.5)
+job success	License & secret hygiene gate
+job skipped	Branch light gate (compile + identity boundary; development branches only)
+job success	CI artifact proof (H001: main-run upload readback)
+
+## branch push run at the same SHA
+run_id=40036704582 head_sha=3c6ca49133a4995b074182280c0844a9872f039f status=completed conclusion=success event=push
+
+## gate lines from the Top-level Authority job (120703257859)
+TOP_AUTHORITY_GATE=PASS checks=10 failed=none
+RECORD_REGISTER_GATE=PASS checks=5 pathish_named=21 problems=0
+
+## unified verify and sharded union from the Python job (120703257676)
+VERIFY_RESULT=OK total=549 failed=0
+VERIFY_DESIGN_LAB=OK total=76 failed=0
+PYTHON_TESTS_SHARD_RESULT shard=1/3 exit=0 tests=1102 wall_seconds=275.376 outcomes={'PASS': 1089, 'SKIP': 13}
+PYTHON_TESTS_SHARD_RESULT shard=2/3 exit=0 tests=1006 wall_seconds=76.154 outcomes={'PASS': 1002, 'SKIP': 4}
+PYTHON_TESTS_SHARD_RESULT shard=3/3 exit=0 tests=1092 wall_seconds=263.502 outcomes={'PASS': 1087, 'SKIP': 5}
+PYTHON_TESTS_UNION=OK expected=3200 distinct=3200 ran=3200 duplicates=0 missing=0 unexpected=0
+
+## preceding run whose only red was the stale archive register (fixed at 3c6ca491)
+run_id=40036507654 head_sha=f75c6909de778d6ffd188fa29c4be9c68115d52d conclusion=failure
+job success	DeepSeek authority gate chain (DLDS-H010 / DL-AUDIT-20260914-07)
+job success	MiniGame node gate (+ drift check)
+job success	Python gate (V3 verifiers + unit tests)
+job success	License & secret hygiene gate
+job success	Generated-artifact clean-tree gate
+job success	Workbench strict-TS product gate (taskpack 12.2/12.3/12.4/12.5)
+job success	Workbench browser E2E (exact-SHA controlled-runtime, no-skip)
+job failure	Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)
+job success	Clean wheel install + Workbench launch gate
+job success	Open Design host adapter gate
+job skipped	Branch light gate (compile + identity boundary; development branches only)
+job success	CI artifact proof (H001: main-run upload readback)

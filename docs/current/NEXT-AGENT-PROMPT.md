@@ -94,10 +94,14 @@ owner 原话（逐字）：**「读取分析，按照这个执行（前端UI是�
 
 **台账读数（2026-10-24 收尾时现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
 仍冻结 **34 项**（`DL-FINAL-T01…T22` 与 `DL-UI-U01…U12`，一行都没被解冻），当前可派工 **16 项**
-（`DL-KB-01…DL-KB-16`）。第二轮收口后的状态是 `DONE 3`（`DL-KB-03/04/06`，三条轴各有 PASS 回执——
-这是账本的 DONE，证据等级仍是 E1/E2，真人验收未发生）、`PARTIAL 3`（`DL-KB-01/02/05`）、
-`NOT_STARTED 10`（`DL-KB-07…16`）。`currentExecution.evidence` 235 条全部 PASS：216 条历史 +
-19 条新回执，新回执逐条绑 `967d3eed` 的产物。证据包 `kb-20261023/` 现有 70 个受跟踪文件；
+（`DL-KB-01…DL-KB-16`）。第三轮收口后的状态是 `DONE 4`（`DL-KB-01/03/04/06`——这是账本的 DONE，
+证据等级仍是 E1/E2，真人验收未发生）、`PARTIAL 2`（`DL-KB-02/05`）、`NOT_STARTED 10`（`DL-KB-07…16`）。
+`currentExecution.evidence` 236 条全部 PASS：216 条历史 + 19 条绑 `967d3eed` 的回执 +
+1 条 `delivery` 回执（`kb-01-delivery-ci-clean-checkout-20261024`，绑 `3c6ca491` 的干净检出 CI）。
+`DL-KB-01` 的干净克隆条款已由 CI 兑现：main run `40036696250` 在 `3c6ca491` 上 success（11 个作业
+success、Branch light 按规则跳过），`RECORD_REGISTER_GATE=PASS checks=5 problems=0` 在全新 Linux
+checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run `40036704582` 也 success。
+本机九门在收口树（`236` 条证据、`DONE 4`）上全部 exit 0。证据包 `kb-20261023/` 现有 70 个受跟踪文件；
 `evidence-index.json` 仍是第一刀在 `7f5e68d7` 的 47 份索引，**不是全量清单**——第二轮起的回执
 以账本 `artifact_sha256` 为准。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
