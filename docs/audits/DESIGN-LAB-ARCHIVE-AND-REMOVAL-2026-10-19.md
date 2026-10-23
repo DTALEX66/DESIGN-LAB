@@ -797,8 +797,11 @@ stdout，在这台机器上按 cp936 写出，`verify_identity_gate.py` 报 `IDE
 **⑦ 账本只说它量到的事。** `currentExecution` 50 行 = 34 `FROZEN_DEFERRED` + 1 `IN_PROGRESS`（DL-KB-01）
 + 4 `PARTIAL`（DL-KB-02/03/04/06）+ 11 `NOT_STARTED`；证据 198 → 216 条，18 条新回执全部绑
 `7f5e68d7` 的产物。四条是 `PARTIAL` 不是 `DONE`：**真人验收没有发生**，本轮最高只到 E2（受控运行时），
-不是 E3（真实工作流），更不是 release。证据包 `kb-20261023/` 35 个文件逐份登记在 `evidence-index.json`
-（字节 + sha256），7 张播种截图与 3 张缩放截图各带许可 sidecar。
+不是 E3（真实工作流），更不是 release。证据包 `kb-20261023/` 共 48 个文件，其中 47 个（索引自身除外）
+逐份登记在 `evidence-index.json`（字节 + sha256）；13 张截图（3 张空库、7 张播种、3 张缩放）各带许可
+sidecar。这份清单在收尾时按磁盘字节重扫过一次：首版只覆盖当时的 35 个文件，并集修版轮新增的两份闸门
+日志与十份 sidecar 原不在其中，条目数这才与目录里的文件数对齐（索引保留原 `commit: 7f5e68d7`，
+因为它登记的是那一批产物，重扫只是重新哈希，没有重拍任何一张图）。
 
 **⑧ 全量并集抓到的五处红：两处是钉死的测试没同改，两处是账没跟着 CSS 走，一处是真版式缺陷。**
 `PYTHON_TESTS_UNION=OK expected=3200 distinct=3200 ran=3200 …` 之后 `FAIL=5`。
@@ -816,7 +819,7 @@ listed below is a boundary this file silently stopped covering」），`test_wor
 `flex:0 0 auto; white-space:nowrap; align-self:center`，先证伪再修——隐藏标签 138→56，标签单行不收缩
 同为 56，修后 E2E 两个用例通过。这条按桌面窄窗口自适应处理，不是手机端交付，也没有把手机端列为待办。
 另两处红是账要跟着 CSS 走：`verify_asset_governance` 指出 `shots/seeded/knowledge-zoom-150.png`
-（356 KiB）没有声明 bundle，已在 `large-assets.json` 增加 `kb-20261023/`（实测 3.25 MiB / 预算 4.0 MiB，
+（356 KiB）没有声明 bundle，已在 `large-assets.json` 增加 `kb-20261023/`（实测 3.11 MiB / 预算 4.0 MiB，
 理由写明账本摘要直接绑定这些字节，不能挪进 Git 忽略目录）；`design_debt_baseline` 因新增一条规则把
 字面 px 从 514 变 516，`DESIGN.md` §4 的那句同改。两处完成后 `VERIFY_PROJECTION_FRESHNESS=OK`、
 `ASSET_GOVERNANCE=OK`、`VERIFY_DESIGN_LAB=OK total=76 failed=0`。
@@ -1018,3 +1021,42 @@ wheel 从 1,073,608 字节到 1,082,262 字节，成员 354 → 381。
 模型不锁死但默认 fail-closed，显式选择只是被记录的动作；编号仍用字面量 `UNUSED`，代理不自造标识；
 签署与审核仍只接受具名 human；导出仍只读回；E 盘不动。级别仍是 E2——这一批改的是"信封自己说的
 是不是真的"，不是产物好不好。
+
+### 5.32 CI 读数（批次 K 第一刀；本地并集与远端逐作业都绑 `cf77b2c2`）
+
+**本地并集先在安静树上跑完。** `PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe
+scripts/run_python_tests_all.py --shards 3 --jobs 1`，工作树 `HEAD cf77b2c2`、除未跟踪的
+`.codebuddy/` 与 `.cursor/` 外无改动：shard 1/3 `exit=0 tests=1102 wall=1578.375s`
+（PASS 1101 / SKIP 1）、shard 2/3 `exit=0 tests=1006 wall=126.719s`（PASS 1004 / SKIP 2）、
+shard 3/3 `exit=0 tests=1092 wall=386.918s`（PASS 1090 / SKIP 2）；
+`PYTHON_TESTS_UNION=OK expected=3200 distinct=3200 ran=3200 duplicates=0 missing=0
+unexpected=0`，合计 PASS 3195 / SKIP 5，`UNION_EXIT=0`。上一轮同一口径是 FAIL 5，这次是 0。
+⑧ 里那条"暂记为环境性红、不写成已解释"的 `test_workbench_theme_geometry_gate` 在这轮并集里通过；
+它依然没有得到解释，只多了一条重跑读数。
+
+**推送是 fast-forward，两个引用同一 SHA。** `git push origin cf77b2c2:main` 与
+`git push origin cf77b2c2:qoder/designlab-backup-consistency-20261007` 都报 `d5444cb3..cf77b2c2`；
+`git ls-remote` 读到两个 ref 都是 `cf77b2c2`。没有 force，没有合并以外的历史改写。
+
+**远端 CI：run `40009897564`，`Canonical Verify`，SHA `cf77b2c2`，conclusion `success`。**
+12 个作业里 11 个 success，`Branch light gate` 按设计在 main 上 skipped。逐作业的关键步骤：
+- `Python gate (V3 verifiers + unit tests)`：18 个实质步骤全部 success，含 unified verify、
+  boundTree freshness、R5 账本闸、证据工件存在性、分片单元测试（与本地并集同一套件）。
+- `Top-level Authority consistency gate`：4 步全绿，含 archive-wave record register。
+- `DeepSeek authority gate chain`：2 步全绿。
+- `Workbench strict-TS product gate`：typecheck、Vite build、node smoke、静态验证，以及
+  `No-drift: rebuilt bundle is byte-identical to committed`。
+- `Workbench browser E2E (exact-SHA controlled-runtime, no-skip)`：
+  `Browser E2E must RUN and PASS` 成功，证据工件已上传。
+- `Clean wheel install + Workbench launch gate`：建 wheel、干净环境安装、启动读回、
+  20 跳验收链、全部 POST 行逐行走查，5 步全绿。
+- `Generated-artifact clean-tree gate`：重建产物无漂移 + 全树干净。
+- `License & secret hygiene gate`：8 步全绿（许可覆盖、SBOM、秘密史扫描、CRLF 检查）。
+- `MiniGame node gate`、`Open Design host adapter gate`（表面未变，安装/闸门步骤按条件 skipped）、
+  `CI artifact proof` 均 success。
+- `Branch light gate`：main 上 skipped，不是失败。
+
+**这一轮之后仍未证的事一条没变**：真人验收没有发生，最高级别仍是 E2；产物没有发布，
+没有安装态分发，没有真实宿主 E3。**边界不变**：手机端仍是排除项；字体与三方素材不在范围内；
+模型不锁死但默认 fail-closed，本轮不部署模型、不下载权重；编号仍是 `UNUSED`；导出仍只读回；
+AAOS 仍只是未来合同；E 盘不动；旧 34 项继续冻结。

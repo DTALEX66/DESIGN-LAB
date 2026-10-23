@@ -7,7 +7,7 @@
 > 历史条目在 `docs/history/next-agent-prompts/`，逐份登记于 `docs/history/next-agent-prompts/PROMPT-LINEAGE.json`。
 > `verify_task_document_states.py` 的 `entry-not-dated-again` 会在有人重新铸日期副本时直接失败。
 
-- **updatedAt**: 2026-10-23
+- **updatedAt**: 2026-10-24
 - **writtenAtSha**: 自己读 `git rev-parse HEAD`（不要抄任何文档里的数字；本文件也不例外）
 
 ## 0. 这份文件是什么
@@ -92,10 +92,13 @@ owner 原话（逐字）：**「读取分析，按照这个执行（前端UI是�
 `.project/governance/authority-index.json` 的 `desktopKbAdoption`。唯一当前包是
 `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`（`DL-TP-20261023-DESKTOP-KB-R1`）。
 
-**台账读数（2026-10-23 现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
+**台账读数（2026-10-24 收尾时现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
 仍冻结 **34 项**（`DL-FINAL-T01…T22` 与 `DL-UI-U01…U12`，一行都没被解冻），当前可派工 **16 项**
-（`DL-KB-01…DL-KB-16`；`DL-KB-01` = IN_PROGRESS，其余 NOT_STARTED；`currentExecution.evidence` 仍是
-198 条历史 PASS，一条没新增）。定义原件
+（`DL-KB-01…DL-KB-16`）。第一批四刀已落：`DL-KB-02/03/04/06` = `PARTIAL`（不是 DONE——
+真人验收未发生，最高 E2），`DL-KB-01` = `IN_PROGRESS`，其余 11 项 `NOT_STARTED`。
+`currentExecution.evidence` 216 条全部 PASS：198 条历史 + 18 条新回执，新回执逐条绑
+`7f5e68d7` 的产物；证据包 `kb-20261023/` 共 48 个文件，其中 47 份（索引自身除外）逐份登记字节与
+sha256。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
 
 **四个空白是实测出来的，不是听来的**（同一批字节上）：`capability_library.py` 是只读投影、没有写入面；
@@ -103,6 +106,7 @@ owner 原话（逐字）：**「读取分析，按照这个执行（前端UI是�
 `model_selection.py` 只记录选择。路由合同账本 74 行里 BOUND_SCHEMA 60、SCHEMA_LESS 14，
 live 载荷比对 41 条绑定，前端调用对账 calls=117 / matched=61 / backend_only=11 / dynamic=3 / special=1，
 `ROUTE_VIEWS` 22 条。所以第一刀不是"接模型"，是**知识条目可写面 + 中文检索 + 三入口外壳**（批次 K0…K2）。
+2026-10-24 复核：这四个空白在第一刀里没有被触碰，读数不变；那一刀改的是知识写入/检索/界面/外壳。
 
 **边界逐字不变**：「再说一遍 不做手机端 只做桌面端」——手机端是排除项，不是待办、缺口或待排期；
 「三方素材和字库不在本项目范围内」；「不锁死 做好菜单导航和接口 用户自行选择本地或者是云端模型」——默认值
@@ -115,7 +119,34 @@ fail-closed、`UNKNOWN` 不写成合格、不宣称推理已验证、云端选�
 （34 冻结 / 16 派工）与 20 条受治句子；`test_current_execution.py` 的计数断言已改为从账本自身取数；
 `current_execution.py` 的 `22父任务＋12UI子任务` 硬写行已改成按投影计数；新增路由要同一改动付齐
 合同行 + schema 打包三件套 + live 载荷用例 + 前端调用可被对账；新增界面要同一改动进 `ROUTE_VIEWS`、`renderRoute`、
-截图 `PAGES` 与各审计 `ROUTES`，并同步 `DESIGN.md` 的「导航 {n} 项」实测句。
+截图 `PAGES` 与各审计 `ROUTES`，并同步 `DESIGN.md` 的「导航 {n} 项」实测句；新增证据包要在
+`design-lab/config/large-assets.json` 声明 bundle（单文件 ≥256 KiB 会被拦，而账本 `artifact_sha256`
+绑定的工件不能挪进 Git 忽略目录）。
+
+**第一刀（K0/K1 四项）落地后实测**（2026-10-24，全部 E1/E2）：路由 66 → **72**，合同账本 68 → **74** 行
+（BOUND_SCHEMA 60 / SCHEMA_LESS 14），live 载荷绑定 35 → **41**，前端调用对账 calls=117 / routes=72 /
+matched=61 / backend_only=11 / dynamic=3 / special=1，`ROUTE_VIEWS` 21 → **22**（侧栏 21 个按钮 + 空 hash
+工作台），`DESIGN.md` 的「导航 22 项」同步。六条知识路由：`GET /api/knowledge-entries/search`、
+`POST /api/knowledge-entries`、`POST /api/knowledge-entries/import`、`POST /api/knowledge-entries/index-rebuild`、
+`GET /api/knowledge-entries/(kentry-…)`、`POST /api/knowledge-entries/(kentry-…)/revisions`。
+中文检索：`分镜`/`粒子`/`品牌` 在 1,000 条真实 HTTP 语料上走 `SHORT_FALLBACK` 命中，`panasonic` 走
+`TRIGRAM`，零结果带解释；p95 单元 26.1 ms、HTTP 30.4 ms（预算 300 ms）。界面四处缺陷（写入口换行、
+零结果文案重复、表单无出口、零结果右侧挂旧详情）已修并各有可复跑断言；390px 窄窗底栏 138 → 56px
+（`.nav-group` 缺 `flex`），E2E 阈值未放宽。本地并集 3200/3200、CI run `40009897564` 在 `cf77b2c2`
+逐作业全绿（细节见审计 §5.32）。
+
+**下一刀是 DL-KB-05，先量再写。** 修订链已经追加（`_write_revision` 是唯一写入点，当前版本 =
+`MAX(revision)`，`recommended` 是记录值不是排序），所以缺的只有两件：并发前置条件（写入带期望修订、
+冲突有可读提示）与推荐版本回退后的读回（旧修订仍在，回退不改写历史摘要）。之后进 K3：`DL-KB-07`
+（中立方案对象 + 一份创意意图）与 `DL-KB-08`（设计辅助初始态 + 方案详情四态）。**先量现状再动手**：
+上一轮的教训是"卡片说缺的"经常已经存在一半。
+
+**本轮留下的账**（下一轮同批付或明确记录）：`apps/workbench/shell.ts:4241` 的注释仍写
+「ROUTE_VIEWS has 21 entries」（实测 22，且原样进了 `build/main.js`），没有门禁断言它，改 UI 时同批改；
+真实中文知识语料仍只有探针合成的 2 + 58 条，不含 owner 的条目；写入路径的逐屏截图只覆盖新增；
+1280×800 首屏侧栏只露第一个分组（有滚动提示，150% Tab 实测可达）；详情徽章「最新 r1」与「非推荐版本 r1」
+语义正确但可读性一般。这些都在 `design-lab/evidence/current-execution/task-artifacts/kb-20261023/
+VISUAL-REVIEW.md` 的「仍然未证」里，下一轮不要把它们读成已完成。
 
 本轮同步过的面（都已落盘）：`AUTHORITY.md`、authority index、`AGENTS.md`、
 `docs/current/PRODUCT_DEFINITION.md`、`docs/architecture/BOUNDARY_CONTRACT.md`、`docs/current/ROADMAP.md`、
@@ -173,7 +204,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 | 评测集 | `git ls-files evals; git ls-files design-lab/evals; git ls-files design-lab/evals/reconstruction` | 根 `evals/` **0**；`design-lab/evals/` **63**；其中 `reconstruction` **20**（6 例 golden corpus + 索引）；**无六域级基准** |
 | Prompt Intelligence 运行时 | `git grep -l -iE 'class .*Prompt' -- 'src/design_lab/*.py'; git grep -l -iE 'def .*prompt' -- 'src/design_lab/*.py'` | 只命中 `generators/comfy_http.py` 的请求字段；**没有独立运行时模块**（两条口令原本写 `**/*.py`，会漏掉 26 个顶层文件；改成 `*.py` 后读数不变，仍是这个结论） |
 | 真实 OCR | `git grep -l -i 'ocr' -- 'src/design_lab/*.py'; git grep -l -i 'tesseract' -- 'src/design_lab/*.py'` | `ocr` 命中 6 个文件（`analysis/decomposition.py`、`analysis/model_cache.py`、`asset_analysis.py`、`http_service.py`、`creative/generative/model_assets.py`、`readiness/model_radar.py`），`tesseract` 0 命中；**没有 OCR 引擎实现**——新增的两个命中是派生入口与路由在"要求操作者提供观测"时提到 OCR，不是引擎。注意本行旧版用 `'src/design_lab/**/*.py'`，该 pathspec 不含 26 个顶层文件，所以旧读数少两个 |
-| 运行时规模（HEAD 口径） | `git ls-files src/design_lab \| grep -c '\.py$'` | 106 个 .py：顶层 26 / creative 21 / runtime 17 / assurance 12 / governance 7 / interop 6 / analysis 6 / adapters 4 / readiness 3 / generators 3 / reconstruction 1。本行旧版写作 103 且引用 `'src/design_lab/**/*.py'`——那个 pathspec 只给 80（它匹配不到 `src/design_lab/` 直属文件），数字与命令本来就不成对，现已换成能复现出口令的那一条 |
+| 运行时规模（HEAD 口径） | `git ls-files src/design_lab \| grep -c '\.py$'` | 112 个 .py：顶层 32 / creative 21 / runtime 17 / assurance 12 / governance 7 / interop 6 / analysis 6 / adapters 4 / readiness 3 / generators 3 / reconstruction 1（2026-10-24 实测；旧的 106 / 顶层 26 早于 `prompt_intelligence.py`、`prompt_results.py`、`model_selection.py`、`knowledge_library.py` 等顶层模块）。本行旧版写作 103 且引用 `'src/design_lab/**/*.py'`——那个 pathspec 只给 80（它匹配不到 `src/design_lab/` 直属文件），数字与命令本来就不成对，现已换成能复现出口令的那一条 |
 | 能力包 | `git ls-files packages/capabilities \| wc -l` | 178 个受跟踪文件；atoms 21 个目录 |
 
 ## 5. 六大能力域 → 现有实现映射（只用于映射，不新建账本）

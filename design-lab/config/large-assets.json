@@ -37,7 +37,7 @@
     {
       "prefix": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/",
       "budgetMib": 4.0,
-      "measuredMib": 3.25,
+      "measuredMib": 3.11,
       "reason": "批次 K 知识库纵切（DL-KB-02/03/04/06）的 E2 证据：检索日志、路由读回 JSON、1440/1280 截图与缩放截图。账本 currentExecution 的 artifact_sha256 直接绑定这些字节，不能挪进 Git 忽略的 .project-local；按轮新增，不重拍历史轮。"
     }
   ]
