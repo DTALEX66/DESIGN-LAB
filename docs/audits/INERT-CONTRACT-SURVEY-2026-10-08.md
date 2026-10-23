@@ -27,7 +27,7 @@
 {
   "contracts": 32,
   "inertRows": 30,
-  "productFiles": 220,
+  "productFiles": 221,
   "rows": [
     {
       "best_table": null,
@@ -734,7 +734,7 @@
     "TABLE_EXISTS_UNWRITTEN": 3,
     "TABLE_WRITES_THIS_ACTIVITY": 9
   },
-  "tables": 42
+  "tables": 45
 }
 ```
 
