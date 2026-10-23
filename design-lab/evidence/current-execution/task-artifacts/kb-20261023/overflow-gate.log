@@ -1,0 +1,12 @@
+test_no_clipped_or_unreachable_text_in_real_browser (test_workbench_overflow_gate.WorkbenchOverflowGateTests.test_no_clipped_or_unreachable_text_in_real_browser) ... ok
+test_the_heading_assertion_can_fail (test_workbench_overflow_gate.WorkbenchOverflowGateTests.test_the_heading_assertion_can_fail)
+A guard nobody has seen red guards nothing: both branches are planted here. ... ok
+test_the_ui2026_light_theme_is_graded_by_the_same_geometry_gate (test_workbench_overflow_gate.WorkbenchOverflowGateTests.test_the_ui2026_light_theme_is_graded_by_the_same_geometry_gate)
+DL-UI-U02's rule applied to layout: an unmeasured theme is an unshipped theme. ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 184.770s
+
+OK
+NOTE design-lab/dark: computed only {'spaced-top': 9}; not rendered under this fixture: ['grid-stack'] (guarded statically by scripts/verify_utility_class_conflicts.py)
+NOTE ui2026/light: computed only {'spaced-top': 9}; not rendered under this fixture: ['grid-stack'] (guarded statically by scripts/verify_utility_class_conflicts.py)

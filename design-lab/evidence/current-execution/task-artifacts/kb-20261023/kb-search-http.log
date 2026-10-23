@@ -1,0 +1,9 @@
+KB_HTTP_PROBE_COMMIT=7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d
+KB_HTTP_SEEDED entries=1000 seconds=7.94
+KB_HTTP_QUERY {"q": "分镜", "total": 1000, "strategy": "SHORT_FALLBACK", "matched_terms": ["分镜"], "first": "检索语料条目 0000", "explanation": null}
+KB_HTTP_QUERY {"q": "粒子", "total": 1000, "strategy": "SHORT_FALLBACK", "matched_terms": ["粒子"], "first": "检索语料条目 0000", "explanation": null}
+KB_HTTP_QUERY {"q": "品牌", "total": 1000, "strategy": "SHORT_FALLBACK", "matched_terms": ["品牌"], "first": "检索语料条目 0000", "explanation": null}
+KB_HTTP_QUERY {"q": "panasonic", "total": 1000, "strategy": "TRIGRAM", "matched_terms": ["panasonic"], "first": "检索语料条目 0000", "explanation": null}
+KB_HTTP_QUERY {"q": "没有这条知识-zzz", "total": 0, "strategy": "MIXED", "matched_terms": ["没有这条知识-zzz"], "first": null, "explanation": "没有命中「没有这条知识-zzz」的条目。库中现有 1000 条；检索只匹配标题、摘要、正文、领域/任务标签和目标工具，不做近义词扩写，也不推荐未命中的相关条目。"}
+KB_HTTP_SEARCH_P95_MS=30.4 budget=300 entries=1000 samples=30
+KB_HTTP_SEARCH_OK

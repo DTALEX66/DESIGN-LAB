@@ -1,0 +1,11 @@
+test_a_dropped_declaration_is_convicted (test_packaged_contract_resources.PackagedContractResourceTests.test_a_dropped_declaration_is_convicted) ... ok
+test_every_repo_resource_read_is_declared_in_the_wheel (test_packaged_contract_resources.PackagedContractResourceTests.test_every_repo_resource_read_is_declared_in_the_wheel) ... ok
+test_the_declared_bytes_still_exist_in_the_checkout (test_packaged_contract_resources.PackagedContractResourceTests.test_the_declared_bytes_still_exist_in_the_checkout) ... ok
+test_the_scanner_finds_the_reads_it_claims_to_cover (test_packaged_contract_resources.PackagedContractResourceTests.test_the_scanner_finds_the_reads_it_claims_to_cover) ... ok
+test_no_undeclared_root_read_reachable_from_the_service (test_packaged_contract_resources.RouteReachableRootReadTests.test_no_undeclared_root_read_reachable_from_the_service) ... ok
+test_the_detector_still_sees_the_disease (test_packaged_contract_resources.RouteReachableRootReadTests.test_the_detector_still_sees_the_disease) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.495s
+
+OK

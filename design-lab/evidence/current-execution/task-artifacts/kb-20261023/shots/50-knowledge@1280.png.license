@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/shots/50-knowledge@1280.png",
+  "sha256": "sha256:a93faa680a97200fecb63cc7b21aa4607598fe8e38d1bfb3201422c450aab00d",
+  "license": "MIT",
+  "author": "DESIGN-LAB Workbench rendered by scripts/capture_workbench_screenshots.py for DTALEX66 (DESIGN-LAB project owner)",
+  "redistributable": true,
+  "modelInputAllowed": false,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "DTALEX66 (project owner)",
+    "expiresAt": "2027-10-05"
+  },
+  "notes": "First-party Workbench #/knowledge view at 1280x800 at commit 7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d; empty library state."
+}

@@ -1,0 +1,28 @@
+test_a_rebuild_restores_a_corrupted_index (test_knowledge_library.KnowledgeLibraryTests.test_a_rebuild_restores_a_corrupted_index) ... ok
+test_a_revision_appends_and_a_stale_revision_is_refused (test_knowledge_library.KnowledgeLibraryTests.test_a_revision_appends_and_a_stale_revision_is_refused) ... ok
+test_a_source_claim_of_verification_is_refused (test_knowledge_library.KnowledgeLibraryTests.test_a_source_claim_of_verification_is_refused) ... ok
+test_a_source_field_the_contract_does_not_declare_is_refused (test_knowledge_library.KnowledgeLibraryTests.test_a_source_field_the_contract_does_not_declare_is_refused) ... ok
+test_a_three_character_term_goes_through_the_index_and_survives_a_lost_index (test_knowledge_library.KnowledgeLibraryTests.test_a_three_character_term_goes_through_the_index_and_survives_a_lost_index)
+Measured on this host: a contiguous three-character CJK run is itself an indexed ... ok
+test_a_two_character_word_finds_its_entry_through_the_fallback (test_knowledge_library.KnowledgeLibraryTests.test_a_two_character_word_finds_its_entry_through_the_fallback) ... ok
+test_an_empty_search_explains_and_recommends_nothing (test_knowledge_library.KnowledgeLibraryTests.test_an_empty_search_explains_and_recommends_nothing) ... ok
+test_an_import_without_a_source_version_is_refused (test_knowledge_library.KnowledgeLibraryTests.test_an_import_without_a_source_version_is_refused) ... ok
+test_english_matching_does_not_mean_chinese_search_is_usable (test_knowledge_library.KnowledgeLibraryTests.test_english_matching_does_not_mean_chinese_search_is_usable)
+Two cases, one verdict. `brand` is answered by the index and `品牌` only by the ... ok
+test_every_minimum_field_is_stored_and_a_silent_field_is_unknown (test_knowledge_library.KnowledgeLibraryTests.test_every_minimum_field_is_stored_and_a_silent_field_is_unknown) ... ok
+test_filters_are_exact_and_a_bad_type_is_a_refusal_not_an_empty_page (test_knowledge_library.KnowledgeLibraryTests.test_filters_are_exact_and_a_bad_type_is_a_refusal_not_an_empty_page) ... ok
+test_import_identity_is_the_source_and_its_version (test_knowledge_library.KnowledgeLibraryTests.test_import_identity_is_the_source_and_its_version) ... ok
+test_search_answers_within_the_published_budget_at_a_thousand_entries (test_knowledge_library.KnowledgeLibraryTests.test_search_answers_within_the_published_budget_at_a_thousand_entries)
+The docs publish "1,000 records, p95 <= 300 ms". This seeds exactly 1,000 through the ... ok
+test_the_recommended_revision_can_lag_the_latest_one (test_knowledge_library.KnowledgeLibraryTests.test_the_recommended_revision_can_lag_the_latest_one) ... ok
+test_the_search_answer_carries_the_six_type_names (test_knowledge_library.KnowledgeLibraryTests.test_the_search_answer_carries_the_six_type_names)
+DL-KB-03's type filter reads one table. The service's TYPE_LABELS travels with the ... ok
+test_the_three_content_fields_cannot_be_unknown (test_knowledge_library.KnowledgeLibraryTests.test_the_three_content_fields_cannot_be_unknown) ... ok
+test_the_trigram_index_alone_misses_a_two_character_chinese_word (test_knowledge_library.KnowledgeLibraryTests.test_the_trigram_index_alone_misses_a_two_character_chinese_word)
+The failing control for the fallback. If this ever passes on the index alone the ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 2.540s
+
+OK
+KNOWLEDGE_SEARCH_P95_MS=26.1 budget=300 entries=1000 samples=30

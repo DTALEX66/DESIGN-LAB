@@ -1,0 +1,6 @@
+test_quantitative_ui_audit_is_clean (test_workbench_ui_audit_gate.WorkbenchUiAuditGateTests.test_quantitative_ui_audit_is_clean) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 10.637s
+
+OK

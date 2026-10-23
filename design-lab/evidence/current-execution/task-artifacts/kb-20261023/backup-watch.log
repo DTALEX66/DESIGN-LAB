@@ -1,0 +1,13 @@
+test_every_written_table_is_watched_by_the_proof (test_backup_watches_written_tables.CoverageTests.test_every_written_table_is_watched_by_the_proof) ... ok
+test_no_counted_table_is_without_rowid (test_backup_watches_written_tables.CoverageTests.test_no_counted_table_is_without_rowid)
+The counters key on rowid; a WITHOUT ROWID table would need a named column. ... ok
+test_no_sanity_is_claimed_for_a_table_that_is_now_covered (test_backup_watches_written_tables.CoverageTests.test_no_sanity_is_claimed_for_a_table_that_is_now_covered) ... ok
+test_the_attribution_behind_the_coverage_is_real (test_backup_watches_written_tables.CoverageTests.test_the_attribution_behind_the_coverage_is_real)
+The coverage claim rests on who writes each table, so name two of them. ... ok
+test_the_derivation_is_not_silently_empty (test_backup_watches_written_tables.CoverageTests.test_the_derivation_is_not_silently_empty)
+A broken regex would make every other assertion here pass vacuously. ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.163s
+
+OK

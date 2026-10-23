@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-23T11:31:54Z",
+  "updated_at": "2026-10-23T17:30:39Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -8718,18 +8718,33 @@
       },
       {
         "id": "DL-KB-02",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-02-implementation-write-surface-20261024",
+          "kb-02-unit-knowledge-20261024",
+          "kb-02-unit-packaging-20261024",
+          "kb-02-unit-backup-watch-20261024",
+          "kb-02-implementation-chain-20261024"
+        ]
       },
       {
         "id": "DL-KB-03",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-03-implementation-ui-audit-20261024",
+          "kb-03-unit-workbench-20261024",
+          "kb-03-browser-capture-20261024",
+          "kb-03-browser-contrast-20261024",
+          "kb-03-visual-review-20261024"
+        ]
       },
       {
         "id": "DL-KB-04",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-04-implementation-http-search-20261024",
+          "kb-04-unit-search-20261024"
+        ]
       },
       {
         "id": "DL-KB-05",
@@ -8738,8 +8753,15 @@
       },
       {
         "id": "DL-KB-06",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-06-unit-workbench-20261024",
+          "kb-06-implementation-documented-counts-20261024",
+          "kb-06-browser-capture-20261024",
+          "kb-06-browser-overflow-20261024",
+          "kb-06-browser-zoom-20261024",
+          "kb-06-visual-review-20261024"
+        ]
       },
       {
         "id": "DL-KB-07",
@@ -11168,6 +11190,222 @@
         "command": "node tests/unit.mjs + tests/appshell.mjs + tests/shape-notice-coverage.mjs; appshell block 20 added | produced by .project-local/tmp/seal_b25.py",
         "exit_code": 0,
         "observed_at": "2026-10-13T16:27:32+00:00"
+      },
+      {
+        "id": "kb-02-implementation-write-surface-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/write-surface.log",
+        "artifact_sha256": "b7a662cf5558017248f0af902c17b53a5eab089f2c92e862d8b97b98a61f8f42",
+        "command": "cd design-lab/tests && python -m unittest test_installed_write_surface -v :: POST_SWEEP rows=33 walked=32 written=32 read_backs=39 refused=0 excluded=1; the walk covers knowledge-create, knowledge-revise, knowledge-import, knowledge-index-rebuild",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-02-unit-knowledge-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/unit-knowledge.log",
+        "artifact_sha256": "7b915ed43e025a47ccd9e25d9d85d5be8db445fe053e57ce9491b0326f6c32a4",
+        "command": "cd design-lab/tests && python -m unittest test_knowledge_library -v :: 17 tests OK; append-only revisions, UNKNOWN for silent fields, import identity, rebuildable index; KNOWLEDGE_SEARCH_P95_MS=26.1 budget=300 entries=1000 samples=30",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-02-unit-packaging-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/packaging.log",
+        "artifact_sha256": "d2d36a842df92779addebffac5d9dff7c9c4417a5a6ff5cc039e28e037a7ee4c",
+        "command": "cd design-lab/tests && python -m unittest test_packaged_contract_resources -v :: 6 tests OK; the six knowledge schemas resolve from an installed wheel",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-02-unit-backup-watch-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/backup-watch.log",
+        "artifact_sha256": "069a4f8ad261e0b76500f2e30b63bdedde4ac5a8b5ecdbdcc3e1f0ae56d6c27b",
+        "command": "cd design-lab/tests && python -m unittest test_backup_watches_written_tables -v :: 5 tests OK; the new knowledge tables are watched, not silently unwatched",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-02-implementation-chain-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/test_standalone_chain_http.log",
+        "artifact_sha256": "81a1207063b9046fe1c26362e50e7ea4bc0a9c1bfdac8f49799c797f5be910ad",
+        "command": "cd design-lab/tests && python -m unittest test_standalone_chain_http -v :: 6 tests OK; the 20-hop chain and 4-hop delivery leg still answer, and export still sends nothing",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-04-implementation-http-search-20261024",
+        "task_id": "DL-KB-04",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-search-http.log",
+        "artifact_sha256": "a3d58767506f8bcb8cc53f9e854140a8ce28fdbe955bcd552864f38acb4d07aa",
+        "command": "python .project-local/task-runtime/kb-search-probe.py :: live loopback HTTP, 1,000 entries through POST, 分镜/粒子/品牌/panasonic hit and the miss explains; KB_HTTP_SEARCH_P95_MS=30.4 budget=300 entries=1000 samples=30",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-04-unit-search-20261024",
+        "task_id": "DL-KB-04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/unit-knowledge.log",
+        "artifact_sha256": "7b915ed43e025a47ccd9e25d9d85d5be8db445fe053e57ce9491b0326f6c32a4",
+        "command": "cd design-lab/tests && python -m unittest test_knowledge_library -v :: the trigram-only control is asserted to miss a two-character CJK word; short-word fallback hits; English passing is not counted as Chinese usable; KNOWLEDGE_SEARCH_P95_MS=26.1 budget=300 entries=1000 samples=30",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-03-implementation-ui-audit-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/ui-audit-gate.log",
+        "artifact_sha256": "4b1ee393b9efbf53fff06fd85ce73fe743221fe9020890a9e3a8e12aec66cb8e",
+        "command": "UI_AUDIT_WIDTHS=1280,1440,1920 E2E_EVIDENCE_DIR=<evidence>/browser python -m unittest test_workbench_ui_audit_gate -v :: one test OK, violations=[] at all three widths",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-03-unit-workbench-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/workbench-tests.log",
+        "artifact_sha256": "d12104d4508e434273db3202980d774c85916737bf17267356159cb9305a4a48",
+        "command": "cd apps/workbench && node tests/unit.mjs && node tests/appshell.mjs && node tests/shape-notice-coverage.mjs :: ㉓ knowledge screen assertions pass against the built bundle",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-03-browser-capture-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/screenshot-manifest-knowledge.json",
+        "artifact_sha256": "1a187557d93c4d12c8198aa3fa52358106b38b16d4a48bfc2433da790b18c347",
+        "command": "python scripts/capture_workbench_screenshots.py --out <shots> --widths 1440,1280,1920 :: #/knowledge rendered at 1440x900 and 1280x800 with route coverage checked and PNG sha256 recorded",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-03-browser-contrast-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/contrast-gate.log",
+        "artifact_sha256": "17d78f8d3888f864919482195fe956e06c231b5b51bd7188defe4d48e7ec9d5c",
+        "command": "CT_WIDTHS=1440,1280,1920 E2E_EVIDENCE_DIR=<evidence>/browser python -m unittest test_workbench_contrast_gate -v :: 3 tests OK in both palettes",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-03-visual-review-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/VISUAL-REVIEW.md",
+        "artifact_sha256": "c8f4f0cce865f254fbc22ff2f5430850f041168fde1440029ade1d41d8dddfbb",
+        "command": "reviewed every captured knowledge PNG (empty state 1440/1280/1920) plus seeded list, detail and form at 1440/1280, no-result and the 50/60 boundary at 1440; two copy/layout defects were found and fixed before the final capture",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-06-unit-workbench-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/workbench-tests.log",
+        "artifact_sha256": "d12104d4508e434273db3202980d774c85916737bf17267356159cb9305a4a48",
+        "command": "cd apps/workbench && node tests/unit.mjs && node tests/appshell.mjs && node tests/shape-notice-coverage.mjs :: ㉔ B10_NAV is derived from ROUTE_VIEWS with no hand-copied hash; the rendered set is asserted in the browser capture",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-06-implementation-documented-counts-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/documented-counts.log",
+        "artifact_sha256": "4d3af5c15617dd65fb13a23b63f9c10780ce78b935d688410a265fd1ddf9c585",
+        "command": "python scripts/verify_documented_counts.py :: DESIGN.md 「导航 22 项」 equals ROUTE_VIEWS 22",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-06-browser-capture-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/screenshot-manifest-knowledge.json",
+        "artifact_sha256": "1a187557d93c4d12c8198aa3fa52358106b38b16d4a48bfc2433da790b18c347",
+        "command": "python scripts/capture_workbench_screenshots.py --widths 1440,1280,1920 :: CAP_NAV_SET compares the 21 rendered sidebar buttons with the served route table; manifest.navRouteProof records the compared hashes",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-06-browser-overflow-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/overflow-gate.log",
+        "artifact_sha256": "88f7bbae5bfe28b039cb41f32ee01872722b367882e6abfcdf63cf0f16b442b0",
+        "command": "OV_WIDTHS=1440,1280,1920 E2E_EVIDENCE_DIR=<evidence>/browser python -m unittest test_workbench_overflow_gate -v :: 3 tests OK; nav scroll cue and 12px hairline edge held in both palettes",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-06-browser-zoom-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/zoom-scales.json",
+        "artifact_sha256": "e5e09ac27cf0ff0d628452060e1002d2b04ff70d47f85675bbb33147c31029d1",
+        "command": "python .project-local/task-runtime/kb-zoom.mjs via run_browser_probe.py :: Windows 100/125/150% modelled as 1920/1536/1280 CSS widths at DPR 1/1.25/1.5; Tab reaches #/knowledge at all three with a 3px focus ring fully inside the sidebar, 150% scrolls the nav 263px, no horizontal overflow",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-06-visual-review-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/VISUAL-REVIEW.md",
+        "artifact_sha256": "c8f4f0cce865f254fbc22ff2f5430850f041168fde1440029ade1d41d8dddfbb",
+        "command": "reviewed the shell at 1280/1440/1920: three entry groups plus settings, no AAOS entry or connection control, and the nav cue visible where the list is clipped",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T17:30:39Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

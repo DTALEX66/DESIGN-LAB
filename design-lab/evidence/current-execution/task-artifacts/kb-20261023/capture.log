@@ -1,0 +1,2724 @@
+CAP_ROUTE_COVERAGE routes=22 captured=24 of 22 pageEntries=26 bundleSha256=6bbd86d9be350bc33343d8981abd9f31eddea9725bbcdf35df89fc102e5bb60c
+CAP_NAV_SET rendered=21 expected=21 equal=1
+CAP ok: 00-workbench@1440.png 112949B
+CAP ok: 01-dashboard@1440.png 218719B
+CAP ok: 02-projects@1440.png 146039B
+CAP ok: 03-project-detail@1440.png 198633B
+CAP ok: 04-research@1440.png 198109B
+CAP ok: 05-brand-systems@1440.png 219703B
+CAP ok: 06-domains@1440.png 231420B
+CAP ok: 07-creative-tools@1440.png 200040B
+CAP ok: 08-deliverables@1440.png 184445B
+CAP ok: 09-evidence@1440.png 167817B
+CAP ok: 10-collaboration@1440.png 117681B
+CAP ok: 11-preflight@1440.png 186060B
+CAP ok: 12-settings@1440.png 196520B
+CAP ok: 13-capabilities@1440.png 260248B
+CAP ok: 14-capability-detail@1440.png 279941B
+CAP ok: 15-domain-detail@1440.png 256557B
+CAP ok: 16-states@1440.png 182623B
+CAP ok: 17-components@1440.png 164297B
+CAP ok: 18-intake@1440.png 183505B
+CAP ok: 19-plan@1440.png 145560B
+CAP ok: 20-analysis@1440.png 195000B
+CAP ok: 21-prompt-intelligence@1440.png 185180B
+CAP ok: 22-model-selection@1440.png 222821B
+CAP ok: 23-records@1440.png 227873B
+CAP ok: 24-knowledge@1440.png 186808B
+CAP ok: 25-search-groups@1440.png 312148B
+CAP ok: 26-workbench@1280.png 97655B
+CAP ok: 27-dashboard@1280.png 196727B
+CAP ok: 28-projects@1280.png 132537B
+CAP ok: 29-project-detail@1280.png 172514B
+CAP ok: 30-research@1280.png 174244B
+CAP ok: 31-brand-systems@1280.png 168185B
+CAP ok: 32-domains@1280.png 198062B
+CAP ok: 33-creative-tools@1280.png 179867B
+CAP ok: 34-deliverables@1280.png 152579B
+CAP ok: 35-evidence@1280.png 151116B
+CAP ok: 36-collaboration@1280.png 107605B
+CAP ok: 37-preflight@1280.png 165964B
+CAP ok: 38-settings@1280.png 174178B
+CAP ok: 39-capabilities@1280.png 214687B
+CAP ok: 40-capability-detail@1280.png 223593B
+CAP ok: 41-domain-detail@1280.png 212182B
+CAP ok: 42-states@1280.png 134791B
+CAP ok: 43-components@1280.png 144555B
+CAP ok: 44-intake@1280.png 160047B
+CAP ok: 45-plan@1280.png 134068B
+CAP ok: 46-analysis@1280.png 169719B
+CAP ok: 47-prompt-intelligence@1280.png 175229B
+CAP ok: 48-model-selection@1280.png 178483B
+CAP ok: 49-records@1280.png 170229B
+CAP ok: 50-knowledge@1280.png 172690B
+CAP ok: 51-search-groups@1280.png 283310B
+CAP ok: 52-workbench@1920.png 139276B
+CAP ok: 53-dashboard@1920.png 255545B
+CAP ok: 54-projects@1920.png 173239B
+CAP ok: 55-project-detail@1920.png 254583B
+CAP ok: 56-research@1920.png 237473B
+CAP ok: 57-brand-systems@1920.png 260286B
+CAP ok: 58-domains@1920.png 286758B
+CAP ok: 59-creative-tools@1920.png 242282B
+CAP ok: 60-deliverables@1920.png 223310B
+CAP ok: 61-evidence@1920.png 210758B
+CAP ok: 62-collaboration@1920.png 137518B
+CAP ok: 63-preflight@1920.png 230477B
+CAP ok: 64-settings@1920.png 253784B
+CAP ok: 65-capabilities@1920.png 337079B
+CAP ok: 66-capability-detail@1920.png 378989B
+CAP ok: 67-domain-detail@1920.png 314859B
+CAP ok: 68-states@1920.png 216032B
+CAP ok: 69-components@1920.png 192083B
+CAP ok: 70-intake@1920.png 240518B
+CAP ok: 71-plan@1920.png 170275B
+CAP ok: 72-analysis@1920.png 254019B
+CAP ok: 73-prompt-intelligence@1920.png 227202B
+CAP ok: 74-model-selection@1920.png 294803B
+CAP ok: 75-records@1920.png 309705B
+CAP ok: 76-knowledge@1920.png 205909B
+CAP ok: 77-search-groups@1920.png 443884B
+CAP_DONE shots=78 out=D:\All projects\DESIGN-LAB\.project-local\task-artifacts\workbench-screenshots-kb
+CAP_MANIFEST shots=78 commit=7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d browser=149.0.7827.55
+[
+  {
+    "file": "00-workbench@1440.png",
+    "page": "workbench",
+    "hashRoute": "",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench",
+    "bytes": 112949,
+    "bufferBytes": 112949,
+    "sha256": "586b84f9dfcb01372cbbb4ff1627415ea1ec5945e8b4a0237f85ce2f1b1b2fc5",
+    "rendered": {
+      "host": "#workspace",
+      "kpis": [],
+      "headings": [
+        "\u9879\u76ee\u4e0e\u53c2\u8003",
+        "\u5bfc\u5165\u771f\u5b9e\u53c2\u8003",
+        "\u670d\u52a1\u5668\u8bfb\u56de\u9884\u89c8",
+        "\u4efb\u52a1\u4e0e\u4e8b\u4ef6",
+        "\u5df2\u767b\u8bb0\u7684 AI / PSD",
+        "Brief \u2192 Direction \u2192 DesignSystem",
+        "\u68c0\u67e5\u4e0e\u63d0\u4ea4\u5bf9\u8c61\u8ba1\u5212",
+        "Adobe \u5bf9\u8c61\u5c40\u90e8\u4fee\u6539"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:26:54.229Z"
+  },
+  {
+    "file": "01-dashboard@1440.png",
+    "page": "dashboard",
+    "hashRoute": "#/dashboard",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/dashboard",
+    "bytes": 218719,
+    "bufferBytes": 218719,
+    "sha256": "ec80c364a7b66f4777791bf2d7d99974bf9469b447774720214e462ab7ed2b27",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u9879\u76ee",
+          "note": "\u670d\u52a1\u7aef\u9879\u76ee\u53f0\u8d26\u8bfb\u56de\uff0c\u975e\u7edf\u8ba1\u731c\u6d4b"
+        },
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u8d44\u6e90\u767b\u8bb0\u7684\u8bbe\u8ba1\u7cfb\u7edf\u603b\u6570 \u00b7 \u670d\u52a1\u7aef\u76ee\u5f55\u8bfb\u56de"
+        },
+        {
+          "value": "OK",
+          "label": "\u670d\u52a1\u72b6\u6001",
+          "note": "\u7248\u672c 0.1.0-alpha.0 \u00b7 \u4f5c\u7528\u57df project-metadata"
+        },
+        {
+          "value": "0.1.0-alpha.0",
+          "label": "\u670d\u52a1\u7248\u672c",
+          "note": "\u670d\u52a1\u81ea\u68c0\u8bfb\u56de"
+        }
+      ],
+      "headings": [
+        "\u4eea\u8868\u76d8",
+        "\u6700\u8fd1\u9879\u76ee",
+        "\u8bbe\u8ba1\u8d28\u91cf\u8d8b\u52bf \u00b7 \u672a\u8bfb\u56de",
+        "Research",
+        "Brand",
+        "Delivery",
+        "\u7ee7\u7eed\u9879\u76ee",
+        "\u5f85\u5ba1\uff08\u9700\u4eba\u5de5\u5904\u7406\uff09\uff080\uff09",
+        "\u5931\u8d25\uff080\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:26:55.166Z"
+  },
+  {
+    "file": "02-projects@1440.png",
+    "page": "projects",
+    "hashRoute": "#/projects",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/projects",
+    "bytes": 146039,
+    "bufferBytes": 146039,
+    "sha256": "5cfc0227fb1891137f0d69a691c0089cd425af912a9570235eda20ac9994970f",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u9879\u76ee",
+          "note": "\u670d\u52a1\u7aef\u53f0\u8d26\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u8fdb\u884c\u4e2d",
+          "note": "\u72b6\u6001\u9700\u5728\u5de5\u4f5c\u53f0\u67e5\u770b"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u5df2\u5b8c\u6210",
+          "note": "\u72b6\u6001\u9700\u5728\u5de5\u4f5c\u53f0\u67e5\u770b"
+        }
+      ],
+      "headings": [
+        "\u9879\u76ee",
+        "\u9879\u76ee\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:26:55.637Z"
+  },
+  {
+    "file": "03-project-detail@1440.png",
+    "page": "project-detail",
+    "hashRoute": "#/projects/bb6cd53333ad4758911cd691fdccd31e",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/projects/bb6cd53333ad4758911cd691fdccd31e",
+    "bytes": 198633,
+    "bufferBytes": 198633,
+    "sha256": "045c7f7712bf43eafd09c1ae4be008942f484a2cff73cfc7a915af74ae8dc1fe",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u4efb\u52a1",
+          "note": "\u8bfb\u56de /tasks \u53f0\u8d26"
+        },
+        {
+          "value": "1",
+          "label": "\u7b80\u62a5\u7248\u672c",
+          "note": "\u8bfb\u56de design-layer"
+        },
+        {
+          "value": "1",
+          "label": "\u65b9\u5411\u7248\u672c",
+          "note": "\u8bfb\u56de design-layer"
+        },
+        {
+          "value": "1",
+          "label": "\u6d3b\u52a8\u7ed1\u5b9a",
+          "note": "anomaly-monitor-dark \u00b7 \u7ed1\u5b9a direction-eec43da2729a4b85bde80f37ffc28d16"
+        }
+      ],
+      "headings": [
+        "Closeout 1792776412235",
+        "\u4efb\u52a1\u53f0\u8d26\uff081\uff09",
+        "\u8bbe\u8ba1\u5c42\u5951\u7ea6",
+        "\u4ea4\u4ed8\u5305\uff080\uff09",
+        "\u6210\u679c\u7248\u672c\uff080 \u7c7b / 0 \u7248\u672c\uff09",
+        "\u7b80\u62a5\uff08Brief\uff09\u00b7 1 \u4e2a\u7248\u672c",
+        "\u65b9\u5411\uff08Direction\uff09\u00b7 1 \u4e2a\u5019\u9009",
+        "\u8bbe\u8ba1\u7cfb\u7edf\uff08DesignSystem\uff09\u00b7 \u76ee\u5f55 4 \u9879 \u00b7 \u7ed1\u5b9a 1 \u6b21",
+        "\u8bbe\u8ba1\u7cfb\u7edf Token\uff08DTCG\uff09\u00b7 \u5f53\u524d\u6587\u6863 0",
+        "\u53c2\u8003\u7d20\u6750\uff081\uff09",
+        "Inspector"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:26:56.164Z"
+  },
+  {
+    "file": "04-research@1440.png",
+    "page": "research",
+    "hashRoute": "#/research",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/research",
+    "bytes": 198109,
+    "bufferBytes": 198109,
+    "sha256": "4f9172424efe13824ef3dc886f11b3d14788cc17015c5017d8efcbb7c1872127",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "\u7814\u7a76\u7ed3\u8bba\u8bfb\u56de",
+        "\u8bb0\u5f55\u4e00\u6761\u7814\u7a76\u7ed3\u8bba",
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:26:56.712Z"
+  },
+  {
+    "file": "05-brand-systems@1440.png",
+    "page": "brand-systems",
+    "hashRoute": "#/brand-systems",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/brand-systems",
+    "bytes": 219703,
+    "bufferBytes": 219703,
+    "sha256": "c469c8be4bfd5d0bc56670a82487cfc4cd901500763c8cd0750f232376c8900e",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u8d44\u6e90\u767b\u8bb0\u603b\u6570 \u00b7 \u670d\u52a1\u7aef\u76ee\u5f55\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "VI \u6a21\u5757",
+          "note": "\u65e0\u670d\u52a1\u7aef\u8bfb\u56de \u00b7 \u4e0b\u65b9\u4e3a\u8bbe\u8ba1\u53c2\u8003\u6a21\u5757\u540d,\u975e\u8d44\u4ea7\u7edf\u8ba1"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u6d3b\u8dc3\u7ed1\u5b9a",
+          "note": "\u7ed1\u5b9a\u5728\u5de5\u4f5c\u53f0 DESIGN LAYER \u6267\u884c"
+        }
+      ],
+      "headings": [
+        "\u54c1\u724c\u7cfb\u7edf",
+        "Logo",
+        "Color",
+        "Typography",
+        "Icon",
+        "Graphic Language",
+        "Templates",
+        "Applications",
+        "Assets",
+        "\u8bbe\u8ba1\u7cfb\u7edf\u767b\u8bb0\uff084\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:26:57.199Z"
+  },
+  {
+    "file": "06-domains@1440.png",
+    "page": "domains",
+    "hashRoute": "#/domains",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/domains",
+    "bytes": 231420,
+    "bufferBytes": 231420,
+    "sha256": "4ac147e258947389f42403ab542e82b5ba993b1f64a0e1168ff9db13dfa3c087",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "13",
+          "label": "\u57df\u5305\u76ee\u5f55",
+          "note": "design-lab/domain-packs \u8bfb\u56de"
+        },
+        {
+          "value": "12",
+          "label": "\u7ed3\u6784\u6821\u9a8c\u901a\u8fc7",
+          "note": "\u6821\u9a8c\u5668\u5224\u5b9a\uff0cE1 \u7ed3\u6784\u7ea7"
+        },
+        {
+          "value": "1",
+          "label": "\u6821\u9a8c\u4e0d\u901a\u8fc7",
+          "note": "\u4e0b\u65b9\u9010\u9879\u5217\u51fa\u6821\u9a8c\u5668\u539f\u56e0"
+        },
+        {
+          "value": "1",
+          "label": "\u672a\u901a\u8fc7 / \u65e0\u5224\u5b9a",
+          "note": "\u6821\u9a8c\u4e0d\u901a\u8fc7\u3001\u6e05\u5355\u8bfb\u4e0d\u5230\u6216\u672a\u4ea7\u751f\u5224\u5b9a\uff0c\u9010\u9879\u89c1\u4e0b\u65b9"
+        }
+      ],
+      "headings": [
+        "\u8bbe\u8ba1\u9886\u57df",
+        "\u57df\u5305\u767b\u8bb0\uff0813\uff09",
+        "\u7ed3\u6784\u6821\u9a8c\u53d1\u73b0\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:26:57.743Z"
+  },
+  {
+    "file": "07-creative-tools@1440.png",
+    "page": "creative-tools",
+    "hashRoute": "#/tools",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/tools",
+    "bytes": 200040,
+    "bufferBytes": 200040,
+    "sha256": "b2b6f65f452718219af4b4b40d66b3285a2a04667954c193298256c32b9c319a",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u521b\u4f5c\u5de5\u5177",
+        "\u5bbf\u4e3b / Capability \u72b6\u6001",
+        "\u5bbf\u4e3b\u8bfb\u56de",
+        "\u5171\u4eab\u8f93\u5165",
+        "\u521b\u4f5c\u5de5\u5177\uff08\u5bbf\u4e3b\u5b9e\u65f6\u72b6\u6001\uff09",
+        "MCP \u8bca\u65ad",
+        "Illustrator / AI",
+        "Photoshop / PSD",
+        "\u4efb\u52a1\uff081\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:26:58.232Z"
+  },
+  {
+    "file": "08-deliverables@1440.png",
+    "page": "deliverables",
+    "hashRoute": "#/deliverables",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/deliverables",
+    "bytes": 184445,
+    "bufferBytes": 184445,
+    "sha256": "b82853a75cb5d32742993b0aa2b4ced2f88144ede3e4605957f4ad84948853b3",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u4ea4\u4ed8\u5019\u9009",
+          "note": "\u8bfb\u56de\u4efb\u52a1\u53f0\u8d26 \u00b7 \u975e\u5df2\u6253\u5305"
+        },
+        {
+          "value": "0",
+          "label": "\u4ea4\u4ed8\u5305",
+          "note": "\u8bfb\u56de /bundles \u00b7 \u53ef\u4e0b\u8f7d\u6838\u5bf9 hash"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u4eba\u5de5\u9a8c\u6536",
+          "note": "\u5b57\u4f53 / \u94fe\u63a5 / rights / \u8d28\u91cf"
+        }
+      ],
+      "headings": [
+        "\u4ea4\u4ed8\u4e2d\u5fc3",
+        "PSD",
+        "AI",
+        "PNG",
+        "SVG",
+        "Archive",
+        "PDF",
+        "Video",
+        "3D",
+        "\u4ea4\u4ed8\u5305\uff080\uff09",
+        "\u4ea4\u4ed8\u5019\u9009\u4efb\u52a1\uff081\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:26:58.722Z"
+  },
+  {
+    "file": "09-evidence@1440.png",
+    "page": "evidence",
+    "hashRoute": "#/evidence",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/evidence",
+    "bytes": 167817,
+    "bufferBytes": 167817,
+    "sha256": "77d899cc9d68c09da4d7da76de725e3e1af10b327cbf86fd85c891a5c4a81174",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "briefs",
+          "note": "\u8bbe\u8ba1\u7b80\u62a5\u7248\u672c"
+        },
+        {
+          "value": "1",
+          "label": "directions",
+          "note": "\u8bbe\u8ba1\u65b9\u5411\u7248\u672c"
+        },
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u767b\u8bb0\u7cfb\u7edf"
+        },
+        {
+          "value": "0",
+          "label": "\u4ea4\u4ed8\u5305",
+          "note": "/bundles \u8bfb\u56de"
+        },
+        {
+          "value": "0",
+          "label": "\u4eba\u5de5\u88c1\u51b3",
+          "note": "GET /jury \u8bfb\u56de \u00b7 \u4ec5\u4eba\u5de5\u7b7e\u7f72"
+        }
+      ],
+      "headings": [
+        "\u8bc1\u636e\u7cfb\u7edf",
+        "\u8bc1\u636e\u94fe\u5b8c\u6574\u6027 \u00b7 Human EVIDENCE",
+        "\u8bc1\u636e\u7ed1\u5b9a\u94fe",
+        "\u4eba\u5de5\u8bc4\u5ba1\u88c1\u51b3 \u00b7 Human Jury",
+        "\u6743\u5229\u51b3\u5b9a\u8bfb\u56de \u00b7 Human RIGHTS",
+        "\u4ea4\u4ed8\u767b\u8bb0\u7684\u8bfb\u56de \u00b7 \u4ea7\u7269\u9884\u68c0\u4e0e\u4ea4\u4ed8\u6536\u636e",
+        "\u65b9\u5411\u5951\u7ea6",
+        "\u8bbe\u8ba1\u7cfb\u7edf\u767b\u8bb0"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:26:59.261Z"
+  },
+  {
+    "file": "10-collaboration@1440.png",
+    "page": "collaboration",
+    "hashRoute": "#/collaboration",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/collaboration",
+    "bytes": 117681,
+    "bufferBytes": 117681,
+    "sha256": "265014f7a901027e8e1b81a0efa7735ad541717f64250271d9f4086e0bfdfd78",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u56e2\u961f\u534f\u4f5c",
+        "\u56e2\u961f\u534f\u4f5c"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:26:59.737Z"
+  },
+  {
+    "file": "11-preflight@1440.png",
+    "page": "preflight",
+    "hashRoute": "#/preflight",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/preflight",
+    "bytes": 186060,
+    "bufferBytes": 186060,
+    "sha256": "558b93ab88c63ebfde5680ca56ab137898e728e31771950d19320bbfccc7ebde",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "\u2014",
+          "label": "\u767b\u8bb0\u8d44\u6e90",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u963b\u585e\u8d44\u6e90",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u5224\u5b9a",
+          "note": "READY / BLOCKED"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u673a\u5668\u8303\u56f4",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        }
+      ],
+      "headings": [
+        "\u9884\u68c0 / QA",
+        "\u8bbe\u8ba1\u8bc4\u5ba1 \u00b7 Human Jury",
+        "\u6743\u5229\u51b3\u5b9a \u00b7 Human RIGHTS"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:00.260Z"
+  },
+  {
+    "file": "12-settings@1440.png",
+    "page": "settings",
+    "hashRoute": "#/settings",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/settings",
+    "bytes": 196520,
+    "bufferBytes": 196520,
+    "sha256": "33d32b3114548abdc01fe66c3a3c9d1e995e6f64ac51fe2ea86f8858c5508924",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7cfb\u7edf\u8bbe\u7f6e",
+        "\u6a21\u578b\u670d\u52a1",
+        "\u76ee\u6807\u5de5\u5177\u6863\u6848",
+        "\u5bfc\u5165\u66f4\u65b0",
+        "\u5907\u4efd\u4e0e\u8bca\u65ad",
+        "\u9879\u76ee\u6839\uff08\u670d\u52a1\u58f0\u660e\u53ef\u5199\uff0c\u672a\u63a2\u6d4b\uff09",
+        "\u5916\u7f6e\u8f93\u5165\uff08\u53ea\u8bfb \u00b7 DECLARED_NOT_PROBED\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:00.757Z"
+  },
+  {
+    "file": "13-capabilities@1440.png",
+    "page": "capabilities",
+    "hashRoute": "#/capabilities",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities",
+    "bytes": 260248,
+    "bufferBytes": 260248,
+    "sha256": "4abe791501f7868a31772a7593a5c8a18cd51aac416e3f0be76cbcd65fa423f4",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:01.271Z"
+  },
+  {
+    "file": "14-capability-detail@1440.png",
+    "page": "capability-detail",
+    "hashRoute": "#/capabilities/anydesign",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities/anydesign",
+    "bytes": 279941,
+    "bufferBytes": 279941,
+    "sha256": "a5a4bdd50e4bea08cddd083cd45ee63dbab3b6511917a80b011f12db7ee58568",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "anydesign"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:01.767Z"
+  },
+  {
+    "file": "15-domain-detail@1440.png",
+    "page": "domain-detail",
+    "hashRoute": "#/domains/brand-design",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/domains/brand-design",
+    "bytes": 256557,
+    "bufferBytes": 256557,
+    "sha256": "240115d4e7fcdc2b405a79a6e96745d1bfd1b4a20415ca783eb1e24230441532",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "13",
+          "label": "\u57df\u5305\u76ee\u5f55",
+          "note": "design-lab/domain-packs \u8bfb\u56de"
+        },
+        {
+          "value": "12",
+          "label": "\u7ed3\u6784\u6821\u9a8c\u901a\u8fc7",
+          "note": "\u6821\u9a8c\u5668\u5224\u5b9a\uff0cE1 \u7ed3\u6784\u7ea7"
+        },
+        {
+          "value": "1",
+          "label": "\u6821\u9a8c\u4e0d\u901a\u8fc7",
+          "note": "\u4e0b\u65b9\u9010\u9879\u5217\u51fa\u6821\u9a8c\u5668\u539f\u56e0"
+        },
+        {
+          "value": "1",
+          "label": "\u672a\u901a\u8fc7 / \u65e0\u5224\u5b9a",
+          "note": "\u6821\u9a8c\u4e0d\u901a\u8fc7\u3001\u6e05\u5355\u8bfb\u4e0d\u5230\u6216\u672a\u4ea7\u751f\u5224\u5b9a\uff0c\u9010\u9879\u89c1\u4e0b\u65b9"
+        }
+      ],
+      "headings": [
+        "\u8bbe\u8ba1\u9886\u57df",
+        "Brand Design Domain Pack",
+        "\u57df\u5305\u767b\u8bb0\uff0813\uff09",
+        "\u7ed3\u6784\u6821\u9a8c\u53d1\u73b0\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:02.327Z"
+  },
+  {
+    "file": "16-states@1440.png",
+    "page": "states",
+    "hashRoute": "#/states",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/states",
+    "bytes": 182623,
+    "bufferBytes": 182623,
+    "sha256": "e49c24438aa33b25b69a1e975e95ba13993e9aa9778a89eccb1af595632c8235",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u754c\u9762\u72b6\u6001"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:02.809Z"
+  },
+  {
+    "file": "17-components@1440.png",
+    "page": "components",
+    "hashRoute": "#/components",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/components",
+    "bytes": 164297,
+    "bufferBytes": 164297,
+    "sha256": "20f10025ce4a90901c7b014aa60ab221ecf1a7441ec03853185114a823ea1cef",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7ec4\u4ef6\u89c4\u8303",
+        "\u914d\u8272\u4e0e\u660e\u6697",
+        "\u72b6\u6001\u836f\u4e38",
+        "\u6309\u94ae\u4e0e\u8f93\u5165",
+        "\u5217\u8868",
+        "\u8868\u683c",
+        "\u72b6\u6001\u9762"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:03.293Z"
+  },
+  {
+    "file": "18-intake@1440.png",
+    "page": "intake",
+    "hashRoute": "#/intake",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/intake",
+    "bytes": 183505,
+    "bufferBytes": 183505,
+    "sha256": "7e00429a5122bba6f3c798f1c868a27e5b09d38c1834ef7e02a306094ad5b717",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u8f93\u5165\u4e0e\u76ee\u6807",
+        "\u9700\u6c42\u4e0e\u76ee\u6807",
+        "\u53c2\u8003\u7d20\u6750\u4e0e\u804c\u8d23",
+        "\u4ea4\u4ed8\u76ee\u6807",
+        "\u80fd\u529b\u4e0e\u77e5\u8bc6",
+        "\u5df2\u63d0\u4ea4\u7684\u7b80\u62a5"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:03.809Z"
+  },
+  {
+    "file": "19-plan@1440.png",
+    "page": "plan",
+    "hashRoute": "#/plan",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/plan",
+    "bytes": 145560,
+    "bufferBytes": 145560,
+    "sha256": "1962df61f3f4d1126d06ab8ff82038c9f8b88e2d9bf4f6c752bff77f71e19599",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u76ee\u6807\u751f\u6210\u5305",
+        "\u76ee\u6807\u5305\u7ec4\u6210\uff08\u6765\u81ea\u5df2\u8bb0\u5f55\u5bf9\u8c61\uff09",
+        "\u63d0\u4ea4\u4e0e\u53d7\u7406\u7ed3\u679c"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:04.290Z"
+  },
+  {
+    "file": "20-analysis@1440.png",
+    "page": "analysis",
+    "hashRoute": "#/analysis",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/analysis",
+    "bytes": 195000,
+    "bufferBytes": 195000,
+    "sha256": "0fc5a92838fd1b5ddf2be8d037554b35200f5f5dbd5aa6a092bb6cd05d1380d4",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u5206\u6790\u4e0e\u65b9\u6848",
+        "\u5224\u65ad\u4f9d\u636e\uff08\u8bfb\u56de\uff0c\u4e0d\u91cd\u8ff0\uff09",
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "\u672c\u6b21\u7ea0\u6b63"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:04.791Z"
+  },
+  {
+    "file": "21-prompt-intelligence@1440.png",
+    "page": "prompt-intelligence",
+    "hashRoute": "#/prompts",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/prompts",
+    "bytes": 185180,
+    "bufferBytes": 185180,
+    "sha256": "95c9f34fa6334f9069ae0df5e79663ae6d327fb7c88cd3e2ca8cc50ea8adefa8",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u63d0\u793a\u8bcd\u5de5\u7a0b",
+        "\u88c5\u914d\u63d0\u793a\u8bcd\uff08\u53ea\u8bfb\u5df2\u5b58\u8bb0\u5f55\uff09",
+        "\u53cd\u63a8\u63d0\u793a\u8bcd\uff08\u89c2\u6d4b\u7531\u4f60\u63d0\u4f9b\uff09",
+        "\u5df2\u5b58\u63d0\u793a\u8bcd\u7ed3\u679c\u4e0e\u4eba\u5de5\u7b7e\u7f72",
+        "\u4eba\u5de5\u7b7e\u7f72\uff08Human Gate \u7684\u684c\u9762\u5165\u53e3\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:05.304Z"
+  },
+  {
+    "file": "22-model-selection@1440.png",
+    "page": "model-selection",
+    "hashRoute": "#/models",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/models",
+    "bytes": 222821,
+    "bufferBytes": 222821,
+    "sha256": "658854e0acf67c12c1b94cb1ff1be1a3eb712c820f40a092a16ced1848e4bb1b",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u6a21\u578b\u9009\u62e9",
+        "\u6a21\u578b\u5019\u9009\uff08\u8bfb\u56de 14 \u884c\uff09",
+        "\u53ef\u8c03\u7528\u7aef\u70b9\uff08\u8bfb\u56de 9 \u884c\uff09",
+        "\u672c\u9879\u76ee\u7684\u9009\u62e9\uff08\u8bfb\u56de + \u8bb0\u5f55\uff09",
+        "\u9009\u62e9\u5728\u8fd9\u91cc\u610f\u5473\u7740\u4ec0\u4e48",
+        "\u65c1\u8bc1\uff1a\u80fd\u529b\u5e93\u6295\u5f71\u4e0e\u73af\u5883\u8def\u5f84\u4e8b\u5b9e"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:05.807Z"
+  },
+  {
+    "file": "23-records@1440.png",
+    "page": "records",
+    "hashRoute": "#/records",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/records",
+    "bytes": 227873,
+    "bufferBytes": 227873,
+    "sha256": "0473026f3ffbb9157e2c60a9eba751be819cfe598305063c82e9b5c638ac3abd",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u5236\u4f5c\u8bb0\u5f55\u4e0e\u5f85\u7ee7\u7eed",
+        "\u5236\u4f5c\u8bb0\u5f55\uff081\uff09",
+        "\u8fd9\u4e2a\u5165\u53e3\u73b0\u5728\u80fd\u8bf4\u4ec0\u4e48\u3001\u4e0d\u80fd\u8bf4\u4ec0\u4e48",
+        "\u8fd0\u884c\u4e0e\u6062\u590d\u73b0\u573a",
+        "\u77e5\u8bc6\u56de\u6267\u4e0e\u53cd\u9988\uff08T16 / U09\uff09",
+        "\u8bb0\u5f55\u4e00\u6761\u77e5\u8bc6\u5019\u9009",
+        "\u4eba\u5de5\u88c1\u51b3",
+        "\u64a4\u9500\u4e0e\u56de\u6267",
+        "\u5bfc\u51fa\u6587\u6863\uff08\u8bfb\u56de\uff0c\u4e0d\u53d1\u9001\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:06.350Z"
+  },
+  {
+    "file": "24-knowledge@1440.png",
+    "page": "knowledge",
+    "hashRoute": "#/knowledge",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/knowledge",
+    "bytes": 186808,
+    "bufferBytes": 186808,
+    "sha256": "61525696d300bfef47b2b723532e6e309278012d2b54ecdc2c084163620ae73d",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u77e5\u8bc6\u4e0e\u63d0\u793a\u8bcd\u5e93",
+        "\u68c0\u7d22\u7ed3\u679c",
+        "\u6761\u76ee\u8be6\u60c5"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:06.828Z"
+  },
+  {
+    "file": "25-search-groups@1440.png",
+    "page": "search-groups",
+    "hashRoute": "#/capabilities",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities",
+    "bytes": 312148,
+    "bufferBytes": 312148,
+    "sha256": "b5b45849c4363f1e3282c1c151e66ea4cc71732f2daba3d11a646bc8b5a94105",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:07.515Z"
+  },
+  {
+    "file": "26-workbench@1280.png",
+    "page": "workbench",
+    "hashRoute": "",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench",
+    "bytes": 97655,
+    "bufferBytes": 97655,
+    "sha256": "c100dbecf056b319445b46dd3649915208271493c5b72a5e80002eb9f9ee28eb",
+    "rendered": {
+      "host": "#workspace",
+      "kpis": [],
+      "headings": [
+        "\u9879\u76ee\u4e0e\u53c2\u8003",
+        "\u5bfc\u5165\u771f\u5b9e\u53c2\u8003",
+        "\u670d\u52a1\u5668\u8bfb\u56de\u9884\u89c8",
+        "\u4efb\u52a1\u4e0e\u4e8b\u4ef6",
+        "\u5df2\u767b\u8bb0\u7684 AI / PSD",
+        "Brief \u2192 Direction \u2192 DesignSystem",
+        "\u68c0\u67e5\u4e0e\u63d0\u4ea4\u5bf9\u8c61\u8ba1\u5212",
+        "Adobe \u5bf9\u8c61\u5c40\u90e8\u4fee\u6539"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:08.295Z"
+  },
+  {
+    "file": "27-dashboard@1280.png",
+    "page": "dashboard",
+    "hashRoute": "#/dashboard",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/dashboard",
+    "bytes": 196727,
+    "bufferBytes": 196727,
+    "sha256": "8279e2a15d87c5fbc399c9c17c2849a264f3cbffa97b98e98a8d32d97a8b71c0",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u9879\u76ee",
+          "note": "\u670d\u52a1\u7aef\u9879\u76ee\u53f0\u8d26\u8bfb\u56de\uff0c\u975e\u7edf\u8ba1\u731c\u6d4b"
+        },
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u8d44\u6e90\u767b\u8bb0\u7684\u8bbe\u8ba1\u7cfb\u7edf\u603b\u6570 \u00b7 \u670d\u52a1\u7aef\u76ee\u5f55\u8bfb\u56de"
+        },
+        {
+          "value": "OK",
+          "label": "\u670d\u52a1\u72b6\u6001",
+          "note": "\u7248\u672c 0.1.0-alpha.0 \u00b7 \u4f5c\u7528\u57df project-metadata"
+        },
+        {
+          "value": "0.1.0-alpha.0",
+          "label": "\u670d\u52a1\u7248\u672c",
+          "note": "\u670d\u52a1\u81ea\u68c0\u8bfb\u56de"
+        }
+      ],
+      "headings": [
+        "\u4eea\u8868\u76d8",
+        "\u6700\u8fd1\u9879\u76ee",
+        "\u8bbe\u8ba1\u8d28\u91cf\u8d8b\u52bf \u00b7 \u672a\u8bfb\u56de",
+        "Research",
+        "Brand",
+        "Delivery",
+        "\u7ee7\u7eed\u9879\u76ee",
+        "\u5f85\u5ba1\uff08\u9700\u4eba\u5de5\u5904\u7406\uff09\uff080\uff09",
+        "\u5931\u8d25\uff080\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:09.259Z"
+  },
+  {
+    "file": "28-projects@1280.png",
+    "page": "projects",
+    "hashRoute": "#/projects",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/projects",
+    "bytes": 132537,
+    "bufferBytes": 132537,
+    "sha256": "d2f29f3ce832c7d5f14e5e3a2e0cbf21ccac670ded43b8c7e38fa086ba20d30f",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u9879\u76ee",
+          "note": "\u670d\u52a1\u7aef\u53f0\u8d26\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u8fdb\u884c\u4e2d",
+          "note": "\u72b6\u6001\u9700\u5728\u5de5\u4f5c\u53f0\u67e5\u770b"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u5df2\u5b8c\u6210",
+          "note": "\u72b6\u6001\u9700\u5728\u5de5\u4f5c\u53f0\u67e5\u770b"
+        }
+      ],
+      "headings": [
+        "\u9879\u76ee",
+        "\u9879\u76ee\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:09.750Z"
+  },
+  {
+    "file": "29-project-detail@1280.png",
+    "page": "project-detail",
+    "hashRoute": "#/projects/bb6cd53333ad4758911cd691fdccd31e",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/projects/bb6cd53333ad4758911cd691fdccd31e",
+    "bytes": 172514,
+    "bufferBytes": 172514,
+    "sha256": "68dfa6ab6c58367c9c1a91323e42a76f32d7dc94edc7ad1d5ff5eadae40c5e29",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u4efb\u52a1",
+          "note": "\u8bfb\u56de /tasks \u53f0\u8d26"
+        },
+        {
+          "value": "1",
+          "label": "\u7b80\u62a5\u7248\u672c",
+          "note": "\u8bfb\u56de design-layer"
+        },
+        {
+          "value": "1",
+          "label": "\u65b9\u5411\u7248\u672c",
+          "note": "\u8bfb\u56de design-layer"
+        },
+        {
+          "value": "1",
+          "label": "\u6d3b\u52a8\u7ed1\u5b9a",
+          "note": "anomaly-monitor-dark \u00b7 \u7ed1\u5b9a direction-eec43da2729a4b85bde80f37ffc28d16"
+        }
+      ],
+      "headings": [
+        "Closeout 1792776412235",
+        "\u4efb\u52a1\u53f0\u8d26\uff081\uff09",
+        "\u8bbe\u8ba1\u5c42\u5951\u7ea6",
+        "\u4ea4\u4ed8\u5305\uff080\uff09",
+        "\u6210\u679c\u7248\u672c\uff080 \u7c7b / 0 \u7248\u672c\uff09",
+        "\u7b80\u62a5\uff08Brief\uff09\u00b7 1 \u4e2a\u7248\u672c",
+        "\u65b9\u5411\uff08Direction\uff09\u00b7 1 \u4e2a\u5019\u9009",
+        "\u8bbe\u8ba1\u7cfb\u7edf\uff08DesignSystem\uff09\u00b7 \u76ee\u5f55 4 \u9879 \u00b7 \u7ed1\u5b9a 1 \u6b21",
+        "\u8bbe\u8ba1\u7cfb\u7edf Token\uff08DTCG\uff09\u00b7 \u5f53\u524d\u6587\u6863 0",
+        "\u53c2\u8003\u7d20\u6750\uff081\uff09",
+        "Inspector"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:10.308Z"
+  },
+  {
+    "file": "30-research@1280.png",
+    "page": "research",
+    "hashRoute": "#/research",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/research",
+    "bytes": 174244,
+    "bufferBytes": 174244,
+    "sha256": "830a3fbbed4a52af7d017d8195de4932ddbc30a519515da4ad65c031c7888bfe",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "\u7814\u7a76\u7ed3\u8bba\u8bfb\u56de",
+        "\u8bb0\u5f55\u4e00\u6761\u7814\u7a76\u7ed3\u8bba",
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:10.874Z"
+  },
+  {
+    "file": "31-brand-systems@1280.png",
+    "page": "brand-systems",
+    "hashRoute": "#/brand-systems",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/brand-systems",
+    "bytes": 168185,
+    "bufferBytes": 168185,
+    "sha256": "595ee836a712247f051d10f4b07a3934f8f588875c4593ca3c9ddb9321f922dc",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u8d44\u6e90\u767b\u8bb0\u603b\u6570 \u00b7 \u670d\u52a1\u7aef\u76ee\u5f55\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "VI \u6a21\u5757",
+          "note": "\u65e0\u670d\u52a1\u7aef\u8bfb\u56de \u00b7 \u4e0b\u65b9\u4e3a\u8bbe\u8ba1\u53c2\u8003\u6a21\u5757\u540d,\u975e\u8d44\u4ea7\u7edf\u8ba1"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u6d3b\u8dc3\u7ed1\u5b9a",
+          "note": "\u7ed1\u5b9a\u5728\u5de5\u4f5c\u53f0 DESIGN LAYER \u6267\u884c"
+        }
+      ],
+      "headings": [
+        "\u54c1\u724c\u7cfb\u7edf",
+        "Logo",
+        "Color",
+        "Typography",
+        "Icon",
+        "Graphic Language",
+        "Templates",
+        "Applications",
+        "Assets",
+        "\u8bbe\u8ba1\u7cfb\u7edf\u767b\u8bb0\uff084\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:11.358Z"
+  },
+  {
+    "file": "32-domains@1280.png",
+    "page": "domains",
+    "hashRoute": "#/domains",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/domains",
+    "bytes": 198062,
+    "bufferBytes": 198062,
+    "sha256": "aa1f3ab03a1723d112dedbe68e86b137c77a9710cc32b0c2cf838c146cf36cf7",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "13",
+          "label": "\u57df\u5305\u76ee\u5f55",
+          "note": "design-lab/domain-packs \u8bfb\u56de"
+        },
+        {
+          "value": "12",
+          "label": "\u7ed3\u6784\u6821\u9a8c\u901a\u8fc7",
+          "note": "\u6821\u9a8c\u5668\u5224\u5b9a\uff0cE1 \u7ed3\u6784\u7ea7"
+        },
+        {
+          "value": "1",
+          "label": "\u6821\u9a8c\u4e0d\u901a\u8fc7",
+          "note": "\u4e0b\u65b9\u9010\u9879\u5217\u51fa\u6821\u9a8c\u5668\u539f\u56e0"
+        },
+        {
+          "value": "1",
+          "label": "\u672a\u901a\u8fc7 / \u65e0\u5224\u5b9a",
+          "note": "\u6821\u9a8c\u4e0d\u901a\u8fc7\u3001\u6e05\u5355\u8bfb\u4e0d\u5230\u6216\u672a\u4ea7\u751f\u5224\u5b9a\uff0c\u9010\u9879\u89c1\u4e0b\u65b9"
+        }
+      ],
+      "headings": [
+        "\u8bbe\u8ba1\u9886\u57df",
+        "\u57df\u5305\u767b\u8bb0\uff0813\uff09",
+        "\u7ed3\u6784\u6821\u9a8c\u53d1\u73b0\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:11.907Z"
+  },
+  {
+    "file": "33-creative-tools@1280.png",
+    "page": "creative-tools",
+    "hashRoute": "#/tools",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/tools",
+    "bytes": 179867,
+    "bufferBytes": 179867,
+    "sha256": "a52eb8298f3e32e443f3c81942ee47d2690524bafd68fb82a996b781a75f7478",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u521b\u4f5c\u5de5\u5177",
+        "\u5bbf\u4e3b / Capability \u72b6\u6001",
+        "\u5bbf\u4e3b\u8bfb\u56de",
+        "\u5171\u4eab\u8f93\u5165",
+        "\u521b\u4f5c\u5de5\u5177\uff08\u5bbf\u4e3b\u5b9e\u65f6\u72b6\u6001\uff09",
+        "MCP \u8bca\u65ad",
+        "Illustrator / AI",
+        "Photoshop / PSD",
+        "\u4efb\u52a1\uff081\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:12.428Z"
+  },
+  {
+    "file": "34-deliverables@1280.png",
+    "page": "deliverables",
+    "hashRoute": "#/deliverables",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/deliverables",
+    "bytes": 152579,
+    "bufferBytes": 152579,
+    "sha256": "434a524a1037876eda2a1b515d8279606e0f530d60410b12093a5ec56911c6b7",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u4ea4\u4ed8\u5019\u9009",
+          "note": "\u8bfb\u56de\u4efb\u52a1\u53f0\u8d26 \u00b7 \u975e\u5df2\u6253\u5305"
+        },
+        {
+          "value": "0",
+          "label": "\u4ea4\u4ed8\u5305",
+          "note": "\u8bfb\u56de /bundles \u00b7 \u53ef\u4e0b\u8f7d\u6838\u5bf9 hash"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u4eba\u5de5\u9a8c\u6536",
+          "note": "\u5b57\u4f53 / \u94fe\u63a5 / rights / \u8d28\u91cf"
+        }
+      ],
+      "headings": [
+        "\u4ea4\u4ed8\u4e2d\u5fc3",
+        "PSD",
+        "AI",
+        "PNG",
+        "SVG",
+        "Archive",
+        "PDF",
+        "Video",
+        "3D",
+        "\u4ea4\u4ed8\u5305\uff080\uff09",
+        "\u4ea4\u4ed8\u5019\u9009\u4efb\u52a1\uff081\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:12.941Z"
+  },
+  {
+    "file": "35-evidence@1280.png",
+    "page": "evidence",
+    "hashRoute": "#/evidence",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/evidence",
+    "bytes": 151116,
+    "bufferBytes": 151116,
+    "sha256": "0ba28b0f1374d53320a1c6bcda9146c1000eadb529ceebcd5c7e0764346588eb",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "briefs",
+          "note": "\u8bbe\u8ba1\u7b80\u62a5\u7248\u672c"
+        },
+        {
+          "value": "1",
+          "label": "directions",
+          "note": "\u8bbe\u8ba1\u65b9\u5411\u7248\u672c"
+        },
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u767b\u8bb0\u7cfb\u7edf"
+        },
+        {
+          "value": "0",
+          "label": "\u4ea4\u4ed8\u5305",
+          "note": "/bundles \u8bfb\u56de"
+        },
+        {
+          "value": "0",
+          "label": "\u4eba\u5de5\u88c1\u51b3",
+          "note": "GET /jury \u8bfb\u56de \u00b7 \u4ec5\u4eba\u5de5\u7b7e\u7f72"
+        }
+      ],
+      "headings": [
+        "\u8bc1\u636e\u7cfb\u7edf",
+        "\u8bc1\u636e\u94fe\u5b8c\u6574\u6027 \u00b7 Human EVIDENCE",
+        "\u8bc1\u636e\u7ed1\u5b9a\u94fe",
+        "\u4eba\u5de5\u8bc4\u5ba1\u88c1\u51b3 \u00b7 Human Jury",
+        "\u6743\u5229\u51b3\u5b9a\u8bfb\u56de \u00b7 Human RIGHTS",
+        "\u4ea4\u4ed8\u767b\u8bb0\u7684\u8bfb\u56de \u00b7 \u4ea7\u7269\u9884\u68c0\u4e0e\u4ea4\u4ed8\u6536\u636e",
+        "\u65b9\u5411\u5951\u7ea6",
+        "\u8bbe\u8ba1\u7cfb\u7edf\u767b\u8bb0"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:13.486Z"
+  },
+  {
+    "file": "36-collaboration@1280.png",
+    "page": "collaboration",
+    "hashRoute": "#/collaboration",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/collaboration",
+    "bytes": 107605,
+    "bufferBytes": 107605,
+    "sha256": "024a82a4d44ec9855cb4f81f7a7111276ce417b2e209bb8f01e88901480b20e0",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u56e2\u961f\u534f\u4f5c",
+        "\u56e2\u961f\u534f\u4f5c"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:13.948Z"
+  },
+  {
+    "file": "37-preflight@1280.png",
+    "page": "preflight",
+    "hashRoute": "#/preflight",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/preflight",
+    "bytes": 165964,
+    "bufferBytes": 165964,
+    "sha256": "8875cec038f5f074391eae91578d3a5acd792380280322cb79838143bd5fdae3",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "\u2014",
+          "label": "\u767b\u8bb0\u8d44\u6e90",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u963b\u585e\u8d44\u6e90",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u5224\u5b9a",
+          "note": "READY / BLOCKED"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u673a\u5668\u8303\u56f4",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        }
+      ],
+      "headings": [
+        "\u9884\u68c0 / QA",
+        "\u8bbe\u8ba1\u8bc4\u5ba1 \u00b7 Human Jury",
+        "\u6743\u5229\u51b3\u5b9a \u00b7 Human RIGHTS"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:14.483Z"
+  },
+  {
+    "file": "38-settings@1280.png",
+    "page": "settings",
+    "hashRoute": "#/settings",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/settings",
+    "bytes": 174178,
+    "bufferBytes": 174178,
+    "sha256": "93d52c4409828ec3c4ae908c347ab2310970b70bf3a03aeed5ed04db66a4785f",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7cfb\u7edf\u8bbe\u7f6e",
+        "\u6a21\u578b\u670d\u52a1",
+        "\u76ee\u6807\u5de5\u5177\u6863\u6848",
+        "\u5bfc\u5165\u66f4\u65b0",
+        "\u5907\u4efd\u4e0e\u8bca\u65ad",
+        "\u9879\u76ee\u6839\uff08\u670d\u52a1\u58f0\u660e\u53ef\u5199\uff0c\u672a\u63a2\u6d4b\uff09",
+        "\u5916\u7f6e\u8f93\u5165\uff08\u53ea\u8bfb \u00b7 DECLARED_NOT_PROBED\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:14.950Z"
+  },
+  {
+    "file": "39-capabilities@1280.png",
+    "page": "capabilities",
+    "hashRoute": "#/capabilities",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities",
+    "bytes": 214687,
+    "bufferBytes": 214687,
+    "sha256": "9bf6cd4a7b80789c420fdf19808da3037f614d24fb3ecdd8af76a96364dc38aa",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:15.448Z"
+  },
+  {
+    "file": "40-capability-detail@1280.png",
+    "page": "capability-detail",
+    "hashRoute": "#/capabilities/anydesign",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities/anydesign",
+    "bytes": 223593,
+    "bufferBytes": 223593,
+    "sha256": "5fc7e7d0bfc6feca716f53e609d7fb0d7d9a269d7bab45db6531973bd04ef61b",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "anydesign"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:15.965Z"
+  },
+  {
+    "file": "41-domain-detail@1280.png",
+    "page": "domain-detail",
+    "hashRoute": "#/domains/brand-design",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/domains/brand-design",
+    "bytes": 212182,
+    "bufferBytes": 212182,
+    "sha256": "c206f8d9cdfb967c927b90d2b27a069980cc02dcf86d8587c1be08a6397c6d58",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "13",
+          "label": "\u57df\u5305\u76ee\u5f55",
+          "note": "design-lab/domain-packs \u8bfb\u56de"
+        },
+        {
+          "value": "12",
+          "label": "\u7ed3\u6784\u6821\u9a8c\u901a\u8fc7",
+          "note": "\u6821\u9a8c\u5668\u5224\u5b9a\uff0cE1 \u7ed3\u6784\u7ea7"
+        },
+        {
+          "value": "1",
+          "label": "\u6821\u9a8c\u4e0d\u901a\u8fc7",
+          "note": "\u4e0b\u65b9\u9010\u9879\u5217\u51fa\u6821\u9a8c\u5668\u539f\u56e0"
+        },
+        {
+          "value": "1",
+          "label": "\u672a\u901a\u8fc7 / \u65e0\u5224\u5b9a",
+          "note": "\u6821\u9a8c\u4e0d\u901a\u8fc7\u3001\u6e05\u5355\u8bfb\u4e0d\u5230\u6216\u672a\u4ea7\u751f\u5224\u5b9a\uff0c\u9010\u9879\u89c1\u4e0b\u65b9"
+        }
+      ],
+      "headings": [
+        "\u8bbe\u8ba1\u9886\u57df",
+        "Brand Design Domain Pack",
+        "\u57df\u5305\u767b\u8bb0\uff0813\uff09",
+        "\u7ed3\u6784\u6821\u9a8c\u53d1\u73b0\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:16.521Z"
+  },
+  {
+    "file": "42-states@1280.png",
+    "page": "states",
+    "hashRoute": "#/states",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/states",
+    "bytes": 134791,
+    "bufferBytes": 134791,
+    "sha256": "aa35970a29ad590482a5d36cc49dee3c239c74eaa248a19c6e72ffa3c991037a",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u754c\u9762\u72b6\u6001"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:16.980Z"
+  },
+  {
+    "file": "43-components@1280.png",
+    "page": "components",
+    "hashRoute": "#/components",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/components",
+    "bytes": 144555,
+    "bufferBytes": 144555,
+    "sha256": "6fe272bbc5f6c54988d6f34775ed2590a457c2af1033ec65c4f04f2b00e62b96",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7ec4\u4ef6\u89c4\u8303",
+        "\u914d\u8272\u4e0e\u660e\u6697",
+        "\u72b6\u6001\u836f\u4e38",
+        "\u6309\u94ae\u4e0e\u8f93\u5165",
+        "\u5217\u8868",
+        "\u8868\u683c",
+        "\u72b6\u6001\u9762"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:17.449Z"
+  },
+  {
+    "file": "44-intake@1280.png",
+    "page": "intake",
+    "hashRoute": "#/intake",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/intake",
+    "bytes": 160047,
+    "bufferBytes": 160047,
+    "sha256": "79dbe9b48c178f8bddd50ecd77f1225e26d407641095020080714f3104f22142",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u8f93\u5165\u4e0e\u76ee\u6807",
+        "\u9700\u6c42\u4e0e\u76ee\u6807",
+        "\u53c2\u8003\u7d20\u6750\u4e0e\u804c\u8d23",
+        "\u4ea4\u4ed8\u76ee\u6807",
+        "\u80fd\u529b\u4e0e\u77e5\u8bc6",
+        "\u5df2\u63d0\u4ea4\u7684\u7b80\u62a5"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:18.006Z"
+  },
+  {
+    "file": "45-plan@1280.png",
+    "page": "plan",
+    "hashRoute": "#/plan",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/plan",
+    "bytes": 134068,
+    "bufferBytes": 134068,
+    "sha256": "1df412a8c56f5c6ead616219cdac2567e9d234cea01e5dab697fcb23b782a2ce",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u76ee\u6807\u751f\u6210\u5305",
+        "\u76ee\u6807\u5305\u7ec4\u6210\uff08\u6765\u81ea\u5df2\u8bb0\u5f55\u5bf9\u8c61\uff09",
+        "\u63d0\u4ea4\u4e0e\u53d7\u7406\u7ed3\u679c"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:18.518Z"
+  },
+  {
+    "file": "46-analysis@1280.png",
+    "page": "analysis",
+    "hashRoute": "#/analysis",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/analysis",
+    "bytes": 169719,
+    "bufferBytes": 169719,
+    "sha256": "14d2f964445600a46fc24d2016eaef4c36c0ce5d57fb4f448bd92f8b97bce3da",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u5206\u6790\u4e0e\u65b9\u6848",
+        "\u5224\u65ad\u4f9d\u636e\uff08\u8bfb\u56de\uff0c\u4e0d\u91cd\u8ff0\uff09",
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "\u672c\u6b21\u7ea0\u6b63"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:19.033Z"
+  },
+  {
+    "file": "47-prompt-intelligence@1280.png",
+    "page": "prompt-intelligence",
+    "hashRoute": "#/prompts",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/prompts",
+    "bytes": 175229,
+    "bufferBytes": 175229,
+    "sha256": "ad005dd84ad82b228b9aba36409f94234c7fcc5ed22b5317946ad07a5c4c30e7",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u63d0\u793a\u8bcd\u5de5\u7a0b",
+        "\u88c5\u914d\u63d0\u793a\u8bcd\uff08\u53ea\u8bfb\u5df2\u5b58\u8bb0\u5f55\uff09",
+        "\u53cd\u63a8\u63d0\u793a\u8bcd\uff08\u89c2\u6d4b\u7531\u4f60\u63d0\u4f9b\uff09",
+        "\u5df2\u5b58\u63d0\u793a\u8bcd\u7ed3\u679c\u4e0e\u4eba\u5de5\u7b7e\u7f72",
+        "\u4eba\u5de5\u7b7e\u7f72\uff08Human Gate \u7684\u684c\u9762\u5165\u53e3\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:19.567Z"
+  },
+  {
+    "file": "48-model-selection@1280.png",
+    "page": "model-selection",
+    "hashRoute": "#/models",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/models",
+    "bytes": 178483,
+    "bufferBytes": 178483,
+    "sha256": "89d31d5a5dea605e3b58994fd74ae44a585cc1d580ead90a9fb23441a486ae81",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u6a21\u578b\u9009\u62e9",
+        "\u6a21\u578b\u5019\u9009\uff08\u8bfb\u56de 14 \u884c\uff09",
+        "\u53ef\u8c03\u7528\u7aef\u70b9\uff08\u8bfb\u56de 9 \u884c\uff09",
+        "\u672c\u9879\u76ee\u7684\u9009\u62e9\uff08\u8bfb\u56de + \u8bb0\u5f55\uff09",
+        "\u9009\u62e9\u5728\u8fd9\u91cc\u610f\u5473\u7740\u4ec0\u4e48",
+        "\u65c1\u8bc1\uff1a\u80fd\u529b\u5e93\u6295\u5f71\u4e0e\u73af\u5883\u8def\u5f84\u4e8b\u5b9e"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:20.091Z"
+  },
+  {
+    "file": "49-records@1280.png",
+    "page": "records",
+    "hashRoute": "#/records",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/records",
+    "bytes": 170229,
+    "bufferBytes": 170229,
+    "sha256": "4bc1222151fbc6cce152eededa532fd8ada2b0e3f0c45877cd56337336d9a6b0",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u5236\u4f5c\u8bb0\u5f55\u4e0e\u5f85\u7ee7\u7eed",
+        "\u5236\u4f5c\u8bb0\u5f55\uff081\uff09",
+        "\u8fd9\u4e2a\u5165\u53e3\u73b0\u5728\u80fd\u8bf4\u4ec0\u4e48\u3001\u4e0d\u80fd\u8bf4\u4ec0\u4e48",
+        "\u8fd0\u884c\u4e0e\u6062\u590d\u73b0\u573a",
+        "\u77e5\u8bc6\u56de\u6267\u4e0e\u53cd\u9988\uff08T16 / U09\uff09",
+        "\u8bb0\u5f55\u4e00\u6761\u77e5\u8bc6\u5019\u9009",
+        "\u4eba\u5de5\u88c1\u51b3",
+        "\u64a4\u9500\u4e0e\u56de\u6267",
+        "\u5bfc\u51fa\u6587\u6863\uff08\u8bfb\u56de\uff0c\u4e0d\u53d1\u9001\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:20.641Z"
+  },
+  {
+    "file": "50-knowledge@1280.png",
+    "page": "knowledge",
+    "hashRoute": "#/knowledge",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/knowledge",
+    "bytes": 172690,
+    "bufferBytes": 172690,
+    "sha256": "a93faa680a97200fecb63cc7b21aa4607598fe8e38d1bfb3201422c450aab00d",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u77e5\u8bc6\u4e0e\u63d0\u793a\u8bcd\u5e93",
+        "\u68c0\u7d22\u7ed3\u679c",
+        "\u6761\u76ee\u8be6\u60c5"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:21.137Z"
+  },
+  {
+    "file": "51-search-groups@1280.png",
+    "page": "search-groups",
+    "hashRoute": "#/capabilities",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities",
+    "bytes": 283310,
+    "bufferBytes": 283310,
+    "sha256": "6ff3722d564dfde5ef14d4273b13d4dd9ff5ad46c9b54da2e4e076b92ea2c2f5",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:21.810Z"
+  },
+  {
+    "file": "52-workbench@1920.png",
+    "page": "workbench",
+    "hashRoute": "",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench",
+    "bytes": 139276,
+    "bufferBytes": 139276,
+    "sha256": "c447fe0726d1d1c08340a7478c19084f1389183f82bbc3efa3688521e17592ed",
+    "rendered": {
+      "host": "#workspace",
+      "kpis": [],
+      "headings": [
+        "\u9879\u76ee\u4e0e\u53c2\u8003",
+        "\u5bfc\u5165\u771f\u5b9e\u53c2\u8003",
+        "\u670d\u52a1\u5668\u8bfb\u56de\u9884\u89c8",
+        "\u4efb\u52a1\u4e0e\u4e8b\u4ef6",
+        "\u5df2\u767b\u8bb0\u7684 AI / PSD",
+        "Brief \u2192 Direction \u2192 DesignSystem",
+        "\u68c0\u67e5\u4e0e\u63d0\u4ea4\u5bf9\u8c61\u8ba1\u5212",
+        "Adobe \u5bf9\u8c61\u5c40\u90e8\u4fee\u6539"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:22.645Z"
+  },
+  {
+    "file": "53-dashboard@1920.png",
+    "page": "dashboard",
+    "hashRoute": "#/dashboard",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/dashboard",
+    "bytes": 255545,
+    "bufferBytes": 255545,
+    "sha256": "03d3ed51210aa5d68edf5937ab94c9a711cb701c77b177e7336e259821c5cc59",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u9879\u76ee",
+          "note": "\u670d\u52a1\u7aef\u9879\u76ee\u53f0\u8d26\u8bfb\u56de\uff0c\u975e\u7edf\u8ba1\u731c\u6d4b"
+        },
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u8d44\u6e90\u767b\u8bb0\u7684\u8bbe\u8ba1\u7cfb\u7edf\u603b\u6570 \u00b7 \u670d\u52a1\u7aef\u76ee\u5f55\u8bfb\u56de"
+        },
+        {
+          "value": "OK",
+          "label": "\u670d\u52a1\u72b6\u6001",
+          "note": "\u7248\u672c 0.1.0-alpha.0 \u00b7 \u4f5c\u7528\u57df project-metadata"
+        },
+        {
+          "value": "0.1.0-alpha.0",
+          "label": "\u670d\u52a1\u7248\u672c",
+          "note": "\u670d\u52a1\u81ea\u68c0\u8bfb\u56de"
+        }
+      ],
+      "headings": [
+        "\u4eea\u8868\u76d8",
+        "\u6700\u8fd1\u9879\u76ee",
+        "\u8bbe\u8ba1\u8d28\u91cf\u8d8b\u52bf \u00b7 \u672a\u8bfb\u56de",
+        "Research",
+        "Brand",
+        "Delivery",
+        "\u7ee7\u7eed\u9879\u76ee",
+        "\u5f85\u5ba1\uff08\u9700\u4eba\u5de5\u5904\u7406\uff09\uff080\uff09",
+        "\u5931\u8d25\uff080\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:23.605Z"
+  },
+  {
+    "file": "54-projects@1920.png",
+    "page": "projects",
+    "hashRoute": "#/projects",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/projects",
+    "bytes": 173239,
+    "bufferBytes": 173239,
+    "sha256": "4fde67b4d9f355a9a3401db524e555701279c44fae7a8a1dcc35f00afb181654",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u9879\u76ee",
+          "note": "\u670d\u52a1\u7aef\u53f0\u8d26\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u8fdb\u884c\u4e2d",
+          "note": "\u72b6\u6001\u9700\u5728\u5de5\u4f5c\u53f0\u67e5\u770b"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u5df2\u5b8c\u6210",
+          "note": "\u72b6\u6001\u9700\u5728\u5de5\u4f5c\u53f0\u67e5\u770b"
+        }
+      ],
+      "headings": [
+        "\u9879\u76ee",
+        "\u9879\u76ee\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:24.134Z"
+  },
+  {
+    "file": "55-project-detail@1920.png",
+    "page": "project-detail",
+    "hashRoute": "#/projects/bb6cd53333ad4758911cd691fdccd31e",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/projects/bb6cd53333ad4758911cd691fdccd31e",
+    "bytes": 254583,
+    "bufferBytes": 254583,
+    "sha256": "34a6a26743ab0f037e4dfd449e4d8d33f58c9eef94db61d619392a5b07cce867",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u4efb\u52a1",
+          "note": "\u8bfb\u56de /tasks \u53f0\u8d26"
+        },
+        {
+          "value": "1",
+          "label": "\u7b80\u62a5\u7248\u672c",
+          "note": "\u8bfb\u56de design-layer"
+        },
+        {
+          "value": "1",
+          "label": "\u65b9\u5411\u7248\u672c",
+          "note": "\u8bfb\u56de design-layer"
+        },
+        {
+          "value": "1",
+          "label": "\u6d3b\u52a8\u7ed1\u5b9a",
+          "note": "anomaly-monitor-dark \u00b7 \u7ed1\u5b9a direction-eec43da2729a4b85bde80f37ffc28d16"
+        }
+      ],
+      "headings": [
+        "Closeout 1792776412235",
+        "\u4efb\u52a1\u53f0\u8d26\uff081\uff09",
+        "\u8bbe\u8ba1\u5c42\u5951\u7ea6",
+        "\u4ea4\u4ed8\u5305\uff080\uff09",
+        "\u6210\u679c\u7248\u672c\uff080 \u7c7b / 0 \u7248\u672c\uff09",
+        "\u7b80\u62a5\uff08Brief\uff09\u00b7 1 \u4e2a\u7248\u672c",
+        "\u65b9\u5411\uff08Direction\uff09\u00b7 1 \u4e2a\u5019\u9009",
+        "\u8bbe\u8ba1\u7cfb\u7edf\uff08DesignSystem\uff09\u00b7 \u76ee\u5f55 4 \u9879 \u00b7 \u7ed1\u5b9a 1 \u6b21",
+        "\u8bbe\u8ba1\u7cfb\u7edf Token\uff08DTCG\uff09\u00b7 \u5f53\u524d\u6587\u6863 0",
+        "\u53c2\u8003\u7d20\u6750\uff081\uff09",
+        "Inspector"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:24.707Z"
+  },
+  {
+    "file": "56-research@1920.png",
+    "page": "research",
+    "hashRoute": "#/research",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/research",
+    "bytes": 237473,
+    "bufferBytes": 237473,
+    "sha256": "7e4bc8d9edf0133ad27847b52d498c441fadce690af07ca584284d8c6eadd75b",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "\u7814\u7a76\u7ed3\u8bba\u8bfb\u56de",
+        "\u8bb0\u5f55\u4e00\u6761\u7814\u7a76\u7ed3\u8bba",
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:25.266Z"
+  },
+  {
+    "file": "57-brand-systems@1920.png",
+    "page": "brand-systems",
+    "hashRoute": "#/brand-systems",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/brand-systems",
+    "bytes": 260286,
+    "bufferBytes": 260286,
+    "sha256": "4d7fcccb08e2af82270c78b3d51884b1e41dec5516f5753039f5aca614e762ff",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u8d44\u6e90\u767b\u8bb0\u603b\u6570 \u00b7 \u670d\u52a1\u7aef\u76ee\u5f55\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "VI \u6a21\u5757",
+          "note": "\u65e0\u670d\u52a1\u7aef\u8bfb\u56de \u00b7 \u4e0b\u65b9\u4e3a\u8bbe\u8ba1\u53c2\u8003\u6a21\u5757\u540d,\u975e\u8d44\u4ea7\u7edf\u8ba1"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u6d3b\u8dc3\u7ed1\u5b9a",
+          "note": "\u7ed1\u5b9a\u5728\u5de5\u4f5c\u53f0 DESIGN LAYER \u6267\u884c"
+        }
+      ],
+      "headings": [
+        "\u54c1\u724c\u7cfb\u7edf",
+        "Logo",
+        "Color",
+        "Typography",
+        "Icon",
+        "Graphic Language",
+        "Templates",
+        "Applications",
+        "Assets",
+        "\u8bbe\u8ba1\u7cfb\u7edf\u767b\u8bb0\uff084\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:25.751Z"
+  },
+  {
+    "file": "58-domains@1920.png",
+    "page": "domains",
+    "hashRoute": "#/domains",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/domains",
+    "bytes": 286758,
+    "bufferBytes": 286758,
+    "sha256": "519ffb445be2e1cc1840108999a7d2fbed6f883516fdd7de97eb04fac4dc2b29",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "13",
+          "label": "\u57df\u5305\u76ee\u5f55",
+          "note": "design-lab/domain-packs \u8bfb\u56de"
+        },
+        {
+          "value": "12",
+          "label": "\u7ed3\u6784\u6821\u9a8c\u901a\u8fc7",
+          "note": "\u6821\u9a8c\u5668\u5224\u5b9a\uff0cE1 \u7ed3\u6784\u7ea7"
+        },
+        {
+          "value": "1",
+          "label": "\u6821\u9a8c\u4e0d\u901a\u8fc7",
+          "note": "\u4e0b\u65b9\u9010\u9879\u5217\u51fa\u6821\u9a8c\u5668\u539f\u56e0"
+        },
+        {
+          "value": "1",
+          "label": "\u672a\u901a\u8fc7 / \u65e0\u5224\u5b9a",
+          "note": "\u6821\u9a8c\u4e0d\u901a\u8fc7\u3001\u6e05\u5355\u8bfb\u4e0d\u5230\u6216\u672a\u4ea7\u751f\u5224\u5b9a\uff0c\u9010\u9879\u89c1\u4e0b\u65b9"
+        }
+      ],
+      "headings": [
+        "\u8bbe\u8ba1\u9886\u57df",
+        "\u57df\u5305\u767b\u8bb0\uff0813\uff09",
+        "\u7ed3\u6784\u6821\u9a8c\u53d1\u73b0\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:26.342Z"
+  },
+  {
+    "file": "59-creative-tools@1920.png",
+    "page": "creative-tools",
+    "hashRoute": "#/tools",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/tools",
+    "bytes": 242282,
+    "bufferBytes": 242282,
+    "sha256": "4644664751ea5c2b051f65941a52a335572e4424c19ef1a4491acc6157d1949b",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u521b\u4f5c\u5de5\u5177",
+        "\u5bbf\u4e3b / Capability \u72b6\u6001",
+        "\u5bbf\u4e3b\u8bfb\u56de",
+        "\u5171\u4eab\u8f93\u5165",
+        "\u521b\u4f5c\u5de5\u5177\uff08\u5bbf\u4e3b\u5b9e\u65f6\u72b6\u6001\uff09",
+        "MCP \u8bca\u65ad",
+        "Illustrator / AI",
+        "Photoshop / PSD",
+        "\u4efb\u52a1\uff081\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:26.870Z"
+  },
+  {
+    "file": "60-deliverables@1920.png",
+    "page": "deliverables",
+    "hashRoute": "#/deliverables",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/deliverables",
+    "bytes": 223310,
+    "bufferBytes": 223310,
+    "sha256": "9249a892ba957f7bbdd7d7fb472c88b5da2b5f93b9b261f113d723a4691fa9fa",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "\u4ea4\u4ed8\u5019\u9009",
+          "note": "\u8bfb\u56de\u4efb\u52a1\u53f0\u8d26 \u00b7 \u975e\u5df2\u6253\u5305"
+        },
+        {
+          "value": "0",
+          "label": "\u4ea4\u4ed8\u5305",
+          "note": "\u8bfb\u56de /bundles \u00b7 \u53ef\u4e0b\u8f7d\u6838\u5bf9 hash"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u4eba\u5de5\u9a8c\u6536",
+          "note": "\u5b57\u4f53 / \u94fe\u63a5 / rights / \u8d28\u91cf"
+        }
+      ],
+      "headings": [
+        "\u4ea4\u4ed8\u4e2d\u5fc3",
+        "PSD",
+        "AI",
+        "PNG",
+        "SVG",
+        "Archive",
+        "PDF",
+        "Video",
+        "3D",
+        "\u4ea4\u4ed8\u5305\uff080\uff09",
+        "\u4ea4\u4ed8\u5019\u9009\u4efb\u52a1\uff081\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:27.407Z"
+  },
+  {
+    "file": "61-evidence@1920.png",
+    "page": "evidence",
+    "hashRoute": "#/evidence",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/evidence",
+    "bytes": 210758,
+    "bufferBytes": 210758,
+    "sha256": "e3c8cdd0984eca5c7be4c6aa56ab6af988245ac31f868ff00f1faedae3e038ea",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "1",
+          "label": "briefs",
+          "note": "\u8bbe\u8ba1\u7b80\u62a5\u7248\u672c"
+        },
+        {
+          "value": "1",
+          "label": "directions",
+          "note": "\u8bbe\u8ba1\u65b9\u5411\u7248\u672c"
+        },
+        {
+          "value": "4",
+          "label": "\u8bbe\u8ba1\u7cfb\u7edf",
+          "note": "\u767b\u8bb0\u7cfb\u7edf"
+        },
+        {
+          "value": "0",
+          "label": "\u4ea4\u4ed8\u5305",
+          "note": "/bundles \u8bfb\u56de"
+        },
+        {
+          "value": "0",
+          "label": "\u4eba\u5de5\u88c1\u51b3",
+          "note": "GET /jury \u8bfb\u56de \u00b7 \u4ec5\u4eba\u5de5\u7b7e\u7f72"
+        }
+      ],
+      "headings": [
+        "\u8bc1\u636e\u7cfb\u7edf",
+        "\u8bc1\u636e\u94fe\u5b8c\u6574\u6027 \u00b7 Human EVIDENCE",
+        "\u8bc1\u636e\u7ed1\u5b9a\u94fe",
+        "\u4eba\u5de5\u8bc4\u5ba1\u88c1\u51b3 \u00b7 Human Jury",
+        "\u6743\u5229\u51b3\u5b9a\u8bfb\u56de \u00b7 Human RIGHTS",
+        "\u4ea4\u4ed8\u767b\u8bb0\u7684\u8bfb\u56de \u00b7 \u4ea7\u7269\u9884\u68c0\u4e0e\u4ea4\u4ed8\u6536\u636e",
+        "\u65b9\u5411\u5951\u7ea6",
+        "\u8bbe\u8ba1\u7cfb\u7edf\u767b\u8bb0"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:27.949Z"
+  },
+  {
+    "file": "62-collaboration@1920.png",
+    "page": "collaboration",
+    "hashRoute": "#/collaboration",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/collaboration",
+    "bytes": 137518,
+    "bufferBytes": 137518,
+    "sha256": "4e8f357f7e7190cae35f0acd9957da2c37d813f3d8f2aea8a1593fb664ce150e",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u56e2\u961f\u534f\u4f5c",
+        "\u56e2\u961f\u534f\u4f5c"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:28.429Z"
+  },
+  {
+    "file": "63-preflight@1920.png",
+    "page": "preflight",
+    "hashRoute": "#/preflight",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/preflight",
+    "bytes": 230477,
+    "bufferBytes": 230477,
+    "sha256": "2286f3cd87c00a34075b4058b89d33049587b8e3d45becae297b5e1b76f3fe98",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "\u2014",
+          "label": "\u767b\u8bb0\u8d44\u6e90",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u963b\u585e\u8d44\u6e90",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u5224\u5b9a",
+          "note": "READY / BLOCKED"
+        },
+        {
+          "value": "\u2014",
+          "label": "\u673a\u5668\u8303\u56f4",
+          "note": "\u8fd0\u884c\u9884\u68c0\u540e\u8bfb\u56de"
+        }
+      ],
+      "headings": [
+        "\u9884\u68c0 / QA",
+        "\u8bbe\u8ba1\u8bc4\u5ba1 \u00b7 Human Jury",
+        "\u6743\u5229\u51b3\u5b9a \u00b7 Human RIGHTS"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:28.982Z"
+  },
+  {
+    "file": "64-settings@1920.png",
+    "page": "settings",
+    "hashRoute": "#/settings",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/settings",
+    "bytes": 253784,
+    "bufferBytes": 253784,
+    "sha256": "65bddb63c7fa7a6c360eb87b6cfc05af4669836d58470d290b14d0aff25f8904",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7cfb\u7edf\u8bbe\u7f6e",
+        "\u6a21\u578b\u670d\u52a1",
+        "\u76ee\u6807\u5de5\u5177\u6863\u6848",
+        "\u5bfc\u5165\u66f4\u65b0",
+        "\u5907\u4efd\u4e0e\u8bca\u65ad",
+        "\u9879\u76ee\u6839\uff08\u670d\u52a1\u58f0\u660e\u53ef\u5199\uff0c\u672a\u63a2\u6d4b\uff09",
+        "\u5916\u7f6e\u8f93\u5165\uff08\u53ea\u8bfb \u00b7 DECLARED_NOT_PROBED\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:29.470Z"
+  },
+  {
+    "file": "65-capabilities@1920.png",
+    "page": "capabilities",
+    "hashRoute": "#/capabilities",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities",
+    "bytes": 337079,
+    "bufferBytes": 337079,
+    "sha256": "60d5902ea8142f55c6b25e7f16801d7a03b9a0008b021f47fc62fe600a8d2d4a",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:29.979Z"
+  },
+  {
+    "file": "66-capability-detail@1920.png",
+    "page": "capability-detail",
+    "hashRoute": "#/capabilities/anydesign",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities/anydesign",
+    "bytes": 378989,
+    "bufferBytes": 378989,
+    "sha256": "5762c34032059c22bd26d606e0f8a66326e7d8d354ef21b3af059950da3f7597",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "anydesign"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:30.501Z"
+  },
+  {
+    "file": "67-domain-detail@1920.png",
+    "page": "domain-detail",
+    "hashRoute": "#/domains/brand-design",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/domains/brand-design",
+    "bytes": 314859,
+    "bufferBytes": 314859,
+    "sha256": "d13eeee972e2e12160f7f728d4c00699145e74b1acb20ae64722c3a5cc55d5d2",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [
+        {
+          "value": "13",
+          "label": "\u57df\u5305\u76ee\u5f55",
+          "note": "design-lab/domain-packs \u8bfb\u56de"
+        },
+        {
+          "value": "12",
+          "label": "\u7ed3\u6784\u6821\u9a8c\u901a\u8fc7",
+          "note": "\u6821\u9a8c\u5668\u5224\u5b9a\uff0cE1 \u7ed3\u6784\u7ea7"
+        },
+        {
+          "value": "1",
+          "label": "\u6821\u9a8c\u4e0d\u901a\u8fc7",
+          "note": "\u4e0b\u65b9\u9010\u9879\u5217\u51fa\u6821\u9a8c\u5668\u539f\u56e0"
+        },
+        {
+          "value": "1",
+          "label": "\u672a\u901a\u8fc7 / \u65e0\u5224\u5b9a",
+          "note": "\u6821\u9a8c\u4e0d\u901a\u8fc7\u3001\u6e05\u5355\u8bfb\u4e0d\u5230\u6216\u672a\u4ea7\u751f\u5224\u5b9a\uff0c\u9010\u9879\u89c1\u4e0b\u65b9"
+        }
+      ],
+      "headings": [
+        "\u8bbe\u8ba1\u9886\u57df",
+        "Brand Design Domain Pack",
+        "\u57df\u5305\u767b\u8bb0\uff0813\uff09",
+        "\u7ed3\u6784\u6821\u9a8c\u53d1\u73b0\uff081\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:31.095Z"
+  },
+  {
+    "file": "68-states@1920.png",
+    "page": "states",
+    "hashRoute": "#/states",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/states",
+    "bytes": 216032,
+    "bufferBytes": 216032,
+    "sha256": "8b8207b24ee53c3f9b387f782074d53f25a266bd8a3cce8caae95b854bb5f8e1",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u754c\u9762\u72b6\u6001"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:31.581Z"
+  },
+  {
+    "file": "69-components@1920.png",
+    "page": "components",
+    "hashRoute": "#/components",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/components",
+    "bytes": 192083,
+    "bufferBytes": 192083,
+    "sha256": "44cb7434eb11222827ba89a655eb5131e6ed5903354cc67cdfb29fe2a42e6c44",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u7ec4\u4ef6\u89c4\u8303",
+        "\u914d\u8272\u4e0e\u660e\u6697",
+        "\u72b6\u6001\u836f\u4e38",
+        "\u6309\u94ae\u4e0e\u8f93\u5165",
+        "\u5217\u8868",
+        "\u8868\u683c",
+        "\u72b6\u6001\u9762"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:32.064Z"
+  },
+  {
+    "file": "70-intake@1920.png",
+    "page": "intake",
+    "hashRoute": "#/intake",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/intake",
+    "bytes": 240518,
+    "bufferBytes": 240518,
+    "sha256": "ba6de7bcda15ea55306129a95b2f079c8b65f7a674ee89903ee779c79a4be758",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u8f93\u5165\u4e0e\u76ee\u6807",
+        "\u9700\u6c42\u4e0e\u76ee\u6807",
+        "\u53c2\u8003\u7d20\u6750\u4e0e\u804c\u8d23",
+        "\u4ea4\u4ed8\u76ee\u6807",
+        "\u80fd\u529b\u4e0e\u77e5\u8bc6",
+        "\u5df2\u63d0\u4ea4\u7684\u7b80\u62a5"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:32.599Z"
+  },
+  {
+    "file": "71-plan@1920.png",
+    "page": "plan",
+    "hashRoute": "#/plan",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/plan",
+    "bytes": 170275,
+    "bufferBytes": 170275,
+    "sha256": "e549267b26c0b7c11c86ccf210abd300cf62e3f6ac747bfd6863de0c99fa4c13",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u76ee\u6807\u751f\u6210\u5305",
+        "\u76ee\u6807\u5305\u7ec4\u6210\uff08\u6765\u81ea\u5df2\u8bb0\u5f55\u5bf9\u8c61\uff09",
+        "\u63d0\u4ea4\u4e0e\u53d7\u7406\u7ed3\u679c"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:33.108Z"
+  },
+  {
+    "file": "72-analysis@1920.png",
+    "page": "analysis",
+    "hashRoute": "#/analysis",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/analysis",
+    "bytes": 254019,
+    "bufferBytes": 254019,
+    "sha256": "8e747b0a5db0aaf9436026681b4b539f4e590008cd76683fbbd607df742b985c",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u5206\u6790\u4e0e\u65b9\u6848",
+        "\u5224\u65ad\u4f9d\u636e\uff08\u8bfb\u56de\uff0c\u4e0d\u91cd\u8ff0\uff09",
+        "\u7814\u7a76\u6d1e\u5bdf",
+        "\u672c\u6b21\u7ea0\u6b63"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:33.632Z"
+  },
+  {
+    "file": "73-prompt-intelligence@1920.png",
+    "page": "prompt-intelligence",
+    "hashRoute": "#/prompts",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/prompts",
+    "bytes": 227202,
+    "bufferBytes": 227202,
+    "sha256": "14ac12f2db71a32f16c0d91627068a6fee46becfcb063cb4d135682660126349",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u63d0\u793a\u8bcd\u5de5\u7a0b",
+        "\u88c5\u914d\u63d0\u793a\u8bcd\uff08\u53ea\u8bfb\u5df2\u5b58\u8bb0\u5f55\uff09",
+        "\u53cd\u63a8\u63d0\u793a\u8bcd\uff08\u89c2\u6d4b\u7531\u4f60\u63d0\u4f9b\uff09",
+        "\u5df2\u5b58\u63d0\u793a\u8bcd\u7ed3\u679c\u4e0e\u4eba\u5de5\u7b7e\u7f72",
+        "\u4eba\u5de5\u7b7e\u7f72\uff08Human Gate \u7684\u684c\u9762\u5165\u53e3\uff09"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:34.189Z"
+  },
+  {
+    "file": "74-model-selection@1920.png",
+    "page": "model-selection",
+    "hashRoute": "#/models",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/models",
+    "bytes": 294803,
+    "bufferBytes": 294803,
+    "sha256": "79b3f0ca20fe79ca9919f1563ec18d09ecc40098fc27cdd4cd1169bd15a3f00f",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u6a21\u578b\u9009\u62e9",
+        "\u6a21\u578b\u5019\u9009\uff08\u8bfb\u56de 14 \u884c\uff09",
+        "\u53ef\u8c03\u7528\u7aef\u70b9\uff08\u8bfb\u56de 9 \u884c\uff09",
+        "\u672c\u9879\u76ee\u7684\u9009\u62e9\uff08\u8bfb\u56de + \u8bb0\u5f55\uff09",
+        "\u9009\u62e9\u5728\u8fd9\u91cc\u610f\u5473\u7740\u4ec0\u4e48",
+        "\u65c1\u8bc1\uff1a\u80fd\u529b\u5e93\u6295\u5f71\u4e0e\u73af\u5883\u8def\u5f84\u4e8b\u5b9e"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:34.745Z"
+  },
+  {
+    "file": "75-records@1920.png",
+    "page": "records",
+    "hashRoute": "#/records",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/records",
+    "bytes": 309705,
+    "bufferBytes": 309705,
+    "sha256": "a3cf7f29ba996d12370c54c7ced1e4f9fd800f522046f32ae7b3624f20004ffa",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u5236\u4f5c\u8bb0\u5f55\u4e0e\u5f85\u7ee7\u7eed",
+        "\u5236\u4f5c\u8bb0\u5f55\uff081\uff09",
+        "\u8fd9\u4e2a\u5165\u53e3\u73b0\u5728\u80fd\u8bf4\u4ec0\u4e48\u3001\u4e0d\u80fd\u8bf4\u4ec0\u4e48",
+        "\u8fd0\u884c\u4e0e\u6062\u590d\u73b0\u573a",
+        "\u77e5\u8bc6\u56de\u6267\u4e0e\u53cd\u9988\uff08T16 / U09\uff09",
+        "\u8bb0\u5f55\u4e00\u6761\u77e5\u8bc6\u5019\u9009",
+        "\u4eba\u5de5\u88c1\u51b3",
+        "\u64a4\u9500\u4e0e\u56de\u6267",
+        "\u5bfc\u51fa\u6587\u6863\uff08\u8bfb\u56de\uff0c\u4e0d\u53d1\u9001\uff09"
+      ],
+      "unreadBack": true
+    },
+    "capturedAt": "2026-10-23T17:27:35.338Z"
+  },
+  {
+    "file": "76-knowledge@1920.png",
+    "page": "knowledge",
+    "hashRoute": "#/knowledge",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/knowledge",
+    "bytes": 205909,
+    "bufferBytes": 205909,
+    "sha256": "4a681d5622070a097beb2dbf99021d9adb38b7abda89bb07150afb0d9fe713ca",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u77e5\u8bc6\u4e0e\u63d0\u793a\u8bcd\u5e93",
+        "\u68c0\u7d22\u7ed3\u679c",
+        "\u6761\u76ee\u8be6\u60c5"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:35.813Z"
+  },
+  {
+    "file": "77-search-groups@1920.png",
+    "page": "search-groups",
+    "hashRoute": "#/capabilities",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "url": "http://127.0.0.1:57417/workbench#/capabilities",
+    "bytes": 443884,
+    "bufferBytes": 443884,
+    "sha256": "101e16cc9e4f4e28a5275f91e5f3f90c0a28e81e9603aca004b1ce31ac3d1bd5",
+    "rendered": {
+      "host": "#route-view",
+      "kpis": [],
+      "headings": [
+        "\u80fd\u529b\u76ee\u5f55",
+        "\u80fd\u529b\u8bb0\u5f55\uff0860\uff09",
+        "\u5206\u7c7b\u8f74\u73b0\u72b6",
+        "\u7814\u7a76\u7ed3\u8bba",
+        "\u7814\u7a76\u6d1e\u5bdf"
+      ],
+      "unreadBack": false
+    },
+    "capturedAt": "2026-10-23T17:27:36.551Z"
+  }
+]
