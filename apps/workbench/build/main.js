@@ -5404,6 +5404,24 @@ async function renderKnowledgeLibrary(target) {
   const rowFor = (row, showMatch) => {
     const targets = row.target_tools.length ? row.target_tools.join("、") : "UNKNOWN";
     const why = showMatch && row.matched_fields.length ? `命中：${row.matched_fields.map((field) => KB_FIELD_LABELS[field] ?? field).join("、")}（检索词 ${row.matched_terms.join("、")}）` : "";
+    const recommendedIsLatest = row.recommended_is_latest && row.recommended_revision !== null;
+    const badges = [
+      recommendedIsLatest ? el("span", { class: "tag info" }, `最新 r${row.revision} · 推荐版本`) : el("span", { class: "tag info" }, `r${row.revision}`),
+      el(
+        "span",
+        { class: "tag " + (row.status === "ACTIVE" ? "ok" : "neutral") },
+        en(row.status)
+      )
+    ];
+    if (row.recommended_revision === null) {
+      badges.push(el("span", { class: "tag neutral" }, "无推荐版本"));
+    } else if (!recommendedIsLatest) {
+      badges.push(el(
+        "span",
+        { class: "tag warn" },
+        `推荐 r${row.recommended_revision} · 非最新`
+      ));
+    }
     return el(
       "li",
       { class: "list-item kb-row" },
@@ -5425,21 +5443,7 @@ async function renderKnowledgeLibrary(target) {
         el("small", {}, `适用：${targets}`),
         ...why ? [el("small", { class: "muted" }, why)] : []
       ),
-      el(
-        "div",
-        { class: "kb-badges" },
-        el("span", { class: "tag info" }, `r${row.revision}`),
-        el(
-          "span",
-          { class: "tag " + (row.status === "ACTIVE" ? "ok" : "neutral") },
-          en(row.status)
-        ),
-        row.recommended_revision === null ? el("span", { class: "tag neutral" }, "无推荐版本") : el(
-          "span",
-          { class: "tag " + (row.recommended_is_latest ? "info" : "warn") },
-          row.recommended_is_latest ? `推荐 r${row.recommended_revision}` : `推荐 r${row.recommended_revision} · 非最新`
-        )
-      )
+      el("div", { class: "kb-badges" }, ...badges)
     );
   };
   const renderAnswer = (data, append) => {

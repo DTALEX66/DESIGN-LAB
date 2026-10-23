@@ -3664,8 +3664,11 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     || !listText.includes('r2') || !listText.includes('ACTIVE')
     || !listText.includes('推荐 r1 · 非最新'))
     throw new Error(`㉓ 行字段不齐（标题/用途/目标/修订/状态/推荐）：${listText.slice(0, 240)}`);
-  if (!listText.includes('推荐 r2'))
-    throw new Error('㉓ 推荐即最新的一行没有按「推荐 r2」显示');
+  const latestRowText = text(results.children[1]);
+  if (!latestRowText.includes('最新 r2 · 推荐版本'))
+    throw new Error('㉓ 推荐即最新的一行没有合并成一个修订标记：' + latestRowText);
+  if (latestRowText.includes('推荐 r2') || (latestRowText.match(/r2/g) || []).length !== 1)
+    throw new Error('㉓ 推荐即最新的一行重复了修订号：' + latestRowText);
   if (listText.includes('先定机位') || listText.includes('sha256:')
     || listText.includes('D:/guides/storyboard.md'))
     throw new Error('㉓ 列表里出现了正文/哈希/路径：这些只应在详情里');

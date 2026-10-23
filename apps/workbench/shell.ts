@@ -3977,6 +3977,22 @@ export async function renderKnowledgeLibrary(target: HTMLElement): Promise<void>
       ? `命中：${row.matched_fields.map((field) => KB_FIELD_LABELS[field] ?? field).join('、')}`
         + `（检索词 ${row.matched_terms.join('、')}）`
       : '';
+    // Same rule as the detail head: when the latest revision is the recommended one,
+    // one badge carries both facts. A separate r-number chip would print it twice.
+    const recommendedIsLatest = row.recommended_is_latest && row.recommended_revision !== null;
+    const badges: HTMLElement[] = [
+      recommendedIsLatest
+        ? el('span', { class: 'tag info' }, `最新 r${row.revision} · 推荐版本`)
+        : el('span', { class: 'tag info' }, `r${row.revision}`),
+      el('span', { class: 'tag ' + (row.status === 'ACTIVE' ? 'ok' : 'neutral') },
+        en(row.status)),
+    ];
+    if (row.recommended_revision === null) {
+      badges.push(el('span', { class: 'tag neutral' }, '无推荐版本'));
+    } else if (!recommendedIsLatest) {
+      badges.push(el('span', { class: 'tag warn' },
+        `推荐 r${row.recommended_revision} · 非最新`));
+    }
     return el('li', { class: 'list-item kb-row' },
       el('div', { class: 'kb-row-main' },
         el('button', { type: 'button', class: 'kb-open',
@@ -3985,16 +4001,7 @@ export async function renderKnowledgeLibrary(target: HTMLElement): Promise<void>
         el('small', {}, row.summary),
         el('small', {}, `适用：${targets}`),
         ...(why ? [el('small', { class: 'muted' }, why)] : [])),
-      el('div', { class: 'kb-badges' },
-        el('span', { class: 'tag info' }, `r${row.revision}`),
-        el('span', { class: 'tag ' + (row.status === 'ACTIVE' ? 'ok' : 'neutral') },
-          en(row.status)),
-        row.recommended_revision === null
-          ? el('span', { class: 'tag neutral' }, '无推荐版本')
-          : el('span', { class: 'tag ' + (row.recommended_is_latest ? 'info' : 'warn') },
-              row.recommended_is_latest
-                ? `推荐 r${row.recommended_revision}`
-                : `推荐 r${row.recommended_revision} · 非最新`)));
+      el('div', { class: 'kb-badges' }, ...badges));
   };
 
   const renderAnswer = (data: KnowledgeLibraryView, append: boolean): void => {
