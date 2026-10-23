@@ -5552,7 +5552,7 @@ async function renderKnowledgeLibrary(target) {
   target.replaceChildren(
     el(
       "div",
-      { class: "page-head" },
+      { class: "page-head kb-head" },
       el(
         "div",
         {},

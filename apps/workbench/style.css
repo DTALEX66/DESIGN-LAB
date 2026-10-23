@@ -1933,6 +1933,11 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .kb-meta{display:grid;gap:var(--uif-space-1);margin:var(--uif-space-2) 0 var(--uif-space-3)}
 .kb-meta p{margin:0;font-size:var(--uif-font-small);overflow-wrap:anywhere}
 .kb-split{align-items:start}
+/* DL-KB-03 (2026-10-23)：三个写入动作各占一行。1280/1440 的截图里 page-head 的
+   flex 行把它们压缩到把「新增条目」断成「新增条／目」——中文标签可换行时，flex 的
+   收缩下限只有两个字宽。nowrap 让下限变成标签本身，由正文段去让位。 */
+.kb-head .page-actions{flex-shrink:0}
+.kb-head .page-actions button{white-space:nowrap}
 .kb-detail-panel{display:grid;gap:var(--uif-space-2);align-content:start}
 .kb-detail-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
   gap:var(--uif-space-2)}

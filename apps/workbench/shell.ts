@@ -4078,7 +4078,7 @@ export async function renderKnowledgeLibrary(target: HTMLElement): Promise<void>
   };
 
   target.replaceChildren(
-    el('div', { class: 'page-head' },
+    el('div', { class: 'page-head kb-head' },
       el('div', {},
         el('h2', {}, '知识与提示词库'),
         el('p', {}, '搜索是这一页的主入口：查规范、方法、提示词、模型指南、配方与案例；'
