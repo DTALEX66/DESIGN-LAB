@@ -55,6 +55,10 @@ debt:
 # 2026-10-09 because DL-UI-U01..U05 added #/capabilities, #/states, #/components,
 # #/intake, #/analysis and #/plan; a screen that is not listed here is never opened by
 # this scanner, and "the plugin found nothing" would then be a statement about the list.
+# 2026-10-24: the list had fallen four routes behind ROUTE_VIEWS (22). #/prompts,
+# #/records and #/models were added earlier without being scanned, and #/knowledge is
+# the newest screen (DL-KB-03). All four are listed now, so "0 findings" covers every
+# desktop route the sidebar can reach.
 # The four 390x844 screens are the mobile states where the nav and KPI rows have been
 # contested; mobile implementation is FROZEN_DEFERRED by owner decision, but measuring it
 # is evidence, not implementation, so they stay scanned.
@@ -85,6 +89,14 @@ screens:
     app: { url: "/workbench#/settings", waitUntil: "networkidle", waitForSelector: "#route-view" }
   - name: capabilities
     app: { url: "/workbench#/capabilities", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: prompts
+    app: { url: "/workbench#/prompts", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: knowledge
+    app: { url: "/workbench#/knowledge", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: records
+    app: { url: "/workbench#/records", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: models
+    app: { url: "/workbench#/models", waitUntil: "networkidle", waitForSelector: "#route-view" }
   - name: intake
     app: { url: "/workbench#/intake", waitUntil: "networkidle", waitForSelector: "#route-view" }
   - name: analysis

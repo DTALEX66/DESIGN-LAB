@@ -3733,6 +3733,48 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
       throw new Error(`㉓ 详情没有按读回上屏「${needle}」：${detailText.slice(0, 300)}`);
   expectQuiet('详情');
 
+  // (2b) 最新即推荐：头部合成一个「最新 r2 · 推荐版本」标记。服务在两者相同时
+  // 不下发推荐副本（recommended: null），页面也不应并排再打印一次相同的修订号，
+  // 更不该凭空补一个「推荐 r2」徽章或重复的推荐正文区。
+  const sameButton = findIn(results.children[1], (node) => node?.className === 'kb-open');
+  if (typeof sameButton?.onclick !== 'function') throw new Error('㉓ 第二行标题不是可打开的按钮');
+  sameButton.onclick();
+  await flush();
+  const sameReads = shell.pending.splice(0, shell.pending.length);
+  if (sameReads.length !== 1 || sameReads[0].path !== '/api/knowledge-entries/kentry-2')
+    throw new Error(`㉓ 第二条详情读回不对：${sameReads.map((r) => r.path).join(' ')}`);
+  sameReads[0].resolve(response({
+    schemaVersion: 'design-lab/knowledge-entry-detail/v1',
+    knowledge_entry_id: 'kentry-2', status: 'ACTIVE', latest_revision: 2,
+    recommended_revision: 2,
+    current: entryView({ knowledge_entry_id: 'kentry-2', entry_type: 'PROMPT',
+      title: '粒子光效提示词模板' }),
+    recommended: null, superseded_by: null,
+    revisions: [
+      { revision: 2, content_sha256: 'sha256:' + 'b'.repeat(64), entry_type: 'PROMPT',
+        title: '粒子光效提示词模板', recommended: true,
+        created_at: '2026-10-23T09:00:00+00:00', created_by: 'ALEX', readable: true },
+      { revision: 1, content_sha256: 'sha256:' + 'c'.repeat(64), entry_type: 'PROMPT',
+        title: '粒子光效提示词模板（初稿）', recommended: false,
+        created_at: '2026-10-22T09:00:00+00:00', created_by: 'ALEX', readable: true },
+    ],
+    unreadable_count: 0, index: { rows: 2, indexed: 2, rebuilt_at: null },
+    does_not_say: ['保存不等于核验'],
+  }));
+  await flush();
+  const samePanel = byElementId(view, 'kb-detail');
+  const sameHead = findIn(samePanel, (node) => node?.className === 'kb-badges');
+  if (!sameHead) throw new Error('㉓ 同版本详情没有渲染头部徽章');
+  const headText = text(sameHead);
+  if (!headText.includes('最新 r2 · 推荐版本'))
+    throw new Error(`㉓ 最新即推荐时头部没有合并标记：${headText}`);
+  if ((headText.match(/推荐/g) || []).length !== 1 || headText.includes('推荐 r2'))
+    throw new Error(`㉓ 最新即推荐时头部重复了推荐标记：${headText}`);
+  const samePanelText = text(samePanel);
+  if (samePanelText.includes('（不是最新 r2）') || samePanelText.includes('无推荐版本'))
+    throw new Error(`㉓ 最新即推荐时出现了不该有的推荐区/无推荐徽章：${samePanelText.slice(0, 240)}`);
+  expectQuiet('同版本详情');
+
   // (3) 新增：本地拒绝不替人补事实，一次点击只发一次真实 POST。
   byElementId(view, 'kb-new').onclick();
   const form = () => byElementId(view, 'kb-form');

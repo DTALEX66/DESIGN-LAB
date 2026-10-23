@@ -53,6 +53,9 @@ let projectId = '';
 // What the route-inventory step actually derived, so the evidence names its own
 // subject instead of leaving a reader to guess which number was in play.
 let routeInventory = null;
+// The desktop nav-containment reading, recorded in the artifact so a reader does
+// not have to scrape stdout for the numbers the assertion used.
+let navVisibility = null;
 // Set only when the prompt-result slice actually ran, so the summary can never
 // claim a scenario that was skipped and a reader need not scrape stdout.
 let promptLoop = null;
@@ -65,7 +68,8 @@ const writeSummary = (result, error) => {
                     'revise-brief', 'revise-chosen-direction',
                     'binding-rebuild-readback', 'reload-persisted-readback',
                     'persisted-readback', 'mobile-appshell-layout',
-                    'nav-route-inventory-derived-from-served-bundle'];
+                    'nav-route-inventory-derived-from-served-bundle',
+                    'desktop-nav-active-visible'];
   if (promptLoop) scenario.push('prompt-result-compose-store-sign');
   const payload = {
     kind: 'workbench-browser-e2',
@@ -78,6 +82,7 @@ const writeSummary = (result, error) => {
   };
   if (promptLoop) payload.promptLoop = promptLoop;
   if (routeInventory) payload.routeInventory = routeInventory;
+  if (navVisibility) payload.navVisibility = navVisibility;
   if (error) payload.error = error;
   fs.writeFileSync(path.join(evidenceDir, 'browser-e2e-summary.json'),
                    JSON.stringify(payload, null, 2) + '\n');
@@ -571,6 +576,66 @@ try {
     console.log('E2E_ROUTE_INVENTORY: ' + JSON.stringify({
       nav: mounted.length, table: table.length, bundleSha256: parsedSha,
     }));
+  });
+
+  // ------------------------------------------------------------------------
+  // K-NAV-VISIBLE: on a routed screen the B10 sidebar is the only element that
+  // says "you are here", and its 21 buttons live in an `overflow:auto` column
+  // that is taller than a desktop window. Opening a late route must scroll the
+  // COLUMN to the selected button; before 2026-10-24 sync() only toggled
+  // .active/aria-current, so the screen could open with no visible selection.
+  // The target is the last ROUTE_VIEWS row, read back from the inventory step
+  // above rather than typed here. That is what makes the reading directional:
+  // once the column overflows, the last button can only be inside the
+  // scrollport if the column itself moved (scrollTop > 0), never because the
+  // item happened to be on screen.
+  // ------------------------------------------------------------------------
+  await step('desktop sidebar keeps the active route visible', async () => {
+    if (!routeInventory) {
+      await abort('E2E_NAV_ACTIVE_NO_INVENTORY: route inventory step did not run', 13, ctx, b);
+    }
+    const lastView = routeInventory.tableViews[routeInventory.tableViews.length - 1];
+    const lastHash = routeInventory.tableHashes[routeInventory.tableHashes.length - 1];
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.evaluate((hash) => { window.location.hash = hash; }, lastHash);
+    // aria-current is stamped by the same sync() loop that scrolls the column,
+    // so waiting for it waits for the scroll without sleeping.
+    await page.locator('#app-sidebar .nav button[data-route="' + lastView + '"][aria-current="page"]')
+      .waitFor({ state: 'attached', timeout: 15000 });
+    const reading = await page.evaluate((view) => {
+      const nav = document.querySelector('#app-sidebar .nav');
+      const active = nav?.querySelector('button[data-route="' + view + '"]');
+      const navRect = nav.getBoundingClientRect();
+      const itemRect = active.getBoundingClientRect();
+      return {
+        view,
+        selected: active.getAttribute('aria-current') === 'page',
+        scrollTop: nav.scrollTop,
+        scrollHeight: nav.scrollHeight,
+        clientHeight: nav.clientHeight,
+        navTop: navRect.top, navBottom: navRect.bottom,
+        itemTop: itemRect.top, itemBottom: itemRect.bottom, itemHeight: itemRect.height,
+      };
+    }, lastView);
+    // A column that fits its content cannot prove the mechanism, so this is a
+    // declared precondition: if the sidebar ever stops overflowing at 1280x800,
+    // re-think this reading instead of letting it pass while asserting nothing.
+    if (reading.clientHeight < 1 || reading.scrollHeight <= reading.clientHeight + 1) {
+      await abort('E2E_NAV_SCROLL_PRECONDITION: the sidebar does not scroll at 1280x800, so ' +
+                  'this reading would be vacuous: ' + JSON.stringify(reading), 13, ctx, b);
+    }
+    if (!reading.selected || reading.itemHeight < 1 || reading.scrollTop <= 0 ||
+        reading.itemTop < reading.navTop - 1 || reading.itemBottom > reading.navBottom + 1) {
+      await abort('E2E_NAV_ACTIVE_NOT_VISIBLE: ' + JSON.stringify(reading), 13, ctx, b);
+    }
+    console.log('E2E_NAV_ACTIVE_VISIBLE: ' + JSON.stringify(reading));
+    navVisibility = reading;
+    // Hand the page back to the legacy workbench view (and the viewport the
+    // mobile step left behind) that the closing persisted-state readback reads.
+    await page.evaluate(() => { window.location.hash = ''; });
+    await page.locator('#design-briefs li').first()
+      .waitFor({ state: 'visible', timeout: 15000 });
+    await page.setViewportSize({ width: 390, height: 844 });
   });
 
   // Read back the final state as the persisted-state proof.

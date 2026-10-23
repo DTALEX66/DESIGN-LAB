@@ -3503,19 +3503,29 @@ function kbDetailPanel(
   },
 ): HTMLElement {
   const current = detail.current;
+  // One revision number is enough when the latest revision is also the recommended
+  // one; printing "最新 r2" and "推荐 r2" side by side made the reader parse the
+  // same number twice (visual review 2026-10-24).
+  const sameRevision = detail.recommended_revision !== null
+    && detail.recommended_revision === detail.latest_revision;
+  const headBadges: HTMLElement[] = [
+    el('span', { class: 'tag ' + (detail.status === 'ACTIVE' ? 'ok' : 'neutral') },
+      en(detail.status)),
+    sameRevision
+      ? el('span', { class: 'tag ok' }, `最新 r${detail.latest_revision} · 推荐版本`)
+      : el('span', { class: 'tag info' }, `最新 r${detail.latest_revision ?? '？'}`),
+  ];
+  if (detail.recommended_revision === null) {
+    headBadges.push(el('span', { class: 'tag neutral' }, '无推荐版本'));
+  } else if (!sameRevision) {
+    headBadges.push(el('span', { class: 'tag warn' }, `推荐 r${detail.recommended_revision}`));
+  }
   const children: HTMLElement[] = [
     el('div', { class: 'kb-detail-head' },
       el('div', {},
         el('h3', {}, current ? current.title : `条目 ${detail.knowledge_entry_id}`),
         el('p', { class: 'value-mono' }, detail.knowledge_entry_id)),
-      el('div', { class: 'kb-badges' },
-        el('span', { class: 'tag ' + (detail.status === 'ACTIVE' ? 'ok' : 'neutral') },
-          en(detail.status)),
-        el('span', { class: 'tag info' }, `最新 r${detail.latest_revision ?? '？'}`),
-        detail.recommended_revision === null
-          ? el('span', { class: 'tag neutral' }, '无推荐版本')
-          : el('span', { class: 'tag ' + (detail.recommended_revision === detail.latest_revision
-            ? 'info' : 'warn') }, `推荐 r${detail.recommended_revision}`))),
+      el('div', { class: 'kb-badges' }, ...headBadges)),
   ];
   if (detail.superseded_by) {
     children.push(el('p', { class: 'view-hint' }, '这条条目已被取代，取代它的是 ',
@@ -4238,7 +4248,7 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
               el('td', {}, el('button', {
                 type: 'button', class: 'ghost-btn',
                 // B07 `/projects/:id` — reached from a row, never a nav item
-                // (ROUTE_VIEWS has 21 entries and the browser E2E asserts that nav item
+                // (ROUTE_VIEWS has 22 entries and the browser E2E asserts that nav item
                 // count; a parameterized detail route must not be added to the table.)
                 onclick: () => { window.location.hash = projectDetailHash(p.id); },
               }, '打开'))))
@@ -6761,8 +6771,17 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       const highlight = view === 'project-detail' ? 'projects' : view;
       const selected = item.dataset.route === highlight;
       item.classList.toggle('active', selected);
-      if (selected) item.setAttribute('aria-current', 'page');
-      else item.removeAttribute('aria-current');
+      if (selected) {
+        item.setAttribute('aria-current', 'page');
+        // At 1280x800 the sidebar scrolls; without this the current route can sit
+        // below the fold and the screen opens with no visible selection. `nearest`
+        // is a no-op when the item is already fully visible.
+        if (typeof item.scrollIntoView === 'function') {
+          item.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        }
+      } else {
+        item.removeAttribute('aria-current');
+      }
     }
   };
 
