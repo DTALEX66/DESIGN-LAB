@@ -5292,9 +5292,10 @@ async function renderKnowledgeLibrary(target) {
     results,
     moreHost
   );
-  const detailHost = el(
+  const detailNote = el("div", { id: "kb-detail-outside" });
+  const detailContent = el(
     "div",
-    { id: "kb-detail" },
+    { id: "kb-detail-content" },
     el(
       "section",
       { class: "panel" },
@@ -5306,11 +5307,14 @@ async function renderKnowledgeLibrary(target) {
       )
     )
   );
+  const detailHost = el("div", { id: "kb-detail" }, detailNote, detailContent);
   const formHost = el("div", { id: "kb-form" });
   const notes = el("div", { id: "kb-notes" });
   let vocabulary = [];
   let licenseStates = [];
   let shown = 0;
+  let selectedId = "";
+  let visibleIds = /* @__PURE__ */ new Set();
   let pendingNotice = "";
   let committed = false;
   const searchForm = el("form", { class: "toolbar", onsubmit: (event) => {
@@ -5350,8 +5354,15 @@ async function renderKnowledgeLibrary(target) {
       return null;
     }
   };
+  function setDetailOutside(outside) {
+    detailNote.replaceChildren(...outside ? [el(
+      "p",
+      { class: "view-hint" },
+      "右侧是上次选中的条目，不在本次检索结果里——它不是这次检索的命中。"
+    )] : []);
+  }
   function renderDetail(detail) {
-    detailHost.replaceChildren(kbDetailPanel(detail, vocabulary, {
+    detailContent.replaceChildren(kbDetailPanel(detail, vocabulary, {
       open: (id) => {
         void openDetail(id);
       },
@@ -5360,12 +5371,14 @@ async function renderKnowledgeLibrary(target) {
     }));
   }
   async function openDetail(id) {
-    detailHost.replaceChildren(el("p", { class: "view-loading" }, "正在读回条目…"));
+    detailContent.replaceChildren(el("p", { class: "view-loading" }, "正在读回条目…"));
     try {
       const detail = await api(`/knowledge-entries/${id}`);
+      selectedId = id;
       renderDetail(detail);
+      setDetailOutside(!visibleIds.has(id));
     } catch (error) {
-      detailHost.replaceChildren(el("p", { class: "error" }, `条目读回失败：${errMsg(error)}`));
+      detailContent.replaceChildren(el("p", { class: "error" }, `条目读回失败：${errMsg(error)}`));
     }
   }
   function openForm(kind, doc, replaceId) {
@@ -5482,7 +5495,11 @@ async function renderKnowledgeLibrary(target) {
     if (!append) {
       results.replaceChildren();
       shown = 0;
+      visibleIds = new Set(data.entries.map((row) => row.knowledge_entry_id));
+    } else {
+      for (const row of data.entries) visibleIds.add(row.knowledge_entry_id);
     }
+    setDetailOutside(Boolean(selectedId) && !visibleIds.has(selectedId));
     if (!data.entries.length) {
       const condition = Boolean(data.query) || activeFilters.length > 0;
       results.append(el(

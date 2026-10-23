@@ -3869,16 +3869,20 @@ export async function renderKnowledgeLibrary(target: HTMLElement): Promise<void>
   const moreHost = el('div', { class: 'kb-actions', id: 'kb-more' });
   const listPanel = el('section', { class: 'panel' },
     el('h3', {}, '检索结果'), results, moreHost);
-  const detailHost = el('div', { id: 'kb-detail' },
+  const detailNote = el('div', { id: 'kb-detail-outside' });
+  const detailContent = el('div', { id: 'kb-detail-content' },
     el('section', { class: 'panel' }, el('h3', {}, '条目详情'),
       el('p', { class: 'muted' },
         '从左侧选择一条条目：正文、来源、许可、内容哈希、修订历史与推荐版本都在这里。')));
+  const detailHost = el('div', { id: 'kb-detail' }, detailNote, detailContent);
   const formHost = el('div', { id: 'kb-form' });
   const notes = el('div', { id: 'kb-notes' });
 
   let vocabulary: KnowledgeTypeOption[] = [];
   let licenseStates: string[] = [];
   let shown = 0;
+  let selectedId = '';
+  let visibleIds = new Set<string>();
   // 缺字段说明必须在产生接缝值的同一函数里算出来：形状闸门按函数配对 apiOrEmpty 与
   // shapeNotice，把取值 return 出去、在别的函数里补文案，会静默丢掉"未读回"这半句。
   let pendingNotice = '';
@@ -3922,8 +3926,15 @@ export async function renderKnowledgeLibrary(target: HTMLElement): Promise<void>
     }
   };
 
+  function setDetailOutside(outside: boolean): void {
+    detailNote.replaceChildren(...(outside
+      ? [el('p', { class: 'view-hint' },
+          '右侧是上次选中的条目，不在本次检索结果里——它不是这次检索的命中。')]
+      : []));
+  }
+
   function renderDetail(detail: KnowledgeDetailView): void {
-    detailHost.replaceChildren(kbDetailPanel(detail, vocabulary, {
+    detailContent.replaceChildren(kbDetailPanel(detail, vocabulary, {
       open: (id) => { void openDetail(id); },
       revise: (doc) => openForm('revise', doc, null),
       importReplace: (doc) => openForm('import', doc, doc.knowledge_entry_id),
@@ -3931,12 +3942,14 @@ export async function renderKnowledgeLibrary(target: HTMLElement): Promise<void>
   }
 
   async function openDetail(id: string): Promise<void> {
-    detailHost.replaceChildren(el('p', { class: 'view-loading' }, '正在读回条目…'));
+    detailContent.replaceChildren(el('p', { class: 'view-loading' }, '正在读回条目…'));
     try {
       const detail = await api<KnowledgeDetailView>(`/knowledge-entries/${id}`);
+      selectedId = id;
       renderDetail(detail);
+      setDetailOutside(!visibleIds.has(id));
     } catch (error) {
-      detailHost.replaceChildren(el('p', { class: 'error' }, `条目读回失败：${errMsg(error)}`));
+      detailContent.replaceChildren(el('p', { class: 'error' }, `条目读回失败：${errMsg(error)}`));
     }
   }
 
@@ -4016,7 +4029,11 @@ export async function renderKnowledgeLibrary(target: HTMLElement): Promise<void>
     if (!append) {
       results.replaceChildren();
       shown = 0;
+      visibleIds = new Set(data.entries.map((row) => row.knowledge_entry_id));
+    } else {
+      for (const row of data.entries) visibleIds.add(row.knowledge_entry_id);
     }
+    setDetailOutside(Boolean(selectedId) && !visibleIds.has(selectedId));
     if (!data.entries.length) {
       const condition = Boolean(data.query) || activeFilters.length > 0;
       results.append(el('li', { class: 'list-item' },

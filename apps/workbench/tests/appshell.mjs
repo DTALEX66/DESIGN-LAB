@@ -3929,6 +3929,11 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   if (findIn(view, (node) => node?.tagName === 'BUTTON'
     && String(node.textContent).startsWith('加载更多')))
     throw new Error('㉓ 无命中时不得出现「加载更多」');
+  // 右侧详情保留上一次选中是主从布局的常态，但零结果时它离结果区只有一条边框：
+  // 不标明"不属于本次结果"，读起来就像这次检索命中了它。
+  const outsideNote = text(byElementId(view, 'kb-detail-outside'));
+  if (!outsideNote.includes('不在本次检索结果里'))
+    throw new Error('㉓ 零结果时旧选中条目仍挂在右侧，却没有标明它不属于本次检索');
   expectQuiet('无命中');
 }
 
