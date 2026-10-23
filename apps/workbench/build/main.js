@@ -5482,7 +5482,7 @@ async function renderKnowledgeLibrary(target) {
         el(
           "div",
           {},
-          el("strong", {}, offline ? "未读回" : condition ? "没有命中的条目" : "当前没有条目"),
+          el("strong", {}, offline ? "未读回" : condition ? "没有符合条件的结果" : "当前没有条目"),
           el("small", {}, offline || data.explanation || '服务没有给出解释；本页不会推荐"相近"的条目来填空。')
         )
       ));

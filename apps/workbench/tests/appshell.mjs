@@ -3900,7 +3900,7 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   })));
   await flush();
   const missText = text(view);
-  if (!missText.includes('没有命中的条目') || !missText.includes('没有命中「霓虹」的条目'))
+  if (!missText.includes('没有符合条件的结果') || !missText.includes('没有命中「霓虹」的条目'))
     throw new Error(`㉓ 无命中没有按服务解释上屏：${missText.slice(0, 260)}`);
   if (!missText.includes('策略 SHORT_FALLBACK') || !missText.includes('子串回退命中'))
     throw new Error('㉓ 两字检索词没有说明 trigram 答不了、由子串回退');
