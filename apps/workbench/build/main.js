@@ -5105,7 +5105,7 @@ function knowledgeEntryFields(prefix, vocabulary, licenseStates, initial) {
     element
   };
 }
-function knowledgeFormPanel(kind, vocabulary, licenseStates, initial, replaceId, onWritten) {
+function knowledgeFormPanel(kind, vocabulary, licenseStates, initial, replaceId, onWritten, onCancel) {
   const prefix = kind === "create" ? "kb-new" : kind === "revise" ? "kb-revise" : "kb-import";
   const fields = knowledgeEntryFields(prefix, vocabulary, licenseStates, initial);
   const supersedes = el("input", {
@@ -5120,6 +5120,12 @@ function knowledgeFormPanel(kind, vocabulary, licenseStates, initial, replaceId,
     { type: "button", class: "primary-btn" },
     kind === "revise" ? `提交 r${(initial?.revision ?? 0) + 1}` : kind === "import" ? "导入并读回" : "写入并读回"
   );
+  const cancel = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: `${prefix}-cancel`,
+    onclick: onCancel
+  }, "取消");
   const heading = kind === "create" ? "新增条目" : kind === "revise" ? `修订 r${initial?.revision ?? "？"} → r${(initial?.revision ?? 0) + 1}` : "从文件导入";
   const caption = kind === "create" ? "编号由服务生成（kentry-…）；写入后立即读回。来源核验状态永远是 UNVERIFIED——保存不等于核验。" : kind === "revise" ? "旧版本保留，当前版本是最大修订号；提交会带上读到的 expected_revision，冲突时服务拒绝而不是覆盖。" : "同一来源 ID + 版本的同内容再导入返回 DUPLICATE（不写）；不同版本并存，结果里会列出 related_entries。导入不抓取来源。";
   const collect = () => {
@@ -5238,7 +5244,7 @@ function knowledgeFormPanel(kind, vocabulary, licenseStates, initial, replaceId,
     el("p", { class: "view-hint" }, caption),
     fields.element,
     ...kind === "import" ? [fieldRow("替代哪一条（可选）", supersedes, `${prefix}-supersedes`)] : [],
-    el("div", { class: "kb-actions" }, submit),
+    el("div", { class: "kb-actions" }, submit, cancel),
     notice
   );
 }
@@ -5371,6 +5377,9 @@ async function renderKnowledgeLibrary(target) {
       replaceId,
       (entryId) => {
         void runSearch(0, entryId);
+      },
+      () => {
+        formHost.replaceChildren();
       }
     ));
     formHost.scrollIntoView({ block: "start" });

@@ -3711,6 +3711,7 @@ function knowledgeFormPanel(
   initial: KnowledgeEntryView | null,
   replaceId: string | null,
   onWritten: (entryId: string) => void,
+  onCancel: () => void,
 ): HTMLElement {
   const prefix = kind === 'create' ? 'kb-new' : (kind === 'revise' ? 'kb-revise' : 'kb-import');
   const fields = knowledgeEntryFields(prefix, vocabulary, licenseStates, initial);
@@ -3721,6 +3722,8 @@ function knowledgeFormPanel(
   const submit = el('button', { type: 'button', class: 'primary-btn' },
     kind === 'revise' ? `提交 r${(initial?.revision ?? 0) + 1}`
       : (kind === 'import' ? '导入并读回' : '写入并读回'));
+  const cancel = el('button', { type: 'button', class: 'ghost-btn', id: `${prefix}-cancel`,
+    onclick: onCancel }, '取消');
   const heading = kind === 'create' ? '新增条目'
     : (kind === 'revise'
       ? `修订 r${initial?.revision ?? '？'} → r${(initial?.revision ?? 0) + 1}`
@@ -3839,7 +3842,7 @@ function knowledgeFormPanel(
     ...(kind === 'import'
       ? [fieldRow('替代哪一条（可选）', supersedes, `${prefix}-supersedes`)]
       : []),
-    el('div', { class: 'kb-actions' }, submit),
+    el('div', { class: 'kb-actions' }, submit, cancel),
     notice);
 }
 
@@ -3940,7 +3943,8 @@ export async function renderKnowledgeLibrary(target: HTMLElement): Promise<void>
   function openForm(kind: 'create' | 'revise' | 'import', doc: KnowledgeEntryView | null,
                     replaceId: string | null): void {
     formHost.replaceChildren(knowledgeFormPanel(kind, vocabulary, licenseStates, doc, replaceId,
-      (entryId) => { void runSearch(0, entryId); }));
+      (entryId) => { void runSearch(0, entryId); },
+      () => { formHost.replaceChildren(); }));
     formHost.scrollIntoView({ block: 'start' });
   }
 
