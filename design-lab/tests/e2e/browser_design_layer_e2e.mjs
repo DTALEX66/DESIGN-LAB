@@ -1382,6 +1382,22 @@ try {
     // adopted or revised its source.
     await page.locator('#as-list .as-plan-open').first().click();
     await page.locator('#as-duplicate').waitFor({ state: 'visible', timeout: 20000 });
+    // The detail is assembled from several independent reads, and the two counts compared below
+    // come from different ones: waiting only on the adoption badge let CI read
+    // `feedback: 0` while the history request was still in flight, which looked exactly like a
+    // copy that had rewritten its source. Wait on every panel whose numbers are compared.
+    const detailAnswered = () => page.waitForFunction(() => {
+      const chosen = document.getElementById('as-chosen');
+      const fb = document.getElementById('as-fb-status');
+      return !!chosen && chosen.dataset.state === 'true'
+        && !!fb && (fb.textContent ?? '').trim() !== ''
+        && document.querySelectorAll('#as-revisions li').length >= 1;
+    }, null, { timeout: 25000 });
+    if (!await detailAnswered().then(() => true).catch(() => false)) {
+      await abort('E2E_ASSISTANT_SOURCE_DETAIL_UNANSWERED: the source detail did not finish its '
+                  + 'own reads before the copy was attempted, so its shape cannot be recorded',
+                  15, ctx, b);
+    }
     const sourceShape = await page.evaluate(() => ({
       revisions: document.querySelectorAll('#as-revisions li').length,
       feedback: document.querySelectorAll('#as-fb-history li').length,
@@ -1410,10 +1426,7 @@ try {
     // the two rows apart -- and read it back from the service.
     await page.locator('#as-list .as-plan-row', { hasText: '用户选用 r2' }).first()
       .locator('.as-plan-open').click();
-    const sourceAfterCopy = await page.waitForFunction(() => {
-      const node = document.getElementById('as-chosen');
-      return !!node && node.dataset.state === 'true';
-    }, null, { timeout: 20000 }).then(() => page.evaluate(() => ({
+    const sourceAfterCopy = await detailAnswered().then(() => page.evaluate(() => ({
       revisions: document.querySelectorAll('#as-revisions li').length,
       feedback: document.querySelectorAll('#as-fb-history li').length,
     }))).catch(() => null);
