@@ -151,6 +151,18 @@ ui2026/light 各一遍）、几何 112 个面（1440/1280/1536/1920）`docOverfl
 而 `<option>` 的文字不是被画的文本 run。`evidence` 279→**281**（`DL-KB-08` 11→13 条，状态仍 DONE）。
 本机 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；体积 609,452 字节 / gzip **159,775**
 （第八轮 158,722），`DL-KB-13` 的 150 KB 裁定仍在 owner 手上。
+**本轮 CI 抓到一次我自己的红，读数与口径都变了。** push run `40140333553` success，同 SHA
+`5041b8f5` 的 pull_request run `40140337003` failure，逐作业只有一条红
+（`Workbench browser E2E (exact-SHA controlled-runtime, no-skip)`）。原因不是产品：那张十二件事实的
+字面表是我按驱动的**写入顺序**抄的，而断言左边是 `sorted(...)`——**两边永远不可能相等**，
+这条断言从提交那刻起只有一种结果。它本地照绿，因为整段证据断言包在
+`if os.environ.get('E2E_REQUIRED') == '1':` 里，那个变量只有 CI 设。
+`b90aaf66` 两边都补：条件改成 `E2E_REQUIRED == '1' or summary.is_file()`（required 而无 summary
+仍然硬失败），两张清单都包进 `sorted(...)`，并按老规矩双向验——种一个 `'bogusStateName'`
+**本地立刻红**。**从今天起"本地 `test_workbench_design_layer_e2e` OK"这句话的含义变了**：
+它现在真的包含那十二件；在它之前的每一次本地 OK 验的是驱动侧 `E2E_OK` 与 summary 的 `allAsserted`，
+**不是** Python 侧的清单比对。细节与逐字读数见审计件 §5.42。
+
 **下一刀两件事，都是机器能证明的**：① 把两把静态尺**开进**一条知识条目的详情与一份方案详情
 （现在它们只走到列表，`§5.40`/`§5.41` 连续两轮把这件事写成覆盖盲区——补它比再加一条走查更值钱）；
 ② owner 这轮的 standing 指令是"一比一复刻 STITCH 界面设计"，来源在

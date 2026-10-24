@@ -1565,3 +1565,39 @@ sha256 `3fdb4f636b5c`），`currentExecution.evidence` 277→**279**，直方图
 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**——本轮没有可升的行：剩下两格 `DL-KB-13`（体积上限裁定＋
 3 位真人无指导任务）与 `DL-KB-16`（具名真人签字）要的是 owner 与真人点头，`DL-KB-15` 要的是
 本机可用的推理前置，本轮不部署模型、不自行下载权重，也不把"选了模型"写成"推理已验证"。
+
+### 5.42 CI 抓到一次我自己的红：证据清单在本地根本不执行（PR run `40140337003`）
+
+**读数。** 推送 `5041b8f5` 之后：push run `40140333553` success（light gate），
+同 SHA 的 pull_request run `40140337003` **failure**，逐作业看只有一个红——
+`Workbench browser E2E (exact-SHA controlled-runtime, no-skip)`，其余 10 个作业 success
+（`gh api …/runs/40140337003/jobs`）。红的那条断言是：
+
+```
+AssertionError: Lists differ: ['bla…', 'clipboardHoldsTheServedBody', 'emptyTrail…]',
+                            != ['bla…', 'emptyTrailSaidNotAskedAndAnswered', …, '…ody']
+```
+
+**根因不是产品，是我写的断言。** `assertEqual(sorted(kb_states), [字面表])` 里那张字面表
+是我按浏览器驱动的**写入顺序**抄的，`clipboardHoldsTheServedBody` 被我加在末尾——
+左边永远是字母序，右边不是，**两边不可能相等**。这一条从它被提交的那一刻起就只有一种结果。
+
+**为什么本地看不见。** `test_workbench_design_layer_e2e.py` 的整段证据断言包在
+`if os.environ.get('E2E_REQUIRED') == '1':` 里，那个变量只有 CI 的 no-skip 作业设。
+本地跑的是同一个测试、真的启动了同一个 Chromium、真的重写了同一份 summary，
+`Ran 2 tests / OK` 也是真的——**但它验的是驱动自己那条 `E2E_OK`，那十二件事实的清单比较一次都没执行**。
+所以我把"本地浏览器走查全绿"当成过这一条的凭据，而它当时并不能为这句话作证。
+
+**两边都补了，不是把断言删掉。** `b90aaf66`：
+① 条件改为 `E2E_REQUIRED == '1' or summary.is_file()`——走到这一行的运行必然有工具链，
+驱动失败会以非零退出先红，所以**只要 summary 存在就把它验掉**；required 而没有 summary 仍然是硬失败。
+② 两张清单（六态与十二件）都包进 `sorted(...)`，把"顺序打错"从一种可写出来的错误改成写不出来的。
+③ 牙齿按老规矩双向验：改完之后本地跑 `Ran 2 tests / OK`；再往清单里种一个 `'bogusStateName'`，
+**本地立刻** `AssertionError: Lists differ … 'bogusStateName'`——同一种错，这次不用等 CI。
+种完即还原（`git checkout --` 只还原了这个文件，还原前它没有别的未提交改动；
+我随后重放的两处 `sorted()` 包裹也是当场补回来的）。
+
+**这条要给下一轮的口径。** 本地 `test_workbench_design_layer_e2e … OK` 这句话**不再**等于
+"清单事实已验"，它的含义由本段起改变：现在它确实包含那十二件，因为条件不再只认 CI。
+在它之前写的每一句"本地浏览器走查全绿"，验的是驱动侧的 `E2E_OK` 与 summary 里的
+`allAsserted`，**不是** Python 侧的清单比对——这两件事以前不是一回事，以后才是。
