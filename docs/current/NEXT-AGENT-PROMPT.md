@@ -109,16 +109,27 @@ checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run 
 
 **台账读数（2026-10-24 第六轮收口时现数，取代上面第五轮那一段的"当下"身份）**：`currentExecution` 仍
 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图不变——**`DONE 11`／`PARTIAL 4`／`NOT_STARTED 1`**。
-本轮没有把任何一行升上去：`DL-KB-05` 的 D5 现在**造出来了**（判断存储、路由、条目详情里的界面），
-但它仍停在 PARTIAL，理由写在下面第一刀里。`currentExecution.evidence` 从 270 到 **273** 条、全部 PASS，
-本轮新增 3 条落在 `kb-20261024/`（42,491 字节，单文件最大 26,215 字节），逐条绑 `52961f49` 的现测字节。
+本轮没有把任何一行升上去：`DL-KB-05` 的 D5 现在**造出来了**（判断存储、路由、条目详情里的界面，
+`52961f49`），但它仍停在 PARTIAL，理由写在下面第一刀里。`currentExecution.evidence` 现数 **275** 条、
+全部 PASS，本轮给 `DL-KB-05` 加了 4 条（判断存储的 unit／implementation／browser，加第一次真点开
+一条知识条目的浏览器走查），逐条绑 `52961f49`／`38bb48d8` 的现测字节。
 路由面 **88 条**（48 GET + 40 POST）、账本 90 行、载荷比对 **57 条绑定**；写侧扫描
-`rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1`。浏览器三把尺本轮都在同一份字节上跑：
-对比度 50 个面 `checked=14002 belowAA=0 unparsable=0`、几何 112 个面（1440/1280/1536/1920）
+`rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1`。浏览器三把尺：对比度 50 个面
+`checked=14002 belowAA=0 unparsable=0`、几何 112 个面（1440/1280/1536/1920）
 `docOverflowX=0 clipped=0 stray=0 detailsExpanded=1200`、路由级 UI 审计 `ok=true hardViolations=0
-totalMetrics=54`，前两条绑 bundle `sha256 4df788c3…`（602,549 字节）。本机 `VERIFY_DESIGN_LAB=OK
-total=76 failed=0`。体积：`build/main.js` 602,549 字节 / gzip **157,739** 字节，比上一轮记录的
-155,787 又高 1,952 字节——`DL-KB-13` 的 150 KB 裁定仍在 owner 手上，本轮不代做、也不删内容凑数。
+totalMetrics=54`；表单缺陷修完后前两把尺在同一批字节上重跑，读数不变，回执绑 bundle
+`sha256 e27eeacf…`（603,048 字节）。本机 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。体积：
+`build/main.js` 603,048 字节 / gzip **158,029** 字节，比上一轮记录的 155,787 高 2,242 字节——
+`DL-KB-13` 的 150 KB 裁定仍在 owner 手上，本轮不代做、也不删内容凑数。
+
+**这一轮最该记住的一件事**：`browser_design_layer_e2e.mjs` 第一次在真 Chromium 里**点开一条知识条目**，
+当场量到两个一直存在的表单缺陷。「适用场景／边界与反例」留空时 `collect()` 用 `|| undefined` 把键丢掉，
+而创建与修订两条路由要的是精确键集合，于是答 `400 INVALID_PROJECT_FIELDS`——用户只看懂一句读不懂的代码，
+且只要不填这两格就永远存不进去；许可状态那个 `select` 没有"未选"这一档，词表第一项 `reviewed` 默认中选，
+一张没被碰过的新表单打开就在替用户声明"这份许可审过了"，存储按规则拒了
+（`KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION`）。两条都修了（键永远在、空表单默认 `unknown`），并各留一条
+不依赖浏览器的断言。`apps/workbench/tests/appshell.mjs` 在同一批字节上一直是绿的——这句话不是给桩件记分，
+是给下一轮定口径：**桩件的绿不能声称浏览器验过，浏览器的红也不能靠桩件抵账**，细节见审计件 §5.38。
 
 **台账读数（2026-10-24 第五轮收口时现数，读的是 `36addfd5` 那批字节，不是当下）**：`currentExecution` 仍是
 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；16 项派工里 **`DONE 11`**（新增 `DL-KB-09/10/11/12/14`）、

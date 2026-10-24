@@ -2,7 +2,7 @@
 
 任务包：DL-TP-20261023-DESKTOP-KB-R1；状态唯一编辑源：docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md所指原账本currentExecution。
 
-生成时HEAD：38bb48d80f5a1fc3b47ddbf3fcbf2443e75d3cfc；subjectType=WORKTREE；生成时间不是测试时间。
+生成时HEAD：b0de902de2967bb81fa75c8913a7a1c1b54d0a72；subjectType=WORKTREE；生成时间不是测试时间。
 
 桌面端是唯一交付面；手机端已由 owner 2026-10-19 定为排除项（不是待排期冻结项），账本 currentExecution.mobile 仍是 schema const FROZEN_DEFERRED，改词需 owner 授权，故未改。32 父任务＋18 UI 子任务，34 项保持 FROZEN_DEFERRED，16 项是 owner 2026-10-23 起进入当前派工的桌面 UI 与知识库纵切；不相加算完成率。
 旧R5状态和证据冻结，不用于关闭新任务；本投影不实施产品，也不证明任何一项已验收。
