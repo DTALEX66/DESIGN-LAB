@@ -107,6 +107,21 @@ checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run 
 以账本 `artifact_sha256` 为准。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
 
+**台账读数（2026-10-24 第七轮收口时现数，取代上面第六轮那一段的"当下"身份）**：`currentExecution`
+仍 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图 **`DONE 12`／`PARTIAL 3`／`NOT_STARTED 1`**——
+`DL-KB-05` 升上 DONE，因为 D5 那句话的主语（旧方案）这一轮才真的在产品里走得通：
+`REFERENCE_KINDS` 加了 `KNOWLEDGE`，方案能钉住一条知识条目的修订号与摘要，
+四个 schema 的 kind 枚举与 Python 元组由一条测试钉在一起。`currentExecution.evidence` 现数
+**277** 条、全部 PASS（`DL-KB-05` 一条任务共 8 条回执），本轮新增 2 条绑 `2c47e359`。
+路由面 **88 条**不变（这次没加路由）、账本 90 行、载荷比对 57 条绑定；写侧扫描
+`rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1`。浏览器走查从 8 件加到 **10 件全真**
+（新增 `pickerOffersBothSources`、`planCitesTheKnowledgeEntry`，各阶段发请求数
+`[0,0,1,1]`）。同一轮拆掉一个一直存在的界面缺陷：引用原来在表单里退化成"光 id"、提交时一律贴回
+`kind: ASSET`，所以引用了 brief 或知识条目的方案**在界面上点修订就必然被服务拒**
+（`ASSISTANCE_PLAN_REFERENCE_ID_MALFORMED`）；现在选择器带类型、给不出的类型原样保留。
+本机 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；体积 `build/main.js` 604,992 字节 / gzip
+**158,477** 字节（同一把尺，上一轮记录 158,029），`DL-KB-13` 的 150 KB 裁定仍在 owner 手上。
+
 **台账读数（2026-10-24 第六轮收口时现数，取代上面第五轮那一段的"当下"身份）**：`currentExecution` 仍
 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图不变——**`DONE 11`／`PARTIAL 4`／`NOT_STARTED 1`**。
 本轮没有把任何一行升上去：`DL-KB-05` 的 D5 现在**造出来了**（判断存储、路由、条目详情里的界面，
@@ -157,14 +172,10 @@ PARTIAL 并把取舍交给 owner（见 §7）。搜索侧达标：1,000 条按�
 ② 折叠态自己的裁剪行为现在**没人声称**：几何闸与 UI 审计闸这一轮改成"先展开再量"，说的是打开之后
 那一屏好不好；闭合面板会不会把内容裁成一个看不见的半成品，是另一把尺子的问题，谁要声称就得新立
 一条断言，别把这两件事混成一句"几何已过闸"；
-③ `DL-KB-02` 的 A5 直接断言，以及 `DL-KB-05` D5 剩下那一半：判断存储已经落地（`knowledge_judgement`
-＋`POST …/judgements`＋条目详情的两个表单，13 条单元测试量到"推荐挪回去之后每个修订的摘要与时间戳
-一动不动"），但 `src/design_lab/assistance_plan.py` 的 `REFERENCE_KINDS = ('ASSET','BRIEF',
-'DIRECTION','PROMPT_RESULT')` 里**没有 KNOWLEDGE**——方案今天钉不住一个知识条目，所以
-"回退推荐版本后**旧方案**仍可读"只在条目层面被证明，产品里还没有一条"从方案读某条知识某个修订"的路径。
-补这一格要同时动方案 schema 的 `kind` 枚举、`_resolve_references()` 那个以 `else: # PROMPT_RESULT`
-收尾的分支（加一类就不能再当兜底分支写）、导出材料怎么呈现这条引用，以及读回里 `verification` 的取值；
-知识条目是全局的、没有 `project_id`，跨项目检查那一支要单独说清按什么判；
+③ 还剩两件机器可证的账：`DL-KB-02` 的 A5 直接断言；以及参考选择器现在只给两类
+（`ASSET`／`KNOWLEDGE`），`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 只能在 API 层引用——界面上
+引用了这三类的方案能原样保留、但加不进去。把它们并进同一个分组选择器（各用自己的 id 形状
+与读回标题）是下一步的界面活，`REFERENCE_ID` 已经把形状都备好了；
 ③b 上一轮记下的那条边界本轮**关掉了**：`browser_design_layer_e2e.mjs` 里新增
 `knowledge detail and judgement walk`，第一次在真 Chromium 里点开一条知识条目。它当场量到两个一直
 存在的表单缺陷（`applicability`/`limits` 留空被 `|| undefined` 丢键 → `400 INVALID_PROJECT_FIELDS`；

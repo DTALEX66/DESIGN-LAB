@@ -1424,3 +1424,40 @@ bundle_gzip=157739`（同一把尺、同一份文件），KB-13 的 150 KB 预�
 
 **顺带说清一件事。** DOM 桩件不是浏览器的替身：这次是桩件全绿、真浏览器连红两次。反过也一样成立——
 所以两边各留了什么断言，写在这段里，别拿一边的绿去声称另一边。
+### 5.39 方案终于能引用知识条目：D5 的方案侧补齐（`2c47e359`）
+
+**为什么上一轮只能停在 PARTIAL。** §5.37 把判断存储建起来了，但验收那句话的主语是**旧方案**，而
+`src/design_lab/assistance_plan.py` 的 `REFERENCE_KINDS` 只有
+`('ASSET','BRIEF','DIRECTION','PROMPT_RESULT')`——方案根本引用不了知识条目，
+所以"回退推荐版本后旧方案仍可读"在产品里没有一条走得通的路。上一轮把它登记成缺口，这一轮补。
+
+**加了什么。** `KNOWLEDGE` 成为可引用类型：id 形状用条目自己的 `^kentry-[0-9a-f]{32}$`，
+钉的是**该条目当前最大修订**与那一行的 `content_sha256`（不是推荐版本——推荐是另一个答案），
+并且因为知识库是全局的、`knowledge_entry` 没有 `project_id` 列，跨项目检查这一支改为**每个分支各自
+写明 owner**：知识分支显式写 `owner = None` 并说明为什么，而不是"列不存在就跳过检查"——
+后者会让下一个新增类型悄悄关掉一道安全闸。四个 schema 里的 kind 枚举与 Python 那个元组现在由
+`test_the_reference_kind_list_is_one_list_across_the_schemas` 钉在一起；在此之前，
+只往一边加词不是任何人的失败。
+
+**顺手拆掉的一个真缺陷。** 表单原来把引用存成**光 id**，提交时一律贴回 `kind: 'ASSET'`。
+于是一份引用了 brief 或知识条目的方案，一旦在界面上点"修订"，就会把自己原来的引用改标成 ASSET
+交给服务，得到 `ASSISTANCE_PLAN_REFERENCE_ID_MALFORMED`——**这类方案在界面上根本改不动**。
+现在选择器带类型（一个控件、两组 `<optgroup>`：本工作区素材 / 知识与提示词库），
+列表每行显示它是哪一类，选择器给不出的类型在修订时**原样保留**而不是被改名。
+
+**量到什么。** `design-lab/tests/test_assistance_plan.py` 34 条全过，其中
+`test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes`
+是真 HTTP 路由上的整条链：建条目 r1 → 修订出 r2 → 方案引用（钉住 r2 与它的摘要）→
+记一条真人判断把推荐退回 r1 → 再读方案，`references[0]` 与判断之前**逐字段相同**，
+`reference_status[0].state` 仍是 `CURRENT`。另有一条写 r3 的用例量的是相反方向：
+链接变 `CHANGED`、摘要与钉住的修订号不动。浏览器那侧走查从 8 件加到 **10 件全真**，
+新增的两件是 `pickerOffersBothSources` 与 `planCitesTheKnowledgeEntry`。
+途中被服务正确拒过一次 `ASSISTANCE_PLAN_SHOTS_NOT_APPLICABLE`（表单里留着上一段的分镜行，
+而我选了平面类型）——那是走查自己的错，拒得对，改成 `STORYBOARD` 后通过，没有动服务的规则。
+
+**于是这一行升到 DONE。** `currentExecution` 直方图从 `DONE 11／PARTIAL 4` 到
+**`DONE 12／PARTIAL 3`／`NOT_STARTED 1`**，`evidence` 277 条。升的依据是定义里三条验收
+（A2、D5、重启一致且不引入第二张修订表）都各有实测回执，`evidence_requirements` 要的两个轴
+（implementation／unit）都 PASS，另加 browser 轴两条。没做的仍然写着：
+`DL-KB-13` 的体积裁定与 3 位真人无指导任务、`DL-KB-16` 的具名真人签字、`DL-KB-15` 的本机推理前置，
+以及 `DL-KB-02` 的 A5 直接断言——那几条不是工程缺口，是要 owner 或真人点头的账。

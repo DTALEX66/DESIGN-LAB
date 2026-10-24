@@ -1,0 +1,251 @@
+# DESIGN-LAB DL-KB-05 acceptance D5, plan side: a plan can now cite a library entry.
+# subject commit 2c47e359172f329f8271bba6c2be6a89945ce002 (the store change is in the working bytes this run measured).
+# Observed 2026-10-24T22:00:09Z. Each block is that command's own output.
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_assistance_plan -v
+# exit=0
+test_a_caller_supplied_revision_or_digest_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_caller_supplied_revision_or_digest_is_refused) ... ok
+test_a_cited_entry_is_pinned_to_the_newest_revision_not_the_recommended_one (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_cited_entry_is_pinned_to_the_newest_revision_not_the_recommended_one) ... ok
+test_a_draft_without_a_creative_is_saved_but_not_provided (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_draft_without_a_creative_is_saved_but_not_provided) ... ok
+test_a_linked_asset_is_reported_linked_only_until_a_reversal_exists (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_linked_asset_is_reported_linked_only_until_a_reversal_exists) ... ok
+test_a_new_revision_moves_the_link_to_changed_without_touching_the_pin (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_new_revision_moves_the_link_to_changed_without_touching_the_pin) ... ok
+test_a_plan_for_an_unknown_project_is_404 (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_for_an_unknown_project_is_404) ... ok
+test_a_plan_is_not_readable_through_another_project (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_is_not_readable_through_another_project) ... ok
+test_a_plan_is_saved_with_its_basis_and_reads_back_after_a_restart (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_is_saved_with_its_basis_and_reads_back_after_a_restart) ... ok
+test_a_plan_revision_without_expected_revision_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_revision_without_expected_revision_is_refused) ... ok
+test_a_reference_from_another_project_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_reference_from_another_project_is_refused) ... ok
+test_a_reference_that_moved_on_is_reported_changed (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_reference_that_moved_on_is_reported_changed) ... ok
+test_a_revision_stored_before_an_optional_field_existed_still_reads_back (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_stored_before_an_optional_field_existed_still_reads_back)
+A pre-DL-KB-11 document is history, not a defect -- and it still satisfies the contract. ... ok
+test_a_revision_whose_digest_no_longer_covers_its_bytes_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_whose_digest_no_longer_covers_its_bytes_is_refused)
+Both directions of the same disagreement: edited bytes, or a column that moved alone. ... ok
+test_a_revision_with_no_creative_reads_back_as_not_provided (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_with_no_creative_reads_back_as_not_provided)
+`provided` is this row's own answer, not the readback's answer about the newest row. ... ok
+test_a_stale_revision_is_refused_with_the_actual_number (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_stale_revision_is_refused_with_the_actual_number) ... ok
+test_an_older_revision_reads_back_as_that_revision_and_not_as_the_current_one (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_older_revision_reads_back_as_that_revision_and_not_as_the_current_one)
+The bug this route exists to make impossible: a comparison page reading r2 twice. ... ok
+test_an_unknown_or_malformed_knowledge_reference_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unknown_or_malformed_knowledge_reference_is_refused) ... ok
+test_an_unknown_output_type_is_refused_by_name (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unknown_output_type_is_refused_by_name) ... ok
+test_an_unreadable_revision_row_is_refused_rather_than_returned_as_a_guess (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unreadable_revision_row_is_refused_rather_than_returned_as_a_guess) ... ok
+test_an_unstored_reference_is_a_404_not_a_saved_plan (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unstored_reference_is_a_404_not_a_saved_plan) ... ok
+test_an_unstored_revision_number_is_a_404_that_names_the_highest_one (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unstored_revision_number_is_a_404_that_names_the_highest_one) ... ok
+test_choosing_a_revision_that_does_not_exist_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_choosing_a_revision_that_does_not_exist_is_refused) ... ok
+test_every_revision_row_the_readback_lists_is_served_byte_for_byte (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_every_revision_row_the_readback_lists_is_served_byte_for_byte)
+No second truth: the readback's per-row columns and this route's answer are one row. ... ok
+test_every_served_output_type_is_one_the_create_route_accepts (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_every_served_output_type_is_one_the_create_route_accepts) ... ok
+test_is_chosen_follows_the_choice_row_and_stays_false_for_a_plan_nobody_chose (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_is_chosen_follows_the_choice_row_and_stays_false_for_a_plan_nobody_chose) ... ok
+test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes)
+DL-KB-05 D5, end to end through the routes: 回退推荐版本后旧方案仍可读. ... ok
+test_only_a_named_human_can_choose_a_revision (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_only_a_named_human_can_choose_a_revision) ... ok
+test_the_latest_revision_carries_the_digest_the_readback_publishes (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_latest_revision_carries_the_digest_the_readback_publishes) ... ok
+test_the_output_type_vocabulary_is_served_before_any_project_exists (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_output_type_vocabulary_is_served_before_any_project_exists) ... ok
+test_the_reference_kind_list_is_one_list_across_the_schemas (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_reference_kind_list_is_one_list_across_the_schemas) ... ok
+test_the_revision_read_keeps_the_plan_s_own_refusal_vocabulary (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_revision_read_keeps_the_plan_s_own_refusal_vocabulary)
+Unknown project, and a plan that is not in this project, are two different 404s. ... ok
+test_the_revision_table_refuses_its_own_rewrite (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_revision_table_refuses_its_own_rewrite) ... ok
+test_the_schemas_are_packaged_and_named_by_state_resources (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_schemas_are_packaged_and_named_by_state_resources) ... ok
+test_the_served_does_not_say_is_the_readback_s_list_unchanged (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_served_does_not_say_is_the_readback_s_list_unchanged) ... ok
+
+----------------------------------------------------------------------
+Ran 34 tests in 18.494s
+
+OK
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_plan_export
+# exit=0
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 10.609s
+
+OK
+
+$ .venv/Scripts/python.exe design-lab/scripts/verify_contract_bindings.py
+# exit=0
+  checked action-plan.schema.json: INERT
+  checked asset-manifest.schema.json: INERT
+  checked asset-ref.schema.json: INERT
+  checked audit-event.schema.json: INERT
+  checked capability-def.schema.json: INERT
+  checked capability-evidence.schema.json: INERT
+  checked capability-ref.schema.json: INERT
+  checked change-set.schema.json: INERT
+  checked delivery-receipt.schema.json: INERT
+  checked design-context.schema.json: INERT
+  checked design-control-mcp.schema.json: INERT
+  checked design-diff.schema.json: INERT
+  checked document-session.schema.json: INERT
+  checked evidence-ttl.schema.json: INERT
+  checked execution-envelope.schema.json: INERT
+  checked host-session.schema.json: INERT
+  checked integration-def.schema.json: INERT
+  checked job-attempt.schema.json: INERT
+  checked job-spec.schema.json: INERT
+  checked jury-decision.schema.json: INERT
+  checked knowledge-candidate.schema.json: INERT
+  checked operation-intent.schema.json: INERT
+  checked operation-receipt.schema.json: INERT
+  checked permission-manifest.schema.json: INERT
+  checked planar-decomposition.schema.json: BINDING instances=1 of 1 tests=3
+  checked probe-result.schema.json: INERT
+  checked projection-cursor.schema.json: INERT
+  checked retry-policy.schema.json: INERT
+  checked rights-decision.schema.json: BINDING instances=1 of 1 tests=2
+  checked run-event.schema.json: INERT
+  checked run-receipt.schema.json: INERT
+  checked runtime-binding.schema.json: INERT
+  checked /api/local-session: SCHEMA_LESS
+  checked workbench.ROUTES: SCHEMA_LESS
+  checked /workbench: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/(v-[0-9a-f]{32})/content: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/(v-[0-9a-f]{32})/receipt: BOUND_SCHEMA design-lab/delivery-receipt-readback/v1 by native_delivery.py
+  checked /api/projects/([0-9a-f]{32})/native-assets(?:\?after=(native-[0-9a-f]{64}))?: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/native-assets/(native-[0-9a-f]{64})/verify: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/bundles: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/tasks(?:\?after=((?:native-)?job-[0-9a-f]{64}))?: BOUND_SCHEMA design-lab/task-readback/v1 by task_queries.py
+  checked /api/projects/([0-9a-f]{32})/tasks/((?:native-)?job-[0-9a-f]{64})(/events)?(?:\?after=([0-9]{1,16}))?: BOUND_SCHEMA design-lab/task-readback/v1 by task_queries.py
+  checked /api/projects/([0-9a-f]{32})/assets(?:/(img-[0-9a-f]{64})/content)?: SCHEMA_LESS
+  checked /api/health: SCHEMA_LESS
+  checked /api/environment: BOUND_SCHEMA design-lab/path-diagnostic/v1 by paths.py
+  checked /api/capabilities: BOUND_SCHEMA design-lab/capability-library/v1 by capability_library.py
+  checked /api/domains: BOUND_SCHEMA design-lab/domain-pack-readback/v1 by domain_packs.py
+  checked /api/evidence-projection: BOUND_SCHEMA design-lab/evidence-projection/v1 by evidence_readback.py
+  checked /api/task-preflight: BOUND_SCHEMA design-lab/task-resource-preflight/v1 by task_resources.py
+  checked /api/projects: BOUND_SCHEMA design-lab/project-list/v1 by project_index.py
+  checked /api/design-systems: BOUND_SCHEMA design-lab/design-collection/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/design-layer: BOUND_SCHEMA design-lab/design-layer-rollup/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/jury: BOUND_SCHEMA design-lab/jury-readback/v1 by jury_review.py
+  checked /api/projects/([0-9a-f]{32})/briefs(?:\?after=(brief-[0-9a-f]{32}))?: BOUND_SCHEMA design-lab/brief-readback/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32}): BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/directions(?:\?after=(direction-[0-9a-f]{32}))?: BOUND_SCHEMA design-lab/design-collection/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32}): BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/lineage: BOUND_SCHEMA design-lab/design-lineage/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/lineage: BOUND_SCHEMA design-lab/design-lineage/v1 by design_layer.py
+  checked /api/design-briefs/(brief-[0-9a-f]{32})/lineage: BOUND_SCHEMA design-lab/design-lineage/v1 by design_layer.py
+  checked /api/design-directions/(direction-[0-9a-f]{32})/lineage: BOUND_SCHEMA design-lab/design-lineage/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/design-system-tokens: BOUND_SCHEMA design-lab/design-collection/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/design-system-tokens/(<DESIGN_SYSTEM_NAME_PATTERN>)(/lineage)?: BOUND_SCHEMA 2025.10 by dtcg.py
+  checked /api/projects/([0-9a-f]{32}): SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch: BOUND_SCHEMA design-lab/adobe-patch-job/v1 by illustrator_com.py
+  checked /api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/run: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/native-plans: BOUND_SCHEMA design-lab/photoshop-native-job/v1 by photoshop_com.py
+  checked /api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/cancel: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/bundle: BOUND_SCHEMA design-lab/delivery-receipt/v2 by delivery_receipt.py
+  checked /api/projects/([0-9a-f]{32})/assets: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/analysis: BOUND_SCHEMA design-lab/reconstruction-ir/v1 by plan_to_rir.py
+  checked /api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/preflight(?:\?profile=(print|digital|video))?: BOUND_SCHEMA design-lab/artifact-preflight/v1 by production_preflight.py
+  checked /api/projects/([0-9a-f]{32})/jury/verdict: BOUND_SCHEMA design-lab/assurance-jury-record/v2 by human_jury.py
+  checked /api/projects/([0-9a-f]{32})/jury/proposal: BOUND_SCHEMA design-lab/assurance-jury-record/v2 by human_jury.py
+  checked /api/projects/([0-9a-f]{32})/rights: BOUND_SCHEMA design-lab/rights-readback/v1 by rights_review.py
+  checked /api/projects/([0-9a-f]{32})/rights(?:\?supersedes=([A-Za-z0-9_.:-]{1,80}))?: BOUND_SCHEMA design-lab/rights-decision/v1 by rights_ledger.py
+  checked /api/projects/([0-9a-f]{32})/research: BOUND_SCHEMA design-lab/research-readback/v1 by research_review.py
+  checked /api/projects/([0-9a-f]{32})/native-runtime: BOUND_SCHEMA design-lab/native-runtime-readback/v1 by native_runtime.py
+  checked /api/projects/([0-9a-f]{32})/research(?:\?supersedes=([A-Za-z0-9_.:-]{1,80}))?: BOUND_SCHEMA https://dtalex66.local/schemas/research-finding.json by research_store.py
+  checked /api/projects/([0-9a-f]{32})/briefs: BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/directions: BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/choose: BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/bind: BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/revisions: BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/revisions: BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/design-briefs/(brief-[0-9a-f]{32})/revisions: BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/design-directions/(direction-[0-9a-f]{32})/revisions: BOUND_SCHEMA design-lab/design-record/v1 by design_layer.py
+  checked /api/projects/([0-9a-f]{32})/design-system-tokens/(<DESIGN_SYSTEM_NAME_PATTERN>): BOUND_SCHEMA 2025.10 by dtcg.py
+  checked /api/projects/([0-9a-f]{32})/knowledge-candidates: BOUND_SCHEMA design-lab/assurance-knowledge-candidate-readback/v1 by knowledge_review.py
+  checked /api/projects/([0-9a-f]{32})/knowledge-candidates(?:\?supersedes=([A-Za-z0-9_.:-]{1,80}))?: BOUND_SCHEMA design-lab/assurance-knowledge-candidate/v2 by knowledge_feedback.py
+  checked /api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/review: BOUND_SCHEMA design-lab/assurance-knowledge-candidate/v2 by knowledge_feedback.py
+  checked /api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/revoke: BOUND_SCHEMA design-lab/assurance-knowledge-candidate-revocation/v1 by knowledge_feedback.py
+  checked /api/projects/([0-9a-f]{32})/prompts: BOUND_SCHEMA design-lab/prompt-composition/v1 by prompt_intelligence.py
+  checked /api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/prompt-reversal: BOUND_SCHEMA design-lab/prompt-reversal/v1 by prompt_intelligence.py
+  checked /api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/export: BOUND_SCHEMA design-lab/assurance-knowledge-candidate-export-envelope/v1 by knowledge_review.py
+  checked /api/models: BOUND_SCHEMA design-lab/model-catalog/v1 by model_catalog.py
+  checked /api/projects/([0-9a-f]{32})/model-selection/choose: SCHEMA_LESS
+  checked /api/projects/([0-9a-f]{32})/model-selection: BOUND_SCHEMA design-lab/model-selection-readback/v1 by model_selection.py
+  checked /api/projects/([0-9a-f]{32})/prompt-results: BOUND_SCHEMA design-lab/prompt-result-readback/v1 by prompt_results.py
+  checked /api/projects/([0-9a-f]{32})/prompt-results/((?:prompt|reversal)-[0-9a-f]{32})/review: BOUND_SCHEMA design-lab/prompt-result-review/v1 by prompt_results.py
+  checked /api/knowledge-entries/search: BOUND_SCHEMA design-lab/knowledge-library/v1 by knowledge_library.py
+  checked /api/knowledge-entries: BOUND_SCHEMA design-lab/knowledge-entry-write/v1 by knowledge_library.py
+  checked /api/knowledge-entries/(kentry-[0-9a-f]{32})/revisions: BOUND_SCHEMA design-lab/knowledge-entry-write/v1 by knowledge_library.py
+  checked /api/knowledge-entries/import: BOUND_SCHEMA design-lab/knowledge-import/v1 by knowledge_library.py
+  checked /api/knowledge-entries/(kentry-[0-9a-f]{32}): BOUND_SCHEMA design-lab/knowledge-entry-readback/v1 by knowledge_library.py
+  checked /api/knowledge-entries/(kentry-[0-9a-f]{32})/judgements: BOUND_SCHEMA design-lab/knowledge-entry-readback/v1 by knowledge_library.py
+  checked /api/knowledge-entries/index-rebuild: BOUND_SCHEMA design-lab/knowledge-index-rebuild/v1 by knowledge_library.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans: BOUND_SCHEMA design-lab/assistance-plan-write/v1 by assistance_plan.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions: BOUND_SCHEMA design-lab/assistance-plan-write/v1 by assistance_plan.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32}): BOUND_SCHEMA design-lab/assistance-plan-readback/v1 by assistance_plan.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions/([1-9][0-9]{0,8}): BOUND_SCHEMA design-lab/assistance-plan-revision/v1 by assistance_plan.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans(?:\?[^#]*)?: BOUND_SCHEMA design-lab/assistance-plan-list/v1 by assistance_plan.py
+  checked /api/assistance-plan-output-types: BOUND_SCHEMA design-lab/assistance-plan-output-types/v1 by assistance_plan.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose: BOUND_SCHEMA design-lab/assistance-plan-readback/v1 by assistance_plan.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/export(?:\?[^#]*)?: BOUND_SCHEMA design-lab/plan-export/v1 by plan_export.py
+  checked /api/target-profile-axes: BOUND_SCHEMA design-lab/target-profile-axes/v1 by target_profile.py
+  checked /api/target-profiles(?:\?[^#]*)?: BOUND_SCHEMA design-lab/target-profile-list/v1 by target_profile.py
+  checked /api/target-profiles/(tprof-[0-9a-f]{32}): BOUND_SCHEMA design-lab/target-profile/v1 by target_profile.py
+  checked /api/target-profiles: BOUND_SCHEMA design-lab/target-profile-write/v1 by target_profile.py
+  checked /api/target-profiles/(tprof-[0-9a-f]{32})/validate: BOUND_SCHEMA design-lab/target-profile-validate/v1 by target_profile.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/feedback(?:\?[^#]*)?: BOUND_SCHEMA design-lab/plan-feedback-list/v1 by plan_feedback.py
+  checked /api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/feedback: BOUND_SCHEMA design-lab/plan-feedback-write/v1 by plan_feedback.py
+VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=90 dispatched=90 bound=76 schema_less=14
+
+$ .venv/Scripts/python.exe design-lab/scripts/verify_route_payload_contracts.py
+# exit=0
+  compared path-diagnostic: cases=1 object locations compared=14
+  compared capability-library: cases=1 object locations compared=161
+  compared project-list: cases=2 object locations compared=14
+  compared task-readback-list: cases=2 object locations compared=11
+  compared task-readback-detail: cases=2 object locations compared=15
+  compared domain-pack-readback: cases=1 object locations compared=18
+  compared jury-readback: cases=2 object locations compared=18
+  compared brief-readback: cases=2 object locations compared=6
+  compared evidence-projection: cases=2 object locations compared=158
+  compared task-resource-preflight: cases=3 object locations compared=13
+  compared model-catalog: cases=1 object locations compared=30
+  compared model-selection-readback: cases=3 object locations compared=9
+  compared knowledge-candidate-export: cases=1 object locations compared=9
+  compared rights-readback: cases=3 object locations compared=10
+  compared research-readback: cases=2 object locations compared=5
+  compared native-runtime-readback: cases=2 object locations compared=14
+  compared prompt-result-readback: cases=3 object locations compared=91
+  compared design-layer-rollup: cases=2 object locations compared=21
+  compared design-record-brief-detail: cases=2 object locations compared=8
+  compared design-record-direction-detail: cases=2 object locations compared=8
+  compared design-collection-directions: cases=2 object locations compared=8
+  compared design-collection-tokens: cases=2 object locations compared=6
+  compared design-collection-systems: cases=1 object locations compared=10
+  compared design-lineage-brief-scoped: cases=2 object locations compared=16
+  compared design-lineage-direction-scoped: cases=2 object locations compared=16
+  compared design-lineage-brief-by-id: cases=2 object locations compared=16
+  compared design-lineage-direction-by-id: cases=2 object locations compared=16
+  compared design-record-brief-create: cases=2 object locations compared=8
+  compared design-record-direction-create: cases=2 object locations compared=8
+  compared design-record-direction-choose: cases=2 object locations compared=8
+  compared design-record-direction-bind: cases=2 object locations compared=8
+  compared design-record-brief-revise-scoped: cases=2 object locations compared=8
+  compared design-record-direction-revise-scoped: cases=2 object locations compared=8
+  compared design-record-brief-revise-by-id: cases=2 object locations compared=8
+  compared design-record-direction-revise-by-id: cases=2 object locations compared=8
+  compared knowledge-library-search: cases=1 object locations compared=11
+  compared knowledge-entry-write-create: cases=1 object locations compared=3
+  compared knowledge-entry-write-revise: cases=1 object locations compared=3
+  compared knowledge-entry-import: cases=2 object locations compared=6
+  compared knowledge-entry-readback: cases=1 object locations compared=8
+  compared knowledge-entry-judgement: cases=2 object locations compared=22
+  compared knowledge-index-rebuild: cases=1 object locations compared=2
+  compared assistance-plan-write-create: cases=1 object locations compared=4
+  compared assistance-plan-write-revise: cases=1 object locations compared=4
+  compared assistance-plan-readback: cases=3 object locations compared=32
+  compared assistance-plan-list: cases=2 object locations compared=4
+  compared assistance-plan-output-types: cases=1 object locations compared=11
+  compared assistance-plan-choose: cases=1 object locations compared=12
+  compared assistance-plan-revision: cases=2 object locations compared=8
+  compared plan-export: cases=4 object locations compared=8
+  compared target-profile-axes: cases=1 object locations compared=26
+  compared target-profile-list: cases=1 object locations compared=83
+  compared target-profile-detail: cases=2 object locations compared=32
+  compared target-profile-create: cases=1 object locations compared=17
+  compared target-profile-validate: cases=2 object locations compared=11
+  compared plan-feedback-list: cases=2 object locations compared=16
+  compared plan-feedback-record: cases=2 object locations compared=6
+VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=57 failures=0
+
+$ .venv/Scripts/python.exe design-lab/scripts/verify_workbench_route_calls.py
+# exit=0
+VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=139 routes=88 matched=77 backend_only=11 dynamic=3 special=1

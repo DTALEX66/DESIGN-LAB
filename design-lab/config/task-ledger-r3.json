@@ -8761,14 +8761,16 @@
       },
       {
         "id": "DL-KB-05",
-        "state": "PARTIAL",
+        "state": "DONE",
         "evidence": [
           "kb-05-unit-knowledge-r2-20261024",
           "kb-05-implementation-revisions-r2-20261024",
           "kb-05-unit-judgement-20261024",
           "kb-05-implementation-judgement-surface-20261024",
           "kb-05-browser-workbench-gates-20261024",
-          "kb-05-browser-knowledge-detail-walk-20261024"
+          "kb-05-browser-knowledge-detail-walk-20261024",
+          "kb-05-unit-knowledge-reference-20261024",
+          "kb-05-browser-plan-cites-knowledge-20261024"
         ]
       },
       {
@@ -12184,6 +12186,30 @@
         "command": "design-lab/tests/e2e/browser_design_layer_e2e.mjs :: knowledge detail and judgement walk -- the first time any gate opened a knowledge entry in Chromium. 8 of 8 states true, posts by phase [0, 0, 1, 1] (a local refusal sends nothing), and the painted trail is compared against the readback the POST returned. It found two live form defects the DOM harness had walked green: blank 适用场景/边界 dropped the key and answered INVALID_PROJECT_FIELDS, and a fresh form pre-selected 许可状态=reviewed and answered KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION. Both fixed in this commit; both now have a non-browser assertion in apps/workbench/tests/appshell.mjs. Contrast and geometry re-ran on these bytes (50 and 112 route-runs, belowAA=0, docOverflowX=0, clipped=0, stray=0) and still measure the list screen, not this panel -- the record says so rather than borrowing their green.",
         "exit_code": 0,
         "observed_at": "2026-10-24T21:17:30Z"
+      },
+      {
+        "id": "kb-05-unit-knowledge-reference-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "2c47e359172f329f8271bba6c2be6a89945ce002",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-unit-knowledge-reference-20261024.log",
+        "artifact_sha256": "630c88b3fe631987f09d244bce070edd46b22e927197ee5758f46bbbf5e31bfd",
+        "command": "design-lab/tests/test_assistance_plan.py (the plan store over real HTTP routes, now including a plan that cites a knowledge entry, the refusal of an unknown or malformed one, the enum tie across the four schemas, and test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes) plus the export suite and the contract gates :: Ran 34 tests in 18.494s",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T22:01:10Z"
+      },
+      {
+        "id": "kb-05-browser-plan-cites-knowledge-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2c47e359172f329f8271bba6c2be6a89945ce002",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-browser-plan-cites-knowledge-20261024.json",
+        "artifact_sha256": "35161d199fb463c67fffebf5fc45d5c0d0adf978a69716d5ac010660fdf064da",
+        "command": "the knowledge walk in browser_design_layer_e2e.mjs extended to the reuse link: ten states all true, the reference picker offering the entry beside the workspace assets, and the saved plan coming back pinned to the entry's own revision and digest as resolved by the store. It also records the defect this removed: a plan citing a non-asset reference could not be revised from the screen at all, because the form re-sent every reference as ASSET.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T22:01:10Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
