@@ -2,9 +2,9 @@
   "authorityTaskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "authorityTaskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
   "counts": {
-    "DONE": 4,
+    "DONE": 6,
     "FROZEN_DEFERRED": 34,
-    "NOT_STARTED": 10,
+    "NOT_STARTED": 8,
     "PARTIAL": 2
   },
   "environmentFingerprint": {
@@ -14,7 +14,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-23T23:28:26+00:00",
+  "generatedAt": "2026-10-24T00:57:31+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -29,7 +29,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3c6ca49133a4995b074182280c0844a9872f039f",
+  "subjectSha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
@@ -979,29 +979,42 @@
     {
       "acceptance_unmet": [],
       "batch": "K3",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
+      "evidence": [
+        "kb-07-unit-plan-object-20261024",
+        "kb-07-implementation-plan-routes-20261024"
+      ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-07",
       "implementation_unmet": [
         "DL-KB-02"
       ],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "中立方案对象与一份创意意图"
     },
     {
       "acceptance_unmet": [],
       "batch": "K3-UI",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
-      "id": "DL-KB-08",
-      "implementation_unmet": [
-        "DL-KB-07"
+      "evidence": [
+        "kb-08-implementation-workbench-node-20261024",
+        "kb-08-implementation-workbench-python-20261024",
+        "kb-08-browser-e2e-20261024",
+        "kb-08-browser-capture-20261024",
+        "kb-08-browser-overflow-20261024",
+        "kb-08-browser-contrast-20261024",
+        "kb-08-browser-ui-audit-20261024",
+        "kb-08-browser-a11y-20261024",
+        "kb-08-browser-debt-20261024",
+        "kb-08-browser-visual-20261024",
+        "kb-08-visual-review-20261024"
       ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
+      "id": "DL-KB-08",
+      "implementation_unmet": [],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "「设计辅助」初始态与方案详情屏"
     },
     {
@@ -1037,7 +1050,6 @@
       "evidence_level": "NO_EVIDENCE",
       "id": "DL-KB-11",
       "implementation_unmet": [
-        "DL-KB-07",
         "DL-KB-09"
       ],
       "kind": "PARENT_TASK",
@@ -1052,8 +1064,7 @@
       "evidence_level": "NO_EVIDENCE",
       "id": "DL-KB-12",
       "implementation_unmet": [
-        "DL-KB-05",
-        "DL-KB-07"
+        "DL-KB-05"
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_SUPPORT",
@@ -1122,5 +1133,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:453d7c5db1ad263cfb5ab2bdfed26ee37098a7b10a10b3c2db13db678b4ff7dc"
+  "worktreeDigest": "sha256:60b1e8f674334af8ae4ec8f987fc5dc78d0d377a820b0136d211b8a51f6d146a"
 }

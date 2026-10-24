@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-23T23:28:13Z",
+  "updated_at": "2026-10-24T00:57:00Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -8787,13 +8787,28 @@
       },
       {
         "id": "DL-KB-07",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-07-unit-plan-object-20261024",
+          "kb-07-implementation-plan-routes-20261024"
+        ]
       },
       {
         "id": "DL-KB-08",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-08-implementation-workbench-node-20261024",
+          "kb-08-implementation-workbench-python-20261024",
+          "kb-08-browser-e2e-20261024",
+          "kb-08-browser-capture-20261024",
+          "kb-08-browser-overflow-20261024",
+          "kb-08-browser-contrast-20261024",
+          "kb-08-browser-ui-audit-20261024",
+          "kb-08-browser-a11y-20261024",
+          "kb-08-browser-debt-20261024",
+          "kb-08-browser-visual-20261024",
+          "kb-08-visual-review-20261024"
+        ]
       },
       {
         "id": "DL-KB-09",
@@ -11668,6 +11683,162 @@
         "observed_at": "2026-10-23T23:27:47Z",
         "subject_sha": "3c6ca49133a4995b074182280c0844a9872f039f",
         "artifact_sha256": "2ab634bbc451a942a26613c53a3620b8df6ac2fe5e3769b0ffdaf77843573894"
+      },
+      {
+        "id": "kb-07-unit-plan-object-20261024",
+        "task_id": "DL-KB-07",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-07-unit-plan-object-20261024.log",
+        "command": "cd design-lab/tests && python -m unittest test_assistance_plan -v :: 18 tests OK; saved / provided / chosen / externally verified are four separate readback facts, a plan with an objective and no creative is saved but not provided, only a named human can choose (agent refused twice), a stale expected_revision is refused with the actual number, a cited asset stays LINKED_ONLY until a stored reversal exists, a moved reference reads CHANGED, and a missing job id is the literal UNUSED",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:53:09Z",
+        "artifact_sha256": "c4f70706d122bfd9afef3c42bef4755e8a565929ce6b75bcaab2b9a604f400b1"
+      },
+      {
+        "id": "kb-07-implementation-plan-routes-20261024",
+        "task_id": "DL-KB-07",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-07-implementation-plan-routes-20261024.log",
+        "command": "cd design-lab/tests && python -m unittest test_route_payload_contracts test_ledger_schema test_packaged_contract_resources -v :: 77 tests OK; the five assistance-plan routes are fixed in ROUTES, bound to their schemas in contract-bindings.json (47 live payload bindings), and the plan schemas plus the plan state SQL resolve from an installed wheel",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:53:46Z",
+        "artifact_sha256": "782064d742d59dc61145597a1d87131a8e81c5b8ad549db49bf1399beea5ced2"
+      },
+      {
+        "id": "kb-08-implementation-workbench-node-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-implementation-workbench-node-20261024.log",
+        "command": "cd apps/workbench && node tests/unit.mjs && node tests/appshell.mjs && node tests/shape-notice-coverage.mjs :: 30 ok lines; the screen builds and every rendered seam still reports its bound value (54 reads); the rendered four states are asserted in the browser scenario, not here",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:55:06Z",
+        "artifact_sha256": "01829acb9f348e65c369599d6d708076fe0228e8061d1e17842ca77c24b91f81"
+      },
+      {
+        "id": "kb-08-implementation-workbench-python-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-implementation-workbench-python-20261024.log",
+        "command": "cd design-lab/tests && python -m unittest test_workbench_css_single_definition test_workbench_route_calls test_workbench_served_bundle -v :: 44 tests OK; the seven new list containers are admitted at 66, the assistant route call site matches its ROUTES entry, and the served bundle is the committed one",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:55:09Z",
+        "artifact_sha256": "43aa1fa9480a4812041638a3964904c43ba92ae859ea18a4322dad79e7d7f8da"
+      },
+      {
+        "id": "kb-08-browser-e2e-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-e2e-20261024.json",
+        "command": "python -m unittest test_workbench_design_layer_e2e :: assistantLoop saved/provided/chosen flip in order and externalVerified stays false, copy works before adoption carrying 外部未验证 (writes and chooses do not move), an empty objective is refused with focus returned, the supplied creative appends r2 and a named human chooses it, a reload rebuilds the same states; consoleErrors 0; the served bundle sha256 ffabee75 equals the committed build at 2d9372fb (the summary's own subjectSha field reads 'local')",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:19:31Z",
+        "artifact_sha256": "5ee79369c9e4709310e9a3d9e98eb5cd380d13962d4e2d32757dab32353badde"
+      },
+      {
+        "id": "kb-08-browser-capture-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-capture-manifest-20261024.json",
+        "command": "python scripts/capture_workbench_screenshots.py --widths 1440,1280,1920 :: 81 shots bound to commit 2d9372fb; #/assistant captured at 1280x800, 1440x900 and 1920x1080 with rendered.unreadBack false",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:49:27Z",
+        "artifact_sha256": "dee9c2d807978329ad3ca92eff0676e868371516be284ead25c6df39fee50112"
+      },
+      {
+        "id": "kb-08-browser-overflow-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-overflow-20261024.json",
+        "command": "OV_WIDTHS=1440,1280,1920 E2E_EVIDENCE_DIR=<evidence>/browser python -m unittest test_workbench_overflow_gate -v :: navCue contentPx=1331, hiddenPx 515/715/865/995 at 1100/900/750/620, the cue is present at the top and gone at the end, footer hairline 12px; subject bundle ffabee75",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:31:54Z",
+        "artifact_sha256": "7be8ba7e241557130d8e13d2520232ef02763f51aed332eb55916b6c63b118ac"
+      },
+      {
+        "id": "kb-08-browser-contrast-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-contrast-20261024.json",
+        "command": "python -m unittest test_workbench_contrast_gate -v :: 3 tests OK in both palettes (155.7s); subject bundle ffabee75, stylesheet e83dde18",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:35:08Z",
+        "artifact_sha256": "55d15354b79080ec7ecf5e5fa04af0c172fb2bdb0a943f8d6b0892ca13995bd3"
+      },
+      {
+        "id": "kb-08-browser-ui-audit-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-ui-audit-20261024.json",
+        "command": "UI_AUDIT_WIDTHS=1280,1440,1920 python -m unittest test_workbench_ui_audit_gate -v :: ok=true, violations=[], measured at commit 2d9372fb (environment.commit records the same SHA)",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:48:26Z",
+        "artifact_sha256": "ede42be0bbf7bba76a2d1edb9b09d9b5d14ac4035ffc4036b14f65a4c488b7a7"
+      },
+      {
+        "id": "kb-08-browser-a11y-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-assistant-20261024/a11y.json",
+        "command": "python scripts/run_design_review_plugin.py --only a11y :: axe-core over 27 screens including #/assistant, 0 findings, ok=true; this is an automated scan, not a WCAG certification and not human acceptance",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:53:27Z",
+        "artifact_sha256": "8548edcc8a113ccc5b5934bde10e7d90f7983e0db89497c554e9b40208bc8819"
+      },
+      {
+        "id": "kb-08-browser-debt-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-assistant-20261024/design-debt.json",
+        "command": "python scripts/run_design_review_plugin.py --only debt :: 713 findings ok=false (630 minor / 52 major / 31 debt) across 10 files, identical to the pre-assistant scan, so this screen added no literal px, hard-coded colour or custom shadow; recorded as an open register with classification, not as a pass",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:52:56Z",
+        "artifact_sha256": "eb6112c3267db8efc657967686d4ead02c81ffdd6a41f248187f87560ef6b97d"
+      },
+      {
+        "id": "kb-08-browser-visual-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-visual-receipt-20261024.json",
+        "command": "one-off Playwright probe against a real loopback service :: four screenshots (saved, chosen at 1440 and 1280, list at 1280) with bytes and sha256; the four chips, the named chooser line, the r2 list row and the 1-primary-action rule are read from the DOM; 1440x900 and 1280x800 keep 整理方案 below the fold",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:56:26Z",
+        "artifact_sha256": "1d24969825f8a90c4499f4974fee54fe1c1b7b11653948f90cc4280690164090"
+      },
+      {
+        "id": "kb-08-visual-review-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-visual-review-20261024.md",
+        "command": "reviewed the rendered screen at 2d9372fb: the initial form carries three selects and no tool/model picker; the detail renders 已保存 / 方案已提供 / 用户选用 · r2 / 外部未验证 with the named chooser line and the two revisions; the list row carries r2 plus both states; no chat bubbles, canvas or agent console; mobile excluded",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:56:36Z",
+        "artifact_sha256": "11a3c58d2304e5e2cb9dcd872d25053c17cea6328e5ed1e0d862b526db502f16"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
