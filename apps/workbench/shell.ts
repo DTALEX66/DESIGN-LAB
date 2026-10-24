@@ -6245,7 +6245,19 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   fillWorkspaces();
   fillAssets();
   renderReferences();
-  void (async () => { await loadKnowledgeChoices(); })();
+  // The library is global, so it is read beside the first paint instead of in front of it -- but a
+  // refused read must still be said. Left bare, a rejected promise here was an unhandled rejection:
+  // the group would quietly keep its "库里还没有条目" text, which is a claim about the library and
+  // not about the failure that produced it.
+  void (async () => {
+    try {
+      await loadKnowledgeChoices();
+    } catch (error) {
+      knowledgeNotice = `库未读回：${assistanceRefusal(error)}`;
+      fillAssets();
+      renderReferences();
+    }
+  })();
   renderPlans();
   // A reload lands here, so this is where "未完成的编辑" comes back for a plan that was never opened
   // for revision or copying -- the create the designer was writing when the window closed.

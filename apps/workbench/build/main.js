@@ -7858,7 +7858,13 @@ async function renderDesignAssistant(target) {
   fillAssets();
   renderReferences();
   void (async () => {
-    await loadKnowledgeChoices();
+    try {
+      await loadKnowledgeChoices();
+    } catch (error) {
+      knowledgeNotice = `库未读回：${assistanceRefusal(error)}`;
+      fillAssets();
+      renderReferences();
+    }
   })();
   renderPlans();
   offerDraft();
