@@ -1392,3 +1392,35 @@ detailsExpanded=1200`，两者都绑在 bundle `sha256 4df788c3…`（602,549 B�
 `el('ul', { class: 'list'` 的存量从 72 变 73，这一条按老规矩写明新增的是哪一个容器再动数字。
 重量：bundle gzip 从上一轮记录的 155,787 B 到本轮 `WORKBENCH_WEIGHT_GATE=OK remote=0
 bundle_gzip=157739`（同一把尺、同一份文件），KB-13 的 150 KB 预算仍然是 owner 的决定，本轮不代做。
+### 5.38 第一次真点开一条知识条目：两个一直存在的表单缺陷（`38bb48d8`）
+
+**为什么要做这一刀。** §5.37 记下了一条边界：没有任何浏览器门禁点开过一条知识条目。这条边界不是
+"细节没顾上"，它意味着**整个条目详情面从来没被真实浏览器画过**，而详情面背后的新增／修订表单同样
+没有——`apps/workbench/tests/appshell.mjs` 那个 DOM 桩件走得很细，但它的 fixture 把该填的格子都
+填了、把许可状态也选了，所以它绿着，而真用户不一定走得通。
+
+**真点一次，立刻红两次。** 新加的这一步（`design-lab/tests/e2e/browser_design_layer_e2e.mjs` 的
+`knowledge detail and judgement walk`）在真 Chromium 里点「新增条目」，故意**不填**「适用场景」和
+「边界与反例」，然后提交：
+
+1. 服务答 `400 INVALID_PROJECT_FIELDS`。`collect()` 里写的是
+   `applicability: value.trim() || undefined`，空串被 `JSON.stringify` 直接丢键；而
+   `POST /api/knowledge-entries` 与 `…/revisions` 要的是**精确键集合**（`http_service.py` 的
+   `body(fields=…)`：少一个键就拒，多一个键也拒）。界面把两个看起来可选的格子当成可省略的字段，
+   服务却要求它们必须在。用户看到的是一句读不懂的代码，而且**只要不填这两格就永远写不进去**。
+   修法是键永远在，值留空串——存储本来就把空串写成字面量 `UNKNOWN`（`knowledge_library._text`）。
+2. 补完第一条再点，服务答 `400 KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION`。许可状态那个 `select`
+   没有"未选"这一档，选项来自服务词表、**第一项默认中选**，而本机词表第一项是 `reviewed`：
+   一张谁都没碰过的新表单，打开就在替用户声明"这份许可被审过了"，同时许可格子还是空的。存储的
+   规则（`license == UNKNOWN` 时状态必须是 `unknown`）是对的，错的是界面把词表顺序当成了默认值。
+   现在空表单默认落在 `unknown`，也就是"没人看过"这句实话。
+
+**这条闸现在长什么样。** 走查断言八件事，全部要真值：条目写进去并按编号读回、两格留空仍存成
+`UNKNOWN`、空轨迹说的是"还没有人记下"、缺理由与缺记录人各自被本地拒绝且**一个请求都没发**
+（按阶段计数的 `posts.afterReasonClick/afterNameClick/afterJudgeClick/afterSourceClick`，
+读数 `[0,0,1,1]`）、判断只发一次、屏上的轨迹行数与 POST 返回的 readback 逐字段对得上、
+来源失效没替代条目时不发请求。两条表单缺陷另外在 `appshell.mjs` 里各有一条**不需要浏览器**的断言
+（新表单默认必须是 `unknown`；修订清空两格后键仍在），两条都在修之前的字节上红过。
+
+**顺带说清一件事。** DOM 桩件不是浏览器的替身：这次是桩件全绿、真浏览器连红两次。反过也一样成立——
+所以两边各留了什么断言，写在这段里，别拿一边的绿去声称另一边。

@@ -154,10 +154,13 @@ PARTIAL 并把取舍交给 owner（见 §7）。搜索侧达标：1,000 条按�
 补这一格要同时动方案 schema 的 `kind` 枚举、`_resolve_references()` 那个以 `else: # PROMPT_RESULT`
 收尾的分支（加一类就不能再当兜底分支写）、导出材料怎么呈现这条引用，以及读回里 `verification` 的取值；
 知识条目是全局的、没有 `project_id`，跨项目检查那一支要单独说清按什么判；
-③b 还有一条量到的边界：**没有任何浏览器门禁点开过一条知识条目**，所以"判断与来源状态"这块
-（含整个条目详情面）在 Chromium 里从未被画过——对比度与几何那两把尺量的是列表页。要声称它上屏好看，
-得在 `design-lab/tests/e2e/browser_design_layer_e2e.mjs` 里真点一次 `.kb-open` 并走完两个表单，
-而不是把 DOM 桩件（`apps/workbench/tests/appshell.mjs`）的绿当成浏览器证据：两者证明的是不同的事。
+③b 上一轮记下的那条边界本轮**关掉了**：`browser_design_layer_e2e.mjs` 里新增
+`knowledge detail and judgement walk`，第一次在真 Chromium 里点开一条知识条目。它当场量到两个一直
+存在的表单缺陷（`applicability`/`limits` 留空被 `|| undefined` 丢键 → `400 INVALID_PROJECT_FIELDS`；
+新表单的许可状态默认中选词表第一项 `reviewed` → `400 KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION`），
+两条都已修、各有一条不依赖浏览器的断言，细节见审计件 §5.38。**下一轮不要退回"桩件绿了"**：这条
+走查之所以有价值，恰恰是因为 DOM 桩件在同一批字节上全绿。仍然没有的是：条目详情面在对比度与几何
+两把尺下的读数（那两把尺量的是列表页），要声称就得让门禁真点一次开详情再量。
 ④ `DL-KB-16` 的 `human_review` 与 `DESIGN.md` 的批准状态，都等 owner 真实测试后由具名真人签。
 
 

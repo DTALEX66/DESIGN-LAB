@@ -8767,7 +8767,8 @@
           "kb-05-implementation-revisions-r2-20261024",
           "kb-05-unit-judgement-20261024",
           "kb-05-implementation-judgement-surface-20261024",
-          "kb-05-browser-workbench-gates-20261024"
+          "kb-05-browser-workbench-gates-20261024",
+          "kb-05-browser-knowledge-detail-walk-20261024"
         ]
       },
       {
@@ -12171,6 +12172,18 @@
         "command": "contrast gate (50 route-runs, checked=14002, belowAA=0, unparsable=0) + geometry sweep (112 route-runs at 1440/1280/1536/1920, docOverflowX=0, clipped=0, stray=0, detailsExpanded=1200) + route-level UI audit (ok=true), bound to bundle sha256 4df788c3 (602,549 B) and commit 52961f49. The record also states its own boundary: no browser gate opens a knowledge entry, so the judgement panel is not painted in Chromium by these gates -- its behaviour is walked by the DOM harness on the same bundle.",
         "exit_code": 0,
         "observed_at": "2026-10-24T20:43:02Z"
+      },
+      {
+        "id": "kb-05-browser-knowledge-detail-walk-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "38bb48d80f5a1fc3b47ddbf3fcbf2443e75d3cfc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-browser-knowledge-detail-walk-20261024.json",
+        "artifact_sha256": "7fb7b807e7a67c63811eb9b887476fb07d38f589a809a07b582f9097be3de1c5",
+        "command": "design-lab/tests/e2e/browser_design_layer_e2e.mjs :: knowledge detail and judgement walk -- the first time any gate opened a knowledge entry in Chromium. 8 of 8 states true, posts by phase [0, 0, 1, 1] (a local refusal sends nothing), and the painted trail is compared against the readback the POST returned. It found two live form defects the DOM harness had walked green: blank 适用场景/边界 dropped the key and answered INVALID_PROJECT_FIELDS, and a fresh form pre-selected 许可状态=reviewed and answered KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION. Both fixed in this commit; both now have a non-browser assertion in apps/workbench/tests/appshell.mjs. Contrast and geometry re-ran on these bytes (50 and 112 route-runs, belowAA=0, docOverflowX=0, clipped=0, stray=0) and still measure the list screen, not this panel -- the record says so rather than borrowing their green.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T21:17:30Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

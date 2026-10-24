@@ -213,6 +213,6 @@
       ]
     }
   ],
-  "lastVerifiedTree": "96159f8e9548c8240b8fe668e91b82c9ecad24e6",
+  "lastVerifiedTree": "e32ee56b16c81c15172136add237b206722fcd24",
   "bindingPolicy": "DL-EVD-002/003: lastVerifiedTree 是历史绑定（HISTORICAL_VALID，requiresRequalification=true），绝不声称绑定当前 HEAD；当前发布只接受 CI 运行时生成的 Evidence Attestation（CURRENT_EXACT，GitHub Actions Artifact/Attestation）。提交 N+1 可证明提交 N；禁止自引用。"
 }
