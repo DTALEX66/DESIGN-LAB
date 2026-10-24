@@ -8815,7 +8815,9 @@
           "kb-08-browser-a11y-20261024",
           "kb-08-browser-debt-20261024",
           "kb-08-browser-visual-20261024",
-          "kb-08-visual-review-20261024"
+          "kb-08-visual-review-20261024",
+          "kb-08-unit-five-kind-picker-20261024",
+          "kb-08-browser-five-kind-picker-20261024"
         ]
       },
       {
@@ -12236,6 +12238,30 @@
         "command": "Chromium grants the clipboard, clicks 复制正文 and reads back exactly the body the create route answered (True); the DOM harness drives the refused-clipboard fallback over the same bytes. The eleven knowledge-walk states are all asserted. Re-measured on this bundle: contrast 14002 text runs over 50 route-runs at [1440, 1920] with belowAA=0, controlMisses=0, unparsable=0 (and the same gate under ui2026/light: 14002 runs, belowAA=0); geometry 112 route-runs at [1440, 1280, 1536, 1920] with docOverflowX=0, clipped=0, stray=0. Bound to bundle sha256 3fdb4f636b5c = blob 8c4138b5deda at 72710b7f04b9.",
         "exit_code": 0,
         "observed_at": "2026-10-24T22:41:53Z"
+      },
+      {
+        "id": "kb-08-unit-five-kind-picker-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "e172e33e964bfd60ba7daffaff7332038f82ac68",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-08-unit-five-kind-picker-20261024.log",
+        "artifact_sha256": "ab37041ef140e81844ff653eedb86fbc587bfe2fe457b9acfd25be9edb15c427",
+        "command": "design-lab/tests/test_assistance_plan.py adds the cross-realm tie that was missing: the picker's kind labels must equal REFERENCE_KINDS and each kind must have its own <optgroup>, so a future kind cannot land on the store side only -- exactly how KNOWLEDGE arrived last round. design-lab/tests/test_workbench_route_calls.py then convicts the now-false directions-list exemption (STALE_BACKEND_ONLY), which is removed rather than re-worded. Ran 35 tests in 20.720s | Ran 23 tests in 1.997s",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T23:25:13Z"
+      },
+      {
+        "id": "kb-08-browser-five-kind-picker-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "e172e33e964bfd60ba7daffaff7332038f82ac68",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-08-browser-five-kind-picker-20261024.json",
+        "artifact_sha256": "728179f96abf007471ffa10265215af5872889abb5f54204bf135f89b1c8dac3",
+        "command": "In Chromium the picker offers all five kinds and the saved plan comes back citing KNOWLEDGE, BRIEF, DIRECTION and PROMPT_RESULT, each with a store-resolved revision and digest (planCitesEveryKind). Twelve knowledge-walk states all asserted. Re-measured on this bundle: contrast 14002 text runs over 50 route-runs at [1440, 1920] belowAA=0, geometry 112 route-runs at [1440, 1280, 1536, 1920] docOverflowX=0 clipped=0 stray=0, UI audit ok=true with 0 violations at widths 1280,1920,2048. Bound to bundle sha256 0923de170be7 = blob 8d2702e5b321 at e172e33e964b.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T23:25:13Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

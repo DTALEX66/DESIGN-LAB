@@ -1510,3 +1510,58 @@ sha256 `3fdb4f636b5c`），`currentExecution.evidence` 277→**279**，直方图
 `BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到。三条读路由
 （`/api/projects/<id>/briefs`、`/directions`、`/prompt-results`）都已经存在且各有合同行，
 所以这一刀不需要新路由，只把选择器补全并把"这一页读到几条、还有更早的没读到"说清楚。
+### 5.41 选择器补齐五种类型：闭环的第一环在界面上接上了（`f6ec0fa0`＋`e172e33e`）
+
+**缺口是怎么留在那里的。** 上一轮写完 §5.40 的"下一刀"就动手做了。做完发现这件事的形状很典型：
+服务收五种 `REFERENCE_KINDS`，三份 schema 的四个枚举位置都写着五种，解析器五种都会钉版本与摘要，
+三条读路由存在、各有合同行、也各有载荷比对——**只有选择器只列了两组**。
+每一侧各自都自洽，所以没有任何一条单元测试能看出中间断了一截：这是**跨侧缺口**，
+不是某一侧的缺陷。
+
+**补了什么。** `loadProjectChoices()` 一次 `Promise.all` 读三条项目内清单，
+选择器从两组变成五组 `<optgroup>`：本工作区素材／需求 Brief／方向／提示词结果／知识与提示词库。
+`result_id` 在服务里按修订存多行，所以清单里一个编号只列一次（取最大修订那一行）。
+分页不诚实就是页面替服务说话，所以 `next_cursor` 不是 null 时明说
+"这一页之后还有更早的需求 Brief、方向没有读到"。换工作区时 `refreshAssets()` 改名
+`refreshReferenceSources()`——它现在重读的是"这份方案能引用什么"，不只是素材。
+**一条读失败会怎样**：`apiOrEmpty` 在被拒时是**拒**，不是退回空载荷（只有没 token 的开发态才给空），
+所以 `Promise.all` 的失败走到调用方已有的那个 `catch`，屏上说"工作区读数失败：…"。
+它不会把一次被拒的读写成"这个工作区还没有需求 Brief"——那句是关于库的断言，不是关于失败的。
+
+**顺手修掉一个一直存在的悬挂 promise。** 首屏那行
+`void (async () => { await loadKnowledgeChoices(); })()` 没有 `catch`：库的路由一旦被拒，
+这里就是一个未处理的 rejection，而选择器还挂着"库里还没有条目"那句话——同样是把失败说成了关于库的事实。
+现在它把拒接住写成 `库未读回：<服务的理由>` 再重画一次。§5.40 已经立过这条规则
+（"空的回答是'库里还没有'，被拒的回答是'没读回'"），当时漏掉的是**发起读的那一行**。
+
+**闸门自己报了一次自己的旧账。** 删掉 `verify_workbench_route_calls.py` 里
+`GET .../directions` 的 `BACKEND_ONLY` 豁免，不是我改口：门禁先判红
+`STALE_BACKEND_ONLY … the frontend now calls it; the exemption is no longer true`。
+那句话原先是真的（界面确实只从 design-layer 投影里取方向），现在界面真的分页调它了，
+豁免就成了假账，所以删的是豁免而不是断言。
+
+**加了什么牙齿。** `test_the_workbench_picker_labels_exactly_the_kinds_the_store_accepts`
+把界面上 `REFERENCE_KIND_LABELS` 的键与 `REFERENCE_KINDS` 逐一比对，并要求每种都有一个
+`referenceGroup('KIND', …)`。这条测试如果上一轮就存在，KNOWLEDGE 那一刀不会留下这个缺口——
+**它不是给已经修好的东西补分数，是把上一轮真正踩到的那类断裂写进闸门口子**。
+浏览器走查 11 件→**12 件**：`pickerOffersBothSources` 改名 `pickerOffersAllFiveKinds`，
+另加 `planCitesEveryKind`——走查在同一次保存里挂上 KNOWLEDGE／BRIEF／DIRECTION／PROMPT_RESULT
+四种引用，要求**服务**回一个 `revision >= 1` 与一条摘要（页面只发类型和编号，
+任何一种钉不住就是这里红，而不是悄悄存一条没法核对的引用）。
+§5.39 与第七轮读数里出现的 `pickerOffersBothSources` 是当时的状态名，随断言加宽在本轮改名。
+
+**三把尺与"读数没变"。** 收口 bundle 609,452 字节 / gzip **159,775**（同一把尺，第八轮记录 158,722）。对比度仍
+`checked=14002 belowAA=0 unparsable=0 controlMisses=0`（50 个面），几何仍 112 个面
+`docOverflowX=0 clipped=0 stray=0 tiny=0`。这次读数不变的原因和上一轮不同，也更该写清楚：
+**`<option>` 的文字不是被画的文本 run**——`<select>` 收起时只画当前一项，所以五组选项不会新增
+对比度样本；界面真正新增可见文字的是引用列表里每一行的类型标签，而那要先有引用才画得出来，
+这条路径由走查覆盖（`citedRow` 断言含"知识条目"），不由这两把尺覆盖。
+路由级 UI 审计在提交后的字节上重跑：`ok=true violations=0`，宽度 `1280,1920,2048`，
+它的 `environment.commit` 字段直接记了 `e172e33e964b`——**这一条回执绑的是提交号本身**，
+不是靠旁边的文件推断。
+
+**账本动了两格记录，没动状态。** `DL-KB-08` 仍是 DONE，回执 11→13（unit／browser，
+逐条绑 `e172e33e`）；`currentExecution.evidence` 279→**281**。直方图仍是
+**`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**——本轮没有可升的行：剩下两格 `DL-KB-13`（体积上限裁定＋
+3 位真人无指导任务）与 `DL-KB-16`（具名真人签字）要的是 owner 与真人点头，`DL-KB-15` 要的是
+本机可用的推理前置，本轮不部署模型、不自行下载权重，也不把"选了模型"写成"推理已验证"。

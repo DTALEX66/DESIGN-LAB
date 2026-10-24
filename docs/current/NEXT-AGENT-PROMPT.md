@@ -130,6 +130,33 @@ ui2026/light 各一遍）、几何 112 个面（1440/1280/1536/1920）`docOverfl
 （`ASSET`、`KNOWLEDGE`），`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到，
 而 `/api/projects/<id>/briefs`、`/directions`、`/prompt-results` 三条读路由都已存在且各有合同行。
 
+**台账读数（2026-10-24 第九轮收口时现数，取代上面第八轮那一段的"当下"身份）**：`currentExecution`
+仍 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图不变——**`DONE 13`／`PARTIAL 2`／
+`NOT_STARTED 1`**，本轮没有可升的行（剩下两格要 owner 与真人，见审计件 §5.40）。本轮把**闭环第一环**
+接上：服务收五种 `REFERENCE_KINDS`，方案参考选择器只列两组，所以项目自己的 brief／方向／提示词结果
+是"API 引得到、界面选不到"。三条读路由本来就有合同行，所以这一刀没加路由：路由面仍 **88 条**、
+账本 90 行、载荷比对 57 条。选择器现在是五组 `<optgroup>`，`Promise.all` 读三份项目内清单，
+`next_cursor` 非 null 时明说还有更早的没读到。牙齿有两处：一条 Python 测试把界面
+`REFERENCE_KIND_LABELS` 的键与 `REFERENCE_KINDS` 逐一比对并要求每种都有 `referenceGroup('KIND'…)`
+——**上一轮 KNOWLEDGE 就是栽在这种"每侧自洽、中间断了"的跨侧缺口上**；另一处是门禁自己报的旧账
+`STALE_BACKEND_ONLY GET …/directions`，删的是豁免不是断言。浏览器走查 11 件→**12 件**
+（`pickerOffersBothSources` 改名 `pickerOffersAllFiveKinds`，新增 `planCitesEveryKind`：一次保存里
+挂上四种引用，要求服务回 `revision >= 1` 与摘要，页面只发类型和编号）。顺手修掉一个一直存在的
+悬挂 promise：首屏 `loadKnowledgeChoices()` 没有 `catch`，库被拒时留下未处理的 rejection，
+而屏上还挂着"库里还没有条目"——那是把失败说成了关于库的事实。三把尺在收口字节上重跑：
+对比度 50 面 `checked=14002 belowAA=0 unparsable=0 controlMisses=0`、几何 112 面
+`docOverflowX=0 clipped=0 stray=0 tiny=0`、UI 审计 `ok=true violations=0`
+（宽度 `1280,1920,2048`，它的 `environment.commit` 字段自己记了 `e172e33e964b`）。
+**"读数与上一轮一样"两次都不是尺坏了**，两次的原因不同，写在 §5.41：详情面板不在它们的行走路径上，
+而 `<option>` 的文字不是被画的文本 run。`evidence` 279→**281**（`DL-KB-08` 11→13 条，状态仍 DONE）。
+本机 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；体积 609,452 字节 / gzip **159,775**
+（第八轮 158,722），`DL-KB-13` 的 150 KB 裁定仍在 owner 手上。
+**下一刀两件事，都是机器能证明的**：① 把两把静态尺**开进**一条知识条目的详情与一份方案详情
+（现在它们只走到列表，`§5.40`/`§5.41` 连续两轮把这件事写成覆盖盲区——补它比再加一条走查更值钱）；
+② owner 这轮的 standing 指令是"一比一复刻 STITCH 界面设计"，来源在
+`docs/taskpacks/20261023-ui-kb/source/`（含 `08_STITCH完整提示词.txt`），要做的是把渲染出的屏与
+归档的 Stitch 参考屏逐屏对照、量几何差、修偏差，**不是**照效果图声称接通了什么。
+
 **台账读数（2026-10-24 第七轮收口时现数，取代上面第六轮那一段的"当下"身份）**：`currentExecution`
 仍 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图 **`DONE 12`／`PARTIAL 3`／`NOT_STARTED 1`**——
 `DL-KB-05` 升上 DONE，因为 D5 那句话的主语（旧方案）这一轮才真的在产品里走得通：
