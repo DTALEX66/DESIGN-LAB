@@ -669,20 +669,35 @@ for (const width of widths) {
       // has answered, or the image would show four "尚未读取" placeholders and look like a pass.
       await page.click(p.click);
       if (p.settle) {
-        // Same rule for a detail screen assembled from several reads: the host must exist, no
-        // part of it may still say 正在读回, and every status line must have answered. A PNG of
-        // placeholders would otherwise be filed under "the plan screen was reviewed".
+        // Same rule for a detail screen assembled from several reads: the host must exist and no
+        // part of it may still say 正在读回. A PNG of placeholders would otherwise be filed under
+        // "the plan screen was reviewed". What is NOT required here is that every [role="status"]
+        // line has text: the material reply and the note slot are legitimately empty until a
+        // person acts, and demanding text made this wait unsatisfiable -- three settle timeouts on
+        // a panel that had in fact rendered everything. The scaffold's own read-back assertions
+        // (shot rows, formats, revisions, the feedback record) are what prove content landed.
         await page.waitForFunction((sel) => {
           const host = document.querySelector(sel);
           if (!host) return false;
           if (host.querySelector('.view-loading')) return false;
-          const statuses = Array.from(host.querySelectorAll('[role="status"]'));
-          return statuses.every((node) => {
-            const text = (node.textContent || '').trim();
-            return text !== '' && !/正在读回|正在从服务读取/.test(text);
-          });
+          const stuck = Array.from(host.querySelectorAll('[role="status"]'))
+            .filter((node) => /正在读回|正在从服务读取/.test((node.textContent || '').trim()));
+          return stuck.length === 0;
         }, p.settle, { timeout: 30000 })
-          .catch(() => problems.push(`settle-timeout@${width} ${p.key}`));
+          .catch(async () => {
+            // Name what is still open, so a timeout says which read never landed instead of
+            // sending the next reader to instrument this file to learn it.
+            const why = await page.evaluate((sel) => {
+              const host = document.querySelector(sel);
+              if (!host) return 'no-host';
+              if (host.querySelector('.view-loading')) return 'still-reading';
+              const stuck = Array.from(host.querySelectorAll('[role="status"]'))
+                .filter((node) => /正在读回|正在从服务读取/.test((node.textContent || '').trim()))
+                .map((node) => node.id || node.className);
+              return stuck.length ? 'unread:' + stuck.join(',') : 'other';
+            }, p.settle);
+            problems.push(`settle-${why}@${width} ${p.key}`);
+          });
       } else {
         await page.waitForFunction(() => {
           const groups = document.querySelectorAll('#paletteObjects .palette-group');

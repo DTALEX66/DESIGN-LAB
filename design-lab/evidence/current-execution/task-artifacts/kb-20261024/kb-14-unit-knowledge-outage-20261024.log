@@ -1,0 +1,12 @@
+--- stderr ---
+test_a_refused_model_choice_and_a_written_entry_do_not_share_a_fate (design-lab.tests.test_knowledge_survives_model_outage.KnowledgeSurvivesModelOutageTests.test_a_refused_model_choice_and_a_written_entry_do_not_share_a_fate)
+Both halves in one case: the refusal must not soften into a success, and the entry must ... ok
+test_the_knowledge_paths_never_consult_the_catalogue_at_all (design-lab.tests.test_knowledge_survives_model_outage.KnowledgeSurvivesModelOutageTests.test_the_knowledge_paths_never_consult_the_catalogue_at_all) ... ok
+test_the_model_surface_really_is_refused_during_the_outage (design-lab.tests.test_knowledge_survives_model_outage.KnowledgeSurvivesModelOutageTests.test_the_model_surface_really_is_refused_during_the_outage)
+The control: if a choice still landed, the outage would be theatre. ... ok
+test_write_search_edit_and_copy_answer_while_the_model_service_is_down (design-lab.tests.test_knowledge_survives_model_outage.KnowledgeSurvivesModelOutageTests.test_write_search_edit_and_copy_answer_while_the_model_service_is_down) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.280s
+
+OK

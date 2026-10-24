@@ -1,0 +1,41 @@
+--- stderr ---
+test_a_caller_supplied_revision_or_digest_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_caller_supplied_revision_or_digest_is_refused) ... ok
+test_a_draft_without_a_creative_is_saved_but_not_provided (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_draft_without_a_creative_is_saved_but_not_provided) ... ok
+test_a_linked_asset_is_reported_linked_only_until_a_reversal_exists (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_linked_asset_is_reported_linked_only_until_a_reversal_exists) ... ok
+test_a_plan_for_an_unknown_project_is_404 (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_for_an_unknown_project_is_404) ... ok
+test_a_plan_is_not_readable_through_another_project (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_is_not_readable_through_another_project) ... ok
+test_a_plan_is_saved_with_its_basis_and_reads_back_after_a_restart (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_is_saved_with_its_basis_and_reads_back_after_a_restart) ... ok
+test_a_plan_revision_without_expected_revision_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_revision_without_expected_revision_is_refused) ... ok
+test_a_reference_from_another_project_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_reference_from_another_project_is_refused) ... ok
+test_a_reference_that_moved_on_is_reported_changed (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_reference_that_moved_on_is_reported_changed) ... ok
+test_a_revision_stored_before_an_optional_field_existed_still_reads_back (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_stored_before_an_optional_field_existed_still_reads_back)
+A pre-DL-KB-11 document is history, not a defect -- and it still satisfies the contract. ... ok
+test_a_revision_whose_digest_no_longer_covers_its_bytes_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_whose_digest_no_longer_covers_its_bytes_is_refused)
+Both directions of the same disagreement: edited bytes, or a column that moved alone. ... ok
+test_a_revision_with_no_creative_reads_back_as_not_provided (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_with_no_creative_reads_back_as_not_provided)
+`provided` is this row's own answer, not the readback's answer about the newest row. ... ok
+test_a_stale_revision_is_refused_with_the_actual_number (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_stale_revision_is_refused_with_the_actual_number) ... ok
+test_an_older_revision_reads_back_as_that_revision_and_not_as_the_current_one (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_older_revision_reads_back_as_that_revision_and_not_as_the_current_one)
+The bug this route exists to make impossible: a comparison page reading r2 twice. ... ok
+test_an_unknown_output_type_is_refused_by_name (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unknown_output_type_is_refused_by_name) ... ok
+test_an_unreadable_revision_row_is_refused_rather_than_returned_as_a_guess (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unreadable_revision_row_is_refused_rather_than_returned_as_a_guess) ... ok
+test_an_unstored_reference_is_a_404_not_a_saved_plan (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unstored_reference_is_a_404_not_a_saved_plan) ... ok
+test_an_unstored_revision_number_is_a_404_that_names_the_highest_one (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unstored_revision_number_is_a_404_that_names_the_highest_one) ... ok
+test_choosing_a_revision_that_does_not_exist_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_choosing_a_revision_that_does_not_exist_is_refused) ... ok
+test_every_revision_row_the_readback_lists_is_served_byte_for_byte (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_every_revision_row_the_readback_lists_is_served_byte_for_byte)
+No second truth: the readback's per-row columns and this route's answer are one row. ... ok
+test_every_served_output_type_is_one_the_create_route_accepts (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_every_served_output_type_is_one_the_create_route_accepts) ... ok
+test_is_chosen_follows_the_choice_row_and_stays_false_for_a_plan_nobody_chose (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_is_chosen_follows_the_choice_row_and_stays_false_for_a_plan_nobody_chose) ... ok
+test_only_a_named_human_can_choose_a_revision (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_only_a_named_human_can_choose_a_revision) ... ok
+test_the_latest_revision_carries_the_digest_the_readback_publishes (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_latest_revision_carries_the_digest_the_readback_publishes) ... ok
+test_the_output_type_vocabulary_is_served_before_any_project_exists (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_output_type_vocabulary_is_served_before_any_project_exists) ... ok
+test_the_revision_read_keeps_the_plan_s_own_refusal_vocabulary (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_revision_read_keeps_the_plan_s_own_refusal_vocabulary)
+Unknown project, and a plan that is not in this project, are two different 404s. ... ok
+test_the_revision_table_refuses_its_own_rewrite (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_revision_table_refuses_its_own_rewrite) ... ok
+test_the_schemas_are_packaged_and_named_by_state_resources (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_schemas_are_packaged_and_named_by_state_resources) ... ok
+test_the_served_does_not_say_is_the_readback_s_list_unchanged (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_served_does_not_say_is_the_readback_s_list_unchanged) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 13.395s
+
+OK

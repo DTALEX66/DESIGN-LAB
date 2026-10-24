@@ -8812,33 +8812,57 @@
       },
       {
         "id": "DL-KB-09",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-09-implementation-profile-routes-20261024",
+          "kb-09-unit-target-profile-20261024"
+        ]
       },
       {
         "id": "DL-KB-10",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-10-browser-e2e-20261024",
+          "kb-10-implementation-route-calls-20261024",
+          "kb-10-unit-assistance-plan-20261024"
+        ]
       },
       {
         "id": "DL-KB-11",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-11-browser-contrast-20261024",
+          "kb-11-implementation-export-chain-20261024",
+          "kb-11-unit-plan-export-20261024"
+        ]
       },
       {
         "id": "DL-KB-12",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-12-browser-e2e-summary-20261024",
+          "kb-12-implementation-workbench-node-20261024"
+        ]
       },
       {
         "id": "DL-KB-13",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-13-browser-overflow-report-20261024",
+          "kb-13-browser-overflow-zoom-20261024",
+          "kb-13-css-single-definition-20261024",
+          "kb-13-implementation-search-latency-20261024",
+          "kb-13-implementation-weight-20261024"
+        ]
       },
       {
         "id": "DL-KB-14",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-14-browser-state-loop-20261024",
+          "kb-14-implementation-workbench-build-20261024",
+          "kb-14-unit-knowledge-outage-20261024"
+        ]
       },
       {
         "id": "DL-KB-15",
@@ -8847,8 +8871,12 @@
       },
       {
         "id": "DL-KB-16",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-16-browser-feedback-20261024",
+          "kb-16-implementation-write-surface-20261024",
+          "kb-16-unit-plan-feedback-20261024"
+        ]
       }
     ],
     "evidence": [
@@ -11839,6 +11867,258 @@
         "exit_code": 0,
         "observed_at": "2026-10-24T00:56:36Z",
         "artifact_sha256": "11a3c58d2304e5e2cb9dcd872d25053c17cea6328e5ed1e0d862b526db502f16"
+      },
+      {
+        "id": "kb-09-unit-target-profile-20261024",
+        "task_id": "DL-KB-09",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-09-unit-target-profile-20261024.log",
+        "artifact_sha256": "d215a58c631d41427576109def358f8a29b5b3bc43a12379c6b54bb278418885",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_target_profile -v :: the profile rows come from the tracked config, an unknown software entry keeps UNKNOWN instead of a guessed support state, a seeded profile id is derived from its own key while a draft is USER_DRAFT with source_ref UNUSED, validation never grants execution, and no parameter is invented for a model the machine has not been shown to run :: Ran 16 tests in 7.369s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-09-implementation-profile-routes-20261024",
+        "task_id": "DL-KB-09",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-09-implementation-profile-routes-20261024.log",
+        "artifact_sha256": "4694f1a4a3a4741463499c4a6bc8cd84d3e775eb534f98fb674255e3390d06d4",
+        "command": ".venv/Scripts/python.exe design-lab/scripts/verify_route_payload_contracts.py :: VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=56 failures=0 | VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=56 failures=0",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-10-implementation-route-calls-20261024",
+        "task_id": "DL-KB-10",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-10-implementation-route-calls-20261024.log",
+        "artifact_sha256": "4278df6c09ba5d19be1d670c7f2b0526a0228855f512743c0f293154385209fe",
+        "command": ".venv/Scripts/python.exe design-lab/scripts/verify_workbench_route_calls.py :: VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=137 routes=87 matched=76 backend_only=11 dynamic=3 special=1 | VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=137 routes=87 matched=76 backend_only=11 dynamic=3 special=1",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-10-unit-assistance-plan-20261024",
+        "task_id": "DL-KB-10",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-10-unit-assistance-plan-20261024.log",
+        "artifact_sha256": "bed4aac493b7a1492478f98b3ec702756f63be73a80c003eead16ff8e6fbe0f9",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_assistance_plan -v :: the output-type list the panel reads is the served one, shot rows are refused for a type that carries no storyboard, and a plan written before the shot field existed still reads back :: Ran 29 tests in 13.395s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-11-unit-plan-export-20261024",
+        "task_id": "DL-KB-11",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-11-unit-plan-export-20261024.log",
+        "artifact_sha256": "df727ef8d89c10b102818556205ed9ba3886af44c6a83bc5db0bcee8b6f1bc02",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_plan_export -v :: markdown / txt / json / 分镜 CSV are rendered from one builder, the CSV escaping is proven on the emitted bytes (quotes, commas, newlines), a shot-less plan refuses the CSV rather than emitting an empty table, and every form carries the revision and the not-executed sentence :: Ran 21 tests in 8.172s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-11-implementation-export-chain-20261024",
+        "task_id": "DL-KB-11",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-11-implementation-export-chain-20261024.log",
+        "artifact_sha256": "728643c4dcba965ac247ac99217421c251450ca2de70872571fb1e403fdb144c",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_standalone_chain_http -v :: the export hop is walked against the live service and read back, and the chain still says nothing was sent: the route exists, the GET is measured, the delivery claim is refused :: Ran 6 tests in 5.949s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-12-implementation-workbench-node-20261024",
+        "task_id": "DL-KB-12",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-12-implementation-workbench-node-20261024.log",
+        "artifact_sha256": "aabf1652ca6c9de1d0201a92d980db1fba40a6dc7e6a167fa2f10a55cc081cef",
+        "command": "sh -c 'npm run typecheck && npm run build && npm run test:unit' :: the retrieval screen compiles, builds the tracked bundle and passes the node-side seam regressions, including the localStorage guard for a harness with no storage :: ok: ㉒ 知识回执与反馈：构建只读一次零写、状态/新鲜度/导出/出站边界全部来自读回、未建的一半写在可见文字里、创建本地拒绝不替人补事实、7 键创建体（无 schemaVersion、created_at=null）、相同重发沿用 candidate_id 而改动换新、6 键 human 裁决与 3 键撤销、成功后读回来自服务端、未读回不画候选数也不提供裁决/撤销控件",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-14-implementation-workbench-build-20261024",
+        "task_id": "DL-KB-14",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-14-implementation-workbench-build-20261024.log",
+        "artifact_sha256": "00ce3e52de526d0e7a3528cb355f2937255b310163801059f86976af9258ab34",
+        "command": "sh -c 'npm run typecheck && npm run build' :: the six state surfaces are compiled into the tracked bundle the service serves; the rebuild is byte-checked by CI against the committed artifact :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-14-unit-knowledge-outage-20261024",
+        "task_id": "DL-KB-14",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-14-unit-knowledge-outage-20261024.log",
+        "artifact_sha256": "5d548c637b33e1fc10dac8b74472a808047c5ead4bf2cb8bcab807801730db0f",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_knowledge_survives_model_outage -v :: with no qualified model the knowledge and templates stay readable and the screen says what is unavailable rather than showing an empty success :: Ran 4 tests in 2.280s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-16-unit-plan-feedback-20261024",
+        "task_id": "DL-KB-16",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-16-unit-plan-feedback-20261024.log",
+        "artifact_sha256": "78bdc96b41cbd366835d48f65fb3a3da419477b28302834e04e64a7165eecf42",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_plan_feedback -v :: a report binds the material and model version it describes, never moves plan state, keeps every revision, refuses an anonymous verdict only where the contract asks for a named person, and says 未外部验证 instead of a verdict :: Ran 22 tests in 10.926s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-16-implementation-write-surface-20261024",
+        "task_id": "DL-KB-16",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-16-implementation-write-surface-20261024.log",
+        "artifact_sha256": "25e9a41ae324450c0c4f820d1a57b0f527cd1df66e6ac0efe471f267f5014908",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_installed_write_surface -v :: the feedback row is really POSTed to the installed service and read back through the ledger GET, with the one frozen route named as excluded rather than quietly skipped :: Ran 6 tests in 4.354s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-css-single-definition-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-css-single-definition-20261024.log",
+        "artifact_sha256": "b47e2ffed41f1437052a07bbcad1353ef383082a9e2a710c74d48cf1cd574e30",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_workbench_css_single_definition -v :: no second owner for one declaration: the geometry the budget is measured on comes from one stylesheet :: Ran 17 tests in 0.044s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-implementation-weight-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-implementation-weight-20261024.log",
+        "artifact_sha256": "4e5a81b5ddde98d0d6e5ac471f086ef369e4cb61570e707419edba2df337fc0b",
+        "command": ".venv/Scripts/python.exe scripts/measure_workbench_weight.py :: the delivered plan sets 首屏 JS gzip <= 150 KB; this run measured 155,787 B gzip for the committed bundle, which is OVER that ceiling, so the row is PARTIAL rather than a pass on size. The script itself refuses to judge: it prints the readings and says a ceiling is an owner decision :: WEIGHT remoteReferences=0 budgetDeclared=False | WEIGHT NOTE design.qa.yaml declares no performance budget; a ceiling is an owner decision, so these are baseline readings, not a pass/fail judgement on size.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-implementation-search-latency-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-implementation-search-latency-20261024.log",
+        "artifact_sha256": "56901c03b985f35c4764d7237372e5b9d3e29a59a2b2128d230017ce0c38b345",
+        "command": ".venv/Scripts/python.exe scripts/measure_knowledge_search_latency.py :: the plan asks for p95 <= 300 ms over 1,000 structurally real records and <= 100 ms for ordinary actions; this machine measured search p95 28.89 ms, create 8.14 ms, detail 8.94 ms, and the note says inference latency is never mixed into these numbers :: LATENCY=MEASURED search_p95=28.89ms",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-browser-overflow-zoom-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-browser-overflow-zoom-20261024.log",
+        "artifact_sha256": "4ef680bcd9e00ad3d7810f7de71858a855a6ae501fe63860022a6cc984762379",
+        "command": "design-lab/tests/e2e/audit_workbench_overflow.mjs through the gate harness at widths 1440,1280,1536,1920 (1536 = a 1920 panel at Windows 125%, the step that was missing), strict :: Ran 3 tests in 255.734s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-browser-overflow-report-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-browser-overflow-report-20261024.json",
+        "artifact_sha256": "12da511160e7b59360095dd44d8f55c80c2b134a802a6f39ffb7b05fe722a46e",
+        "command": "the per-route geometry report behind the line above, including the 1536 sweep :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-10-browser-e2e-20261024",
+        "task_id": "DL-KB-10",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-10-browser-e2e-20261024.log",
+        "artifact_sha256": "290c52e045771bae10aead4987b50d19d7481cc60d74a175e36bb94927eaa7a4",
+        "command": "design-lab/tests/e2e/browser_design_layer_e2e.mjs through the harness: the target-combination panel switches model without losing the original creative or the brand constraints :: Ran 2 tests in 8.108s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-12-browser-e2e-summary-20261024",
+        "task_id": "DL-KB-12",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-12-browser-e2e-summary-20261024.json",
+        "artifact_sha256": "ca5c135ea0e120c91895cf06ec7ef6df8d97e087418b04aa95c6c8af445c5ee1",
+        "command": "the loop payload the browser scenario produced this run, including the retrieval, comparison, copy and draft facts :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-14-browser-state-loop-20261024",
+        "task_id": "DL-KB-14",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-14-browser-state-loop-20261024.json",
+        "artifact_sha256": "ca5c135ea0e120c91895cf06ec7ef6df8d97e087418b04aa95c6c8af445c5ee1",
+        "command": "the six-state scenario inside the same run: each of 知识空态 / 保存失败 / 附件未解析 / 模型不可用 / 目标不兼容 / 旧版本查看 asserted against what the page showed, not against a drawing :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-16-browser-feedback-20261024",
+        "task_id": "DL-KB-16",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-16-browser-feedback-20261024.json",
+        "artifact_sha256": "ca5c135ea0e120c91895cf06ec7ef6df8d97e087418b04aa95c6c8af445c5ee1",
+        "command": "the voluntary-report legs of the same run: words served by the contract, plan state unmoved, history read back after the page is thrown away :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-11-browser-contrast-20261024",
+        "task_id": "DL-KB-11",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-11-browser-contrast-20261024.json",
+        "artifact_sha256": "5cbcf14b5af554fda596cb51d361613d7bcd0ad8105ec8f6136812ac74522004",
+        "command": "contrast gate over the material panel and the plan detail: every measured run meets AA, and the collapsed-detail control proves the reading is painted text :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
