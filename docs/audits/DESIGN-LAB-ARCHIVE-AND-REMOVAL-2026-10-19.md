@@ -1237,6 +1237,19 @@ output-types）与一张 94 行的 state 表。
 `FROZEN_DEFERRED 34 / DONE 6 / PARTIAL 2 / NOT_STARTED 8`。本目录现有 86 个受跟踪文件：
 索引仍只覆盖第一刀 47 份，其余 39 份（本轮新增 15 份）由账本 `artifact_sha256` 逐条绑定。
 
+**CI 第一次读数与修复。** PR #277 的首个完整矩阵（run `40048178001`，SHA `142e7efe`）是 9 个作业
+success、Python gate 红，`Branch light` 与 `CI artifact proof` 按规则跳过。shard 3/3 共 1026 项里
+唯一失败是 `test_backup_watches_written_tables.CoverageTests.test_every_written_table_is_watched_by_the_proof`：
+KB-07 新增的 `assistance_plan`、`assistance_plan_revision`、`assistance_plan_choice` 三张表由 store
+直接提交、不持写锁，却没有进 `project_backup.py` 的 `COUNTER_QUERIES`——备份窗口吞掉一次修订或一次
+选用，仍会报 `PROVED_QUIESCENT`。这条规则住在单元测试里，`verify_design_lab.py` 的 76 项不含单元测试，
+所以本机九门全绿也没拦住它。修复是在 `COUNTER_QUERIES` 追加三行 `rowid` 计数并写明理由；复验是
+`test_backup_watches_written_tables` 5 项、`test_project_backup` 加 `test_evidence_artifact_presence`
+48 项（1 skip），本机三 shard 并集 `3213 PASS / 5 SKIP / 0 FAIL`（shard 1108/1084/1026 项，
+用时 408.5 / 1487.1 / 140.4 秒）。同一条并集在 CI 上的分布是 `3195 PASS / 22 SKIP / 1 FAIL`——两边总数
+同为 3218，SKIP 差 17 项来自 runner 与本机的宿主环境差异，不是同一批用例被换掉。修复提交 `dbdee924`
+的复跑 run `40076707359`：见本节末尾的逐作业读数。
+
 **未证与未修。** `1440×900` 与 `1280×800` 下详情屏的主操作落在首屏折叠线以下
 （`1920×1080` 可见）；它不违反任何验收句，但属体验缺陷，留给版式轮次，本轮不为此重排布局——
 重排会让整条刚量好的证据链失效。收据里的选用人写作「示例审阅人」，是**示例**不是真人验收；
@@ -1244,3 +1257,9 @@ E2E 自己的 `subjectSha` 写的是 `local`，工件身份靠 bundle sha 与截
 账本回执里照实写明。a11y 的 0 是自动扫描。`DL-KB-02` 的 A5 仍无直接断言；`DL-KB-05` 的 D5
 在 KB-07 收口后需要重新量，不能因依赖项 DONE 就写成已证。下一刀是 K4：
 `DL-KB-09`（目标档案：软件×模型×入口）与 `DL-KB-10`（目标组合选择面板屏）。
+
+**复跑逐作业读数（run `40076707359`，`dbdee924`）。** 10 个作业 success，`Branch light` 与
+`CI artifact proof` 按规则跳过——前者只在非 main 的 push 上跑，后者只在 main 的 push 上跑，所以 PR 上
+本来就不该出现它们。三个 shard 分别是 1108 项 `1103 PASS / 5 SKIP`、1084 项 `1071 PASS / 13 SKIP`、
+1026 项 `1022 PASS / 4 SKIP`，合计 `3196 PASS / 22 SKIP / 0 FAIL`；与本机并集同为 3218 项，FAIL 归零，
+`test_every_written_table_is_watched_by_the_proof` 这次在两张表都计数的代码上绿。

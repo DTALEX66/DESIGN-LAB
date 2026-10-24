@@ -152,7 +152,12 @@ matched=61 / backend_only=11 / dynamic=3 / special=1，`ROUTE_VIEWS` 21 → **22
 consoleErrors 0；81 张截图绑 `2d9372fb` 的 bundle `ffabee75`，UI audit 0 violations、对比度双 palette、
 溢出 1100/900/750/620 四档、a11y 27 屏 0 findings（自动扫描，不是认证），设计债 713 条与助手屏
 出现前条数、严重度、文件分布相同，`(file, rule, severity)` 的 713 条多重集完全一致（28 条行号
-随 `shell.ts` 增长而位移）——新界面没有新增字面 px 或硬编码颜色。该 E2E 自己的 `subjectSha` 写的是 `local`，工件身份
+随 `shell.ts` 增长而位移）——新界面没有新增字面 px 或硬编码颜色。**CI 抓到过一处真缺陷**：首个完整矩阵
+（run `40048178001`，`142e7efe`）Python gate 红，`assistance_plan` / `assistance_plan_revision` /
+`assistance_plan_choice` 三张新表没进 `project_backup.py` 的 `COUNTER_QUERIES`，备份的静默证明看不见它们；
+已在 `dbdee924` 补三行计数并复跑（run `40076707359`：10 作业 success，`Branch light` 与 `CI artifact proof`
+按规则跳过；CI 三 shard `3196 PASS / 22 SKIP / 0 FAIL`，本机并集 `3213 PASS / 5 SKIP / 0 FAIL`）。这条不在 76 项闸门里，
+住在 `test_backup_watches_written_tables`——**新增 state 表必须在同一改动里补计数行**。该 E2E 自己的 `subjectSha` 写的是 `local`，工件身份
 由 `routeInventory.bundleSha256` 与截图 manifest 的 commit 绑定，账本回执里照实记录了这一点。
 
 **DL-KB-05 的 D5 现在可以重新量。** 修订链本身已有真实 HTTP 探针
