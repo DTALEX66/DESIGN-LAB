@@ -1228,8 +1228,9 @@ output-types）与一张 94 行的 state 表。
 `detail@1280-chosen` 437,580 B、`list@1280` 214,538 B），逐张 sha256 在收据里。UI audit
 `ok=true`、`violations=[]`；溢出量 1100/900/750/620 四档；对比度 3 项双 palette；设计审查插件
 第一次覆盖 `#/assistant`：27 屏 axe 扫描 0 findings（自动扫描，不是 WCAG 认证），设计债
-713 条（630 minor / 52 major / 31 debt）与助手屏出现前**逐条一致**——新界面没有新增字面 px
-或硬编码颜色。收口树九门 `VERIFY_DESIGN_LAB=OK total=76 failed=0`，并带
+713 条（630 minor / 52 major / 31 debt）与助手屏出现前条数、严重度与文件分布相同，
+`(file, rule, severity)` 的 713 条多重集完全一致；差异是 28 条行号随 `shell.ts` 增长而位移，
+不是新增债务。新界面没有新增字面 px 或硬编码颜色。收口树九门 `VERIFY_DESIGN_LAB=OK total=76 failed=0`，并带
 `VERIFY_RESULT 549` / `VERIFY_PRODUCT_MANIFEST_V3 493` / `VERIFY_RUNTIME_CONTRACTS_V3 239` /
 `VERIFY_VISUAL_SCORING_V3 10`；投影新鲜度 0 findings；authority gates 7 项 PASS。账本追加 13 条
 回执（KB-07 两条、KB-08 十一条）后共 **249** 条全部 PASS，直方图

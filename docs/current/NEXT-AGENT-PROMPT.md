@@ -150,8 +150,9 @@ matched=61 / backend_only=11 / dynamic=3 / special=1，`ROUTE_VIEWS` 21 → **22
 路由/账本/打包 77 项、工作台 node 30 项（含 `㉔ B10_NAV` 派生断言）与 Python 44 项全绿；浏览器实跑
 四态可分、复制与选用互不代劳、空目标被拒并聚焦、手工补创意可行、重载读回一致、无聊天面，
 consoleErrors 0；81 张截图绑 `2d9372fb` 的 bundle `ffabee75`，UI audit 0 violations、对比度双 palette、
-溢出 1100/900/750/620 四档、a11y 27 屏 0 findings（自动扫描，不是认证），设计债 713 条与助手屏出现前
-逐条一致——新界面没有新增字面 px 或硬编码颜色。该 E2E 自己的 `subjectSha` 写的是 `local`，工件身份
+溢出 1100/900/750/620 四档、a11y 27 屏 0 findings（自动扫描，不是认证），设计债 713 条与助手屏
+出现前条数、严重度、文件分布相同，`(file, rule, severity)` 的 713 条多重集完全一致（28 条行号
+随 `shell.ts` 增长而位移）——新界面没有新增字面 px 或硬编码颜色。该 E2E 自己的 `subjectSha` 写的是 `local`，工件身份
 由 `routeInventory.bundleSha256` 与截图 manifest 的 commit 绑定，账本回执里照实记录了这一点。
 
 **DL-KB-05 的 D5 现在可以重新量。** 修订链本身已有真实 HTTP 探针
