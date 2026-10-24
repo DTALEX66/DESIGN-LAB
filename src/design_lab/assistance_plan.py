@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: MIT
 """The assistance plan: one neutral design intent, its revisions, and who adopted one.
 
-DL-KB-07. A short task should not need a complete project before it can be written down. This
-module is the object that holds the intent itself -- objective, output type, neutral creative,
-brand/role constraints, lens and sound requirements, external steps, known gaps and the material
-revisions it was built from -- and it reuses the repository's existing objects for everything it
-can: the project owns it, and brief / direction / prompt result / asset references are stored as
-references with the revision and digest they had when the plan was written, never copied.
+DL-KB-07, extended by DL-KB-11. A short task should not need a complete project before it can be
+written down. This module is the object that holds the intent itself -- objective, output type,
+neutral creative, brand/role constraints, lens and sound requirements, the shot rows a 分镜表 is
+made of, external steps, known gaps and the material revisions it was built from -- and it reuses
+the repository's existing objects for everything it can: the project owns it, and brief / direction
+/ prompt result / asset references carry the revision and digest they had when the plan was written.
 
 Four facts are kept apart on purpose, because the screen has to show them apart:
 
@@ -48,15 +48,28 @@ WRITE_VERSION = 'design-lab/assistance-plan-write/v1'
 READBACK_VERSION = 'design-lab/assistance-plan-readback/v1'
 LIST_VERSION = 'design-lab/assistance-plan-list/v1'
 OUTPUT_TYPES_VERSION = 'design-lab/assistance-plan-output-types/v1'
+REVISION_VERSION = 'design-lab/assistance-plan-revision/v1'
 
 PLAN_SCHEMA_PATH = repo_resource('schemas/assistance-plan-v1.schema.json')
 _READBACK_SCHEMA_PATH = repo_resource('schemas/assistance-plan-readback-v1.schema.json')
 _WRITE_SCHEMA_PATH = repo_resource('schemas/assistance-plan-write-v1.schema.json')
 _LIST_SCHEMA_PATH = repo_resource('schemas/assistance-plan-list-v1.schema.json')
 _OUTPUT_TYPES_SCHEMA_PATH = repo_resource('schemas/assistance-plan-output-types-v1.schema.json')
+_REVISION_SCHEMA_PATH = repo_resource('schemas/assistance-plan-revision-v1.schema.json')
 _STATE = state_schema('design-lab-state-assistance-plan-v1.sql')
 
 OUTPUT_TYPES = ('IMAGE', 'UI', 'MOTION', 'STORYBOARD', 'AUDIO', 'CAMPAIGN')
+#: The output types that may carry shot rows (DL-KB-11). A poster or a brand guideline has no 分镜,
+#: and a plan that files shot rows under one of those is a mistake the service says out loud
+#: instead of quietly keeping rows no export will ever show.
+SHOT_BEARING_TYPES = ('STORYBOARD', 'MOTION')
+MAX_SHOTS = 60
+#: One shot row's fields, in the order the CSV header writes them. `camera`/`sound`/
+#: `reference_role` are `null` when the person left them blank -- deliberately NOT the plan-level
+#: ``UNKNOWN``: a spreadsheet cell is read by a person in another tool, and an empty cell there
+#: means "this row does not say", which is the same answer the plan's own state words give, carried
+#: in the one notation a table understands.
+SHOT_FIELDS = ('index', 'duration_s', 'purpose', 'camera', 'sound', 'reference_role')
 #: The output types as the initial screen names them. One table, served with every answer, so the
 #: view cannot offer a word the service refuses or hide one it accepts.
 OUTPUT_LABELS = {'IMAGE': '平面与品牌', 'UI': '界面与交互', 'MOTION': '动效与视频',
@@ -73,7 +86,7 @@ REFERENCE_ID = {
 #: Fields the content digest covers. Identity (plan_id, revision) and bookkeeping (timestamps,
 #: author) are outside it, so the same content written twice digests to the same value.
 CONTENT_FIELDS = ('objective', 'output_type', 'neutral_creative', 'brand_constraints',
-                  'role_constraints', 'lens', 'sound', 'references', 'external_steps',
+                  'role_constraints', 'lens', 'sound', 'shots', 'references', 'external_steps',
                   'known_gaps', 'limits')
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 200
@@ -141,7 +154,10 @@ def _digest(document) -> str:
 
 
 def _content_digest(document) -> str:
-    return _digest({key: document[key] for key in CONTENT_FIELDS})
+    # `.get`, not `[key]`: a plan stored before DL-KB-11 has no `shots` member at all, and a
+    # re-derivation of its digest must answer with a value rather than a KeyError. The write path
+    # always builds the field, so a document this service is filing now is unaffected.
+    return _digest({key: document.get(key) for key in CONTENT_FIELDS})
 
 
 _registry = None
@@ -222,6 +238,107 @@ def _string_list(value, field, *, item_max=400, limit=32):
                                       f'{field} contains a value over {item_max} characters')
         if item not in out:
             out.append(item)
+    return out
+
+
+def _shot_text(value, field):
+    """One optional cell of a shot row: a person's words, or null because this row does not say.
+
+    Plan-level fields store the literal ``UNKNOWN`` when the caller left them out (see
+    ``_optional_text``). A shot row does the same job in the notation the row's reader understands:
+    a 分镜表 is opened in a spreadsheet by somebody who has never seen this service, and there an
+    empty cell is the honest "not stated" -- turning it into a state word this store invented would
+    put our vocabulary in their table.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise AssistancePlanError(400, 'ASSISTANCE_PLAN_SHOT_FIELD_MALFORMED',
+                                  f'{field} must be a string or null (absent); got '
+                                  f'{type(value).__name__}')
+    value = value.strip()
+    if not value:
+        return None
+    if len(value) > 400:
+        raise AssistancePlanError(400, 'ASSISTANCE_PLAN_SHOT_FIELD_TOO_LONG',
+                                  f'{field} exceeds 400 characters')
+    return value
+
+
+def _shots(value, output_type):
+    """The plan's shot rows, or nothing -- and a refusal when they cannot belong here.
+
+    DL-KB-11's precondition: a 分镜 CSV rendered from an object that has no shot rows would be a
+    fabricated deliverable, so the rows have to be stored data first. The list is optional (an
+    every-day poster plan has none, and every plan stored before this field existed still validates
+    against the same document version), but it is never silently dropped: a malformed row, a
+    repeated 序号 or a row without a purpose is refused with a named code, exactly the way
+    ``_string_list`` and ``_external_steps`` refuse their own malformed input.
+
+    Shot rows on an output type that has no 分镜 is a 409, not a 400: the request is well-formed
+    and the *pairing* is the mistake. Saying it out loud is what keeps a brand-guideline plan from
+    quietly accumulating rows no export will ever show.
+    """
+    if value is None:
+        return []
+    if not isinstance(value, list) or len(value) > MAX_SHOTS:
+        raise AssistancePlanError(
+            400, 'ASSISTANCE_PLAN_SHOTS_MALFORMED',
+            f'shots must be a list of at most {MAX_SHOTS} shot-row objects')
+    if value and output_type not in SHOT_BEARING_TYPES:
+        raise AssistancePlanError(
+            409, 'ASSISTANCE_PLAN_SHOTS_NOT_APPLICABLE',
+            f'输出类型「{OUTPUT_LABELS.get(output_type, output_type)}」没有分镜行：分镜只在'
+            '「分镜与脚本」和「动效与视频」两类方案里出现。把镜头行写进一份平面方案，'
+            '导出的分镜表就成了没有任何人能在拍摄现场核对的材料；要么把方案改成这两类之一，'
+            '要么去掉 shots。')
+    out = []
+    for position, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise AssistancePlanError(400, 'ASSISTANCE_PLAN_SHOTS_MALFORMED',
+                                      f'shots[{position}] must be an object')
+        extra = sorted(set(item) - set(SHOT_FIELDS))
+        if extra:
+            raise AssistancePlanError(
+                400, 'ASSISTANCE_PLAN_SHOT_UNKNOWN_FIELD',
+                f'shots[{position}] carries undeclared field(s): {extra}')
+        index = item.get('index')
+        if not isinstance(index, int) or isinstance(index, bool) or not 1 <= index <= MAX_SHOTS:
+            raise AssistancePlanError(
+                400, 'ASSISTANCE_PLAN_SHOT_INDEX_INVALID',
+                f'shots[{position}].index must be an integer between 1 and {MAX_SHOTS}; got '
+                f'{index!r} -- a shot number is how a spreadsheet reader finds the row again, so '
+                'the service does not renumber what a person counted')
+        if any(entry['index'] == index for entry in out):
+            raise AssistancePlanError(
+                400, 'ASSISTANCE_PLAN_SHOT_INDEX_DUPLICATE',
+                f'shots[{position}].index {index} is already used: two rows claiming to be the '
+                'same 镜头 cannot both be handed to a shoot')
+        duration = item.get('duration_s')
+        if duration is not None:
+            if isinstance(duration, bool) or not isinstance(duration, (int, float)) \
+                    or not 0 < duration <= 86400:
+                raise AssistancePlanError(
+                    400, 'ASSISTANCE_PLAN_SHOT_DURATION_INVALID',
+                    f'shots[{position}].duration_s must be a positive number of seconds (at most '
+                    f'86400) or null; got {duration!r}')
+            duration = float(duration)
+        purpose = item.get('purpose')
+        if not isinstance(purpose, str) or not purpose.strip():
+            raise AssistancePlanError(
+                400, 'ASSISTANCE_PLAN_SHOT_PURPOSE_MISSING',
+                f'shots[{position}].purpose is required and must be a non-empty string: a row '
+                'with no purpose is a blank line in a shot list, not a shot')
+        if len(purpose.strip()) > 800:
+            raise AssistancePlanError(
+                400, 'ASSISTANCE_PLAN_SHOT_PURPOSE_TOO_LONG',
+                f'shots[{position}].purpose exceeds 800 characters')
+        label = f'shots[{position}].'
+        out.append({'index': index, 'duration_s': duration, 'purpose': purpose.strip(),
+                    'camera': _shot_text(item.get('camera'), label + 'camera'),
+                    'sound': _shot_text(item.get('sound'), label + 'sound'),
+                    'reference_role': _shot_text(item.get('reference_role'),
+                                                 label + 'reference_role')})
     return out
 
 
@@ -320,6 +437,7 @@ def _fields(value):
         'role_constraints': _string_list(value.get('role_constraints'), 'role_constraints'),
         'lens': _optional_text(value.get('lens'), 'lens'),
         'sound': _optional_text(value.get('sound'), 'sound'),
+        'shots': _shots(value.get('shots'), output_type),
         'reference_ids': _reference_ids(value.get('references')),
         'external_steps': _external_steps(value.get('external_steps')),
         'known_gaps': _string_list(value.get('known_gaps'), 'known_gaps'),
@@ -408,6 +526,7 @@ def _document(plan_id, revision, project_id, fields, references):
         'role_constraints': list(fields['role_constraints']),
         'lens': fields['lens'],
         'sound': fields['sound'],
+        'shots': [dict(row) for row in fields['shots']],
         'references': references,
         'external_steps': fields['external_steps'],
         'known_gaps': list(fields['known_gaps']),
@@ -425,6 +544,34 @@ def _provided(document):
     return isinstance(document, dict) and document.get('neutral_creative') not in (None, '', UNKNOWN)
 
 
+def _choice_row(conn, plan_id):
+    """The one choice row that answers "which revision did a person adopt?", or None.
+
+    DL-KB-12 moved the query out of ``detail()`` so the single-revision read asks it the same
+    question the same way. Two ORDER BY clauses would be two truths about a human gate record: the
+    readback's ``choice`` and the revision read's ``is_chosen`` have to agree because they are
+    computed by one statement, not because two tests happen to pass.
+    """
+    return conn.execute(
+        'SELECT revision, actor, actor_kind, chosen_at FROM assistance_plan_choice'
+        ' WHERE plan_id=? ORDER BY chosen_at DESC, revision DESC LIMIT 1',
+        (plan_id,)).fetchone()
+
+
+def _digest_covers(document, stored) -> bool:
+    """Does ``stored`` still name the content bytes this row carries?
+
+    The write path digests over ``CONTENT_FIELDS`` (identity and bookkeeping stay outside it), so a
+    row whose text moved while its published digest did not is a drifted record, not a plan -- and a
+    comparison page built on it would diff one revision's digest against another revision's words.
+    The fields are taken from the ones the document itself carries: ``shots`` (DL-KB-11) is optional,
+    and a plan written before it existed digested over the fields it had, so re-deriving with a key
+    nobody ever wrote would convict an untouched plan of drift.
+    """
+    return _digest({key: document[key] for key in CONTENT_FIELDS
+                    if key in document}) == stored
+
+
 class AssistancePlans:
     def __init__(self, service):
         self.service = service
@@ -439,16 +586,24 @@ class AssistancePlans:
         if conn.execute('SELECT 1 FROM project WHERE project_id=?', (project_id,)).fetchone() is None:
             raise AssistancePlanError(404, 'PROJECT_NOT_FOUND')
 
-    def output_types(self) -> dict:
+    def output_types(self, export_formats) -> dict:
         """The closed vocabulary the create route accepts, with the screen's own labels.
 
         Project-independent on purpose: the initial screen must be able to offer a type before
         a workspace exists, and a view that carried its own copy of these six words could offer
         one the service refuses.
+
+        DL-KB-11 (2026-10-24): the material formats answer on the same document, because this is the
+        one surface the handoff screen reads before any plan exists. They come in as a parameter
+        rather than an import -- `plan_export` reads this module, so importing it back would make the
+        two files one cycle, and a second literal list here would give the same four words two
+        owners. The caller hands over `plan_export.material_table()` and this store validates the
+        whole envelope, including that each format keeps its own content type and extension.
         """
         return _check({'schemaVersion': OUTPUT_TYPES_VERSION,
                        'output_types': [{'value': value, 'label': OUTPUT_LABELS[value]}
-                                        for value in OUTPUT_TYPES]},
+                                        for value in OUTPUT_TYPES],
+                       'export_formats': list(export_formats)},
                       _OUTPUT_TYPES_SCHEMA_PATH, 'assistance plan output types')
 
     def _write_revision(self, conn, plan_id, revision, project_id, fields, created_by):
@@ -627,10 +782,7 @@ class AssistancePlans:
                 'SELECT revision, content_sha256, created_at, created_by, document_json'
                 ' FROM assistance_plan_revision WHERE plan_id=? ORDER BY revision',
                 (plan_id,)).fetchall()
-            choice = conn.execute(
-                'SELECT revision, actor, actor_kind, chosen_at FROM assistance_plan_choice'
-                ' WHERE plan_id=? ORDER BY chosen_at DESC, revision DESC LIMIT 1',
-                (plan_id,)).fetchone()
+            choice = _choice_row(conn, plan_id)
             documents, unreadable, revisions = {}, 0, []
             for row in rows:
                 try:
@@ -683,6 +835,92 @@ class AssistancePlans:
                        'externally_verified': False},
             'does_not_say': list(DOES_NOT_SAY),
         }, _READBACK_SCHEMA_PATH, 'assistance plan readback', registry=_ref_registry())
+
+    def revision(self, project_id, plan_id, revision) -> dict:
+        """One stored revision, served as the bytes that row holds (DL-KB-12).
+
+        The readback can only ever hand over the newest revision's document: its ``revisions`` list
+        names each row's digest, created_at and created_by, and nothing else. So a page that shows
+        「新版本不覆盖历史；对比页读的是两份真实修订」 had no second document to read -- it would have
+        had to guess the older text or compare hashes. This route answers one row's own stored
+        document.
+
+        Nothing here is re-rendered, upgraded to today's bytes or rebuilt from the current
+        revision: ``document`` is the stored JSON, and ``content_sha256`` / ``created_at`` /
+        ``created_by`` are this row's own columns, while ``latest_revision`` says where the plan has
+        since moved. ``is_chosen`` is the same one query the readback's ``choice`` is computed from,
+        so the two routes cannot disagree about which revision a person adopted.
+
+        A revision read says nothing about whether anything ran, and no flag here implies it did:
+        the plan's four states stay the readback's answer rather than being restated as a second
+        copy that could drift, and ``does_not_say`` is that store's own list, verbatim. The
+        document travels by ``$ref`` into ``assistance-plan-v1.schema.json`` -- the contract the
+        writer validated these bytes against when they were filed.
+        """
+        if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+            raise AssistancePlanError(
+                400, 'ASSISTANCE_PLAN_REVISION_NUMBER_INVALID',
+                'revision must be a positive integer naming a stored row; the route\'s path '
+                'pattern already refuses anything else, so a caller that reaches the store with a '
+                'non-number is a defect this refuses by name rather than reading as revision 1')
+        with closing(self._connect()) as conn:
+            self._check_project(conn, project_id)
+            plan = conn.execute('SELECT project_id FROM assistance_plan WHERE plan_id=?',
+                                (plan_id,)).fetchone()
+            if plan is None or plan['project_id'] != project_id:
+                raise AssistancePlanError(404, 'ASSISTANCE_PLAN_NOT_FOUND')
+            top = conn.execute('SELECT MAX(revision) AS top FROM assistance_plan_revision'
+                               ' WHERE plan_id=?', (plan_id,)).fetchone()['top']
+            row = conn.execute(
+                'SELECT content_sha256, created_at, created_by, document_json'
+                ' FROM assistance_plan_revision WHERE plan_id=? AND revision=?',
+                (plan_id, revision)).fetchone()
+            if row is None:
+                # 404 with the plan id and the highest revision that really is there: "no such
+                # revision" and "no such plan" are different questions for a comparison page, and a
+                # silent fallback to the newest row is the bug this route exists to make impossible.
+                raise AssistancePlanError(
+                    404, 'ASSISTANCE_PLAN_REVISION_NOT_FOUND',
+                    f'plan {plan_id} stores no revision {revision}; the highest revision it has is '
+                    f'{top if top is not None else "none"}. Read the readback for the revision '
+                    'list and name one of those numbers -- no row is rewritten and none is '
+                    'invented here')
+            choice = _choice_row(conn, plan_id)
+        try:
+            document = json.loads(row['document_json'])
+        except (TypeError, ValueError):
+            document = None
+        if not isinstance(document, dict):
+            raise AssistancePlanError(
+                409, 'ASSISTANCE_PLAN_REVISION_UNREADABLE',
+                f'修订 {revision} 存的内容无法解析成方案文档，服务不返回一个猜出来的版本：先读回这条方案'
+                '确认修订历史，需要新内容时由人重写一版。')
+        if document.get('content_sha256') != row['content_sha256'] \
+                or not _digest_covers(document, row['content_sha256']):
+            # Same discipline as `plan_feedback.list()`'s PLAN_FEEDBACK_BYTES_MOVED: a stored row
+            # that no longer hashes to what its own record publishes is a server-side fault, not a
+            # caller mistake, and it is never answered with the bytes anyway.
+            raise AssistancePlanError(
+                500, 'ASSISTANCE_PLAN_REVISION_BYTES_MOVED',
+                f'plan {plan_id} revision {revision} no longer hashes to what was stored: the row '
+                f'publishes {row["content_sha256"]} while its own document says '
+                f'{document.get("content_sha256")}. Serving these bytes would put a digest and a '
+                'different text on the same card, so the read refuses instead')
+        return _check({
+            'schemaVersion': REVISION_VERSION,
+            'plan_id': plan_id,
+            'project_id': project_id,
+            'revision': revision,
+            'latest_revision': top,
+            'is_latest': revision == top,
+            'is_chosen': choice is not None and choice['revision'] == revision,
+            'provided': _provided(document),
+            'content_sha256': row['content_sha256'],
+            'created_at': row['created_at'],
+            'created_by': row['created_by'],
+            'document': document,
+            'does_not_say': list(DOES_NOT_SAY),
+        }, _REVISION_SCHEMA_PATH, 'assistance plan revision', registry=_ref_registry())
 
     def list(self, project_id, *, offset=0, limit=DEFAULT_LIMIT) -> dict:
         if not isinstance(offset, int) or isinstance(offset, bool) or offset < 0:

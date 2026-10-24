@@ -43,7 +43,10 @@ from test_workbench_design_layer_e2e import _find_browser, _find_node_modules_di
 
 ROOT = _TESTS_DIR.parents[1]
 GATE_SCRIPT = _TESTS_DIR / 'e2e' / 'audit_workbench_overflow.mjs'
-WIDTHS = os.environ.get('OV_WIDTHS', '1440,1280,1920')
+# 1440 / 1280 / 1536 / 1920: the last three are the Windows 100 % / 125 % / 150 % zoom cases on a
+# 1920-wide panel (1920 ÷ scale = CSS px), which is what DL-KB-13 asks the geometry receipts to
+# cover; 1440 is the laptop width this product is also used at.
+WIDTHS = os.environ.get('OV_WIDTHS', '1440,1280,1536,1920')
 
 
 def _evidence_dir():

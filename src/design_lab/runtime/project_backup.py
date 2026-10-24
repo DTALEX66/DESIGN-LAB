@@ -287,6 +287,16 @@ COUNTER_QUERIES = (
     ('assistance_plan', 'rowid'),
     ('assistance_plan_revision', 'rowid'),
     ('assistance_plan_choice', 'rowid'),
+    # 2026-10-24 DL-KB-09: a draft target profile is written with no writer lease. The five seeded
+    # profiles live in the tracked config and cannot move at runtime, but a draft somebody adds at
+    # the selection panel can land inside a backup window -- and the panel reads it back later as
+    # the registry's own record of what the operator claimed.
+    ('target_profile_draft', 'rowid'),
+    # 2026-10-24 DL-KB-16: a voluntary external-use report is committed with no writer lease. A
+    # backup window that swallowed one would otherwise still report PROVED_QUIESCENT while the
+    # experience record the 我的方案 screen reads back had moved -- and this is the row people cite
+    # later about whether material actually worked somewhere else.
+    ('plan_feedback', 'rowid'),
 )
 
 

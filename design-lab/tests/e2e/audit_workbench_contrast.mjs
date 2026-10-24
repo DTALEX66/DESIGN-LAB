@@ -69,6 +69,10 @@ const ROUTES = [
   // DL-KB-08: 设计辅助的四态药丸用的是 .tag 的既有填充，但 meta 行与折叠摘要都是弱色小字，
   // 必须和知识屏一样逐条量过，否则「四态可读」只是文案断言。
   ['assistant', '#/assistant'],
+  // DL-KB-10: 目标组合选择面板。四档 support_state 药丸（info/warn/bad/neutral）与档案正文的
+  // 小号说明行是这一面的全部弱色文本；两栏对照如果只靠颜色区分而颜色本身掉 AA，「看得出区别」
+  // 就是一句没有几何支撑的话，所以这条必须和知识屏、辅助屏一样逐条量过。
+  ['target-profiles', '#/target-profiles'],
 ];
 
 const MEASURE = () => {
@@ -77,6 +81,31 @@ const MEASURE = () => {
   // from a rgb-only parser: the layer is dropped and the text is measured against whatever
   // is behind it. That is a false green, which is worse than a red.
   const SRGB = /^color\(\s*srgb\s+([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?\s*\)$/;
+  // Chromium serialises a resolved `color-mix(in oklab, …)` (and any colour it lands in the
+  // OKLab space) as `oklab(L a b / alpha)`, not as `rgb()`. A parser that stops at rgb() drops
+  // that layer, and dropping a backdrop is how a 1:1 pair gets graded against the page behind
+  // it. OKLab -> linear sRGB is Ottosson's published inverse: LMS cone space from the L/a/b
+  // opponent axes, cube each channel, then the M1 matrix, then the sRGB transfer curve.
+  const OKLAB = /^oklab\(\s*([-\d.eE%]+)\s+([-\d.eE%]+)\s+([-\d.eE%]+)(?:\s*\/\s*([-\d.eE%]+))?\s*\)$/;
+  const channel = (token, scale) => {
+    if (token.endsWith('%')) return (parseFloat(token) / 100) * scale;
+    return parseFloat(token);
+  };
+  const oklabToRgb = (l, a, b) => {
+    const l_ = l + 0.3963377794 * a + 0.2158037573 * b;
+    const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
+    const s_ = l - 0.0894841775 * a - 1.2914855480 * b;
+    const [lc, mc, sc] = [l_ ** 3, m_ ** 3, s_ ** 3];
+    const lin = [
+      4.0767416621 * lc - 3.3077115993 * mc + 0.2309699292 * sc,
+      -1.2684380046 * lc + 2.6097574011 * mc - 0.3413193965 * sc,
+      -0.0041960863 * lc - 0.7034186147 * mc + 1.7076147010 * sc,
+    ];
+    return lin.map((v) => {
+      const g = v <= 0.0031308 ? v * 12.92 : 1.055 * (v ** (1 / 2.4)) - 0.055;
+      return Math.min(255, Math.max(0, Math.round(g * 255)));
+    });
+  };
   const unknown = [];
   const noteUnknown = (where, value) => {
     if (unknown.length < 12) unknown.push(`${where} ${String(value).slice(0, 48)}`);
@@ -87,7 +116,7 @@ const MEASURE = () => {
       ? Math.round((parseFloat(token) / 100) * 255)
       : Math.round(parseFloat(token) * scale);
   };
-  const parse = (c) => {
+  const parse = (c, label) => {
     const m = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/.exec(c || '');
     if (m) return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : parseFloat(m[4]) };
     const s = SRGB.exec((c || '').trim());
@@ -96,18 +125,31 @@ const MEASURE = () => {
         : (s[4].endsWith('%') ? parseFloat(s[4]) / 100 : parseFloat(s[4]));
       return { r: num(s[1], 255), g: num(s[2], 255), b: num(s[3], 255), a: alpha };
     }
+    const o = OKLAB.exec((c || '').trim());
+    if (o) {
+      const [r, g, b] = oklabToRgb(channel(o[1], 1), channel(o[2], 0.4), channel(o[3], 0.4));
+      const alpha = o[4] === undefined ? 1 : channel(o[4], 1);
+      return { r, g, b, a: Math.min(1, Math.max(0, alpha)) };
+    }
     if (c && !/^(transparent|none|normal)$/.test(String(c).trim())
         && String(c).trim() !== 'rgba(0, 0, 0, 0)') {
-      noteUnknown('unparsed-colour:', c);
+      // The property and the node are part of the finding: "2 colours unparsable" without a
+      // location makes the next reader re-instrument this gate to learn where to look.
+      noteUnknown('unparsed-colour[' + (label || '?') + ']:', c);
     }
     return null;
   };
   // Colour stops inside a linear-gradient()/radial-gradient() value. Chromium
   // leaves these as authored text, so they must be read out of the string.
-  const gradientStops = (image) => {
+  const gradientStops = (image, label) => {
     if (!image || image === 'none') return [];
     const out = [];
-    for (const mm of image.matchAll(/rgba?\([^)]*\)|color\([^)]*\)|#[0-9a-fA-F]{3,8}\b/g)) {
+    // A colour function Chromium serialises outside rgb()/color() -- `oklab(...)`, `lab(...)`,
+    // `color(oklch ...)` -- must NOT match silently: a stop that this loop cannot see is a
+    // background that drops out of the stack and the text gets graded against the page behind
+    // it. So the alternation names the colour functions it knows, and anything else that looks
+    // like a colour reaches noteUnknown through the fallback branch below.
+    for (const mm of image.matchAll(/rgba?\([^)]*\)|color\([^)]*\)|[a-z-]*lab\([^)]*\)|#[0-9a-fA-F]{3,8}\b/g)) {
       const p = parse(mm[0].startsWith('#')
         ? (() => {
             let h = mm[0].slice(1);
@@ -116,7 +158,7 @@ const MEASURE = () => {
             const a = h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1;
             return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
           })()
-        : mm[0]);
+        : mm[0], label);
       if (p) out.push(p);
     }
     return out;
@@ -154,11 +196,28 @@ const MEASURE = () => {
     }
   }
 
-  const canvas = parse(getComputedStyle(document.body).backgroundColor) || { r: 255, g: 255, b: 255, a: 1 };
+  const canvas = parse(getComputedStyle(document.body).backgroundColor, 'body canvas')
+    || { r: 255, g: 255, b: 255, a: 1 };
+
+  // The OKLab branch is checked against published conversions, not against itself: a forward
+  // helper written next to the inverse would agree with it by construction and prove nothing.
+  // These four vectors are the CSS Color 4 spec's own sRGB <-> OKLab pairs.
+  const colour = [];
+  for (const [value, want] of [
+    ['oklab(1 0 0)', [255, 255, 255]],
+    ['oklab(0 0 0)', [0, 0, 0]],
+    ['oklab(0.62796 0.22486 0.12585)', [255, 0, 0]],
+    ['oklab(0.45201 -0.03246 -0.31153)', [0, 0, 255]],
+  ]) {
+    const got = parse(value);
+    const ok = !!got && Math.abs(got.r - want[0]) <= 2 && Math.abs(got.g - want[1]) <= 2
+      && Math.abs(got.b - want[2]) <= 2;
+    colour.push({ value, want: want.join(','), got: got ? `${got.r},${got.g},${got.b}` : 'null', ok });
+  }
 
   // Planted violations. They are excluded from the product counts and reported separately:
   // each one proves a code path that would otherwise pass silently.
-  const CONTROL_IDS = ['ct-control'];
+  const CONTROL_IDS = ['ct-control', 'ct-collapsed'];
 
   // Control, planted before the sweep so the ordinary per-node path grades it: white text
   // on a background Chromium reports as `color(srgb 1 1 1)` -- the serialisation a resolved
@@ -173,6 +232,51 @@ const MEASURE = () => {
       + 'background:color(srgb 1 1 1);color:rgb(255, 255, 255);font-size:16px;font-weight:400';
     control.textContent = 'AA CONTROL';
     document.body.append(control);
+  }
+
+  // Collapsed-detail control. A closed `<details>` is the one case where Chromium keeps a
+  // real layout box for text it does not paint: `::details-content` is
+  // `content-visibility: hidden`, the child's rect is its normal size, `display` is `block`
+  // and `opacity` is 1, so every filter below lets it through. `elementsFromPoint` on that
+  // rect then returns whatever sibling panel occupies the pixel, and the veil branch grades
+  // the invisible glyph as if it were seen through that sibling -- this gate's first false
+  // failure, a 1.31:1 report on text nobody can read at that moment. The two sides of the
+  // fix are asserted together, so neither half can be dropped silently:
+  //   · the run must NOT be graded while closed (counted in `collapsed`), proving unpainted
+  //     text is out of the population;
+  //   · the run must BE graded after the pre-pass opens it (1:1 white-on-white), proving the
+  //     skip does not quietly shrink coverage -- collapsed content is measured in the state
+  //     a person actually reaches.
+  {
+    const host = document.createElement('details');
+    host.id = 'ct-collapsed-host';
+    host.style.cssText = 'position:fixed;left:-10000px;top:60px;width:220px';
+    const summary = document.createElement('summary');
+    summary.textContent = 'AA COLLAPSED SUMMARY';
+    const control = document.createElement('div');
+    control.id = 'ct-collapsed';
+    control.style.cssText = 'width:220px;height:40px;background:color(srgb 1 1 1);'
+      + 'color:rgb(255, 255, 255);font-size:16px;font-weight:400';
+    control.textContent = 'AA COLLAPSED CONTROL';
+    host.append(summary, control);
+    document.body.append(host);
+  }
+
+  // Runs inside a closed detail are not painted; open every detail first, then collect, so the
+  // population is exactly "text a person can be shown" and never "text a snapshot happens to
+  // have expanded". `collapsed` keeps the number of runs this decision brought into the sweep.
+  let collapsed = 0;
+  for (const host of document.querySelectorAll('details:not([open])')) {
+    for (const el of host.querySelectorAll('body *')) {
+      // The summary is the one descendant a closed detail does paint, so it is not a collapsed run.
+      if (el.tagName === 'SUMMARY' && el.parentElement === host) continue;
+      if (!Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim().length > 0)) continue;
+      if (el.closest('details:not([open])') !== host) continue;  // count it once, at its nearest closed host
+      const cs = getComputedStyle(el);
+      if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+      collapsed += 1;
+    }
+    host.open = true;
   }
 
   // Every element that paints text of its own.
@@ -198,6 +302,9 @@ const MEASURE = () => {
   let obscured = 0;
   const obscuredExamples = [];
   let margin = null;
+  const nodeTag = (n) => `${n.tagName.toLowerCase()}${n.id ? '#' + n.id : ''}`
+    + (typeof n.className === 'string' && n.className.trim()
+      ? '.' + n.className.trim().split(/\s+/).join('.') : '');
   const desc = (el) => {
     const cls = (el.getAttribute('class') || '').trim();
     const id = el.id ? `#${el.id}` : '';
@@ -206,7 +313,7 @@ const MEASURE = () => {
   };
 
   for (const { el, cs, box } of targets) {
-    const fg0 = parse(cs.color);
+    const fg0 = parse(cs.color, 'fg of ' + desc(el).slice(0, 70));
     if (!fg0) continue;
 
     // Build the stack of backgrounds from the element outward, then composite.
@@ -214,9 +321,9 @@ const MEASURE = () => {
     let ancestorsOpaque = false;
     for (let p = el; p && !ancestorsOpaque; p = p.parentElement) {
       const s = getComputedStyle(p);
-      const solid = parse(s.backgroundColor);
+      const solid = parse(s.backgroundColor, 'background of ' + nodeTag(p));
       if (solid && solid.a > 0) stack.push({ solid });
-      const stops = gradientStops(s.backgroundImage);
+      const stops = gradientStops(s.backgroundImage, 'background-image of ' + nodeTag(p));
       if (stops.length) stack.push({ stops });
       // A `::before`/`::after` is a real backdrop only where it actually covers the box.
       // Measured on the active nav item: its `::before` is a 3px x 25px indicator bar at
@@ -233,9 +340,9 @@ const MEASURE = () => {
         if (!(host.width > 0 && host.height > 0)
             || !(Number.isFinite(pw) && Number.isFinite(ph))
             || pw < host.width * 0.6 || ph < host.height * 0.6) continue;
-        const pSolid = parse(ps.backgroundColor);
+        const pSolid = parse(ps.backgroundColor, 'background of ' + nodeTag(p) + pseudo);
         if (pSolid && pSolid.a > 0) { stack.push({ solid: pSolid }); pseudoLayers += 1; }
-        const pStops = gradientStops(ps.backgroundImage);
+        const pStops = gradientStops(ps.backgroundImage, 'background-image of ' + nodeTag(p) + pseudo);
         if (pStops.length) { stack.push({ stops: pStops }); pseudoLayers += 1; }
       }
       if (solid && solid.a >= 1) ancestorsOpaque = true;
@@ -282,8 +389,9 @@ const MEASURE = () => {
       const hit = document.elementsFromPoint(cx, cy)[0];
       if (hit && hit !== el && !el.contains(hit) && !hit.contains(el)) {
         const hs = getComputedStyle(hit);
-        const veil = parse(hs.backgroundColor);
-        const stop = gradientStops(hs.backgroundImage)[0];
+        const veil = parse(hs.backgroundColor, 'veil background of ' + nodeTag(hit));
+        const stop = gradientStops(hs.backgroundImage,
+          'veil background-image of ' + nodeTag(hit))[0];
         const owner = (veil && veil.a > 0) ? veil : (stop || null);
         const name = `${hit.tagName.toLowerCase()}${hit.id ? '#' + hit.id : ''}`;
         if (owner && owner.a >= 1) {
@@ -351,9 +459,9 @@ const MEASURE = () => {
     if (row) control.reported += 1;
     control.detail.push({ id, reported: !!row, ratio: row ? row.got : null });
   }
-  for (const id of CONTROL_IDS) document.querySelector('#' + id)?.remove();
-  return { checked, fails: fails.slice(0, 60), failCount: fails.length, math,
-           pseudoLayers, unknown, control, margin,
+  for (const id of [...CONTROL_IDS, 'ct-collapsed-host']) document.querySelector('#' + id)?.remove();
+  return { checked, fails: fails.slice(0, 60), failCount: fails.length, math, colour,
+           pseudoLayers, unknown, control, margin, collapsed,
            coveredForeign, coveredExamples, obscured, obscuredExamples };
 };
 
@@ -383,10 +491,121 @@ async function paintTheme(p) {
   }, [uiPalette, uiScheme]);
 }
 let failTotal = 0, checkedTotal = 0, unknownTotal = 0, pseudoTotal = 0;
-let coveredTotal = 0, obscuredTotal = 0, controlsExpected = 0, controlsReported = 0;
+let coveredTotal = 0, obscuredTotal = 0, collapsedTotal = 0;
+let controlsExpected = 0, controlsReported = 0;
 const mathChecks = [];
+const colourChecks = [];
 const unknownSamples = [];
 const controlBad = [];
+
+// A route sweep cannot open a plan that does not exist, and this round's controls -- the shot
+// table, the four material formats, the voluntary-feedback history and the revision comparison --
+// all live on the plan detail. So the audit files one synthetic plan into its own throwaway root
+// and measures that screen as well: "the detail is legible" is a claim about a page nobody
+// rendered otherwise. Nothing here is product data; it dies with the temporary state directory,
+// and the record name says it is not a person's.
+async function seedAssistancePlanForAudit(prefix) {
+  const base = serviceUrl.replace(/\/$/, '');
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const post = async (path, body) => {
+    const res = await fetch(base + path, { method: 'POST', headers,
+      body: JSON.stringify(body) });
+    return { status: res.status, json: await res.json().catch(() => ({})) };
+  };
+  const project = await post('/api/projects', { name: `${prefix}-audit` });
+  if (project.status !== 201) {
+    fail(`${prefix.toUpperCase()}_SEED_PROJECT_REFUSED ${JSON.stringify(project.json).slice(0, 200)}`);
+  }
+  const pid = project.json.project.id;
+  const plan = {
+    objective: '为秋季新品做一条 15 秒主视觉动效，标题落在大面积留白里，副标题带上说明文字',
+    output_type: 'MOTION',
+    neutral_creative: '两束交叉光缓慢推移，标题以一次落定收束。',
+    brand_constraints: ['只用两种油墨', '标题不使用描边'],
+    role_constraints: [],
+    lens: '俯拍整张桌面', sound: '低频垫底，无对白', references: [],
+    shots: [
+      { index: 1, duration_s: 4, purpose: '开场：侧光落在纸纤维上', camera: '缓推',
+        sound: null, reference_role: '主参考' },
+      { index: 2, duration_s: null, purpose: '收束：标题落定，副标题带"引号"、逗号, 与一段较长的说明',
+        camera: '固定', sound: '低频收干', reference_role: null },
+    ],
+    external_steps: [{ step: '在宿主里手动导出 MP4', tool: 'After Effects',
+                       job_id: null, operation_id: null }],
+    known_gaps: ['目标平台码率未定'],
+    limits: ['不含多语言字幕', '不产出可编辑源文件'],
+    created_by: `${prefix} 脚手架（合成，不是真人）`,
+  };
+  const created = await post(`/api/projects/${pid}/assistance-plans`, plan);
+  if (created.status !== 201) {
+    fail(`${prefix.toUpperCase()}_SEED_PLAN_REFUSED ${JSON.stringify(created.json).slice(0, 200)}`);
+  }
+  return { project: pid, plan: created.json.plan.plan_id };
+}
+
+// Open the plan the way a person does, and wait for the detail to be assembled from its several
+// reads: measuring a panel that still says 正在读回 would report the contrast of placeholders.
+// The wait is on the two things that only exist once the reads landed -- the shot rows and the
+// served material formats -- not on every [role="status"] line having text: an empty note is the
+// correct resting state, and a predicate that can never be true reads as "the panel is broken".
+// The unmet conditions are named in the problem line, because "it did not settle" alone makes the
+// next reader re-instrument the gate instead of reading it.
+async function openPlanDetail(page, key, problems) {
+  await page.locator('#as-list .as-plan-open').first().click();
+  const SETTLED = () => {
+    const host = document.getElementById('as-plan');
+    if (!host) return ['no-detail-host'];
+    const unmet = [];
+    if (host.querySelector('.view-loading')) unmet.push('still-reading');
+    const rows = host.querySelectorAll('#as-shots li').length;
+    if (rows < 1) unmet.push('shot-rows=' + rows);
+    const formats = host.querySelectorAll('#as-material option').length;
+    if (formats < 4) unmet.push('material-formats=' + formats);
+    return unmet;
+  };
+  const deadline = Date.now() + 25000;
+  let unmet = ['never-polled'];
+  while (Date.now() < deadline) {
+    unmet = await page.evaluate(SETTLED);
+    if (unmet.length === 0) return true;
+    await page.waitForTimeout(400);
+  }
+  problems.push(`${key}: 方案详情在 25s 内没有把镜头表与材料格式读回来（${unmet.join(' ')}）`);
+  return false;
+}
+
+const ctSeed = await seedAssistancePlanForAudit('对比度审计');
+report.auditSeed = { kind: 'synthetic-assistance-plan', project: ctSeed.project,
+  plan: ctSeed.plan, product_data: false,
+  note: '只为让方案详情能被测量而写进本次临时状态；记录人标明是合成的，随状态目录一起丢弃' };
+
+// One sink for both the route sweep and the plan detail. Duplicating the accumulation would give
+// the same counters two owners, and the second screen is exactly the one that would drift.
+const absorb = (key, m) => {
+  report.routes[key] = m;
+  for (const c of m.math) {
+    if (!mathChecks.some((k) => k.a === c.a && k.b === c.b)) mathChecks.push(c);
+  }
+  for (const c of m.colour) {
+    if (!colourChecks.some((k) => k.value === c.value)) colourChecks.push(c);
+  }
+  failTotal += m.failCount - m.control.reported;
+  controlsExpected += m.control.planted;
+  controlsReported += m.control.reported;
+  checkedTotal += m.checked;
+  unknownTotal += m.unknown.length;
+  pseudoTotal += m.pseudoLayers;
+  coveredTotal += m.coveredForeign;
+  obscuredTotal += m.obscured;
+  collapsedTotal += m.collapsed;
+  if (m.control.reported < m.control.planted) controlBad.push(`${key} ${JSON.stringify(m.control.detail)}`);
+  for (const u of m.unknown) if (unknownSamples.length < 12) unknownSamples.push(`${key} ${u}`);
+  console.log(`w=${key.padEnd(24)} checked=${String(m.checked).padStart(4)} `
+    + `belowAA=${String(m.failCount - (m.control.reported ? 2 : 0)).padStart(3)} `
+    + `pseudoLayers=${String(m.pseudoLayers).padStart(3)} unparsable=${m.unknown.length} `
+    + `covered=${m.coveredForeign} obscured=${m.obscured} collapsed=${m.collapsed} `
+    + `control=${m.control.reported}/${m.control.planted}`);
+};
 
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: 900 } });
@@ -399,23 +618,16 @@ for (const w of widths) {
     await page.evaluate((h) => { window.location.hash = h; }, hash);
     await page.waitForTimeout(1000);
     const m = await page.evaluate(MEASURE);
-    report.routes[`${w}:${name}`] = m;
-    for (const c of m.math) if (!mathChecks.some((k) => k.a === c.a && k.b === c.b)) mathChecks.push(c);
-
     // The planted controls are deliberate failures; they are counted as proof the
     // parser and the overlap branch work, never as product violations.
-    failTotal += m.failCount - m.control.reported;
-    controlsExpected += m.control.planted;
-    controlsReported += m.control.reported;
-    checkedTotal += m.checked;
-    unknownTotal += m.unknown.length;
-    if (m.control.reported < m.control.planted)
-      controlBad.push(`${w}:${name} ${JSON.stringify(m.control.detail)}`);
-    pseudoTotal += m.pseudoLayers;
-    coveredTotal += m.coveredForeign;
-    obscuredTotal += m.obscured;
-    for (const u of m.unknown) if (unknownSamples.length < 12) unknownSamples.push(`${w}:${name} ${u}`);
-    console.log(`w=${String(w).padEnd(5)} ${name.padEnd(13)} checked=${String(m.checked).padStart(4)} belowAA=${String(m.failCount - (m.control.reported ? 1 : 0)).padStart(3)} pseudoLayers=${String(m.pseudoLayers).padStart(3)} unparsable=${m.unknown.length} covered=${m.coveredForeign} obscured=${m.obscured} control=${m.control.reported}/${m.control.planted}`);
+    absorb(`${w}:${name}`, m);
+    if (name === 'assistant') {
+      // The plan detail is measured as its own named state. A screen that never settled is pushed
+      // into the same miss list the wrapper asserts to zero, so an unmeasured panel cannot be read
+      // as a clean one.
+      const opened = await openPlanDetail(page, `${w}:assistant+plan-detail`, controlBad);
+      if (opened) absorb(`${w}:assistant+plan-detail`, await page.evaluate(MEASURE));
+    }
   }
   await page.close();
 }
@@ -449,6 +661,16 @@ const mathBad = mathChecks.filter((c) => !c.ok);
 for (const c of mathChecks) {
   console.log(`  MATH ${c.a} on ${c.b} got=${c.got} want=${c.want} ${c.ok ? 'ok' : 'WRONG'}`);
 }
+const colourBad = colourChecks.filter((c) => !c.ok);
+for (const c of colourChecks) {
+  console.log(`  COLOUR ${c.value} got=${c.got} want=${c.want} ${c.ok ? 'ok' : 'WRONG'}`);
+}
+if (colourBad.length > 0) {
+  console.error(`CT_FAIL: the OKLab->sRGB conversion disagrees with the published spec vectors `
+    + `on ${colourBad.length} value(s), so an oklab background would be measured as a colour `
+    + 'this gate invented rather than the one the page paints');
+  process.exit(1);
+}
 if (mathBad.length > 0) {
   console.error(`CT_FAIL: contrast maths self-test failed on ${mathBad.length} reference pair(s)`);
   process.exit(1);
@@ -457,8 +679,10 @@ if (mathBad.length > 0) {
 console.log('');
 console.log(`CT_SUMMARY checked=${checkedTotal} belowAA=${failTotal} pseudoLayers=${pseudoTotal}`
   + ` coveredForeign=${coveredTotal} obscured=${obscuredTotal} unparsable=${unknownTotal}`
+  + ` collapsedOpened=${collapsedTotal}`
   + ` controlMisses=${controlsExpected - controlsReported} strict=${strict ? 1 : 0}`
-  + ` mathChecks=${mathChecks.length} mathBad=${mathChecks.filter((c) => !c.ok).length}`);
+  + ` mathChecks=${mathChecks.length} mathBad=${mathChecks.filter((c) => !c.ok).length}`
+  + ` colourChecks=${colourChecks.length} colourBad=${colourChecks.filter((c) => !c.ok).length}`);
 if (failTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
     for (const f of v.fails) {

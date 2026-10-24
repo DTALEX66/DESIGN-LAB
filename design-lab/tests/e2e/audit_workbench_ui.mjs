@@ -330,7 +330,10 @@ await bootCtx.close();
 const ROUTES = ['', '#/dashboard', '#/projects', `#/projects/${projectId}`, '#/tools',
                 '#/deliverables', '#/evidence', '#/preflight', '#/settings',
                 '#/research', '#/domains', '#/collaboration', '#/brand-systems',
-                '#/prompts', '#/models', '#/knowledge', '#/assistant'];
+                '#/prompts', '#/models', '#/knowledge', '#/assistant',
+                // DL-KB-10 (2026-10-24): 目标组合选择面板。五条 /api/target-profile* 路由的第一
+                // 次上屏；两栏对照、最多两条路线与五个选择框都在这一面，不进来就等于从没被量过。
+                '#/target-profiles'];
 
 for (const width of widths) {
   const { ctx, page } = await connect(width);

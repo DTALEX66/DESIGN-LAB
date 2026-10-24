@@ -400,6 +400,34 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
          'path': '/api/projects/{project}/assistance-plans/{aplan}/choose',
          'body': {'actor': 'dtalex66', 'actor_kind': 'human', 'revision': 2},
          'check': 'check_assistance_choose'},
+        # DL-KB-09 (batch K4): a user draft, then one validation asked of it. The draft is the only
+        # way a combination that is not in the tracked config can exist at all, and the validation is
+        # the write-shaped POST that must never be able to grant executability -- so the checks below
+        # read `executable` back rather than trusting the route to be honest.
+        {'route': '/api/target-profiles', 'label': 'target-profile-draft', 'status': 201,
+         'path': '/api/target-profiles',
+         'body': {'software': 'Illustrator', 'agent': None, 'model': None, 'provider': None,
+                  'version': None, 'entry': 'DESKTOP_CLIENT', 'task_mode': '导出分镜表 CSV',
+                  'actor': 'sweep', 'source_ref': None, 'fields': {}},
+         'capture': {'tprof_draft': 'profile.profile_id'},
+         'check': 'check_target_profile_draft'},
+        {'route': '/api/target-profiles/(tprof-[0-9a-f]{32})/validate',
+         'label': 'target-profile-validate', 'status': 200,
+         'path': '/api/target-profiles/{tprof_draft}/validate',
+         'body': {'dimensions': {'modality': 'text', 'aspect': '16:9'}},
+         'check': 'check_target_profile_validate'},
+        # DL-KB-16: the voluntary external-use report. Its proof is that the report lands AND the plan
+        # it describes does not move -- those are two different claims and the card depends on both.
+        {'route': ('/api/projects/([0-9a-f]{32})/assistance-plans'
+                   '/(aplan-[0-9a-f]{32})/feedback'),
+         'label': 'plan-feedback', 'status': 201,
+         'path': '/api/projects/{project}/assistance-plans/{aplan}/feedback',
+         'body': {'outcome': 'PARTIALLY_MATCHES', 'target_key': 'elevenlabs--web-app--music',
+                  'actor': 'dtalex66', 'note': '标题落点可用，时长要手改',
+                  'source_ref': None, 'revision': 2, 'target_model': None,
+                  'dimensions': [{'name': '画幅', 'verdict': 'PARTIALLY_MATCHES', 'note': None}],
+                  'issue_timecodes': ['00:03-00:05']},
+         'check': 'check_plan_feedback'},
     )
 
     # -- the walk ---------------------------------------------------------------------
@@ -810,6 +838,67 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
         self.assertTrue(read['choice']['is_latest'], 'revision 2 is still the head')
         self.assertFalse(read['states']['externally_verified'],
                          'recording a choice is not external verification')
+
+    def check_target_profile_draft(self, row, payload, slots):
+        listed = self.read_back(row, '/api/target-profiles')
+        self.assertIn(slots['tprof_draft'], [entry['profile_id'] for entry in listed['profiles']],
+                      'the draft this sweep wrote is not in the list the selection panel reads')
+        stored = self.read_back(row, '/api/target-profiles/{tprof_draft}')
+        self.assertEqual('USER_DRAFT', stored['support_state'],
+                         'a draft somebody wrote does not come back as a draft')
+        # The owner's rule on identifiers: an absent one stays the literal UNUSED. A stored draft
+        # that came back with an invented source would be the page showing a provenance nobody gave.
+        self.assertEqual('UNUSED', stored['source_ref'],
+                         'a blank external identifier was replaced by something this module made up')
+        self.assertFalse(stored['executable'],
+                         'a stored draft reports itself executable -- nothing in this repository runs')
+
+    def check_target_profile_validate(self, row, payload, slots):
+        from design_lab.target_profile import VERDICTS
+        stored = self.read_back(row, '/api/target-profiles/{tprof_draft}')
+        self.assertEqual(stored['profile_id'], payload['profile_id'],
+                         'the validation answered about a profile other than the one stored')
+        self.assertTrue(payload['verdicts'], 'two contracted dimensions were asked and nothing answered')
+        for verdict in payload['verdicts']:
+            self.assertIn(verdict['verdict'], VERDICTS,
+                          'a verdict outside the closed vocabulary: ' + str(verdict))
+            # The per-row flag is the real guard: a validation that answered SUPPORT for a
+            # dimension must still not be able to say the combination can be executed.
+            self.assertFalse(verdict['grants_execution'],
+                             'a verdict granted execution: ' + json.dumps(verdict,
+                                                                          ensure_ascii=False))
+            self.assertTrue(verdict['reason'], 'a verdict with no stated reason: ' + str(verdict))
+        self.assertFalse(payload['executable'],
+                         'a verdict granted executability; the contract says a validation never may')
+        self.assertIn('没有', payload['execution_note'],
+                      'the execution note stopped saying what the validation does not answer')
+
+    def check_plan_feedback(self, row, payload, slots):
+        history = self.read_back(
+            row, '/api/projects/{project}/assistance-plans/{aplan}/feedback')
+        self.assertEqual(1, len(history['records']),
+                         'the voluntary report is not the single row the sweep wrote: '
+                         + str(len(history['records'])))
+        record = history['records'][0]
+        self.assertEqual('PARTIALLY_MATCHES', record['outcome'])
+        self.assertEqual('部分符合', record['outcome_label'],
+                         'the served label does not match the served outcome word')
+        self.assertEqual('UNUSED', record['source_ref'],
+                         'a blank 外部编号 must stay the literal, not become an invented one')
+        self.assertEqual('画幅', record['dimensions'][0]['name'])
+        self.assertEqual('00:03-00:05', record['issue_timecodes'][0])
+        # The other half of the card: a report about a plan is not a change to the plan.
+        plan = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')
+        self.assertTrue(payload['plan_states_unchanged'],
+                        'the write envelope claims the plan did not move; the readback must agree')
+        self.assertEqual(2, len(plan['revisions']),
+                         'a feedback record appended a revision to the plan')
+        self.assertEqual('dtalex66', plan['choice']['actor'],
+                         'the named choice the sweep recorded was rewritten by a feedback write')
+        self.assertFalse(plan['states']['externally_verified'],
+                         'a person saying 部分符合 is not the system verifying an external run')
+        self.assertEqual(1, history['outcome_histogram']['PARTIALLY_MATCHES'])
+        self.assertEqual(0, history['outcome_histogram']['MATCHES'])
 
     # -- machinery the table depends on -----------------------------------------------
     def prepare_candidate(self, slots):

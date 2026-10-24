@@ -158,7 +158,32 @@ class RoutePayloadContractTests(unittest.TestCase):
                     'assistance-plan-readback': 3, 'assistance-plan-list': 2,
                     # One case: the vocabulary is one closed list with no empty branch (the same
                     # reason design-collection-systems carries one).
-                    'assistance-plan-output-types': 1, 'assistance-plan-choose': 1}
+                    'assistance-plan-output-types': 1, 'assistance-plan-choose': 1,
+                    # DL-KB-12: two cases, one per revision of the harness's two-revision plan. One
+                    # answer alone could not distinguish this route from one that ignores the number
+                    # it was handed -- the older row is the only payload here whose `document` is not
+                    # the readback's `current`, and the newest is the one a named human chose.
+                    'assistance-plan-revision': 2,
+                    # DL-KB-11: four materials from one plan, all compared. One answer per format
+                    # is the minimum that makes "the three exports say the same thing" testable at
+                    # all -- and the 分镜 CSV case only exists because this plan carries shot rows,
+                    # since the same route refuses to render a storyboard from an empty one.
+                    'plan-export': 4,
+                    # DL-KB-09. Two cases on detail and two on validate on purpose: the registry's
+                    # honest answers are a seeded row whose fields are all UNKNOWN with reasons
+                    # (Meshy, four failed fetch attempts recorded in its own row) and a draft
+                    # somebody wrote, and validation has to be compared both where the vendor's own
+                    # words say "does not support" (FLUX.2 has no negative prompt) and where nobody
+                    # reached the entry at all. The list carries one answer because the collection
+                    # has no empty branch -- five seeded profiles are always in the tracked config.
+                    'target-profile-axes': 1, 'target-profile-list': 1,
+                    'target-profile-detail': 2, 'target-profile-create': 1,
+                    'target-profile-validate': 2,
+                    # DL-KB-16: two cases each. The list is compared while empty AND after two
+                    # reports, and the two write answers are the first statement and the correction
+                    # -- an append-only history that is only ever compared once could be a mutable
+                    # field wearing a list costume.
+                    'plan-feedback-list': 2, 'plan-feedback-record': 2}
         self.assertEqual(sorted(expected), sorted(b['name'] for b in self.bindings),
                          'a binding added here without being listed below is a boundary this '
                          'file silently stopped covering')

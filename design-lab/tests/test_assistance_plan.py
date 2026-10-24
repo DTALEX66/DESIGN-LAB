@@ -23,6 +23,11 @@ complete project first, and the ways it can start lying are specific:
 * **a caller mints its own evidence.** Reference revision/digest are resolved from the live object;
   a request that supplies them is refused. A missing job_id is the literal UNUSED, never an id the
   service invented.
+* **history exists but cannot be read.** DL-KB-12. The readback serves the newest revision's
+  document and lists the older rows by digest only, so a comparison page had one real document and
+  a row of hashes to compare it with. The single-revision route has to answer the older row's own
+  bytes -- and refuse a number nobody wrote, a row whose text no longer matches the digest it
+  publishes, and a row that cannot be parsed, each with its own code.
 
 Nothing here proves a model ran, an external job executed, or an asset was analysed by a model: the
 counts are rows in a local store, and the one analysis this suite records is a reversal whose
@@ -52,6 +57,7 @@ from design_lab import assistance_plan                              # noqa: E402
 from design_lab.assistance_plan import (                            # noqa: E402
     AssistancePlanError, UNKNOWN, UNUSED)
 from design_lab.http_service import make_server                     # noqa: E402
+from design_lab.interop import load_schema, schema_errors            # noqa: E402
 from design_lab.service import ProjectService                       # noqa: E402
 
 DETECTIONS = [
@@ -354,6 +360,249 @@ class AssistancePlanTests(unittest.TestCase):
         self.assertEqual(400, status)
         self.assertEqual('ASSISTANCE_PLAN_CHOICE_REVISION_INVALID', body['error'])
 
+    # -- DL-KB-12: one stored revision, read back as its own bytes -------------------
+
+    def _revise(self, plan_id, **overrides):
+        status, answer = self._call(
+            'POST', f'/api/projects/{self.project}/assistance-plans/{plan_id}/revisions',
+            plan_body(expected_revision=1, **overrides))
+        self.assertEqual(201, status, answer)
+        return answer['plan']
+
+    def _read(self, plan_id, revision, project=None):
+        return self._call('GET', f'/api/projects/{project or self.project}/assistance-plans'
+                                 f'/{plan_id}/revisions/{revision}')
+
+    def _detail(self, plan_id):
+        return self._call('GET', f'/api/projects/{self.project}/assistance-plans/{plan_id}')[1]
+
+    def _append_revision(self, plan_id, document, *, content_sha256=None, document_json=None):
+        """File one row holding exactly these bytes, the way the store would have written them.
+
+        ``assistance_plan_revision`` is append-only *by trigger* -- UPDATE aborts, and that refusal
+        is the invariant this whole family rests on -- so a row whose stored text predates an
+        optional field, or whose digest has come to disagree with its own bytes, is reproduced by
+        inserting it. ``content_sha256`` and ``document_json`` may be handed over separately from
+        ``document`` on purpose: those are the two ways a row can stop matching what it publishes.
+        """
+        with closing(assistance_plan.connect(
+                self.service.database, project_root=self.service.paths.project_root)) as conn:
+            top = conn.execute('SELECT MAX(revision) AS top FROM assistance_plan_revision'
+                               ' WHERE plan_id=?', (plan_id,)).fetchone()['top']
+            document = dict(document, revision=top + 1)
+            conn.execute(
+                'INSERT INTO assistance_plan_revision (plan_id, revision, objective, output_type,'
+                ' content_sha256, created_at, created_by, document_json) VALUES (?,?,?,?,?,?,?,?)',
+                (plan_id, document['revision'], document['objective'], document['output_type'],
+                 content_sha256 or document['content_sha256'],
+                 document.get('created_at', '2026-10-24T00:00:00Z'), document['created_by'],
+                 assistance_plan._canonical(document) if document_json is None else document_json))
+            conn.commit()
+        return document
+
+    def test_an_older_revision_reads_back_as_that_revision_and_not_as_the_current_one(self):
+        """The bug this route exists to make impossible: a comparison page reading r2 twice.
+
+        ``assertNotEqual`` on the two documents is the whole acceptance clause -- 「新版本不覆盖历史；
+        对比页读的是两份真实修订」 is only checkable when the older row answers its own objective and
+        its own creative, and a service that quietly served the newest bytes for any number would
+        still return a 200 with a plausible-looking envelope.
+        """
+        created = self._create()
+        second = self._revise(created['plan_id'], objective='第二版：把主视觉改成竖版',
+                              neutral_creative='竖构图，标题落在上三分之一。')
+        status, first = self._read(created['plan_id'], 1)
+        self.assertEqual(200, status, first)
+        self.assertEqual('design-lab/assistance-plan-revision/v1', first['schemaVersion'])
+        self.assertEqual(1, first['revision'])
+        self.assertEqual(2, first['latest_revision'])
+        self.assertFalse(first['is_latest'], 'r1 of a two-revision plan cannot be the newest row')
+        self.assertEqual(created, first['document'],
+                         'the older read rebuilt the document instead of serving the stored bytes')
+        self.assertNotEqual(second, first['document'])
+        self.assertNotEqual(second['objective'], first['document']['objective'],
+                            'the two revisions answered the same objective, so the diff is empty')
+        self.assertNotEqual(second['neutral_creative'], first['document']['neutral_creative'])
+        self.assertNotEqual(first['content_sha256'], second['content_sha256'])
+
+    def test_the_latest_revision_carries_the_digest_the_readback_publishes(self):
+        plan_id = self._create()['plan_id']
+        self._revise(plan_id, objective='第二版')
+        detail = self._detail(plan_id)
+        status, latest = self._read(plan_id, 2)
+        self.assertEqual(200, status, latest)
+        self.assertTrue(latest['is_latest'])
+        self.assertEqual(2, latest['latest_revision'])
+        self.assertEqual(detail['current'], latest['document'],
+                         'two routes serving "the newest revision" answered different bytes')
+        self.assertEqual(detail['current']['content_sha256'], latest['content_sha256'])
+
+    def test_every_revision_row_the_readback_lists_is_served_byte_for_byte(self):
+        """No second truth: the readback's per-row columns and this route's answer are one row.
+
+        The comparison page is handed the readback's ``revisions`` list to pick two numbers with, so
+        the digest, author and timestamp it shows for r1 must be the ones the r1 read reports -- and
+        the document must be the exact JSON in the database, not a re-rendering of it.
+        """
+        plan_id = self._create()['plan_id']
+        self._revise(plan_id, objective='第二版')
+        detail = self._detail(plan_id)
+        with closing(assistance_plan.connect(
+                self.service.database, project_root=self.service.paths.project_root)) as conn:
+            stored = {row['revision']: row['document_json'] for row in conn.execute(
+                'SELECT revision, document_json FROM assistance_plan_revision WHERE plan_id=?',
+                (plan_id,))}
+        for row in detail['revisions']:
+            status, answer = self._read(plan_id, row['revision'])
+            self.assertEqual(200, status, answer)
+            self.assertTrue(row['readable'], 'the readback listed a row this route could not read')
+            self.assertEqual(row['content_sha256'], answer['content_sha256'])
+            self.assertEqual(row['created_at'], answer['created_at'])
+            self.assertEqual(row['created_by'], answer['created_by'])
+            self.assertEqual(assistance_plan._canonical(answer['document']),
+                             stored[row['revision']],
+                             'the served document is not the stored bytes, character for character')
+
+    def test_an_unstored_revision_number_is_a_404_that_names_the_highest_one(self):
+        created = self._create()
+        self._revise(created['plan_id'], objective='第二版')
+        status, refused = self._read(created['plan_id'], 3)
+        self.assertEqual(404, status, refused)
+        self.assertEqual('ASSISTANCE_PLAN_REVISION_NOT_FOUND', refused['error'])
+        self.assertIn(created['plan_id'], refused['detail'])
+        self.assertIn('the highest revision it has is 2', refused['detail'],
+                      'the refusal must name the numbers that really exist, or the page cannot '
+                      'tell a wrong revision from a wrong plan')
+        # `revisions/0` is refused by the path pattern before the store is reached, and a target
+        # with a query string is no route at all -- the number is a path segment here.
+        status, refused = self._read(created['plan_id'], 0)
+        self.assertEqual(404, status, refused)
+        self.assertEqual('NOT_FOUND', refused['error'])
+        status, refused = self._call(
+            'GET', f'/api/projects/{self.project}/assistance-plans/{created["plan_id"]}'
+                   f'/revisions/2?revision=1')
+        self.assertEqual(404, status, refused)
+        self.assertEqual('NOT_FOUND', refused['error'],
+                         'a query the route does not define must not be honoured quietly')
+
+    def test_is_chosen_follows_the_choice_row_and_stays_false_for_a_plan_nobody_chose(self):
+        plan_id = self._create()['plan_id']
+        self._revise(plan_id, objective='第二版')
+        for number in (1, 2):
+            status, answer = self._read(plan_id, number)
+            self.assertEqual(200, status, answer)
+            self.assertFalse(answer['is_chosen'], f'r{number} cannot be chosen by nobody')
+        status, chosen = self._call(
+            'POST', f'/api/projects/{self.project}/assistance-plans/{plan_id}/choose',
+            {'actor': 'DTALEX66', 'actor_kind': 'human', 'revision': 1})
+        self.assertEqual(200, status, chosen)
+        self.assertTrue(self._read(plan_id, 1)[1]['is_chosen'])
+        self.assertFalse(self._read(plan_id, 2)[1]['is_chosen'],
+                         'the newest revision is not thereby the adopted one')
+        self.assertEqual(self._detail(plan_id)['choice']['revision'],
+                         self._read(plan_id, 1)[1]['revision'],
+                         'the readback and the revision read answer a different adopted revision')
+
+    def test_a_revision_with_no_creative_reads_back_as_not_provided(self):
+        """`provided` is this row's own answer, not the readback's answer about the newest row."""
+        draft = self._create(neutral_creative=None)
+        self._revise(draft['plan_id'], objective='第二版：现在写得出创意了',
+                     neutral_creative='竖构图，标题落在上三分之一。')
+        self.assertFalse(self._read(draft['plan_id'], 1)[1]['provided'],
+                         'the draft row has no creative even though the plan now has one')
+        self.assertTrue(self._read(draft['plan_id'], 2)[1]['provided'])
+        self.assertTrue(self._detail(draft['plan_id'])['states']['provided'])
+
+    def test_a_revision_stored_before_an_optional_field_existed_still_reads_back(self):
+        """A pre-DL-KB-11 document is history, not a defect -- and it still satisfies the contract.
+
+        The row is rewritten to the bytes the writer produced before ``shots`` existed (no ``shots``
+        key at all, its digest over the fields it had), because the compatibility claim is about
+        stored history. The digest guard is the load-bearing part of this read: a re-derivation that
+        quietly supplied the missing key would convict an untouched plan of drift.
+        """
+        created = self._create()
+        document = dict(created)
+        document.pop('shots')
+        legacy_fields = tuple(key for key in assistance_plan.CONTENT_FIELDS if key != 'shots')
+        document['content_sha256'] = assistance_plan._digest(
+            {key: document.get(key) for key in legacy_fields})
+        self._append_revision(created['plan_id'], document)
+
+        status, answer = self._read(created['plan_id'], 2)
+        self.assertEqual(200, status, answer)
+        self.assertNotIn('shots', answer['document'],
+                         'the read rebuilt the document instead of serving the stored bytes')
+        self.assertEqual(document['content_sha256'], answer['content_sha256'])
+        self.assertEqual([], schema_errors(load_schema(assistance_plan.PLAN_SCHEMA_PATH),
+                                           answer['document']),
+                         'a plan stored before an optional field existed no longer satisfies the '
+                         'plan contract')
+        # The row that does carry the field is untouched by any of this.
+        self.assertEqual([], schema_errors(load_schema(assistance_plan.PLAN_SCHEMA_PATH),
+                                           self._read(created['plan_id'], 1)[1]['document']))
+
+    def test_the_served_does_not_say_is_the_readback_s_list_unchanged(self):
+        created = self._create()
+        self._revise(created['plan_id'], objective='第二版')
+        detail = self._detail(created['plan_id'])
+        for number in (1, 2):
+            self.assertEqual(detail['does_not_say'], self._read(created['plan_id'], number)[1]
+                             ['does_not_say'], f'r{number} rewrote what a plan record is not')
+        self.assertEqual(list(assistance_plan.DOES_NOT_SAY),
+                         self._read(created['plan_id'], 1)[1]['does_not_say'],
+                         'the sentence list was re-authored for this envelope -- a second copy of '
+                         'a disclaimer is how the two answers start disagreeing')
+
+    def test_the_revision_read_keeps_the_plan_s_own_refusal_vocabulary(self):
+        """Unknown project, and a plan that is not in this project, are two different 404s."""
+        created = self._create()
+        other = self.service.create_project('Revision Reader')['id']
+        status, refused = self._read(created['plan_id'], 1, project='0' * 32)
+        self.assertEqual(404, status, refused)
+        self.assertEqual('PROJECT_NOT_FOUND', refused['error'])
+        status, refused = self._read(created['plan_id'], 1, project=other)
+        self.assertEqual(404, status, refused)
+        self.assertEqual('ASSISTANCE_PLAN_NOT_FOUND', refused['error'])
+        # The store refuses a non-number for any caller, not only the one the pattern screens out.
+        with self.assertRaises(AssistancePlanError) as caught:
+            assistance_plan.AssistancePlans(self.service).revision(
+                self.project, created['plan_id'], '1')
+        self.assertEqual('ASSISTANCE_PLAN_REVISION_NUMBER_INVALID', caught.exception.code)
+
+    def test_an_unreadable_revision_row_is_refused_rather_than_returned_as_a_guess(self):
+        created = self._create()
+        self._append_revision(created['plan_id'], dict(created), document_json='{not json')
+        status, refused = self._read(created['plan_id'], 2)
+        self.assertEqual(409, status, refused)
+        self.assertEqual('ASSISTANCE_PLAN_REVISION_UNREADABLE', refused['error'])
+        self.assertIn('无法解析', refused['detail'])
+        self.assertIn('猜出来', refused['detail'],
+                      'the refusal has to say the service does not hand back a guessed version')
+
+    def test_a_revision_whose_digest_no_longer_covers_its_bytes_is_refused(self):
+        """Both directions of the same disagreement: edited bytes, or a column that moved alone.
+
+        ``plan_feedback.list()`` raises PLAN_FEEDBACK_BYTES_MOVED in exactly this situation and this
+        read copies that discipline at 500 -- a row that no longer hashes to what it publishes is a
+        server-side fault, and serving it would put one revision's digest beside another
+        revision's words on a comparison card.
+        """
+        created = self._create()
+        edited = dict(created, neutral_creative='被人改过的正文，摘要却还是旧的。')
+        self._append_revision(created['plan_id'], edited)
+        status, refused = self._read(created['plan_id'], 2)
+        self.assertEqual(500, status, refused)
+        self.assertEqual('ASSISTANCE_PLAN_REVISION_BYTES_MOVED', refused['error'])
+        self.assertIn(created['plan_id'], refused['detail'])
+        self.assertIn('no longer hashes to what was stored', refused['detail'])
+
+        self._append_revision(created['plan_id'], created, content_sha256='sha256:' + '1' * 64)
+        status, refused = self._read(created['plan_id'], 3)
+        self.assertEqual(500, status, refused)
+        self.assertEqual('ASSISTANCE_PLAN_REVISION_BYTES_MOVED', refused['error'])
+        self.assertIn('sha256:' + '1' * 64, refused['detail'])
+
     # -- the object's own refusals ----------------------------------------------------
 
     def test_the_output_type_vocabulary_is_served_before_any_project_exists(self):
@@ -421,7 +670,8 @@ class AssistancePlanTests(unittest.TestCase):
         self.assertTrue(state_schema('design-lab-state-assistance-plan-v1.sql').is_file())
         for path in (assistance_plan.PLAN_SCHEMA_PATH, assistance_plan._READBACK_SCHEMA_PATH,
                      assistance_plan._WRITE_SCHEMA_PATH, assistance_plan._LIST_SCHEMA_PATH,
-                     assistance_plan._OUTPUT_TYPES_SCHEMA_PATH):
+                     assistance_plan._OUTPUT_TYPES_SCHEMA_PATH,
+                     assistance_plan._REVISION_SCHEMA_PATH):
             self.assertTrue(path.is_file(), path)
 
 

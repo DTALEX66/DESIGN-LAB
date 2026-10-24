@@ -453,7 +453,22 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # the exact-substring count is deliberate, so a container that shares the tag but not
         # the class does not silently inflate it. Empty states here stay <p>/emptyLi() too:
         # "no plan yet" must not be drawn as a list with zero members.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 66)
+        # 2026-10-24 (DL-KB-10) again: 66 -> 70. The 目标组合选择面板's four containers, all named:
+        # the 官方支持 column (tp-official-list), the 本项目未测试 column (tp-untested-list), the
+        # validate answer's verdict rows (tp-verdict-list), and the 更多设置 block's 13-field
+        # readback of one profile. The screen's route cards are <article class="row-card">, the
+        # dimension rows and the histogram are <div class="grid-stack">, and every empty state is
+        # <p> or emptyLi() — so none of those add a container. Again the inventory grew by four
+        # verified columns, the threshold did not move.
+        # 2026-10-24 (DL-KB-16) again: 70 -> 71. One new container, named: the plan detail's
+        # voluntary-feedback history (`as-fb-history`). Its empty and unreadable states stay on the
+        # <p class="view-hint"> status line above it -- a list of zero rows would read as "checked
+        # and empty", which is a different claim from "the service refused" or "nothing recorded".
+        # 2026-10-24 (DL-KB-12) again: 71 -> 72. One new container, named: the revision comparison's
+        # field rows (`as-compare-body`). The 镜头表 read back in the plan body is
+        # `'list as-shot-list'`, which the exact substring deliberately does not count, and the
+        # comparison's "cannot read, so nothing is compared" case stays on the status <p>.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 72)
 
 
 if __name__ == "__main__":

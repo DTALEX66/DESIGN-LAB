@@ -134,6 +134,36 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "design-lab/schemas/assistance-plan-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-readback-v1.schema.json"
 "design-lab/schemas/assistance-plan-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-list-v1.schema.json"
 "design-lab/schemas/assistance-plan-output-types-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-output-types-v1.schema.json"
+# DL-KB-09 (2026-10-24): the target profile's five contracts plus the seed registry itself, all
+# opened through repo_resource by `target_profile.py` on every route. An installed wheel that lost
+# any of these would answer 500 TARGET_PROFILE_CONTRACT_UNREADABLE -- a missing packaged file
+# reported as a verdict about somebody else's product. The seed config is the profile data: without
+# it the registry would answer an empty list and look like "no official basis exists".
+"design-lab/schemas/target-profile-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-v1.schema.json"
+"design-lab/schemas/target-profile-write-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-write-v1.schema.json"
+"design-lab/schemas/target-profile-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-list-v1.schema.json"
+"design-lab/schemas/target-profile-axes-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-axes-v1.schema.json"
+"design-lab/schemas/target-profile-validate-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-validate-v1.schema.json"
+"design-lab/config/target-profiles.json" = "design_lab/resources/repo/design-lab/config/target-profiles.json"
+# DL-KB-16 (2026-10-24): the three plan-feedback contracts, opened through repo_resource by
+# `plan_feedback.py` on every route. Without these lines an installed wheel would answer 500
+# PLAN_FEEDBACK_CONTRACT_UNREADABLE -- a missing packaged file reported as a verdict about
+# somebody's external experience. The state SQL rides the `schemas/state` directory above.
+"design-lab/schemas/plan-feedback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/plan-feedback-v1.schema.json"
+"design-lab/schemas/plan-feedback-write-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/plan-feedback-write-v1.schema.json"
+"design-lab/schemas/plan-feedback-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/plan-feedback-list-v1.schema.json"
+# DL-KB-11 (2026-10-24): the plan export contract, opened through repo_resource by `plan_export.py`
+# on every export. Without this line an installed wheel would answer 500
+# PLAN_EXPORT_CONTRACT_UNREADABLE -- a file this build forgot to ship, reported to the designer as a
+# verdict about their own plan. The assistance-plan contracts above already carry the shot rows,
+# which live inside the stored document and add no new file.
+"design-lab/schemas/plan-export-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/plan-export-v1.schema.json"
+# DL-KB-12 (2026-10-24): the single-revision read, opened through repo_resource by
+# `assistance_plan.revision()` on every call. Without this line an installed wheel would answer 500
+# ASSISTANCE_PLAN_CONTRACT_UNREADABLE -- a file this build forgot to ship, reported to the designer
+# as a problem with their own plan. The stored document it $refs is already carried by the
+# assistance-plan contract above, so this route adds one envelope file and no second document.
+"design-lab/schemas/assistance-plan-revision-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-revision-v1.schema.json"
 "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
 "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
 

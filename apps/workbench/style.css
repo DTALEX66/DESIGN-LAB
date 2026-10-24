@@ -2022,3 +2022,23 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   border-radius:var(--uif-radius-card);background:var(--surface-2)}
 .as-meta{display:grid;gap:var(--uif-space-1);margin-top:var(--uif-space-4)}
 .as-meta p{margin:0}
+
+/* DL-KB-10（2026-10-24）：目标组合选择面板。这一面只有排列与换行是新的：面板、列表、
+   药丸、折叠区、字段行全部复用既有 .panel/.list/.list-item/.tag/.advanced/.field-row/.kb-*
+   原语。宽度一律用 ch 与 --uif-* 令牌，不新增字面 px 或字面色值——§4 的存量由
+   scripts/design_debt_baseline.py 按实测看守，多一处就要连带改契约。
+   .tp-name 的 overflow-wrap:anywhere 是 02:150 / 06:48 那条"长中文型号名不被裁切"在这里的
+   落点：靠换行容纳，不靠缩字号，也不靠 ellipsis 把字藏起来。 */
+.tp-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(22ch,1fr));
+  gap:var(--uif-space-3);align-items:end}
+.tp-row .input{width:100%;min-width:0}
+.tp-line{margin:0;font-size:var(--uif-font-small);line-height:var(--uif-body-line-height);
+  overflow-wrap:anywhere}
+.tp-name{min-width:0;overflow-wrap:anywhere}
+.tp-plan{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
+  font-size:var(--uif-font-small);color:var(--muted)}
+.tp-dimension{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);
+  gap:var(--uif-space-2);align-items:center}
+.tp-dimension-name{display:flex;flex-wrap:wrap;align-items:center;
+  gap:var(--uif-space-1);min-width:0;overflow-wrap:anywhere}
+.tp-dimension .input{width:100%;min-width:0}

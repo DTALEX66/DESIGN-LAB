@@ -206,6 +206,89 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                      'as-choose', 2],
                     'E2E design-assistant flow facts are not the expected shape: '
                     + json.dumps(assistant, ensure_ascii=False))
+                # DL-KB-16: the voluntary external-use report is the last link of the chain, and
+                # the three things a reader cannot take on trust are that its words came from the
+                # service, that writing one left the plan alone, and that it survived the page
+                # being thrown away. Each is a measured field in the artifact, not a sentence.
+                self.assertEqual(
+                    [assistant.get('feedbackOutcomeOptionsRendered'),
+                     assistant.get('feedbackRecorded'), assistant.get('feedbackKeptPlan'),
+                     assistant.get('feedbackOverclaim'), assistant.get('feedbackWrites'),
+                     assistant.get('feedbackSurvivedReload')],
+                    [4, True, True, False, 1, True],
+                    'E2E external-use-feedback facts are not the expected shape: '
+                    + json.dumps({key: assistant.get(key) for key in (
+                        'feedbackOutcomeOptionsRendered', 'feedbackRecorded',
+                        'feedbackKeptPlan', 'feedbackOverclaim', 'feedbackWrites',
+                        'feedbackSurvivedReload')}, ensure_ascii=False))
+                # DL-KB-11: the handoff materials the screen offered, the one refusal a designer
+                # hits first, and the one download that carried the answer's own name and digest.
+                self.assertEqual(
+                    [assistant.get('copyFormat'), assistant.get('materialFormatsOffered'),
+                     assistant.get('materialCsvRefused'), assistant.get('materialDownloaded')],
+                    ['markdown', 4, True, True],
+                    'E2E handoff-material facts are not the expected shape: '
+                    + json.dumps({key: assistant.get(key) for key in (
+                        'copyFormat', 'materialFormatsOffered', 'materialCsvRefused',
+                        'materialDownloaded')}, ensure_ascii=False))
+                # DL-KB-12: the retrieval face. Three things a reader cannot take on trust, each
+                # measured rather than narrated: a filtered list that says which subset it read,
+                # two revisions whose stored digests differ (a comparison of one revision twice
+                # would produce identical ones), and a copy whose source kept its revision count
+                # and its voluntary feedback records.
+                self.assertEqual(
+                    [assistant.get('planSearchFiltered'),
+                     assistant.get('filterSurvivedReload'),
+                     assistant.get('compareRealRevisions'),
+                     assistant.get('duplicateLeftSourceAlone'),
+                     assistant.get('sourceRevisionsAfterCopy'),
+                     assistant.get('sourceFeedbackAfterCopy')],
+                    [True, True, True, True, 2, 1],
+                    'E2E plan-retrieval facts are not the expected shape: '
+                    + json.dumps({key: assistant.get(key) for key in (
+                        'planSearchFiltered', 'filterSurvivedReload', 'compareRealRevisions',
+                        'duplicateLeftSourceAlone', 'sourceRevisionsAfterCopy',
+                        'sourceFeedbackAfterCopy')}, ensure_ascii=False))
+                self.assertRegex(str(assistant.get('duplicateId')), r'^aplan-[0-9a-f]{32}$',
+                                 'the copy\'s id is not the shape the create route mints -- a page '
+                                 'that invented one would look identical here')
+                self.assertGreaterEqual(int(assistant.get('compareFieldRows') or 0), 10,
+                                        'the comparison compared almost nothing: '
+                                        + str(assistant.get('compareFieldRows')))
+                # DL-KB-12 second half: 「重启后仍能看到…未完成的编辑」. Four claims, in the order the
+                # scenario produced them -- no draft left over from the saves that came before, one
+                # written for the unfinished edit, that edit back in the form after the page was
+                # thrown away, the service list unchanged while it was only a draft, and the draft
+                # gone once the write really succeeded.
+                self.assertEqual(
+                    [assistant.get('draftKeysAfterSaves'),
+                     assistant.get('draftWrittenKeys'),
+                     assistant.get('draftSurvivedReload'),
+                     assistant.get('draftListUntouched'),
+                     assistant.get('draftClearedAfterSubmit')],
+                    [0, 1, True, True, True],
+                    'E2E plan-draft facts are not the expected shape: '
+                    + json.dumps({key: assistant.get(key) for key in (
+                        'draftKeysAfterSaves', 'draftWrittenKeys', 'draftSurvivedReload',
+                        'draftListUntouched', 'draftClearedAfterSubmit')}, ensure_ascii=False))
+                # DL-KB-14: the six states, each asserted against what the page actually showed.
+                # The scenario name is only pushed when the step ran, so a run that skipped it
+                # cannot satisfy this -- and `allSixAsserted` is derived from the six keys, so a
+                # state that never got measured cannot hide behind a `true` someone typed in.
+                self.assertIn('six-state-surfaces', payload.get('scenario') or [],
+                              'E2E_REQUIRED summary does not list the six-state scenario: '
+                              + str(payload.get('scenario')))
+                states = (payload.get('stateLoop') or {}).get('states') or {}
+                self.assertEqual(
+                    sorted(states),
+                    ['attachmentUnparsed', 'knowledgeEmpty', 'modelUnavailable',
+                     'oldVersionReadOnly', 'saveFailureNamed', 'targetIncompatibleShown'],
+                    'the six-state surface card is not the six states this card names: '
+                    + json.dumps(states, ensure_ascii=False))
+                self.assertEqual(
+                    (payload.get('stateLoop') or {}).get('allSixAsserted'), True,
+                    'at least one of the six states was not asserted in the browser: '
+                    + json.dumps(payload.get('stateLoop'), ensure_ascii=False))
 
     def test_e2e_script_is_lint_clean(self):
         # The browser driver must be a parseable ESM module; guard against a

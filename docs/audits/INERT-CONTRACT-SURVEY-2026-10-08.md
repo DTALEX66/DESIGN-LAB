@@ -27,7 +27,7 @@
 {
   "contracts": 32,
   "inertRows": 30,
-  "productFiles": 222,
+  "productFiles": 225,
   "rows": [
     {
       "best_table": "assistance_plan",
@@ -46,7 +46,8 @@
       "schema": "design-lab/schemas/contracts/action-plan.schema.json",
       "state": "TABLE_WRITES_THIS_ACTIVITY",
       "table_readers": [
-        "src/design_lab/assistance_plan.py"
+        "src/design_lab/assistance_plan.py",
+        "src/design_lab/plan_feedback.py"
       ],
       "table_writers": [
         "src/design_lab/assistance_plan.py"
@@ -741,7 +742,7 @@
     "TABLE_EXISTS_UNWRITTEN": 3,
     "TABLE_WRITES_THIS_ACTIVITY": 10
   },
-  "tables": 48
+  "tables": 50
 }
 ```
 

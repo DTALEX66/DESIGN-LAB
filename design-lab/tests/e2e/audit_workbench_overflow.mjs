@@ -35,7 +35,12 @@ const serviceUrl = process.env.E2E_SERVICE_URL;
 const token = process.env.E2E_TOKEN;
 const nmDir = process.env.E2E_NODE_MODULES;
 const browserPath = process.env.E2E_BROWSER || undefined;
-const widths = (process.env.OV_WIDTHS || '1440,1280,1920')
+// 1536 is not a fourth "random laptop": it is 1920 physical at Windows 125% display scaling, the
+// same mapping the zoom receipts use (100% / 125% / 150% of a 1920-wide panel = 1920 / 1536 / 1280
+// CSS px). 1280 was already swept, so before 1536 was added this gate measured two of the three
+// zoom cases and skipped the middle one. Height stays the gate's own budget (900 nominal, 620
+// short) rather than a scaled one: the claim being made here is about width-driven clipping.
+const widths = (process.env.OV_WIDTHS || '1440,1280,1536,1920')
   .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
 const outPath = process.env.OV_OUT || '';
 const strict = process.env.OV_STRICT === '1';
@@ -101,6 +106,10 @@ const ROUTES = [
   ['knowledge', '#/knowledge'],
   // DL-KB-08: 设计辅助。成对字段行（.as-row）与四态药丸在窄一档的桌面窗口里最先溢出。
   ['assistant', '#/assistant'],
+  // DL-KB-10: 目标组合选择面板。五个选择框、两栏对照与最多两条路线都在这一面；长中文型号名
+  // （「MiniMax H3（ComfyUI 集成）」）与档案正文的长句是这一屏最容易在该档被切到的东西
+  // ——02:150 / 06:48 要验的就是这三档桌面视口下的它。
+  ['target-profiles', '#/target-profiles'],
 ];
 
 // Deliberate clip: the screen-reader-only route-change announcer.
@@ -205,7 +214,7 @@ const MEASURE = () => {
   // answering. Hit-test the affordances that must always be reachable. An element that is
   // absent or has no box on this route is skipped (the legacy workbench chrome hides the
   // B10 topbar), because "not on screen" is not the same claim as "covered by something".
-  const CRITICAL = [['#topNotice', '顶栏通知'], ['#openDrawer', '顶栏工作区'],
+  const CRITICAL = [['#openSettings', '顶栏设置'], ['#openDrawer', '顶栏工作区'],
     ['#openPalette', '顶栏搜索入口']];
   out.occluded = [];
   // A modal overlay is *supposed* to cover the page behind it -- that is not the defect this
