@@ -145,12 +145,18 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
             self.assertIn('E2E_OK', proc.stdout, 'E2E did not reach a full-slice readback:\n'
                                                   + proc.stdout + proc.stderr)
             # P0-G evidence chain: required mode (CI no-skip job, $E2E_REQUIRED=1)
-            # must leave a machine-readable PASS summary behind; locally the test
-            # stays honest — a missing summary is NOT a failure (the honest answer
-            # on a toolchain-less checkout is the skip reason above, not a gap).
-            if os.environ.get('E2E_REQUIRED') == '1':
-                summary = ROOT / '.project-local' / 'task-artifacts' / 'browser-e2e' / \
-                    'browser-e2e-summary.json'
+            # must leave a machine-readable PASS summary behind.
+            #
+            # This block used to run ONLY under E2E_REQUIRED=1, which a local run does not set.
+            # That made every evidence assertion below it invisible until a push: the 2026-10-24
+            # A5 roster typo (a list compared against `sorted(...)`, typed in the driver's
+            # insertion order) stayed green locally and was convicted only by CI. A run that
+            # reached this line has a real toolchain and a driver that exits non-zero when a
+            # walked fact is missing, so the summary is read whenever it exists -- and a required
+            # run that wrote no summary at all is still a hard failure.
+            summary = ROOT / '.project-local' / 'task-artifacts' / 'browser-e2e' / \
+                'browser-e2e-summary.json'
+            if os.environ.get('E2E_REQUIRED') == '1' or summary.is_file():
                 self.assertTrue(summary.is_file(),
                                 'E2E_REQUIRED but no evidence summary written: '
                                 f'{summary}')
@@ -279,10 +285,15 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                               'E2E_REQUIRED summary does not list the six-state scenario: '
                               + str(payload.get('scenario')))
                 states = (payload.get('stateLoop') or {}).get('states') or {}
+                # Both rosters are wrapped in sorted() on purpose. Each is compared against
+                # `sorted(...)`, so a literal typed in the driver's insertion order is unmatchable
+                # -- and until 2026-10-24 this whole block ran only when E2E_REQUIRED=1, which CI
+                # sets and a local run does not. That combination is how the A5 roster sat green
+                # locally and failed CI: an order typo was invisible to every local signal.
                 self.assertEqual(
                     sorted(states),
-                    ['attachmentUnparsed', 'knowledgeEmpty', 'modelUnavailable',
-                     'oldVersionReadOnly', 'saveFailureNamed', 'targetIncompatibleShown'],
+                    sorted(['attachmentUnparsed', 'knowledgeEmpty', 'modelUnavailable',
+                            'oldVersionReadOnly', 'saveFailureNamed', 'targetIncompatibleShown']),
                     'the six-state surface card is not the six states this card names: '
                     + json.dumps(states, ensure_ascii=False))
                 self.assertEqual(
@@ -300,12 +311,13 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                 kb_states = (payload.get('knowledgeLoop') or {}).get('states') or {}
                 self.assertEqual(
                     sorted(kb_states),
-                    ['blankFieldsStoredAsUnknown', 'clipboardHoldsTheServedBody',
-                     'emptyTrailSaidNotAskedAndAnswered', 'entryWrittenAndOpened',
-                     'judgementRecordedOnce', 'nameRefusedWithoutRequest',
-                     'pickerOffersAllFiveKinds', 'planCitesEveryKind',
-                     'planCitesTheKnowledgeEntry', 'reasonRefusedWithoutRequest',
-                     'screenMatchesServedReadback', 'sourceNeedsAnOpenableReplacement'],
+                    sorted(['blankFieldsStoredAsUnknown', 'clipboardHoldsTheServedBody',
+                            'emptyTrailSaidNotAskedAndAnswered', 'entryWrittenAndOpened',
+                            'judgementRecordedOnce', 'nameRefusedWithoutRequest',
+                            'pickerOffersAllFiveKinds', 'planCitesEveryKind',
+                            'planCitesTheKnowledgeEntry', 'reasonRefusedWithoutRequest',
+                            'screenMatchesServedReadback',
+                            'sourceNeedsAnOpenableReplacement']),
                     'the knowledge-detail card is not the twelve facts this walk names: '
                     + json.dumps(kb_states, ensure_ascii=False))
                 self.assertEqual(
