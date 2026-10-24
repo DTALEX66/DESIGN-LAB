@@ -1777,6 +1777,49 @@ try {
     await page.locator('#kb-source-submit').click();
     const sourceRefused = await paintedSentence('替代条目的编号');
     const postsAfterSourceClick = judgePosts;
+
+    // ---- the reuse link, in the same browser session -------------------------------------
+    // The reference picker used to offer only this workspace's assets, so a plan could never cite
+    // the library entry it actually worked from. Drive the picker: the entry this walk just created
+    // must be selectable, and the plan must come back pinned to its revision and digest.
+    await page.evaluate(() => { window.location.hash = '#/assistant'; });
+    await page.locator('#as-objective').waitFor({ state: 'visible', timeout: 20000 });
+    await page.locator('#as-output-type').waitFor({ state: 'visible', timeout: 20000 });
+    const optionValues = await page.evaluate(() => Array.from(
+      document.getElementById('as-reference-select')?.options ?? []).map((o) => o.value));
+    const entryId = createdBody?.entry?.knowledge_entry_id ?? '';
+    const pickerOffersBothSources = optionValues.includes(`KNOWLEDGE:${entryId}`)
+      && optionValues.some((value) => value.startsWith('ASSET:'));
+    await page.selectOption('#as-reference-select', `KNOWLEDGE:${entryId}`);
+    await page.locator('#as-reference-add').click();
+    const citedRow = await page.evaluate(() => ((
+      document.getElementById('as-references')?.textContent ?? '')));
+    // STORYBOARD, not IMAGE: this page session still carries the shot rows an earlier
+    // lane step left in the form, and the store refuses shots on a print plan with
+    // ASSISTANCE_PLAN_SHOTS_NOT_APPLICABLE -- a correct refusal the walk must not fight.
+    await page.locator('#as-output-type').selectOption('STORYBOARD');
+    await page.locator('#as-objective').fill('把刚读回的拆解法用进一条秋季主视觉');
+    await page.locator('#as-author').fill('E2E Plan Author');
+    const planSaved = page.waitForResponse((r) => /\/assistance-plans$/.test(r.url())
+      && r.request().method() === 'POST', { timeout: 25000 });
+    await page.locator('#as-submit').click();
+    const planBody = await planSaved.then((r) => r.json()).catch(() => null);
+    const cited = (planBody?.plan?.references ?? [])[0] ?? null;
+    const citeDiagnosis = {
+      rowText: citedRow.slice(0, 160),
+      planStatus: planBody?.status ?? planBody?.error ?? null,
+      formError: await page.evaluate(() => document.getElementById('as-form-error')
+        ?.textContent ?? ''),
+      formStatus: await page.evaluate(() => document.getElementById('as-form-status')
+        ?.textContent ?? ''),
+      cited, want: { kind: 'KNOWLEDGE', id: entryId, revision: createdBody?.entry?.revision,
+                    sha256: createdBody?.entry?.content_sha256 },
+    };
+    const planCitesTheKnowledgeEntry = citedRow.includes(entryId)
+      && citedRow.includes('知识条目')
+      && cited?.kind === 'KNOWLEDGE' && cited?.id === entryId
+      && cited?.revision === createdBody?.entry?.revision
+      && cited?.sha256 === createdBody?.entry?.content_sha256;
     page.off('request', watch);
 
     const states = {
@@ -1797,6 +1840,11 @@ try {
         && onScreen.basis && !onScreen.stillSaysNobody,
       sourceNeedsAnOpenableReplacement: sourceRefused
         && postsAfterSourceClick === postsAfterJudgeClick,
+      // The reuse link: the picker offers the library entry as well as the workspace's
+      // assets, and the plan that cites it comes back pinned to that entry's revision and
+      // digest -- the numbers the store resolved, not the ones the page sent.
+      pickerOffersBothSources,
+      planCitesTheKnowledgeEntry,
     };
     const missing = Object.keys(states).filter((key) => states[key] !== true);
     knowledgeLoop = { states, allAsserted: missing.length === 0, missing, served, onScreen,
@@ -1809,7 +1857,8 @@ try {
     if (missing.length) {
       await abort('E2E_KNOWLEDGE_DETAIL_NOT_WALKED: ' + JSON.stringify(missing)
                   + ' detail=' + JSON.stringify({ createdStatus: createdBody?.status,
-                    served, onScreen, posts: knowledgeLoop.posts, trailPainted }), 15, ctx, b);
+                    served, onScreen, posts: knowledgeLoop.posts, trailPainted,
+                    citeDiagnosis }), 15, ctx, b);
     }
   });
 

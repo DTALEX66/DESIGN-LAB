@@ -6307,6 +6307,7 @@ async function renderDesignAssistant(target) {
   let workspaces = [];
   let selected = "";
   let references = [];
+  let knowledgeChoices = [];
   let assets = [];
   let plans = [];
   let planAnswer = OFFLINE.assistancePlans;
@@ -6317,6 +6318,7 @@ async function renderDesignAssistant(target) {
   let workspaceNotice = "";
   let plansNotice = "";
   let assetsNotice = "";
+  let knowledgeNotice = "";
   async function loadVocabulary() {
     const answer = await apiOrEmpty(
       "/assistance-plan-output-types",
@@ -6346,6 +6348,19 @@ async function renderDesignAssistant(target) {
     assetsNotice = shapeNotice(answer);
     return answer;
   }
+  async function loadKnowledgeChoices() {
+    const answer = await apiOrEmpty(
+      "/knowledge-entries/search?limit=200",
+      OFFLINE.knowledgeLibrary
+    );
+    knowledgeNotice = shapeNotice(answer);
+    knowledgeChoices = (answer.entries ?? []).map((entry) => ({
+      id: entry.knowledge_entry_id,
+      title: entry.title
+    }));
+    fillAssets();
+    renderReferences();
+  }
   const labelOf = (value) => outputTypes.find((option) => option.value === value)?.label ?? value;
   const notices = () => [vocabularyNotice, workspaceNotice, plansNotice, assetsNotice].filter(Boolean).join("；");
   function fillWorkspaces() {
@@ -6357,32 +6372,55 @@ async function renderDesignAssistant(target) {
     workspaceNameRow.classList.toggle("as-hidden", selected !== "");
   }
   function fillAssets() {
-    assetSelect.replaceChildren(
-      el("option", { value: "" }, assets.length ? "选择参考素材" : "此工作区还没有素材"),
-      ...assets.map((asset) => el(
-        "option",
-        { value: asset.id },
-        `${asset.kind === "raster" ? "图片" : asset.kind} · ${asset.id}`
-      ))
+    const none = el(
+      "option",
+      { value: "" },
+      assets.length || knowledgeChoices.length ? "选择参考（素材或知识条目）" : knowledgeNotice ? "参考清单未读回" : "此工作区还没有素材，库里也还没有条目"
     );
-    addReference.disabled = !assets.length;
+    assetSelect.replaceChildren(
+      none,
+      el(
+        "optgroup",
+        { label: "本工作区素材" },
+        ...assets.map((asset) => el(
+          "option",
+          { value: `ASSET:${asset.id}` },
+          `${asset.kind === "raster" ? "图片" : asset.kind} · ${asset.id}`
+        ))
+      ),
+      el(
+        "optgroup",
+        { label: "知识与提示词库" },
+        ...knowledgeChoices.length ? knowledgeChoices.map((entry) => el(
+          "option",
+          { value: `KNOWLEDGE:${entry.id}` },
+          `${entry.title} · ${entry.id}`
+        )) : [el("option", { value: "" }, knowledgeNotice || "库里还没有条目")]
+      )
+    );
+    addReference.disabled = !assets.length && !knowledgeChoices.length;
   }
   function renderReferences() {
-    const known = new Set(assets.map((asset) => asset.id));
-    referenceList.replaceChildren(...references.length ? references.map((id) => el(
+    const known = /* @__PURE__ */ new Set([
+      ...assets.map((asset) => `ASSET:${asset.id}`),
+      ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)
+    ]);
+    const kindLabel = (kind) => kind === "ASSET" ? "素材" : kind === "KNOWLEDGE" ? "知识条目" : kind;
+    referenceList.replaceChildren(...references.length ? references.map((reference) => el(
       "li",
       { class: "list-item as-ref" },
-      el("span", { class: "value-mono" }, id),
+      el("span", { class: "tag neutral" }, kindLabel(reference.kind)),
+      el("span", { class: "value-mono" }, reference.id),
       el(
         "span",
-        { class: "tag " + (known.has(id) ? "neutral" : "warn") },
-        known.has(id) ? "已选参考" : "不在当前素材清单"
+        { class: "tag " + (known.has(`${reference.kind}:${reference.id}`) ? "neutral" : "warn") },
+        known.has(`${reference.kind}:${reference.id}`) ? "已选参考" : "不在当前清单（保留方案里原有的引用）"
       ),
       el("button", {
         type: "button",
         class: "ghost-btn",
         onclick: () => {
-          references = references.filter((entry) => entry !== id);
+          references = references.filter((entry) => entry.id !== reference.id || entry.kind !== reference.kind);
           renderReferences();
         }
       }, "移除")
@@ -7462,7 +7500,10 @@ async function renderDesignAssistant(target) {
       step.operation_id === ASSIST_UNUSED ? "" : step.operation_id
     ].join(" | ")).join("\n");
     fillShotRows(doc.shots ?? []);
-    references = doc.references.map((reference) => reference.id);
+    references = doc.references.map((reference) => ({
+      kind: reference.kind,
+      id: reference.id
+    }));
     await refreshAssets();
     await refreshPlans();
     submit.textContent = submitLabel;
@@ -7576,7 +7617,10 @@ async function renderDesignAssistant(target) {
         role_constraints: assistanceWords(role.value),
         lens: lens.value.trim() || null,
         sound: sound.value.trim() || null,
-        references: references.map((id) => ({ kind: "ASSET", id })),
+        references: references.map((reference) => ({
+          kind: reference.kind,
+          id: reference.id
+        })),
         external_steps: stepRows,
         known_gaps: assistanceWords(gaps.value),
         limits: assistanceWords(limits.value),
@@ -7661,9 +7705,13 @@ async function renderDesignAssistant(target) {
     formError.replaceChildren();
   };
   addReference.onclick = () => {
-    const id = assetSelect.value;
-    if (!id || references.includes(id)) return;
-    references = [...references, id];
+    const chosen = assetSelect.value;
+    const separator = chosen.indexOf(":");
+    if (separator < 1) return;
+    const reference = { kind: chosen.slice(0, separator), id: chosen.slice(separator + 1) };
+    if (references.some((entry) => entry.kind === reference.kind && entry.id === reference.id))
+      return;
+    references = [...references, reference];
     renderReferences();
   };
   workspace.onchange = () => {
@@ -7696,6 +7744,9 @@ async function renderDesignAssistant(target) {
   fillWorkspaces();
   fillAssets();
   renderReferences();
+  void (async () => {
+    await loadKnowledgeChoices();
+  })();
   renderPlans();
   offerDraft();
   if (selected) {

@@ -4884,7 +4884,12 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   let materials: PlanMaterialFormat[] = [];
   let workspaces: ProjectSummary[] = [];
   let selected = '';
-  let references: string[] = [];
+  // A reference is a kind plus an id: the picker offers this workspace's assets and the
+  // library's knowledge entries, and a plan revised from an older document may also carry a
+  // brief/direction/prompt-result kind the picker cannot offer -- those are preserved, not
+  // dropped, because dropping one would rewrite what the plan says it worked from.
+  let references: { kind: string; id: string }[] = [];
+  let knowledgeChoices: { id: string; title: string }[] = [];
   let assets: AssetRecord[] = [];
   let assetAnswer: AssetListResponse = OFFLINE.assets;
   let plans: AssistancePlanRow[] = [];
@@ -4898,6 +4903,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   let workspaceNotice = '';
   let plansNotice = '';
   let assetsNotice = '';
+  let knowledgeNotice = '';
 
   async function loadVocabulary(): Promise<AssistanceOutputTypesView> {
     const answer = await apiOrEmpty<AssistanceOutputTypesView>(
@@ -4926,6 +4932,20 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     return answer;
   }
 
+  // The knowledge library is global, so this is read once per screen rather than per
+  // workspace. An empty answer is 'the library holds nothing yet'; a refused one is 'not read
+  // back' -- the two are said differently by the notice the shape guard writes.
+  async function loadKnowledgeChoices(): Promise<void> {
+    const answer = await apiOrEmpty<KnowledgeLibraryView>(
+      '/knowledge-entries/search?limit=200', OFFLINE.knowledgeLibrary);
+    knowledgeNotice = shapeNotice(answer);
+    knowledgeChoices = (answer.entries ?? []).map((entry) => ({
+      id: entry.knowledge_entry_id, title: entry.title,
+    }));
+    fillAssets();
+    renderReferences();
+  }
+
   const labelOf = (value: string): string =>
     outputTypes.find((option) => option.value === value)?.label ?? value;
 
@@ -4941,23 +4961,41 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   }
 
   function fillAssets(): void {
+    const none = el('option', { value: '' },
+      assets.length || knowledgeChoices.length
+        ? '选择参考（素材或知识条目）'
+        : (knowledgeNotice ? '参考清单未读回' : '此工作区还没有素材，库里也还没有条目'));
     assetSelect.replaceChildren(
-      el('option', { value: '' }, assets.length ? '选择参考素材' : '此工作区还没有素材'),
-      ...assets.map((asset) => el('option', { value: asset.id },
-        `${asset.kind === 'raster' ? '图片' : asset.kind} · ${asset.id}`)));
-    addReference.disabled = !assets.length;
+      none,
+      el('optgroup', { label: '本工作区素材' },
+        ...assets.map((asset) => el('option', { value: `ASSET:${asset.id}` },
+          `${asset.kind === 'raster' ? '图片' : asset.kind} · ${asset.id}`))),
+      el('optgroup', { label: '知识与提示词库' },
+        ...(knowledgeChoices.length
+          ? knowledgeChoices.map((entry) => el('option', { value: `KNOWLEDGE:${entry.id}` },
+            `${entry.title} · ${entry.id}`))
+          : [el('option', { value: '' }, knowledgeNotice || '库里还没有条目')])));
+    addReference.disabled = !assets.length && !knowledgeChoices.length;
   }
 
   function renderReferences(): void {
-    const known = new Set(assets.map((asset) => asset.id));
+    const known = new Set([
+      ...assets.map((asset) => `ASSET:${asset.id}`),
+      ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)]);
+    const kindLabel = (kind: string): string => kind === 'ASSET' ? '素材'
+      : (kind === 'KNOWLEDGE' ? '知识条目' : kind);
     referenceList.replaceChildren(...(references.length
-      ? references.map((id) => el('li', { class: 'list-item as-ref' },
-          el('span', { class: 'value-mono' }, id),
-          el('span', { class: 'tag ' + (known.has(id) ? 'neutral' : 'warn') },
-            known.has(id) ? '已选参考' : '不在当前素材清单'),
+      ? references.map((reference) => el('li', { class: 'list-item as-ref' },
+          el('span', { class: 'tag neutral' }, kindLabel(reference.kind)),
+          el('span', { class: 'value-mono' }, reference.id),
+          el('span', { class: 'tag '
+            + (known.has(`${reference.kind}:${reference.id}`) ? 'neutral' : 'warn') },
+            known.has(`${reference.kind}:${reference.id}`)
+              ? '已选参考' : '不在当前清单（保留方案里原有的引用）'),
           el('button', { type: 'button', class: 'ghost-btn',
             onclick: () => {
-              references = references.filter((entry) => entry !== id);
+              references = references.filter((entry) => entry.id !== reference.id
+                || entry.kind !== reference.kind);
               renderReferences();
             } }, '移除')))
       : [el('li', { class: 'list-item' },
@@ -5850,7 +5888,8 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     // A plan stored before the shot field existed has no member at all; that reads as "no shot
     // rows", not as a defect, and the table is left empty rather than filled with invented rows.
     fillShotRows(doc.shots ?? []);
-    references = doc.references.map((reference) => reference.id);
+    references = doc.references.map((reference) => ({ kind: reference.kind,
+                                                      id: reference.id }));
     await refreshAssets();
     await refreshPlans();
     submit.textContent = submitLabel;
@@ -5966,7 +6005,8 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
         role_constraints: assistanceWords(role.value),
         lens: lens.value.trim() || null,
         sound: sound.value.trim() || null,
-        references: references.map((id) => ({ kind: 'ASSET', id })),
+        references: references.map((reference) => ({ kind: reference.kind,
+                                                          id: reference.id })),
         external_steps: stepRows,
         known_gaps: assistanceWords(gaps.value),
         limits: assistanceWords(limits.value),
@@ -6056,9 +6096,13 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     formError.replaceChildren();
   };
   addReference.onclick = () => {
-    const id = assetSelect.value;
-    if (!id || references.includes(id)) return;
-    references = [...references, id];
+    const chosen = assetSelect.value;
+    const separator = chosen.indexOf(':');
+    if (separator < 1) return;
+    const reference = { kind: chosen.slice(0, separator), id: chosen.slice(separator + 1) };
+    if (references.some((entry) => entry.kind === reference.kind && entry.id === reference.id))
+      return;
+    references = [...references, reference];
     renderReferences();
   };
   workspace.onchange = () => {
@@ -6093,6 +6137,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   fillWorkspaces();
   fillAssets();
   renderReferences();
+  void (async () => { await loadKnowledgeChoices(); })();
   renderPlans();
   // A reload lands here, so this is where "未完成的编辑" comes back for a plan that was never opened
   // for revision or copying -- the create the designer was writing when the window closed.

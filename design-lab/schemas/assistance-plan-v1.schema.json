@@ -45,7 +45,7 @@
         "type": "object", "additionalProperties": false,
         "required": ["kind", "id", "revision", "sha256"],
         "properties": {
-          "kind": {"enum": ["ASSET", "BRIEF", "DIRECTION", "PROMPT_RESULT"]},
+          "kind": {"enum": ["ASSET", "BRIEF", "DIRECTION", "PROMPT_RESULT", "KNOWLEDGE"]},
           "id": {"type": "string", "minLength": 1},
           "revision": {"type": "integer", "minimum": 1},
           "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}

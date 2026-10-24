@@ -76,12 +76,17 @@ OUTPUT_LABELS = {'IMAGE': '平面与品牌', 'UI': '界面与交互', 'MOTION': 
                  'STORYBOARD': '分镜与脚本', 'AUDIO': '声音', 'CAMPAIGN': '整合方案'}
 UNKNOWN = 'UNKNOWN'
 UNUSED = 'UNUSED'
-REFERENCE_KINDS = ('ASSET', 'BRIEF', 'DIRECTION', 'PROMPT_RESULT')
+#: KNOWLEDGE was added for DL-KB-05 D5: a plan that used a library entry has to be able to say
+#: which revision of it, or "the recommendation moved" would silently rewrite what the plan
+#: claims it worked from. The four schema enums of this list are tied to this tuple by
+#: design-lab/tests/test_assistance_plan.py -- a word added to one side only is the defect.
+REFERENCE_KINDS = ('ASSET', 'BRIEF', 'DIRECTION', 'PROMPT_RESULT', 'KNOWLEDGE')
 REFERENCE_ID = {
     'ASSET': re.compile(r'^img-[0-9a-f]{64}$'),
     'BRIEF': re.compile(r'^brief-[0-9a-f]{32}$'),
     'DIRECTION': re.compile(r'^direction-[0-9a-f]{32}$'),
     'PROMPT_RESULT': re.compile(r'^(?:prompt|reversal)-[0-9a-f]{32}$'),
+    'KNOWLEDGE': re.compile(r'^kentry-[0-9a-f]{32}$'),
 }
 #: Fields the content digest covers. Identity (plan_id, revision) and bookkeeping (timestamps,
 #: author) are outside it, so the same content written twice digests to the same value.
@@ -469,6 +474,7 @@ def _resolve_references(conn, project_id, references):
                 ' WHERE a.asset_id = ? ORDER BY v.version_no DESC LIMIT 1',
                 ('ACTIVE', identifier)).fetchone()
             revision, digest = (row['version_no'], row['content_sha256']) if row else (None, None)
+            owner = row['project_id'] if row else None
         elif kind == 'BRIEF':
             if _table_exists(conn, 'design_brief'):
                 row = conn.execute(
@@ -476,6 +482,7 @@ def _resolve_references(conn, project_id, references):
                     (identifier,)).fetchone()
             revision, digest = ((row['version'], 'sha256:' + row['spec_sha256'])
                                 if row else (None, None))
+            owner = row['project_id'] if row else None
         elif kind == 'DIRECTION':
             if _table_exists(conn, 'design_direction'):
                 row = conn.execute(
@@ -483,7 +490,8 @@ def _resolve_references(conn, project_id, references):
                     ' WHERE direction_id=?', (identifier,)).fetchone()
             revision, digest = ((row['version'], 'sha256:' + row['spec_sha256'])
                                 if row else (None, None))
-        else:  # PROMPT_RESULT
+            owner = row['project_id'] if row else None
+        elif kind == 'PROMPT_RESULT':
             if _table_exists(conn, 'prompt_result'):
                 # result_id is unique per project, not globally (prompt_result is keyed by
                 # (project_id, revision)). Prefer this project's row so a same-named result in
@@ -494,11 +502,26 @@ def _resolve_references(conn, project_id, references):
                 row = next((entry for entry in rows if entry['project_id'] == project_id),
                            rows[0] if rows else None)
             revision, digest = ((row['revision'], row['content_sha256']) if row else (None, None))
+            owner = row['project_id'] if row else None
+        elif kind == 'KNOWLEDGE':
+            # The library is global (like /api/capabilities), so a knowledge entry has no project
+            # column to mismatch against: what a plan pins here is the entry's newest *revision*
+            # and that revision's own content digest. A judgement that later moves the entry's
+            # recommendation writes no revision, so this pin keeps pointing at the same bytes --
+            # which is the whole of DL-KB-05 D5's 旧方案仍可读.
+            if _table_exists(conn, 'knowledge_entry_revision'):
+                row = conn.execute(
+                    'SELECT revision, content_sha256 FROM knowledge_entry_revision'
+                    ' WHERE entry_id=? ORDER BY revision DESC LIMIT 1', (identifier,)).fetchone()
+            revision, digest = ((row['revision'], row['content_sha256']) if row else (None, None))
+            # Global library: a knowledge entry belongs to no project, so there is no owner
+            # to mismatch against. The pin is the entry's newest revision and its digest.
+            owner = None
         if row is None:
             raise AssistancePlanError(
                 404, 'ASSISTANCE_PLAN_REFERENCE_NOT_FOUND',
                 f'{kind} {identifier} is not stored in this checkout, so a plan cannot cite it')
-        if row['project_id'] != project_id:
+        if owner is not None and owner != project_id:
             raise AssistancePlanError(
                 409, 'ASSISTANCE_PLAN_REFERENCE_PROJECT_MISMATCH',
                 f'{kind} {identifier} belongs to another project; a plan cites only material of '
@@ -756,6 +779,15 @@ class AssistancePlans:
                 row = conn.execute('SELECT revision, content_sha256 FROM prompt_result'
                                    ' WHERE project_id=? AND result_id=?',
                                    (project_id, identifier)).fetchone()
+                current_revision = row['revision'] if row else None
+                current_sha = row['content_sha256'] if row else None
+            elif kind == 'KNOWLEDGE' and _table_exists(conn, 'knowledge_entry_revision'):
+                # The newest revision of the entry, which is not the recommended one: a
+                # judgement can move the recommendation and this reading stays put, because
+                # MAX(revision) is computed from the revision rows alone.
+                row = conn.execute('SELECT revision, content_sha256 FROM'
+                                   ' knowledge_entry_revision WHERE entry_id=?'
+                                   ' ORDER BY revision DESC LIMIT 1', (identifier,)).fetchone()
                 current_revision = row['revision'] if row else None
                 current_sha = row['content_sha256'] if row else None
             if current_revision is None:

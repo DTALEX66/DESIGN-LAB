@@ -675,5 +675,135 @@ class AssistancePlanTests(unittest.TestCase):
             self.assertTrue(path.is_file(), path)
 
 
+    # -- DL-KB-05 D5: a plan that cites a library entry keeps its own pin ----------------
+
+    #: The create route's exact key set. Written out here rather than imported from the knowledge
+    #: suite so this file's cases cannot pass by borrowing another file's fixture.
+    KNOWLEDGE_BODY = {
+        'entry_type': 'METHOD',
+        'title': '分镜拆解三步法',
+        'summary': '把一段脚本拆成镜头表：先定节拍，再定景别，最后定转场。',
+        'domain_tags': ['film'], 'task_tags': ['storyboard'], 'target_tools': ['storyboarder'],
+        'body': '第一步按段落切节拍。第二步给每个节拍选景别。第三步只标必要的转场。',
+        'applicability': '适合 30-90 秒短片的分镜前置。',
+        'limits': '不适用于需要精确口型对位的动画。',
+        'source': {'sourceId': 'plan-cites-knowledge', 'origin': 'UNKNOWN',
+                   'author': 'owner', 'license': 'project-internal', 'licenseStatus': 'reviewed',
+                   'allowedUsage': 'UNKNOWN', 'citationScope': 'UNKNOWN', 'version': '1',
+                   'observedAt': '2026-10-24T00:00:00Z', 'contentHash': 'UNKNOWN',
+                   'verification': 'UNVERIFIED'},
+        'related_capability_ids': [], 'recommended': True, 'created_by': 'owner',
+        'supersedes': None,
+    }
+
+    def _knowledge(self, **overrides) -> tuple:
+        status, created = self._call('POST', '/api/knowledge-entries',
+                                     dict(self.KNOWLEDGE_BODY, **overrides))
+        self.assertEqual(201, status, created)
+        entry = created['entry']
+        return (entry['knowledge_entry_id'], entry['revision'], entry['content_sha256'])
+
+    def _knowledge_revise(self, entry_id, revision, **overrides):
+        body = {key: value for key, value in dict(self.KNOWLEDGE_BODY, **overrides).items()
+                if key != 'supersedes'}
+        status, answer = self._call(
+            'POST', f'/api/knowledge-entries/{entry_id}/revisions',
+            dict(body, expected_revision=revision, recommended=False,
+                 title='分镜拆解三步法（修订）'))
+        self.assertEqual(201, status, answer)
+        return answer['entry']
+
+    def _plan_reference(self, plan_id):
+        detail = self._call('GET', f'/api/projects/{self.project}/assistance-plans/'
+                                   f'{plan_id}')[1]
+        return detail['current']['references'][0], detail['reference_status'][0]
+
+    def test_a_cited_entry_is_pinned_to_the_newest_revision_not_the_recommended_one(self):
+        entry_id, first_revision, first_digest = self._knowledge()
+        second = self._knowledge_revise(entry_id, first_revision)
+        created = self._create(references=[{'kind': 'KNOWLEDGE', 'id': entry_id}])
+        pinned, status = self._plan_reference(created['plan_id'])
+        self.assertEqual(second['revision'], pinned['revision'],
+                         'a plan pinned the recommended revision; it cites the bytes that exist, '
+                         'which is the newest revision -- recommendation is a separate answer')
+        self.assertEqual(second['content_sha256'], pinned['sha256'])
+        self.assertEqual('CURRENT', status['state'])
+        self.assertIsNone(status['analysis'],
+                          'a knowledge link is not an image analysis; nothing here ran a model')
+
+    def test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes(self):
+        """DL-KB-05 D5, end to end through the routes: 回退推荐版本后旧方案仍可读."""
+        entry_id, first_revision, _ = self._knowledge()
+        second = self._knowledge_revise(entry_id, first_revision)
+        created = self._create(references=[{'kind': 'KNOWLEDGE', 'id': entry_id}])
+        before, before_status = self._plan_reference(created['plan_id'])
+        status, moved = self._call(
+            'POST', f'/api/knowledge-entries/{entry_id}/judgements',
+            {'kind': 'RECOMMENDATION', 'revision': first_revision, 'value': None,
+             'replaced_by': None, 'reason': '旧版本那三步在实际项目里更稳。',
+             'recorded_by': '张工', 'recorded_by_kind': 'HUMAN'})
+        self.assertEqual(201, status, moved)
+        self.assertEqual(first_revision, moved['recommended_revision'])
+        self.assertEqual(2, moved['latest_revision'])
+        self.assertEqual('recorded-judgement', moved['recommendation_basis'])
+        after, after_status = self._plan_reference(created['plan_id'])
+        self.assertEqual(before, after,
+                         'the plan changed what it cites because somebody moved a recommendation')
+        self.assertEqual(second['content_sha256'], after['sha256'])
+        self.assertEqual('CURRENT', after_status['state'],
+                         'the pinned revision is still the newest row, so the link cannot be '
+                         'reported as changed by a judgement that wrote no revision')
+
+    def test_a_new_revision_moves_the_link_to_changed_without_touching_the_pin(self):
+        entry_id, first_revision, _ = self._knowledge()
+        second = self._knowledge_revise(entry_id, first_revision)
+        created = self._create(references=[{'kind': 'KNOWLEDGE', 'id': entry_id}])
+        pinned, _ = self._plan_reference(created['plan_id'])
+        third = self._knowledge_revise(entry_id, 2, body='第三步改成先标轴线，再标转场。')
+        still_pinned, status = self._plan_reference(created['plan_id'])
+        self.assertEqual(pinned, still_pinned, 'a later revision rewrote an older plan\'s pin')
+        self.assertEqual(second['content_sha256'], still_pinned['sha256'],
+                         'the pin moved off the revision the plan actually cited')
+        self.assertEqual('CHANGED', status['state'])
+        self.assertEqual(third['revision'], status['current_revision'])
+
+    def test_an_unknown_or_malformed_knowledge_reference_is_refused(self):
+        for identifier, code, status_wanted in (
+                ('kentry-' + '0' * 32, 'ASSISTANCE_PLAN_REFERENCE_NOT_FOUND', 404),
+                ('kc-2026-01', 'ASSISTANCE_PLAN_REFERENCE_ID_MALFORMED', 400)):
+            status, body = self._call(
+                'POST', f'/api/projects/{self.project}/assistance-plans',
+                plan_body(references=[{'kind': 'KNOWLEDGE', 'id': identifier}]))
+            self.assertEqual(status_wanted, status, body)
+            self.assertEqual(code, body['error'], body)
+
+    def test_the_reference_kind_list_is_one_list_across_the_schemas(self):
+        # Five words, four schemas, one tuple. Without this tie a kind can be added to the store
+        # and left out of a contract (or the other way round) and every per-file test still passes.
+        from design_lab import plan_export
+        expected = list(assistance_plan.REFERENCE_KINDS)
+        self.assertIn('KNOWLEDGE', expected)
+        for path in (assistance_plan.PLAN_SCHEMA_PATH, assistance_plan._READBACK_SCHEMA_PATH,
+                     plan_export._SCHEMA_PATH):
+            document = load_schema(path)
+            found = set()
+
+            def walk(node):
+                if isinstance(node, dict):
+                    if node.get('enum') == expected or 'ASSET' in str(node.get('enum')):
+                        found.add(tuple(node['enum']))
+                    for value in node.values():
+                        walk(value)
+                elif isinstance(node, list):
+                    for value in node:
+                        walk(value)
+            walk(document)
+            self.assertTrue(found, f'{path.name} declares no reference-kind enum at all')
+            for kinds in found:
+                self.assertEqual(tuple(expected), kinds,
+                                 f'{path.name} lists reference kinds the store does not accept '
+                                 '(or is missing one): ' + str(kinds))
+
+
 if __name__ == '__main__':
     unittest.main()
