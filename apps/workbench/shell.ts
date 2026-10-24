@@ -3524,6 +3524,22 @@ const KB_FIELD_LABELS: Record<string, string> = {
   domain_tags: '领域标签', task_tags: '任务标签', target_tools: '目标工具',
 };
 
+/**
+ * The clipboard is not guaranteed (permissions, focus, non-secure contexts), so a refused write
+ * shows the exact bytes in a selected read-only box instead of claiming a copy that never happened.
+ * Shared by the plan materials and the knowledge entry body: the two must fail the same way.
+ */
+function showCopyFallback(text: string, note: HTMLElement): void {
+  const area = el('textarea', { class: 'input as-copy-fallback', rows: '6',
+    readonly: 'readonly' });
+  area.value = text;
+  note.replaceChildren(el('span', {},
+    '浏览器没有允许写入剪贴板：文本已在下方展开并选中，按 Ctrl+C 复制。'
+    + '这只是复制，不是选用。'), area);
+  area.focus();
+  area.select();
+}
+
 function kbTypeLabel(vocabulary: KnowledgeTypeOption[], value: string): string {
   return vocabulary.find((option) => option.value === value)?.label ?? value;
 }
@@ -3771,11 +3787,28 @@ function kbDetailPanel(
     children.push(...kbEntryBlocks(current, vocabulary));
     children.push(el('h4', {}, '来源与许可'));
     children.push(el('ul', { class: 'list' }, ...kbSourceRows(current.source)));
+    const copyNote = el('p', { class: 'view-hint', role: 'status', id: 'kb-copy-status' });
+    const copyButton = el('button', { type: 'button', class: 'ghost-btn', id: 'kb-copy-body' },
+      '复制正文');
+    copyButton.onclick = (): void => {
+      // What goes to the clipboard is the served body, byte for byte: the page adds no citation,
+      // no title and no formatting, so what a designer pastes into a tool is what the entry says.
+      const text = current.body;
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          copyNote.textContent = `已复制正文 ${text.length} 个字符：`
+            + '这只是复制到剪贴板，没有发送任何东西，也没有改动条目。';
+        }, () => showCopyFallback(text, copyNote));
+        return;
+      }
+      showCopyFallback(text, copyNote);
+    };
     children.push(el('div', { class: 'kb-actions' },
       el('button', { type: 'button', class: 'primary-btn',
         onclick: () => actions.revise(current) }, '修订为新版本'),
       el('button', { type: 'button', class: 'ghost-btn',
-        onclick: () => actions.importReplace(current) }, '导入新版本并替代')));
+        onclick: () => actions.importReplace(current) }, '导入新版本并替代'),
+      copyButton), copyNote);;
   }
   if (detail.recommended && detail.recommended_revision !== detail.latest_revision) {
     children.push(el('h4', {},
@@ -5195,17 +5228,6 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     note.textContent = materialReply(file, '已下载');
-  }
-
-  function showCopyFallback(text: string, note: HTMLElement): void {
-    const area = el('textarea', { class: 'input as-copy-fallback', rows: '6',
-      readonly: 'readonly' });
-    area.value = text;
-    note.replaceChildren(el('span', {},
-      '浏览器没有允许写入剪贴板：文本已在下方展开并选中，按 Ctrl+C 复制。'
-      + '这只是复制，不是选用。'), area);
-    area.focus();
-    area.select();
   }
 
   function renderDetail(answer: AssistancePlanReadback): void {

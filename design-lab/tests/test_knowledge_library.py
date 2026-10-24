@@ -21,6 +21,12 @@ are not exotic:
   requires the canonical rows to restore it.
 * **an empty search fills itself with near-matches.** An empty answer must explain why it is empty
   and must not recommend entries the query never matched.
+* **A5 is a mood rather than a measurement.** "Writing, searching, editing and copying still work
+  with no model service" is only worth anything if something checks it: the library's imports are
+  scanned for anything model-, provider- or network-facing (and the scanner is proven on a planted
+  import), the model-selection store is asserted empty, and the four acts are then performed. The
+  copy leg's bytes are compared against what the route answered -- in Chromium for a granted
+  clipboard, and against the refused-clipboard fallback in the DOM harness.
 
 Nothing here proves a model ran, a source was fetched or a person reviewed anything: counts are
 records in a local store. The published performance claim (1,000 entries, p95 <= 300 ms) is measured
@@ -42,6 +48,7 @@ sys.path.insert(0, str(REPO / 'src'))
 from design_lab import knowledge_library                        # noqa: E402
 from design_lab.knowledge_library import (                      # noqa: E402
     KnowledgeLibrary, KnowledgeLibraryError, UNKNOWN)
+from design_lab import model_selection                            # noqa: E402
 from design_lab.service import ProjectService                    # noqa: E402
 
 SOURCE = {'sourceId': 'owner-note', 'origin': 'UNKNOWN', 'author': 'owner',
@@ -353,6 +360,90 @@ class KnowledgeLibraryTests(unittest.TestCase):
             p95, knowledge_library.SEARCH_P95_BUDGET_MS,
             f'p95 {p95:.1f} ms over {len(samples)} searches at 1,000 entries exceeds the '
             f'published budget of {knowledge_library.SEARCH_P95_BUDGET_MS} ms')
+
+
+    # -- A5: no model service stands between a designer and these four acts ---------------
+
+    #: What would put a model, a provider or a network hop between the library and its answer.
+    #: A deny-list, because the claim A5 makes is a negative one: "this path reaches no model".
+    #: Anything on this list appearing in the module's imports makes the claim false, and the
+    #: false-import test below proves the scanner is not decoration.
+    MODEL_FACING = frozenset({
+        'model_selection', 'model_catalog', 'providers', 'provider', 'http_service',
+        'http', 'http.client', 'urllib', 'urllib.request', 'socket', 'requests', 'httpx',
+        'openai', 'anthropic'})
+
+    @staticmethod
+    def _reached_names(source: str) -> set:
+        """Every module this source imports, however deeply nested the import statement is."""
+        import ast
+        names = set()
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, ast.Import):
+                names.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                names.add(node.module)
+                names.update(node.module + '.' + alias.name for alias in node.names)
+        return names
+
+    @classmethod
+    def _model_facing_hits(cls, names):
+        """Which imported names reach a model, a provider or the network.
+
+        Matched on dotted parts, so ``from design_lab.model_selection import X``,
+        ``import design_lab.providers`` and ``from http import client`` all land -- a bare
+        ``name in deny_list`` would let the dotted forms walk straight past it.
+        """
+        return sorted(name for name in names
+                      if name in cls.MODEL_FACING
+                      or set(name.split('.')) & cls.MODEL_FACING)
+
+    def test_the_library_reaches_no_model_layer_and_no_network_at_all(self):
+        source = (REPO / 'src/design_lab/knowledge_library.py').read_text(encoding='utf-8')
+        hits = self._model_facing_hits(self._reached_names(source))
+        self.assertEqual(hits, [],
+                         'the knowledge library now imports something model- or network-facing: '
+                         + str(hits))
+        for call in ('urlopen(', 'HTTPConnection(', 'socket.', 'requests.'):
+            self.assertNotIn(call, source, f'the library calls {call}; A5 says it must not')
+
+    def test_the_offline_scanner_notices_a_model_import(self):
+        # The guard above is only worth what its falsification is worth: a planted import must be
+        # caught by the same function, or the pass above would also pass on a wired-up library.
+        planted = chr(10).join(['from design_lab import model_selection',
+                                'import http.client', ''])
+        self.assertEqual(self._model_facing_hits(self._reached_names(planted)),
+                         ['design_lab.model_selection', 'http.client'],
+                         'the scanner missed a planted model or network import: '
+                         + str(self._reached_names(planted)))
+        # And it must not flag an ordinary package import for being nearby in the namespace.
+        self.assertEqual(self._model_facing_hits({'design_lab', 'design_lab.knowledge_library'}),
+                         [], 'the scanner flagged a plain package import as model-facing')
+
+    def test_writing_searching_editing_and_copying_answer_with_no_model_configured(self):
+        """A5 measured, not assumed: the model store is empty, and all four acts still answer."""
+        with closing(model_selection.connect(
+                self.service.database,
+                project_root=self.service.paths.project_root)) as conn:
+            self.assertEqual(
+                0, conn.execute('SELECT COUNT(*) FROM model_selection').fetchone()[0],
+                'a recorded model selection leaked into this fixture; the run would then prove '
+                'nothing about a machine with no model service')
+        created = self.library.create(entry())['entry']
+        entry_id = created['knowledge_entry_id']
+        found = self.library.search(query='分镜')
+        self.assertIn(entry_id, [row['knowledge_entry_id'] for row in found['entries']],
+                      'with no model configured, the search a designer can actually run stopped '
+                      'answering')
+        revised = self.library.revise(entry_id, entry(
+            body='第一步切节拍。第二步选景别。第三步只在对位处补口型。',
+            created_by='owner', expected_revision=1, recommended=False))['entry']
+        detail = self.library.detail(entry_id)
+        # The copy button puts `current.body` on the clipboard byte for byte, so the bytes the
+        # route answers are the copyable ones -- no model, no rewrite, no composition.
+        self.assertEqual(revised['body'], detail['current']['body'])
+        self.assertEqual(revised['content_sha256'], detail['current']['content_sha256'])
+        self.assertLessEqual(1, len(detail['revisions']))
 
 
 if __name__ == '__main__':

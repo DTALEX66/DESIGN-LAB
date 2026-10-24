@@ -41,6 +41,13 @@ class MockElement {
   // openForm() scrolls the new panel into view. Browsers have it, a div mock does not, and
   // the throw happened inside the click handler before any assertion could run.
   scrollIntoView() {}
+  // focus()/select() arrived with the copy fallback: when the browser refuses a clipboard write
+  // the page puts the exact bytes in a read-only textarea, focuses it and selects the text so
+  // Ctrl+C works. Without these two no-ops the refusal path threw inside the handler and the
+  // message a user would actually see was untestable here -- the same shape of harness gap as
+  // the crypto.subtle and TextEncoder notes below.
+  focus() {}
+  select() {}
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
   removeAttribute(name) { this.attributes.delete(name); }
   addEventListener() {}
@@ -115,6 +122,12 @@ function makeContext() {
           createHash('sha256').update(Buffer.from(bytes)).digest(),
       },
     },
+    // A navigator with no clipboard: the copy paths in shell.ts ask `navigator.clipboard?.writeText`
+    // and fall back to a selected read-only textarea when the browser will not grant the write.
+    // Without this global the click threw before either branch, so the fallback -- the message a
+    // user actually sees when the clipboard is denied -- was an untested line. The granted path is
+    // proven in Chromium by design-lab/tests/e2e/browser_design_layer_e2e.mjs, not here.
+    navigator: {},
     // TextEncoder came with the same key change: contentKey() encodes the joined intent
     // before hashing, so a context without it threw on that line instead of reaching
     // fetch -- the same failure mode as the missing crypto.subtle above.
@@ -4095,6 +4108,21 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     if (!sourcedText.includes(needle))
       throw new Error(`㉓ 来源判断读回没有上屏「${needle}」：${sourcedText.slice(0, 300)}`);
   expectQuiet('来源判断读回');
+
+  // A5 的最后一格：复制。屏上的正文必须逐字进剪贴板；剪贴板被拒时，拒的就是那段正文，
+  // 而不是页面另拼一份。这里量的是回退面（沙箱里没有 clipboard），真实 clipboard 由浏览器走查量。
+  const copiedBody = '先定机位，再定景别，最后核对轴线与视线高度。';
+  byElementId(view, 'kb-copy-body').onclick();
+  const copyStatus = byElementId(view, 'kb-copy-status');
+  const fallbackArea = findIn(copyStatus, (node) => String(node?.className ?? '')
+    .includes('as-copy-fallback'));
+  if (!fallbackArea || fallbackArea.value !== copiedBody)
+    throw new Error('㉓ 剪贴板被拒时，页面没有把服务返回的正文原样交给用户复制：'
+      + JSON.stringify({ found: !!fallbackArea, value: fallbackArea?.value }));
+  if (!text(copyStatus).includes('浏览器没有允许写入剪贴板'))
+    throw new Error('㉓ 复制回退没有说明是浏览器拒绝了写入：' + text(copyStatus).slice(0, 160));
+  if (!text(copyStatus).includes('这只是复制，不是选用'))
+    throw new Error('㉓ 复制回退没有把"这只是复制"说清楚：' + text(copyStatus).slice(0, 160));
 
   // (5) 无命中只解释，不编造：两字检索词走子串回退，答案为空时列表里只有一行解释。
   const searchForm = findIn(view, (node) => node?.tagName === 'FORM');

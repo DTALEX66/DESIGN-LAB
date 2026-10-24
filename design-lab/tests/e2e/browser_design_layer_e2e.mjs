@@ -1771,6 +1771,22 @@ try {
       };
     });
 
+    // A5's copy leg in the real browser: the clipboard must receive the served body byte for byte.
+    // The DOM harness above covers the refused-clipboard fallback; this covers the granted path, and
+    // comparing against `createdBody.entry.body` (the bytes the create route answered) is what
+    // keeps the page from passing on text it composed itself.
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: serviceUrl });
+    await page.locator('#kb-copy-body').click();
+    let clipboardText = '';
+    try {
+      clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    } catch {
+      clipboardText = '';
+    }
+    const copyNote = await page.evaluate(() => document.getElementById('kb-copy-status')?.textContent ?? '');
+    const clipboardHoldsTheServedBody = clipboardText === (createdBody?.entry?.body ?? null)
+      && clipboardText.length > 0 && /已复制正文/.test(copyNote);
+
     await page.locator('#kb-source-value').selectOption('INVALID');
     await page.locator('#kb-source-reason').fill('原稿下架。');
     await page.locator('#kb-source-name').fill('张工');
@@ -1845,6 +1861,7 @@ try {
       // digest -- the numbers the store resolved, not the ones the page sent.
       pickerOffersBothSources,
       planCitesTheKnowledgeEntry,
+      clipboardHoldsTheServedBody,
     };
     const missing = Object.keys(states).filter((key) => states[key] !== true);
     knowledgeLoop = { states, allAsserted: missing.length === 0, missing, served, onScreen,
@@ -1858,7 +1875,7 @@ try {
       await abort('E2E_KNOWLEDGE_DETAIL_NOT_WALKED: ' + JSON.stringify(missing)
                   + ' detail=' + JSON.stringify({ createdStatus: createdBody?.status,
                     served, onScreen, posts: knowledgeLoop.posts, trailPainted,
-                    citeDiagnosis }), 15, ctx, b);
+                    citeDiagnosis, clipboard: clipboardText.slice(0, 120), copyNote }), 15, ctx, b);
     }
   });
 

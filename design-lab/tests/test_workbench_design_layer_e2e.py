@@ -305,8 +305,9 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                      'judgementRecordedOnce', 'nameRefusedWithoutRequest',
                      'pickerOffersBothSources', 'planCitesTheKnowledgeEntry',
                      'reasonRefusedWithoutRequest', 'screenMatchesServedReadback',
-                     'sourceNeedsAnOpenableReplacement'],
-                    'the knowledge-detail card is not the ten facts this walk names: '
+                     'sourceNeedsAnOpenableReplacement',
+                     'clipboardHoldsTheServedBody'],
+                    'the knowledge-detail card is not the eleven facts this walk names: '
                     + json.dumps(kb_states, ensure_ascii=False))
                 self.assertEqual(
                     (payload.get('knowledgeLoop') or {}).get('allAsserted'), True,
