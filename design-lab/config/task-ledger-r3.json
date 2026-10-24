@@ -8764,7 +8764,10 @@
         "state": "PARTIAL",
         "evidence": [
           "kb-05-unit-knowledge-r2-20261024",
-          "kb-05-implementation-revisions-r2-20261024"
+          "kb-05-implementation-revisions-r2-20261024",
+          "kb-05-unit-judgement-20261024",
+          "kb-05-implementation-judgement-surface-20261024",
+          "kb-05-browser-workbench-gates-20261024"
         ]
       },
       {
@@ -12132,6 +12135,42 @@
         "command": ".venv/Scripts/python.exe scripts/measure_workbench_weight.py --check :: the plan asks for the module and resource share to be measured before anyone tries to get lighter, so the bundle is now attributed by top-level declaration: WEIGHT module renderDesignAssistant              bytes=  59963 share=11.61% | WEIGHT module renderTargetProfiles               bytes=  28744 share= 5.56% | WEIGHT modules declarations=365 coverage=100.0% of the bundle | WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=155787 -- the two screens this round added are the largest single shares, which is the number the owner needs to weigh against the 150 KB ceiling and the un-minified single-file build contract; the 80% coverage floor is proven by an indented fixture the reader cannot parse (coverage 0.0)",
         "exit_code": 0,
         "observed_at": "2026-10-24T18:42:17Z"
+      },
+      {
+        "id": "kb-05-unit-judgement-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "52961f490eff0fb60b6cf53d9e66d1a8afe5910d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-unit-judgement-20261024.log",
+        "artifact_sha256": "ea21e216356cfa4f0e6dbdffe4829999eab443ef1cec04a731eff29e97c181c6",
+        "command": "design-lab/tests/test_knowledge_judgement.py plus the write sweep, the backup-table watcher and the knowledge-library suite :: Ran 13 tests in 1.197s | POST_SWEEP layout=source rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T20:43:02Z"
+      },
+      {
+        "id": "kb-05-implementation-judgement-surface-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "52961f490eff0fb60b6cf53d9e66d1a8afe5910d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-implementation-judgement-surface-20261024.log",
+        "artifact_sha256": "8e157799a6f0e20d677f415b678e125cc8b42429241187d335d2e41f329834cb",
+        "command": "the same-change quartet on the committed bytes: ledger row with its emitter pointer (VERIFY_CONTRACT_BINDINGS=PASS routes=90 dispatched=90 bound=76), two real judgement payloads compared against the readback contract (VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=57 failures=0), the desktop call site (VERIFY_WORKBENCH_ROUTE_CALLS=PASS routes=88 matched=77), the re-measured prose denominators (DOCUMENTED_COUNTS=PASS claims=20 routes=88), the state-contract graph and the inert survey at --check, and apps/workbench/tests/appshell.mjs walking both judgement forms through the shipped bundle. Remainder named, not skipped: assistance_plan.REFERENCE_KINDS = ('ASSET','BRIEF','DIRECTION','PROMPT_RESULT') has no KNOWLEDGE, so no plan can pin a knowledge entry and the 旧方案 half of D5 is proven at the entry level only.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T20:43:02Z"
+      },
+      {
+        "id": "kb-05-browser-workbench-gates-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "52961f490eff0fb60b6cf53d9e66d1a8afe5910d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-browser-workbench-gates-20261024.json",
+        "artifact_sha256": "086ef9c3e6c855332d07125011cf595d8eb194b201eb3991ec368546176cf8c0",
+        "command": "contrast gate (50 route-runs, checked=14002, belowAA=0, unparsable=0) + geometry sweep (112 route-runs at 1440/1280/1536/1920, docOverflowX=0, clipped=0, stray=0, detailsExpanded=1200) + route-level UI audit (ok=true), bound to bundle sha256 4df788c3 (602,549 B) and commit 52961f49. The record also states its own boundary: no browser gate opens a knowledge entry, so the judgement panel is not painted in Chromium by these gates -- its behaviour is walked by the DOM harness on the same bundle.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T20:43:02Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

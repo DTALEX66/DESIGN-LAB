@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-24T18:42:43+00:00",
+  "generated_at": "2026-10-24T20:47:27+00:00",
   "subject": {
-    "base_sha": "8e2b3c4913dcd47d1607b295146fba8d3b167095",
+    "base_sha": "52961f490eff0fb60b6cf53d9e66d1a8afe5910d",
     "branch": "qoder/designlab-backup-consistency-20261007",
     "worktree_clean": false
   },
@@ -141,8 +141,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 815897,
-      "sha256": "sha256:c735785891e21bf5a9351d9e7362962ed817a917439fde23c6c03e741643ca5a",
+      "bytes": 819262,
+      "sha256": "sha256:f6f8cf19f5155ffb8e7d99c5e7e682f0eb4a08d265017a7eabcf5a4c26335b41",
       "authority_class": "CURRENT_TASK_LEDGER",
       "basis": "currentExecution dispatch; frozen R5 evidence partition",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
@@ -152,7 +152,7 @@
         "current_partition": "currentExecution",
         "tasks": 50,
         "frozen_legacy_tasks": 28,
-        "evidence_receipts": 271
+        "evidence_receipts": 274
       }
     },
     {

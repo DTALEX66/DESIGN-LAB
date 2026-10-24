@@ -107,7 +107,20 @@ checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run 
 以账本 `artifact_sha256` 为准。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
 
-**台账读数（2026-10-24 第五轮收口时现数，取代上面第四轮那一段的"当下"身份）**：`currentExecution` 仍是
+**台账读数（2026-10-24 第六轮收口时现数，取代上面第五轮那一段的"当下"身份）**：`currentExecution` 仍
+50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图不变——**`DONE 11`／`PARTIAL 4`／`NOT_STARTED 1`**。
+本轮没有把任何一行升上去：`DL-KB-05` 的 D5 现在**造出来了**（判断存储、路由、条目详情里的界面），
+但它仍停在 PARTIAL，理由写在下面第一刀里。`currentExecution.evidence` 从 270 到 **273** 条、全部 PASS，
+本轮新增 3 条落在 `kb-20261024/`（42,491 字节，单文件最大 26,215 字节），逐条绑 `52961f49` 的现测字节。
+路由面 **88 条**（48 GET + 40 POST）、账本 90 行、载荷比对 **57 条绑定**；写侧扫描
+`rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1`。浏览器三把尺本轮都在同一份字节上跑：
+对比度 50 个面 `checked=14002 belowAA=0 unparsable=0`、几何 112 个面（1440/1280/1536/1920）
+`docOverflowX=0 clipped=0 stray=0 detailsExpanded=1200`、路由级 UI 审计 `ok=true hardViolations=0
+totalMetrics=54`，前两条绑 bundle `sha256 4df788c3…`（602,549 字节）。本机 `VERIFY_DESIGN_LAB=OK
+total=76 failed=0`。体积：`build/main.js` 602,549 字节 / gzip **157,739** 字节，比上一轮记录的
+155,787 又高 1,952 字节——`DL-KB-13` 的 150 KB 裁定仍在 owner 手上，本轮不代做、也不删内容凑数。
+
+**台账读数（2026-10-24 第五轮收口时现数，读的是 `36addfd5` 那批字节，不是当下）**：`currentExecution` 仍是
 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；16 项派工里 **`DONE 11`**（新增 `DL-KB-09/10/11/12/14`）、
 **`PARTIAL 4`**（`DL-KB-02/05` 旧账，加 `DL-KB-13` 体积超标与真人无指导任务、`DL-KB-16` 的
 `human_review` 只认具名真人）、**`NOT_STARTED 1`**（`DL-KB-15`，前置是 owner 本机可用的推理服务与硬件余量）。
@@ -133,7 +146,18 @@ PARTIAL 并把取舍交给 owner（见 §7）。搜索侧达标：1,000 条按�
 ② 折叠态自己的裁剪行为现在**没人声称**：几何闸与 UI 审计闸这一轮改成"先展开再量"，说的是打开之后
 那一屏好不好；闭合面板会不会把内容裁成一个看不见的半成品，是另一把尺子的问题，谁要声称就得新立
 一条断言，别把这两件事混成一句"几何已过闸"；
-③ `DL-KB-02` 的 A5 直接断言、`DL-KB-05` 的 D5 重测（回退要事件表，本轮没加）；
+③ `DL-KB-02` 的 A5 直接断言，以及 `DL-KB-05` D5 剩下那一半：判断存储已经落地（`knowledge_judgement`
+＋`POST …/judgements`＋条目详情的两个表单，13 条单元测试量到"推荐挪回去之后每个修订的摘要与时间戳
+一动不动"），但 `src/design_lab/assistance_plan.py` 的 `REFERENCE_KINDS = ('ASSET','BRIEF',
+'DIRECTION','PROMPT_RESULT')` 里**没有 KNOWLEDGE**——方案今天钉不住一个知识条目，所以
+"回退推荐版本后**旧方案**仍可读"只在条目层面被证明，产品里还没有一条"从方案读某条知识某个修订"的路径。
+补这一格要同时动方案 schema 的 `kind` 枚举、`_resolve_references()` 那个以 `else: # PROMPT_RESULT`
+收尾的分支（加一类就不能再当兜底分支写）、导出材料怎么呈现这条引用，以及读回里 `verification` 的取值；
+知识条目是全局的、没有 `project_id`，跨项目检查那一支要单独说清按什么判；
+③b 还有一条量到的边界：**没有任何浏览器门禁点开过一条知识条目**，所以"判断与来源状态"这块
+（含整个条目详情面）在 Chromium 里从未被画过——对比度与几何那两把尺量的是列表页。要声称它上屏好看，
+得在 `design-lab/tests/e2e/browser_design_layer_e2e.mjs` 里真点一次 `.kb-open` 并走完两个表单，
+而不是把 DOM 桩件（`apps/workbench/tests/appshell.mjs`）的绿当成浏览器证据：两者证明的是不同的事。
 ④ `DL-KB-16` 的 `human_review` 与 `DESIGN.md` 的批准状态，都等 owner 真实测试后由具名真人签。
 
 

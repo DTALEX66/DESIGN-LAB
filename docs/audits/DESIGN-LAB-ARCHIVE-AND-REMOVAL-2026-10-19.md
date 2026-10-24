@@ -1339,3 +1339,56 @@ E3、真人 E4、ComfyUI、MiniMax H3 与外部软件自动操作继续冻结。
 跳过（前者只在非 main 的 push 上跑，后者只在 main 上跑），其余全绿。这一串的价值不在"最后绿了"，
 在于这四条只有换一台机器才会暴露——本机此前全绿了整整一天。
 
+### 5.37 第六刀 K2 补口：DL-KB-05 D5 的判断存储（实现 `52961f49`，收口同轮）
+
+**这一刀补的是什么。** `currentExecution` 里 DL-KB-05 的验收第三条写着
+「回退知识推荐版本后旧方案仍可读；失效来源可标记并替换」。上一轮实测的结论是这句话**说不出来**：
+`knowledge_entry_revision.recommended` 是随版本一起写入的、被 append-only 触发器锁死的字段，
+所以推荐要么永远等于写入那一刻，要么就得改那个字段——改它就等于拆掉这个条目全部历史的保证。
+没有路由、没有字段、没有界面，状态只能停在 PARTIAL。
+
+**现在的形状。** 判断是它自己的一行，追加进 `knowledge_judgement`
+（`design-lab/schemas/state/design-lab-state-knowledge-judgement-v1.sql`）：同一条目同一 `kind`
+的最新一行是答案，下面的行是"答案是怎么走到这里的"。`POST /api/knowledge-entries/{id}/judgements`
+回答的是条目自己的 readback（`recommendation_basis`／`recommendation_judgement`／`source_state`／
+`judgements` 四个字段是这一轮加进 `knowledge-entry-readback-v1` 的），所以调用者看到的是被挪动后的
+那个数，而不是一张回执。写入面拒绝的四件事各有其代码：`recorded_by_kind != 'HUMAN'` →
+`KNOWLEDGE_HUMAN_JUDGEMENT_REQUIRED`（owner 2026-10-21：本机验收只接受具名真人）；没有 `reason` →
+`REASON_REQUIRED`；推荐了一个没存过的修订 → `KNOWLEDGE_REVISION_NOT_FOUND`；标记失效却没给出
+**库里真的存在的**替代条目 → `KNOWLEDGE_SOURCE_REPLACEMENT_REQUIRED`／`_SELF`／`_UNKNOWN`，
+而 `replaced_by` 同时是外键，绕过写入面直接 INSERT 也一样进不来。`recorded_at` 由服务盖，不接受调用方自填。
+
+**为什么这句话现在成立了。** 13 条单元测试里最关键的一条是
+`test_moving_the_recommendation_rewrites_no_stored_bytes`：推荐从 r2 挪回 r1 之后，逐条比对
+`detail()['revisions']` 的 `content_sha256` 与 `created_at`，**一个字节都没动**。这正是
+"旧方案仍可读"的机制面——方案钉住的是修订号与摘要，摘要不变，读到的就是当初那份。重启后同一份判断
+还在（`test_a_judgement_survives_a_restart_and_still_outranks_the_written_flag`），所以没有第二张
+真值表，也没有引入第二张修订表：`latest_revision` 与写入标记仍只从 `knowledge_entry_revision` 算。
+
+**同一刀里必须说的另一半。** 界面跟着落了：条目详情里"判断与来源状态"这一块带轨迹与两个表单
+（`apps/workbench/shell.ts` 的 `kbJudgementPanel`），缺理由与缺记录人都在本地拒绝、不发请求，
+`recorded_at` 不在请求体里。`apps/workbench/tests/appshell.mjs` 用**出货的那份 bundle** 走完了两个
+表单、两次本地拒绝与写后重搜＋重读回。
+
+**这条验收还差什么，所以行不升 DONE。** `src/design_lab/assistance_plan.py` 的
+`REFERENCE_KINDS = ('ASSET','BRIEF','DIRECTION','PROMPT_RESULT')` 里**没有 KNOWLEDGE**：
+方案今天无法钉住一个知识条目，所以"旧方案仍可读"只能在条目层面被证明（字节与摘要不变），
+产品里并不存在一条"从方案读某条知识某个修订"的路径。补这一格要动方案 schema 的 `kind` 枚举、
+`_resolve_references()` 那个以 `else: # PROMPT_RESULT` 收尾的分支、导出材料如何呈现引用，
+以及读回里 `verification` 的取值——是一次独立的改动，登记成缺口而不是顺手糊过去。
+
+**本轮门禁读数（都取自己那行输出）。** `VERIFY_CONTRACT_BINDINGS=PASS schemas=32 routes=90
+dispatched=90 bound=76`；`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=57 failures=0`，其中
+`knowledge-entry-judgement cases=2 object locations compared=22` 是两条真判断经真 socket 比过合同；
+`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=138 routes=88 matched=77 backend_only=11`（新增这一条路由
+是被界面真的调用到的，不是又一条 BACKEND_ONLY）；`DOCUMENTED_COUNTS=PASS claims=20 route_views=24
+routes=88`；写侧扫描 `POST_SWEEP layout=source rows=40 walked=39 written=39 read_backs=48 refused=0
+excluded=1`，`knowledge-judgement` 在 written 名单里；浏览器侧对比度 50 个面 `checked=14002
+belowAA=0 unparsable=0`、几何 112 个面（1440/1280/1536/1920）`docOverflowX=0 clipped=0 stray=0
+detailsExpanded=1200`，两者都绑在 bundle `sha256 4df788c3…`（602,549 B）上。
+
+**顺带修掉的两个自己的缺陷。** 一是 `contract-bindings.json` 里六条 emitter 行号被这次插入挪走，
+`EMITTER_POINTER_NOT_THE_VERSION` 逐条点名——行号会烂，闸门会喊，别抄数字；二是新界面上线后
+`el('ul', { class: 'list'` 的存量从 72 变 73，这一条按老规矩写明新增的是哪一个容器再动数字。
+重量：bundle gzip 从上一轮记录的 155,787 B 到本轮 `WORKBENCH_WEIGHT_GATE=OK remote=0
+bundle_gzip=157739`（同一把尺、同一份文件），KB-13 的 150 KB 预算仍然是 owner 的决定，本轮不代做。
