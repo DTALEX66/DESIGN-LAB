@@ -280,6 +280,13 @@ COUNTER_QUERIES = (
     ('knowledge_entry', 'rowid'),
     ('knowledge_entry_revision', 'rowid'),
     ('knowledge_index_state', 'rowid'),
+    # 2026-10-24 DL-KB-07: the assistance plan store writes its identity row, its
+    # append-only revisions and the recorded choice with no writer lease. A backup
+    # window that swallowed a revision or a named-human choice would otherwise still
+    # report PROVED_QUIESCENT while the plan the page reads back had moved.
+    ('assistance_plan', 'rowid'),
+    ('assistance_plan_revision', 'rowid'),
+    ('assistance_plan_choice', 'rowid'),
 )
 
 
