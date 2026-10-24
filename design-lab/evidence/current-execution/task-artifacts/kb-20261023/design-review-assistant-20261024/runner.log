@@ -1,0 +1,20 @@
+{
+  "reportPath": "D:\\All projects\\DESIGN-LAB\\.project-local\\runs\\design-review\\.design-qa\\reports\\design-debt.json",
+  "scannedFileCount": 10,
+  "findings": 713,
+  "summary": {
+    "hard-coded-color": 38,
+    "functional-color": 14,
+    "px-magic-number": 630,
+    "tailwind-arbitrary-value": 3,
+    "custom-shadow": 28
+  }
+}
+{
+  "reportPath": "D:\\All projects\\DESIGN-LAB\\.project-local\\runs\\design-review\\.design-qa\\reports\\a11y.json",
+  "scans": 27,
+  "findings": 0
+}
+PLUGIN_DESIGNDEBT findings=713 ok=False report=.project-local/runs/design-review/.design-qa/reports/design-debt.json
+PLUGIN_A11Y findings=0 ok=True report=.project-local/runs/design-review/.design-qa/reports/a11y.json
+DESIGN_REVIEW_PLUGIN=WRITTEN design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-assistant-20261024/design-review.json

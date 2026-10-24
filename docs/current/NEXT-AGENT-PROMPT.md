@@ -92,25 +92,52 @@ owner 原话（逐字）：**「读取分析，按照这个执行（前端UI是�
 `.project/governance/authority-index.json` 的 `desktopKbAdoption`。唯一当前包是
 `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`（`DL-TP-20261023-DESKTOP-KB-R1`）。
 
-**台账读数（2026-10-24 收尾时现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
+**台账读数（2026-10-24 第四轮收尾时现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
 仍冻结 **34 项**（`DL-FINAL-T01…T22` 与 `DL-UI-U01…U12`，一行都没被解冻），当前可派工 **16 项**
-（`DL-KB-01…DL-KB-16`）。第三轮收口后的状态是 `DONE 4`（`DL-KB-01/03/04/06`——这是账本的 DONE，
-证据等级仍是 E1/E2，真人验收未发生）、`PARTIAL 2`（`DL-KB-02/05`）、`NOT_STARTED 10`（`DL-KB-07…16`）。
-`currentExecution.evidence` 236 条全部 PASS：216 条历史 + 19 条绑 `967d3eed` 的回执 +
-1 条 `delivery` 回执（`kb-01-delivery-ci-clean-checkout-20261024`，绑 `3c6ca491` 的干净检出 CI）。
+（`DL-KB-01…DL-KB-16`）。第四轮收口后的状态是 `DONE 6`（`DL-KB-01/03/04/06/07/08`——这是账本的 DONE，
+证据等级仍是 E1/E2，真人验收未发生）、`PARTIAL 2`（`DL-KB-02/05`）、`NOT_STARTED 8`（`DL-KB-09…16`）。
+`currentExecution.evidence` 249 条全部 PASS：236 条前三轮 + 13 条本轮回执（KB-07 两条、KB-08 十一条），
+逐条 `artifact_sha256` 绑定受跟踪工件；其中 1 条 `delivery` 回执
+（`kb-01-delivery-ci-clean-checkout-20261024`，绑 `3c6ca491` 的干净检出 CI）。
 `DL-KB-01` 的干净克隆条款已由 CI 兑现：main run `40036696250` 在 `3c6ca491` 上 success（11 个作业
 success、Branch light 按规则跳过），`RECORD_REGISTER_GATE=PASS checks=5 problems=0` 在全新 Linux
 checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run `40036704582` 也 success。
-本机九门在收口树（`236` 条证据、`DONE 4`）上全部 exit 0。证据包 `kb-20261023/` 现有 70 个受跟踪文件；
+本机九门在收口树（`249` 条证据、`DONE 6`）上全部 exit 0。证据包 `kb-20261023/` 现有 86 个受跟踪文件；
 `evidence-index.json` 仍是第一刀在 `7f5e68d7` 的 47 份索引，**不是全量清单**——第二轮起的回执
 以账本 `artifact_sha256` 为准。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
 
+**台账读数（2026-10-24 第五轮收口时现数，取代上面第四轮那一段的"当下"身份）**：`currentExecution` 仍是
+50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；16 项派工里 **`DONE 11`**（新增 `DL-KB-09/10/11/12/14`）、
+**`PARTIAL 4`**（`DL-KB-02/05` 旧账，加 `DL-KB-13` 体积超标与真人无指导任务、`DL-KB-16` 的
+`human_review` 只认具名真人）、**`NOT_STARTED 1`**（`DL-KB-15`，前置是 owner 本机可用的推理服务与硬件余量）。
+`currentExecution.evidence` 从 249 涨到 **270** 条、全部 PASS，本轮回执 21 条落在
+`design-lab/evidence/current-execution/task-artifacts/kb-20261024/`（合计 279,212 字节，单文件最大
+117,639 字节，未触发 `large-assets.json` 的 256 KiB 线），逐条绑 `36addfd5` 的现测字节。路由面
+**87 条**（48 GET + 39 POST），写侧扫描 `rows=39 walked=38 written=38 read_backs=47 refused=0 excluded=1`，
+对比度闸两档主题各 50 个面、`checked=14002 belowAA=0 collapsedOpened=6228 unparsable=0 colourBad=0`，
+几何闸扫 `1440,1280,1536,1920`（1536＝1920 在 Windows 125% 下），本机 `VERIFY_DESIGN_LAB=OK total=76
+failed=0`。性能基线里有一条**真实超标**：交付方案 §14 定"首屏 JS gzip ≤ 150KB"，实测
+`build/main.js` 593,796 字节 / gzip **155,787** 字节——不能靠压缩构建解决（`vite.config.ts` 顶上写明
+这个包故意不压缩，原生 UI 契约测试要读函数名与界面文字），也不该删必要内容凑数，所以 `DL-KB-13` 停在
+PARTIAL 并把取舍交给 owner（见 §7）。搜索侧达标：1,000 条按真实结构生成的样本、`search p95=28.89ms`
+（阈值 300ms）。
+
+**下一刀切哪里（按价值排序，不是按编号）**：
+① `DL-KB-13` 的两件人账——owner 对 150KB 上限的裁定（提预算并写明理由，或批准一次按面板拆包的加载
+模型改动，后者会动 `vite.config.ts` 那份"单文件不压缩"合同，必须 owner 点头），以及 §14 要求的
+3 位目标用户无指导任务；
+② 把这一轮在对比度闸里立的"先展开 `<details>` 再量"的同一把尺子带到几何闸与 UI 审计闸——它们现在
+量的是布局盒，不是人眼此刻看得到的像素，改前要先把宽度、行数与既有断言重测；
+③ `DL-KB-02` 的 A5 直接断言、`DL-KB-05` 的 D5 重测（回退要事件表，本轮没加）；
+④ `DL-KB-16` 的 `human_review` 与 `DESIGN.md` 的批准状态，都等 owner 真实测试后由具名真人签。
+
+
 **四个空白是实测出来的，不是听来的**（同一批字节上）：`capability_library.py` 是只读投影、没有写入面；
 `prompt_intelligence.py` 不调用任何模型；`prompt_results.py` 的存储层仍要求 `executed=false`；
-`model_selection.py` 只记录选择。路由合同账本 74 行里 BOUND_SCHEMA 60、SCHEMA_LESS 14，
-live 载荷比对 41 条绑定，前端调用对账 calls=117 / matched=61 / backend_only=11 / dynamic=3 / special=1，
-`ROUTE_VIEWS` 22 条。所以第一刀不是"接模型"，是**知识条目可写面 + 中文检索 + 三入口外壳**（批次 K0…K2）。
+`model_selection.py` 只记录选择。路由合同账本 80 行里 BOUND_SCHEMA 66、SCHEMA_LESS 14，
+live 载荷比对 47 条绑定（K4 之后 52 条，见 §7 的复测句），前端调用对账 calls=127 / matched=67 / backend_only=11 / dynamic=3 / special=1，
+`ROUTE_VIEWS` 23 条（K4 收口时按当下读数更正）。所以第一刀不是"接模型"，是**知识条目可写面 + 中文检索 + 三入口外壳**（批次 K0…K2）。
 2026-10-24 复核：这四个空白在第一刀里没有被触碰，读数不变；那一刀改的是知识写入/检索/界面/外壳。
 
 **边界逐字不变**：「再说一遍 不做手机端 只做桌面端」——手机端是排除项，不是待办、缺口或待排期；
@@ -141,14 +168,33 @@ matched=61 / backend_only=11 / dynamic=3 / special=1，`ROUTE_VIEWS` 21 → **22
 逐作业全绿，收尾提交后的 run `40013185833`（main）与 `40013198844`（分支）在 `d9a8412b` 同样全绿
 （细节见审计 §5.32、§5.33）。下一会话自读 `git rev-parse HEAD`，不要抄这两个 SHA。
 
-**DL-KB-05 已经量到它能到的边界，下一刀是 K3。** 修订链的追加与冲突前置条件已有真实 HTTP 探针
+**第四刀（K3 两项）已收口，下一刀是 K4。** `DL-KB-07`（中立方案对象 + 一份创意意图）与
+`DL-KB-08`（设计辅助初始态 + 方案详情四态）在 `2d9372fb` 实现、`103a6680` 收口：6 条新路由
+（输出类型、列表、详情、创建、修订、选用）把 ROUTES 从 72 带到 78（42 GET + 36 POST），合同账本
+74 → 80 行（BOUND_SCHEMA 66 / SCHEMA_LESS 14），live 载荷绑定 41 → 47，ROUTE_VIEWS 22 → 23，
+`DESIGN.md` 导航 22 → 23；新增五份 plan schema 与一张 state 表。`test_assistance_plan` 18 项、
+路由/账本/打包 77 项、工作台 node 30 项（含 `㉔ B10_NAV` 派生断言）与 Python 44 项全绿；浏览器实跑
+四态可分、复制与选用互不代劳、空目标被拒并聚焦、手工补创意可行、重载读回一致、无聊天面，
+consoleErrors 0；81 张截图绑 `2d9372fb` 的 bundle `ffabee75`，UI audit 0 violations、对比度双 palette、
+溢出 1100/900/750/620 四档、a11y 27 屏 0 findings（自动扫描，不是认证），设计债 713 条与助手屏
+出现前条数、严重度、文件分布相同，`(file, rule, severity)` 的 713 条多重集完全一致（28 条行号
+随 `shell.ts` 增长而位移）——新界面没有新增字面 px 或硬编码颜色。**CI 抓到过一处真缺陷**：首个完整矩阵
+（run `40048178001`，`142e7efe`）Python gate 红，`assistance_plan` / `assistance_plan_revision` /
+`assistance_plan_choice` 三张新表没进 `project_backup.py` 的 `COUNTER_QUERIES`，备份的静默证明看不见它们；
+已在 `dbdee924` 补三行计数并复跑（run `40076707359`：10 作业 success，`Branch light` 与 `CI artifact proof`
+按规则跳过；CI 三 shard `3196 PASS / 22 SKIP / 0 FAIL`，本机并集 `3213 PASS / 5 SKIP / 0 FAIL`）。这条不在 76 项闸门里，
+住在 `test_backup_watches_written_tables`——**新增 state 表必须在同一改动里补计数行**。该 E2E 自己的 `subjectSha` 写的是 `local`，工件身份
+由 `routeInventory.bundleSha256` 与截图 manifest 的 commit 绑定，账本回执里照实记录了这一点。
+
+**DL-KB-05 的 D5 现在可以重新量。** 修订链本身已有真实 HTTP 探针
 （`design-lab/scripts/knowledge_revision_probe.py`）：r1 是推荐版本，修订后 r2 成为最新且父摘要不变，
 带 `expected_revision=1` 的过期写返回 `409 KNOWLEDGE_ENTRY_REVISION_CONFLICT` 并点名 revision 2，
-重启后链一致（`KB_REVISION_OK`）。停在 PARTIAL 的是 D5：**推荐版本回退没有路由、失效来源没有字段**，
-它依赖尚未开工的 `DL-KB-07`。所以下一刀是 `DL-KB-07`（中立方案对象 + 一份创意意图）与
-`DL-KB-08`（设计辅助初始态 + 方案详情四态）。**先量现状再动手**：上一轮的教训是"卡片说缺的"
-经常已经存在一半；`DL-KB-02` 的 A5（模型服务关闭时仍可写入、检索、编辑与复制）也还没有直接断言，
-不要因为五条写路由都在就把它读成已证。
+重启后链一致（`KB_REVISION_OK`）。它停住时写的是"推荐版本回退没有路由、失效来源没有字段，
+依赖尚未开工的 `DL-KB-07`"；`DL-KB-07` 现已 DONE，下一轮要先按现行字测量 D5 是否真的被那 6 条
+方案路由解锁，再决定 KB-05 能否从 PARTIAL 收口——不要因为依赖项 DONE 就把它读成已证。
+K4 是 `DL-KB-09`（目标档案：软件×模型×入口）与 `DL-KB-10`（目标组合选择面板屏）。
+**先量现状再动手**：上一轮的教训是"卡片说缺的"经常已经存在一半；`DL-KB-02` 的 A5
+（模型服务关闭时仍可写入、检索、编辑与复制）仍然没有直接断言，不要因为五条写路由都在就把它读成已证。
 
 **本轮留下的账**（下一轮同批付或明确记录）：真实中文知识语料仍只有探针合成的那批，不含 owner 的条目；
 写入路径的逐屏截图只覆盖新增；1280 宽档侧栏仍要滚动才能看全分组（这是密度事实，不是缺陷；当前项在
@@ -261,7 +307,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   3. 工具调用 = 静态合同 E1；本机唯一可离线真跑的是 vtracer（`providers/vtracer_provider.py:7` → 外部工具链 1.0.0-alpha.3，MIT，`commercialUse: ALLOWED`）；`design-action.schema.json` 在 `src/` 内**没有 emitter**，`integrations/hosts/ffmpeg/` 是空目录。
   4. 验收 = E2 有路由有 UI（`/jury/verdict`、`/jury/proposal`、`quality`/`rights` CLI），但 E4 真人判定按铁律不由代理填。
   5. 知识候选 = 存储与路由齐（`assurance/knowledge_feedback.py:202 build_candidate`、`knowledge_candidate` 表、create/review/revoke 三路由），**缺的是从验收判定到候选的发射器**；导出合同也已存在（`design-lab/schemas/assurance-knowledge-candidate-v2.schema.json` 的 `$defs.export`，第 178 行），**不要再新建一份 export schema**——那会让一个边界出现两个权威。
-- **独立全链路的真实可跑面（2026-10-24 复测，路由清单以 `http_service.py:97` 的 `ROUTES` 为准，共 72 条 = 39 GET + 33 POST（2026-10-24 复测。账本 `contract-bindings.json` 是 74 行 = 41 GET + 32 POST + 1 `GET+POST`，因为 `/api/projects` 在 ROUTES 里是 GET 与 POST 两枚、在账本里是一行；所以读侧扫描的分母是 41、写侧是 33，两数不可互换。别抄这里的数字，自读表））**：
+- **独立全链路的真实可跑面（2026-10-24 复测，路由清单以 `http_service.py` 的 `ROUTES` 为准，共 87 条 = 48 GET + 39 POST（2026-10-24 第七次复测：DL-KB-12 的按修订读取加了 `GET …/assistance-plans/<id>/revisions/<n>` 一条读，上一轮的 KB-11 材料导出也在同一族里。账本 `contract-bindings.json` 是 89 行 = 50 GET + 38 POST + 1 `GET+POST`，因为 `/api/projects` 在 ROUTES 里是 GET 与 POST 两枚、在账本里是一行；所以读侧扫描的分母是 50、写侧是 39，两数不可互换。`ROUTES` 的行号本轮读到 119，别抄数字也别抄行号，自读表））**：
   能靠调用入口真跑通的链是 项目 → 简报 → 参考图入库 → 资产分析派生 RIR（CLI `analyze` + POST `…/assets/<img-ID>/analysis`，live HTTP 已测）→ 原生计划提交 → jury 判定 → rights 记录 → 打包 → **preflight**（POST `…/bundles/<id>/preflight`，2026-10-19 起有 live HTTP 测试；此前所有 preflight 测试都只在进程内调 `preflight_bundle`，路由的默认 profile 与返回形状从未被走过）→ 知识候选创建/审阅/撤回。
   **两个断点没有任何调用入口，不是"还没接"而是没有实现**：(1) Prompt Intelligence——`prompt` 在 `http_service.py`、`cli.py`、`apps/workbench/shell.ts` 三处 0 命中，也没有承载模块，它只作为产品主张出现在 BOUNDARY_CONTRACT 与任务包 §9；(2) 候选导出——`assurance/knowledge_feedback.py:458 export_payload` 与 `:521 to_v1_projection` 在整个 `src/` 内**零调用方**（除各自函数体内那行 `_document(candidate, "…")` 自指标签），出站 `outbound.transport` 在 `knowledge_review.py:337` 硬编码 `NOT_CONNECTED`，该模块第 11 行的注释本身就写明"本仓库没有 ArcheAxis transport"。所以导出段缺的不是接线，是一个真实出口。（本行是 2026-10-19 的诊断，两段已于 2026-10-20 落地，见上头两条的落地状态；照本行去"补第一个调用方"会重复劳动。）
   另两处口径要写清：`quality` 记录只有 CLI（`cli.py:99`），**没有路由**，所以它既不算 matched 也不算 backend_only；`/jury/proposal` 有路由但页面不调（BACKEND_ONLY，理由已登记）。
@@ -334,7 +380,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   `design-lab/config/task-ledger-r3.json is not in this checkout`，判决仍然正确，但它命名的那个"检出"
   其实是解释器目录 `…/Lib`——上一轮写的"临时根没有台账"说错了对象。
   **上一轮那两条"没测/未修"，同日第二十三批（后端 F）都结清了**（审计件 §5.26）：
-  ① 分母先更正——账本是 **41 条** GET 行，不是前两轮写的 37 条（我当时的 `startswith('/api/')` 过滤把
+  ① 分母先更正——账本是 **50 条** GET 行（F 批次当时量到 41；K 批新增方案列表、方案详情与输出类型三条读，K4 再加目标档案的轴、列表、详情三条读，KB-16 再加反馈历史一条读，KB-11 再加材料导出一条读，KB-12 再加按修订读取一条读），不是前两轮写的 37 条（我当时的 `startswith('/api/')` 过滤把
   `/workbench` 与 `workbench.ROUTES` 悄悄滤掉了）。现在 `test_standalone_chain_http` 里新增
   `test_every_ledger_get_route_is_answered_in_this_layout`：用写入路由造出真实资产/简报/方向，再经
   `_deliver_to_preflight()`（从交付腿抽出来共用）拿 job/bundle/version id，把每一行的槽位换成真值调用。
@@ -356,11 +402,13 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   三分片全 `exit=0`（`shard=1/3 outcomes={'PASS': 1104,'SKIP': 2}`），此前稳定复现的两条本机 ERROR 消失——
   这条只能在 Windows 上量，Linux CI 给不了这个证据。
   **写侧的同一把尺子已于同日第二十四批（后端 G）量完**（审计件 §5.27）：`design-lab/tests/`
-  `test_installed_write_surface.py` 把账本 **33 条 POST 行**（含 `GET+POST` 那条创建行）登记成一张按对象依赖顺序排的覆盖表，
-  其中 **32 行**逐行真写、每行都用 GET 读回，剩下 1 行按政策点名不走，覆盖表双向断言、槽位缺值即红、5xx 名单按布局分开且必须与实际发生
-  完全相等。读数两侧一字不差：源码 `rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`，
-  装好的 wheel 同样如此——本批没有新增"三件套"要付，这是 §5.25 付清读路径之后写侧第一次被真走到时
-  给出的确认，不是侥幸。唯一不走的行是 `POST …/tasks/<job>/run`：体只有一个 `attempt_id` 而扫描手里就有，
+  `test_installed_write_surface.py` 把账本 **39 条 POST 行**（含 `GET+POST` 那条创建行；G 批次当时是 33，K 批新增方案创建/修订/选用三条写行，K4 新增目标档案草稿与校验两条写行，KB-16 新增外部使用反馈一条写行）登记成一张按对象依赖顺序排的覆盖表，
+  其中 **38 行**逐行真写、每行都用 GET 读回，剩下 1 行按政策点名不走，覆盖表双向断言、槽位缺值即红、5xx 名单按布局分开且必须与实际发生
+  完全相等。今日读数取自源码布局：
+  `rows=39 walked=38 written=38 read_backs=47 refused=0 excluded=1`（G 批次当时是 `rows=29 walked=28`
+  与 34 次读回，K 批与 K4 把方案、目标档案与反馈的写行逐条加了进来，分母跟着动才是对的——写行增加了
+  而覆盖表不跟着走，正是"新增了没人证的写面"的形状。装好的 wheel 由 CI 的装机作业拿同一张表再跑一遍，
+  本机这一次不替它报数）。这是 §5.25 付清读路径之后写侧被真走到时给出的确认，不是侥幸。唯一不走的行是 `POST …/tasks/<job>/run`：体只有一个 `attempt_id` 而扫描手里就有，
   但 `native_workers.start()` 会 spawn 子进程派发真实宿主，冻结与"不触发真实宿主/模型执行"都在，所以按
   `FROZEN-BY-POLICY` 点名登记，不冒充"构造不出合法体"。**播种把一处误判顶了出来**：把 wheel 里的
   `config/state-vocabularies.json` 移走后 `POST …/tasks/<job>/bundle` 回 **400 INVALID_REQUEST**——
@@ -410,7 +458,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   emitter 逐行重钉为
   `src/design_lab/design_layer.py:104`、`:105`、`:106`、`:107`（各版本常量自己那行，`BRIEF_READBACK` 的
   `:64` 一字未动），设计层这一族付掉 **18 行**，账本仍有 **14 行**没有合同，
-  live 载荷比对现在 **41 条绑定**——每条绑定至少一例真实载荷，多数两例、少数一例或三例（目录读那几行只有一例：`catalog()`
+  live 载荷比对现在 **56 条绑定**——每条绑定至少一例真实载荷，多数两例、少数一例或三例（目录读那几行只有一例：`catalog()`
   没有"空目录"这一分支可给）：活梢与被超版、有内容与空项目、
   追加与同幂等键的重放。一条写在账本 reason 里的旧断言被实测字节推翻并点名更正：brief 链那行原写
   "superseded_by 链**加 design_layer_event 行**"，实测文档里根本没有事件行——`_chain()` 读

@@ -1,0 +1,11 @@
+test_no_clipped_or_unreachable_text_in_real_browser (design-lab.tests.test_workbench_overflow_gate.WorkbenchOverflowGateTests.test_no_clipped_or_unreachable_text_in_real_browser) ... ok
+test_the_heading_assertion_can_fail (design-lab.tests.test_workbench_overflow_gate.WorkbenchOverflowGateTests.test_the_heading_assertion_can_fail)
+A guard nobody has seen red guards nothing: both branches are planted here. ... ok
+test_the_ui2026_light_theme_is_graded_by_the_same_geometry_gate (design-lab.tests.test_workbench_overflow_gate.WorkbenchOverflowGateTests.test_the_ui2026_light_theme_is_graded_by_the_same_geometry_gate)
+DL-UI-U02's rule applied to layout: an unmeasured theme is an unshipped theme. ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 255.734s
+
+OK
+EXIT=0

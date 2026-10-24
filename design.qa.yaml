@@ -56,9 +56,12 @@ debt:
 # #/intake, #/analysis and #/plan; a screen that is not listed here is never opened by
 # this scanner, and "the plugin found nothing" would then be a statement about the list.
 # 2026-10-24: the list had fallen four routes behind ROUTE_VIEWS (22). #/prompts,
-# #/records and #/models were added earlier without being scanned, and #/knowledge is
-# the newest screen (DL-KB-03). All four are listed now, so "0 findings" covers every
-# desktop route the sidebar can reach.
+# #/records and #/models were added earlier without being scanned, and #/knowledge was
+# then the newest screen (DL-KB-03). All four were listed, and #/assistant followed the
+# same day (DL-KB-08), so the list then tracked ROUTE_VIEWS (23) exactly. DL-KB-10 added
+# #/target-profiles on 2026-10-24, so the list is kept tracking ROUTE_VIEWS (24) — a route
+# that is not listed is never opened by this scanner, and "the plugin found nothing" would
+# then be a statement about the list rather than about the page.
 # The four 390x844 screens are the nav/KPI narrow-window states that have been contested.
 # Mobile is an EXCLUSION (owner 2026-10-19: "只做桌面端"), not a pending task: these probes
 # measure the desktop app at a narrow window and are not a mobile deliverable.
@@ -107,6 +110,12 @@ screens:
     app: { url: "/workbench#/states", waitUntil: "networkidle", waitForSelector: "#route-view" }
   - name: components
     app: { url: "/workbench#/components", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: assistant
+    app: { url: "/workbench#/assistant", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  # DL-KB-10 (2026-10-24): 目标组合选择面板。默认态「暂不指定」下两栏对照与路线空态都要被打开，
+  # 否则"插件没发现问题"说的只是这份清单，不是那一屏。
+  - name: target-profiles
+    app: { url: "/workbench#/target-profiles", waitUntil: "networkidle", waitForSelector: "#route-view" }
   - name: dashboard-390
     app: { url: "/workbench#/dashboard", viewport: { width: 390, height: 844 },
            waitUntil: "networkidle", waitForSelector: "#route-view" }

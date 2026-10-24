@@ -59,6 +59,32 @@ let navVisibility = null;
 // Set only when the prompt-result slice actually ran, so the summary can never
 // claim a scenario that was skipped and a reader need not scrape stdout.
 let promptLoop = null;
+// DL-KB-08: the design-assistant (assistance plan) slice. Same rule: only set
+// when the steps actually ran, so a summary never claims a skipped scenario.
+let assistantLoop = null;
+// DL-KB-16: the reload half of the feedback assertion is measured after the page has been thrown
+// away, so it lives beside the loop object rather than inside the lane's locals.
+let feedbackSurvivedReload = false;
+// DL-KB-10: 屏幕三 目标组合选择面板. Same rule as above -- set only when the
+// steps actually ran, so the evidence can never describe a screen it skipped.
+let targetProfileLoop = null;
+// DL-KB-14: 状态与错误面。六种状态各自在真实浏览器里被读到才写这张卡；跳过这一步的运行
+// 不会在 summary 里冒充它发生过。
+let stateLoop = null;
+// Counts the /api/target-profile* POSTs from the wire, not from the DOM: a "nothing was
+// executed" claim that still posted twice, or a validate that never left the page, are both
+// invisible to a text-only assertion.
+let targetProfilePosts = 0;
+let targetProfileValidates = 0;
+// Counts every assistance-plan write the page issued. The copy/choose split is
+// only provable from the wire: copying must leave these counters untouched.
+let assistanceWrites = 0;
+let assistanceChooses = 0;
+// DL-KB-16: a voluntary external-use report is a POST under the same path prefix, so it moves
+// assistanceWrites too. This counter separates the two: the lane needs to say "the plan was
+// revised zero times and exactly one feedback record left the page", which the shared counter
+// cannot tell apart.
+let feedbackWrites = 0;
 
 // P0-G: single evidence writer, used by every exit path (PASS and FAIL).
 const writeSummary = (result, error) => {
@@ -71,6 +97,9 @@ const writeSummary = (result, error) => {
                     'nav-route-inventory-derived-from-served-bundle',
                     'desktop-nav-active-visible'];
   if (promptLoop) scenario.push('prompt-result-compose-store-sign');
+  if (assistantLoop) scenario.push('assistance-plan-four-states');
+  if (stateLoop) scenario.push('six-state-surfaces');
+  if (targetProfileLoop) scenario.push('target-combination-panel-two-columns-b2');
   const payload = {
     kind: 'workbench-browser-e2',
     subjectSha: process.env.E2E_SUBJECT_SHA || 'local',
@@ -81,6 +110,9 @@ const writeSummary = (result, error) => {
     result,
   };
   if (promptLoop) payload.promptLoop = promptLoop;
+  if (assistantLoop) payload.assistantLoop = assistantLoop;
+  if (stateLoop) payload.stateLoop = stateLoop;
+  if (targetProfileLoop) payload.targetProfileLoop = targetProfileLoop;
   if (routeInventory) payload.routeInventory = routeInventory;
   if (navVisibility) payload.navVisibility = navVisibility;
   if (error) payload.error = error;
@@ -234,6 +266,21 @@ try {
   page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push('pageerror: ' + String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  // DL-KB-08: count assistance-plan writes/choices from the wire itself. A copy
+  // that secretly chose, or a "no write" refusal that still posted, would pass a
+  // DOM-only assertion; these counters cannot.
+  page.on('request', (request) => {
+    if (request.method() !== 'POST') return;
+    const url = request.url();
+    if (/\/target-profiles(\/|$)/.test(url)) {
+      targetProfilePosts += 1;
+      if (/\/validate$/.test(url)) targetProfileValidates += 1;
+    }
+    if (!/\/assistance-plans(\/|$)/.test(url)) return;
+    assistanceWrites += 1;
+    if (/\/choose$/.test(url)) assistanceChooses += 1;
+    if (/\/feedback$/.test(url)) feedbackWrites += 1;
+  });
 
   const base = serviceUrl.replace(/\/$/, '');
   await page.goto(base + '/workbench', { waitUntil: 'load' });
@@ -820,6 +867,1250 @@ try {
     overclaim: /已发送|发送成功|delivered|模型已执行/.test(panelAfter),
   };
   console.log('E2E_PROMPT_LOOP: ' + JSON.stringify(promptLoop));
+
+  // ------------------------------------------------------------------------
+  // DL-KB-08: the design-assistant screen. The acceptance is about the RENDERED
+  // page, so every claim below is read from the DOM after the service answered:
+  //   · the initial screen exposes requirement / reference / output type only
+  //     (no tool or model picker), and the vocabulary comes from the service;
+  //   · one saved plan shows the four states separately: 已保存 / 方案已提供 /
+  //     用户选用 / 外部未验证;
+  //   · copying is a real, working action BEFORE any adoption, and it puts no
+  //     write or choose on the wire;
+  //   · an empty requirement is refused locally and the form still works, so
+  //     there is no dead end;
+  //   · supplying the missing creative appends r2, a named human chooses it, and
+  //     a full page reload rebuilds the same four states from the service.
+  // ------------------------------------------------------------------------
+  await step('design assistant four states', async () => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.evaluate(() => { window.location.hash = '#/assistant'; });
+    await page.locator('#as-objective').waitFor({ state: 'visible', timeout: 20000 });
+
+    const initial = await page.evaluate(() => {
+      const form = document.getElementById('as-form');
+      const controls = Array.from(form.querySelectorAll('select,input,textarea'));
+      return {
+        selects: Array.from(form.querySelectorAll('select')).map((s) => s.id),
+        toolish: controls.map((c) => c.id).filter((id) => /tool|model/i.test(id)),
+        types: Array.from(document.querySelectorAll('#as-output-type option'))
+          .map((o) => o.value).filter(Boolean),
+        canvases: document.querySelectorAll('#route-view canvas').length,
+        logs: document.querySelectorAll('#route-view [role="log"]').length,
+      };
+    });
+    // The task says the initial screen exposes requirement, reference attachment
+    // and output type; tools and models are chosen later. Three selects is the
+    // rendered shape of that sentence, and an id naming a tool/model would mean
+    // the deferred picker had crept back in.
+    if (initial.selects.length !== 3 || initial.toolish.length !== 0 ||
+        initial.types.length !== 6 || !initial.types.includes('STORYBOARD')) {
+      await abort('E2E_ASSISTANT_INITIAL_SURFACE: ' + JSON.stringify(initial), 15, ctx, b);
+    }
+    if (initial.canvases !== 0 || initial.logs !== 0) {
+      await abort('E2E_ASSISTANT_CHAT_SURFACE: the route rendered a canvas or a message log: '
+                  + JSON.stringify(initial), 15, ctx, b);
+    }
+
+    const objectiveText = '为秋季新品写一条可读的分镜目标，给标题留白';
+    await page.locator('#as-output-type').selectOption('STORYBOARD');
+    const outputTypeLabel = await page.locator('#as-output-type option:checked').innerText();
+    await page.locator('#as-objective').fill(objectiveText);
+    await page.locator('#as-author').fill('E2E Assistant Author');
+    await page.locator('#as-submit').click();
+    const savedTrue = () => page.waitForFunction(() => {
+      const node = document.getElementById('as-saved');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 25000 }).then(() => true).catch(() => false);
+    if (!await savedTrue()) {
+      const why = await page.evaluate(() => ({
+        error: document.getElementById('as-form-error')?.textContent ?? '',
+        status: document.getElementById('as-form-status')?.textContent ?? '',
+        detail: document.getElementById('as-detail')?.textContent?.slice(0, 300) ?? '',
+      }));
+      await abort('E2E_ASSISTANT_NOT_SAVED: ' + JSON.stringify(why), 15, ctx, b);
+    }
+
+    const readStates = () => page.evaluate(() => {
+      const chip = (id) => {
+        const node = document.getElementById(id);
+        return node ? { text: node.textContent ?? '', state: node.dataset.state ?? '' } : null;
+      };
+      const primary = Array.from(
+        document.querySelectorAll('#as-actions .primary-btn')).map((b) => b.id);
+      return { saved: chip('as-saved'), provided: chip('as-provided'),
+               chosen: chip('as-chosen'), external: chip('as-external'), primary };
+    });
+    const afterSave = await readStates();
+    if (!afterSave.saved || afterSave.saved.state !== 'true' ||
+        afterSave.provided?.state !== 'false' || afterSave.chosen?.state !== 'false' ||
+        afterSave.external?.state !== 'false' ||
+        afterSave.primary.length !== 1 || afterSave.primary[0] !== 'as-supply') {
+      await abort('E2E_ASSISTANT_STATES_AFTER_SAVE: ' + JSON.stringify(afterSave), 15, ctx, b);
+    }
+    const detailText = () => page.locator('#as-plan').innerText();
+    const savedDetail = await detailText();
+    if (!/尚未提供创意/.test(savedDetail)
+        || !/还没有可读的脚本；这条方案也没有登记镜头行/.test(savedDetail)) {
+      await abort('E2E_ASSISTANT_STORYBOARD_WITHOUT_CREATIVE: '
+                  + savedDetail.slice(0, 400).replace(/[\r\n]+/g, ' · '), 15, ctx, b);
+    }
+
+    // Empty requirement: refused on the page, and no assistance-plan write leaves.
+    const writesBeforeEmpty = assistanceWrites;
+    await page.locator('#as-submit').click();
+    const emptyRefused = await page.waitForFunction(() => {
+      const node = document.getElementById('as-form-error');
+      return !!node && /请先写下/.test(node.textContent ?? '');
+    }, null, { timeout: 8000 }).then(() => true).catch(() => false);
+    const focusAfterEmpty = await page.evaluate(
+      () => document.activeElement?.id ?? '');
+    if (!emptyRefused || assistanceWrites !== writesBeforeEmpty ||
+        focusAfterEmpty !== 'as-objective') {
+      await abort('E2E_ASSISTANT_EMPTY_DEAD_END: refused=' + emptyRefused +
+                  ' writes=' + assistanceWrites + '/' + writesBeforeEmpty +
+                  ' focus=' + focusAfterEmpty, 15, ctx, b);
+    }
+
+    // Copy is available with no approval and no adoption, and it is provably not
+    // an adoption: the counters must not move.
+    const choosesBeforeCopy = assistanceChooses;
+    const writesBeforeCopy = assistanceWrites;
+    await page.bringToFront();
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: base });
+    await page.locator('#as-copy').click();
+    const copyNote = await page.waitForFunction(() => {
+      const note = document.getElementById('as-copy-note');
+      if (!note) return false;
+      return /已复制/.test(note.textContent ?? '') || !!note.querySelector('textarea');
+    }, null, { timeout: 8000 }).then(() => page.locator('#as-copy-note').innerText())
+      .catch(() => '');
+    let clipboardText = '';
+    try {
+      clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    } catch { /* the note path below is still evidence */ }
+    if (!/已复制/.test(copyNote) && !clipboardText.includes(objectiveText)) {
+      await abort('E2E_ASSISTANT_COPY_BLOCKED: note=' + JSON.stringify(copyNote), 15, ctx, b);
+    }
+    // The clipboard now carries a material the service rendered (DL-KB-11), not text the page
+    // assembled. The two sentences asserted here are the emitter's own: the state line that says
+    // no external result was verified, and the closing line that says a download is not a
+    // delivery. Copying must still move neither counter.
+    if (!clipboardText.includes(objectiveText) ||
+        !clipboardText.includes('外部结果未被系统核验') ||
+        !clipboardText.includes('下载不等于交付')) {
+      await abort('E2E_ASSISTANT_COPY_TEXT: clipboard=' + JSON.stringify(clipboardText.slice(0, 200)),
+                  15, ctx, b);
+    }
+    if (assistanceWrites !== writesBeforeCopy || assistanceChooses !== choosesBeforeCopy) {
+      await abort('E2E_ASSISTANT_COPY_WROTE: writes=' + assistanceWrites + '/' + writesBeforeCopy +
+                  ' chooses=' + assistanceChooses + '/' + choosesBeforeCopy, 15, ctx, b);
+    }
+    const copyWroteNothing = assistanceWrites === writesBeforeCopy;
+    const copyChoseNothing = assistanceChooses === choosesBeforeCopy;
+
+    // Supply the missing creative: the primary action opens the prefilled form,
+    // saving appends r2 and the provided state flips — the "no dead end" path.
+    await page.locator('#as-supply').click();
+    const editReady = await page.waitForFunction(() => {
+      const submit = document.getElementById('as-submit');
+      return !!submit && /保存为新修订/.test(submit.textContent ?? '');
+    }, null, { timeout: 15000 }).then(() => true).catch(() => false);
+    if (!editReady) {
+      await abort('E2E_ASSISTANT_EDIT_NOT_PREFILLED', 15, ctx, b);
+    }
+    await page.locator('#as-creative').fill(
+      '镜头 1：俯拍整张桌面；镜头 2：手指沿纸边划过；镜头 3：标题留白收束。');
+    await page.locator('#as-submit').click();
+    const providedTrue = await page.waitForFunction(() => {
+      const node = document.getElementById('as-provided');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 25000 }).then(() => true).catch(() => false);
+    if (!providedTrue) {
+      await abort('E2E_ASSISTANT_CREATIVE_NOT_READ_BACK: '
+                  + JSON.stringify(await readStates()), 15, ctx, b);
+    }
+    const afterProvided = await readStates();
+    if (afterProvided.saved?.state !== 'true' || afterProvided.chosen?.state !== 'false' ||
+        afterProvided.external?.state !== 'false' ||
+        afterProvided.primary.length !== 1 || afterProvided.primary[0] !== 'as-choose') {
+      await abort('E2E_ASSISTANT_STATES_AFTER_CREATIVE: ' + JSON.stringify(afterProvided),
+                  15, ctx, b);
+    }
+    const providedDetail = await detailText();
+    // The shot table exists now, so the honesty this guard asks for is the sharper version: the
+    // screen must say THIS plan registered no rows, must refuse to pass an empty table off as a
+    // storyboard, and must name where the rows are written. A creative that enumerates 镜头 1/2/3
+    // in prose is exactly the case where a page could be tempted to print a table it does not have.
+    if (!/没有登记镜头行/.test(providedDetail)
+        || !/页面不画一张空表/.test(providedDetail)
+        || !/逐行写镜头/.test(providedDetail)) {
+      await abort('E2E_ASSISTANT_STORYBOARD_HONESTY: the storyboard section did not say this plan '
+                  + 'registered no shot rows, that no empty table will be drawn, and where to '
+                  + 'write them: '
+                  + providedDetail.slice(0, 400).replace(/[\r\n]+/g, ' · '), 15, ctx, b);
+    }
+
+    // A named human adopts it; the actor is rendered in the detail, not only in
+    // a transient note.
+    await page.locator('#as-choose').click();
+    await page.locator('#as-choose-name').fill('E2E Assistant Reviewer');
+    const choosesBeforeAdopt = assistanceChooses;
+    await page.locator('#as-choose-submit').click();
+    const chosenTrue = await page.waitForFunction(() => {
+      const node = document.getElementById('as-chosen');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 25000 }).then(() => true).catch(() => false);
+    if (!chosenTrue || assistanceChooses !== choosesBeforeAdopt + 1) {
+      await abort('E2E_ASSISTANT_CHOOSE_NOT_RECORDED: chosen=' + chosenTrue +
+                  ' chooses=' + assistanceChooses + '/' + (choosesBeforeAdopt + 1) +
+                  ' states=' + JSON.stringify(await readStates()), 15, ctx, b);
+    }
+    const afterChoose = await readStates();
+    const choiceLine = await page.locator('#as-choice').innerText();
+    if (afterChoose.primary.length !== 1 || afterChoose.primary[0] !== 'as-revise' ||
+        !/E2E Assistant Reviewer/.test(choiceLine) || !/r2/.test(afterChoose.chosen?.text ?? '')) {
+      await abort('E2E_ASSISTANT_STATES_AFTER_CHOOSE: ' + JSON.stringify(afterChoose)
+                  + ' choice=' + choiceLine, 15, ctx, b);
+    }
+    // Revision history keeps both versions, newest marked 最新.
+    await page.locator('#as-revisions > summary').click();
+    await page.waitForFunction(
+      () => document.querySelectorAll('#as-revisions li').length >= 2,
+      null, { timeout: 10000 }).catch(() => {});
+    const revisionRows = await page.locator('#as-revisions li').allInnerTexts();
+    // assistance_plan.detail() orders revisions ascending (`ORDER BY revision`), and the
+    // page renders that readback order unchanged; the newest row carries 最新.
+    if (revisionRows.length !== 2 || !/^r1/.test(revisionRows[0]) ||
+        !/旧版本/.test(revisionRows[0]) || !/^r2/.test(revisionRows[1]) ||
+        !/最新/.test(revisionRows[1])) {
+      await abort('E2E_ASSISTANT_REVISIONS: ' + JSON.stringify(revisionRows), 15, ctx, b);
+    }
+
+    // ---- DL-KB-11 交接材料 -----------------------------------------------------
+    // The format list the page offers is the list the service renders: the vocabulary envelope is
+    // read here as its own request, and the rendered <option> set must equal it. Four words typed
+    // into shell.ts would render four plausible options and still fail this comparison.
+    const vocabulary = await page.evaluate(async (bearer) => (
+      await (await fetch('/api/assistance-plan-output-types',
+        { headers: { Authorization: 'Bearer ' + bearer } })).json()), token);
+    const servedFormats = (vocabulary.export_formats ?? []).map((row) => row.value);
+    const materialDom = await page.evaluate(() => Array.from(
+      document.querySelectorAll('#as-material option')).map((o) => o.value).filter(Boolean));
+    const copyFormat = await page.evaluate(
+      () => document.getElementById('as-material')?.value ?? '');
+    if (servedFormats.length !== 4
+        || JSON.stringify(materialDom) !== JSON.stringify(servedFormats)) {
+      await abort('E2E_ASSISTANT_MATERIAL_FORMATS: dom=' + JSON.stringify(materialDom)
+                  + ' served=' + JSON.stringify(servedFormats), 15, ctx, b);
+    }
+    // The plan this lane filed has no shot rows, so the 分镜 CSV must be refused by name rather
+    // than downloaded as an empty table. The refusal arrives through the same button a designer
+    // would press, which is the only way to prove the page shows the reason instead of a spinner.
+    const noteWhen = (source) => page.waitForFunction((needle) => {
+      const node = document.getElementById('as-copy-note');
+      const text = node ? (node.textContent ?? '') : '';
+      return text.includes(needle) ? text : null;
+    }, source, { timeout: 20000 }).then((handle) => handle.jsonValue()).catch(() => '');
+    const csvValue = servedFormats.find((value) => value === 'storyboard_csv') ?? '';
+    await page.locator('#as-material').selectOption(csvValue);
+    const csvGet = page.waitForResponse(
+      (r) => /\/assistance-plans\/aplan-[0-9a-f]{32}\/export/.test(r.url())
+             && /[?&]format=storyboard_csv/.test(r.url()), { timeout: 25000 });
+    const errorsBeforeCsv = errors.length;
+    await page.locator('#as-download').click();
+    const csvStatus = await csvGet.then((r) => r.status()).catch(() => 0);
+    const csvNote = await noteWhen('PLAN_EXPORT_NO_SHOTS');
+    // Chromium logs every non-2xx response as a console error, and this 409 is the point of the
+    // step. The lane's net is "no UNEXPECTED console error", so this single message is accounted
+    // for here and only here -- anything else the page logged still fails the run at the end.
+    let csvConsole = [];
+    for (let tick = 0; tick < 60; tick += 1) {
+      csvConsole = errors.splice(errorsBeforeCsv);
+      if (csvConsole.length) break;
+      await new Promise((resolve) => { setTimeout(resolve, 50); });
+    }
+    const csvRefused = csvStatus === 409 && /PLAN_EXPORT_NO_SHOTS/.test(csvNote)
+      && /下一步/.test(csvNote) && csvConsole.length === 1
+      && /status of 409 \(Conflict\)/.test(csvConsole[0]);
+    if (!csvRefused) {
+      await abort('E2E_ASSISTANT_MATERIAL_CSV_REFUSAL: status=' + csvStatus
+                  + ' note=' + JSON.stringify(csvNote)
+                  + ' console=' + JSON.stringify(csvConsole.slice(0, 3)), 15, ctx, b);
+    }
+    // Back to a format that renders: the download must carry the served filename and content type,
+    // and the note must be built from what the answer said (bytes, digest, the emitter's own
+    // "a download is not a delivery" sentence).
+    await page.locator('#as-material').selectOption(servedFormats[0]);
+    const mdGet = page.waitForResponse(
+      (r) => /\/assistance-plans\/aplan-[0-9a-f]{32}\/export/.test(r.url())
+             && r.url().includes('format=' + servedFormats[0]), { timeout: 25000 });
+    await page.locator('#as-download').click();
+    const mdAnswer = await mdGet.then((r) => r.json()).catch(() => null);
+    const mdNote = await noteWhen('已下载');
+    const materialDownloaded = !!mdAnswer && mdAnswer.format === servedFormats[0]
+      && /已下载/.test(mdNote) && mdNote.includes(mdAnswer.format_label)
+      && mdNote.includes(mdAnswer.body_sha256) && mdNote.includes('不是选用')
+      && mdNote.includes(mdAnswer.not_executed);
+    if (!materialDownloaded) {
+      await abort('E2E_ASSISTANT_MATERIAL_DOWNLOAD: note=' + JSON.stringify(mdNote)
+                  + ' answer=' + JSON.stringify(mdAnswer && mdAnswer.filename), 15, ctx, b);
+    }
+
+    // ---- DL-KB-12 找回：搜索、筛选、修订对比 --------------------------------------
+    // The list route has no q parameter, so the search box filters the page that was read. The
+    // assertion here is that the page says WHICH rows it read and how many matched -- a list that
+    // quietly shows fewer rows would otherwise read as "you have no more plans".
+    await page.locator('#as-plan-search').fill('秋季新品');
+    await page.locator('#as-plan-filter-state').selectOption('chosen');
+    await page.waitForFunction(() => /按当前条件显示/.test(
+      document.getElementById('as-list-meta')?.textContent ?? ''),
+    null, { timeout: 15000 }).catch(() => {});
+    const filterLine = await page.locator('#as-list-meta').innerText();
+    const filteredRows = await page.locator('#as-list .as-plan-row').count();
+    const searchApplied = /这个工作区共 \d+ 条/.test(filterLine)
+      && /这一页读到 \d+ 条/.test(filterLine)
+      && /按当前条件显示 \d+ 条/.test(filterLine)
+      && /不是全库搜索/.test(filterLine) && filteredRows >= 1;
+    if (!searchApplied) {
+      await abort('E2E_ASSISTANT_PLAN_SEARCH: meta=' + JSON.stringify(filterLine)
+                  + ' rows=' + filteredRows, 15, ctx, b);
+    }
+
+    // Two real revisions: both bodies come back from the by-revision route. The fault this guards is
+    // a comparison that renders the current revision twice -- which is why the two digests, not just
+    // the two labels, have to differ in the served answers.
+    await page.locator('#as-compare > summary').click();
+    await page.locator('#as-compare-from').selectOption('1');
+    await page.locator('#as-compare-to').selectOption('2');
+    const revisionGets = ['1', '2'].map((number) => page.waitForResponse(
+      (r) => r.request().method() === 'GET' && r.url().endsWith('/revisions/' + number),
+      { timeout: 25000 }));
+    await page.locator('#as-compare-run').click();
+    const revisionAnswers = await Promise.all(revisionGets.map((p) => p.then((r) => r.json())));
+    const compareStatus = await page.waitForFunction(() => {
+      const node = document.getElementById('as-compare-status');
+      const text = node ? (node.textContent ?? '') : '';
+      return text.includes('对比的是') ? text : null;
+    }, null, { timeout: 20000 }).then((handle) => handle.jsonValue()).catch(() => '');
+    const compareRows = await page.locator('#as-compare-body li').allInnerTexts();
+    const compareReal = revisionAnswers.length === 2
+      && revisionAnswers[0].content_sha256 !== revisionAnswers[1].content_sha256
+      && revisionAnswers[0].revision === 1 && revisionAnswers[1].revision === 2
+      && revisionAnswers[0].is_latest === false && revisionAnswers[1].is_latest === true
+      && compareStatus.includes(revisionAnswers[0].content_sha256)
+      && compareStatus.includes(revisionAnswers[1].content_sha256)
+      && compareRows.some((row) => /设计建议/.test(row) && /不同/.test(row))
+      && compareRows.some((row) => /目标/.test(row) && /相同/.test(row));
+    if (!compareReal) {
+      await abort('E2E_ASSISTANT_PLAN_COMPARE: status=' + JSON.stringify(compareStatus)
+                  + ' digests=' + JSON.stringify(revisionAnswers.map((a) => a && a.content_sha256))
+                  + ' rows=' + JSON.stringify(compareRows.slice(0, 4)), 15, ctx, b);
+    }
+
+
+    // Re-open the plan while listening to the readback the panel itself issues, then require the
+    // rendered <option> list to be exactly the pairs that response carried. A hand-copied
+    // vocabulary in shell.ts would still render three plausible options; it would not survive
+    // this comparison, and that is the point -- the words are the service's, not the page's.
+    const planShape = () => page.evaluate(() => ({
+      chips: ['as-saved', 'as-provided', 'as-chosen', 'as-external']
+        .map((id) => document.getElementById(id)?.dataset.state ?? ''),
+      revisions: document.querySelectorAll('#as-revisions li').length,
+      choice: document.getElementById('as-choice')?.textContent ?? '',
+    }));
+    const shapeBeforeFeedback = await planShape();
+    const feedbackGet = page.waitForResponse(
+      (r) => /\/assistance-plans\/aplan-[0-9a-f]{32}\/feedback$/.test(r.url())
+             && r.request().method() === 'GET', { timeout: 25000 });
+    await page.locator('#as-list .as-plan-open').first().click();
+    const feedbackServed = await feedbackGet.then((r) => r.json()).catch(() => null);
+    if (!feedbackServed || !Array.isArray(feedbackServed.outcome_words)) {
+      await abort('E2E_ASSISTANT_FEEDBACK_NO_READBACK: 面板没有从服务读到反馈历史', 15, ctx, b);
+    }
+    await page.locator('#as-fb-add-dimension').click();
+    const feedbackDom = await page.evaluate(() => ({
+      outcomes: Array.from(document.querySelectorAll('#as-fb-outcome option'))
+        .map((o) => ({ value: o.value, label: o.textContent ?? '' })),
+      verdicts: Array.from(document.querySelectorAll('#as-fb-dimensions select option'))
+        .map((o) => ({ value: o.value, label: o.textContent ?? '' })),
+      saveDisabled: document.getElementById('as-fb-save')?.disabled ?? true,
+      addDisabled: document.getElementById('as-fb-add-dimension')?.disabled ?? true,
+    }));
+    const servedOutcomes = [{ value: '', label: '暂不记录' },
+      ...feedbackServed.outcome_words.map((w) => ({ value: w.value, label: w.label }))];
+    const servedVerdicts = feedbackServed.dimension_verdict_words
+      .map((w) => ({ value: w.value, label: w.label }));
+    if (JSON.stringify(feedbackDom.outcomes) !== JSON.stringify(servedOutcomes) ||
+        JSON.stringify(feedbackDom.verdicts) !== JSON.stringify(servedVerdicts) ||
+        feedbackDom.saveDisabled || feedbackDom.addDisabled) {
+      await abort('E2E_ASSISTANT_FEEDBACK_WORDS: dom=' + JSON.stringify(feedbackDom)
+                  + ' served=' + JSON.stringify({ outcomes: servedOutcomes,
+                                                  verdicts: servedVerdicts }), 15, ctx, b);
+    }
+
+    const partialWord = servedOutcomes[2];
+    const dimensionRow = page.locator('#as-fb-dimensions .as-fb-dimension').nth(0);
+    await page.locator('#as-fb-outcome').selectOption(partialWord.value);
+    await page.locator('#as-fb-target').fill('elevenlabs--web-app--music');
+    await page.locator('#as-fb-actor').fill('E2E Feedback Human');
+    await dimensionRow.locator('input').nth(0).fill('画幅');
+    await dimensionRow.locator('select').selectOption(servedVerdicts[0].value);
+    const feedbackPost = page.waitForResponse(
+      (r) => /\/assistance-plans\/aplan-[0-9a-f]{32}\/feedback$/.test(r.url())
+             && r.request().method() === 'POST', { timeout: 25000 });
+    await page.locator('#as-fb-save').click();
+    const feedbackWritten = await feedbackPost.then((r) => r.json()).catch(() => null);
+    if (!feedbackWritten || (feedbackWritten.feedback || {}).outcome !== partialWord.value) {
+      await abort('E2E_ASSISTANT_FEEDBACK_NOT_WRITTEN: '
+                  + JSON.stringify(feedbackWritten) + ' status='
+                  + await page.locator('#as-fb-error').innerText(), 15, ctx, b);
+    }
+    // The confirmation and the row must both come from the readback that follows the write; the
+    // empty 外部编号 stays the literal UNUSED because nothing here mints an identifier.
+    const feedbackRowText = await page.waitForFunction((no) => {
+      const node = document.getElementById(`as-fb-row-${no}`);
+      return node ? (node.textContent ?? '') : null;
+    }, feedbackWritten.feedback.feedback_no, { timeout: 25000 })
+      .then((handle) => handle.jsonValue()).catch(() => null);
+    const feedbackStatus = await page.locator('#as-fb-status').innerText();
+    const shapeAfterFeedback = await planShape();
+    const feedbackPanelText = await page.locator('#as-feedback').innerText();
+    const feedbackRecorded = !!feedbackRowText && feedbackRowText.includes(partialWord.label)
+      && feedbackRowText.includes('E2E Feedback Human')
+      && feedbackRowText.includes('elevenlabs--web-app--music')
+      && feedbackRowText.includes('UNUSED')
+      && feedbackStatus.includes(`已记录：${partialWord.label}`)
+      && feedbackStatus.includes('外部未验证');
+    const feedbackKeptPlan = JSON.stringify(shapeBeforeFeedback)
+      === JSON.stringify(shapeAfterFeedback);
+    const feedbackOverclaim = /已发送|发送成功|delivered|模型已执行/i.test(feedbackPanelText);
+    if (!feedbackRecorded || !feedbackKeptPlan || feedbackOverclaim) {
+      await abort('E2E_ASSISTANT_FEEDBACK: recorded=' + feedbackRecorded
+                  + ' keptPlan=' + feedbackKeptPlan + ' overclaim=' + feedbackOverclaim
+                  + ' row=' + JSON.stringify(feedbackRowText) + ' status='
+                  + JSON.stringify(feedbackStatus) + ' shape='
+                  + JSON.stringify([shapeBeforeFeedback, shapeAfterFeedback]), 15, ctx, b);
+    }
+
+    // Throw the page away. The four states must be rebuilt from the service.
+    //
+    // A reload at #/assistant has no in-memory token, and the routed view
+    // deliberately hides the login panel — it shows「请先在工作台连接」instead.
+    // Going back to the workbench first is that screen's own instruction, not a
+    // test shortcut: the token field is only reachable on the workbench view.
+    // One helper, because this dance is run twice below and a copy would drift.
+    const reloadAssistant = async () => {
+      await page.reload({ waitUntil: 'load' });
+      await page.evaluate(() => { window.location.hash = ''; });
+      await page.locator('#token').waitFor({ state: 'visible', timeout: 15000 });
+      await page.locator('#token').fill(token);
+      await page.locator('#connect-form button').first().click();
+      await page.locator('#workspace').waitFor({ state: 'visible', timeout: 15000 });
+      await page.evaluate(() => { window.location.hash = '#/assistant'; });
+      await page.locator('#as-objective').waitFor({ state: 'visible', timeout: 20000 });
+      await page.locator('#as-list .as-plan-open').first()
+        .waitFor({ state: 'visible', timeout: 20000 });
+    };
+    await reloadAssistant();
+    const listRow = await page.locator('#as-list .as-plan-row').first().innerText();
+    if (!/方案已提供/.test(listRow) || !/用户选用 r2/.test(listRow)) {
+      await abort('E2E_ASSISTANT_RELOAD_LIST: ' + listRow.replace(/[\r\n]+/g, ' · '), 15, ctx, b);
+    }
+    // The card asks for the last filter to survive a restart. It is client-local state, so this is
+    // the only place that can tell "restored" from "the page happens to show everything": the box
+    // still holds the word that was typed, the state filter still holds the choice, and the meta
+    // line still says it is showing a filtered subset of what it read.
+    const filtersRestored = await page.waitForFunction(() => {
+      const search = document.getElementById('as-plan-search');
+      const state = document.getElementById('as-plan-filter-state');
+      const meta = document.getElementById('as-list-meta');
+      if (!search || !state || !meta) return null;
+      return search.value === '秋季新品' && state.value === 'chosen'
+             && /按当前条件显示/.test(meta.textContent ?? '');
+    }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+    if (!filtersRestored) {
+      await abort('E2E_ASSISTANT_PLAN_FILTER_RELOAD: ' + JSON.stringify(await page.evaluate(() => ({
+        search: document.getElementById('as-plan-search')?.value ?? '',
+        state: document.getElementById('as-plan-filter-state')?.value ?? '',
+        meta: document.getElementById('as-list-meta')?.textContent ?? '',
+      }))), 15, ctx, b);
+    }
+    await page.locator('#as-list .as-plan-open').first().click();
+    const reloaded = await page.waitForFunction(() => {
+      const node = document.getElementById('as-chosen');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 20000 }).then(readStates).catch(() => null);
+    if (!reloaded || reloaded.saved?.state !== 'true' || reloaded.provided?.state !== 'true' ||
+        reloaded.chosen?.state !== 'true' || reloaded.external?.state !== 'false') {
+      await abort('E2E_ASSISTANT_RELOAD_STATES: ' + JSON.stringify(reloaded), 15, ctx, b);
+    }
+    const reloadedChoice = await page.locator('#as-choice').innerText();
+    if (!/E2E Assistant Reviewer/.test(reloadedChoice) ||
+        !/外部未验证/.test(await page.locator('#as-plan').innerText())) {
+      await abort('E2E_ASSISTANT_RELOAD_CHOICE: ' + reloadedChoice, 15, ctx, b);
+    }
+    // The voluntary report is the one thing this run wrote that has no plan state to ride on, so
+    // it is asserted where it matters: after the page is thrown away, the history must come back
+    // from the service with the same words and the same tally, and the plan must still be two
+    // revisions -- a feedback write that adopted or revised the plan would show up here as r3.
+    const reloadedRow = await page.waitForFunction((no) => {
+      const node = document.getElementById(`as-fb-row-${no}`);
+      return node ? (node.textContent ?? '') : null;
+    }, feedbackWritten.feedback.feedback_no, { timeout: 25000 })
+      .then((handle) => handle.jsonValue()).catch(() => null);
+    const reloadedFeedbackStatus = await page.locator('#as-fb-status').innerText();
+    await page.locator('#as-revisions > summary').click();
+    const reloadedRevisionCount = await page.evaluate(
+      () => document.querySelectorAll('#as-revisions li').length);
+    feedbackSurvivedReload = !!reloadedRow && reloadedRow.includes(partialWord.label)
+      && reloadedRow.includes('E2E Feedback Human')
+      && reloadedFeedbackStatus.includes('已读回')
+      && reloadedFeedbackStatus.includes(`${partialWord.label} 1`)
+      && reloadedFeedbackStatus.includes('外部未验证')
+      && reloadedRevisionCount === 2;
+    if (!feedbackSurvivedReload) {
+      await abort('E2E_ASSISTANT_FEEDBACK_RELOAD: row=' + JSON.stringify(reloadedRow)
+                  + ' status=' + JSON.stringify(reloadedFeedbackStatus)
+                  + ' revisions=' + reloadedRevisionCount, 15, ctx, b);
+    }
+
+    // ---- DL-KB-12 复制一份 -------------------------------------------------------
+    // A copy is a create: the new id has to come from the service, exactly one write has to leave
+    // the page, and the plan that was copied must not move at all -- same revision count, same
+    // voluntary feedback history. Asserting the copy alone would not catch a copy that also
+    // adopted or revised its source.
+    await page.locator('#as-list .as-plan-open').first().click();
+    await page.locator('#as-duplicate').waitFor({ state: 'visible', timeout: 20000 });
+    const sourceShape = await page.evaluate(() => ({
+      revisions: document.querySelectorAll('#as-revisions li').length,
+      feedback: document.querySelectorAll('#as-fb-history li').length,
+      digest: document.querySelector('#as-revisions li')?.textContent ?? '',
+    }));
+    const writesBeforeDuplicate = assistanceWrites;
+    const planCreatePost = page.waitForResponse((r) => r.request().method() === 'POST'
+      && /\/assistance-plans$/.test(r.url()), { timeout: 25000 });
+    await page.locator('#as-duplicate').click();
+    await page.locator('#as-author').fill('E2E Copier');
+    await page.locator('#as-submit').click();
+    const copied = await planCreatePost.then((r) => r.json()).catch(() => null);
+    const copyStatus = await page.locator('#as-form-status').innerText();
+    const copyId = (copied && copied.plan) ? copied.plan.plan_id : '';
+    const copyWritten = !!copied && /^aplan-[0-9a-f]{32}$/.test(copyId)
+      && copied.revision === 1 && /已复制为新的方案 /.test(copyStatus)
+      && copyStatus.includes(copyId) && assistanceWrites === writesBeforeDuplicate + 1;
+    if (!copyWritten) {
+      await abort('E2E_ASSISTANT_PLAN_DUPLICATE: status=' + JSON.stringify(copyStatus)
+                  + ' answer=' + JSON.stringify(copied && { revision: copied.revision,
+                                                             id: copied.plan?.plan_id })
+                  + ' writes=' + assistanceWrites + '/' + (writesBeforeDuplicate + 1),
+                  15, ctx, b);
+    }
+    // Reopen the SOURCE plan -- the copy carries the same objective, so the badges are what tells
+    // the two rows apart -- and read it back from the service.
+    await page.locator('#as-list .as-plan-row', { hasText: '用户选用 r2' }).first()
+      .locator('.as-plan-open').click();
+    const sourceAfterCopy = await page.waitForFunction(() => {
+      const node = document.getElementById('as-chosen');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 20000 }).then(() => page.evaluate(() => ({
+      revisions: document.querySelectorAll('#as-revisions li').length,
+      feedback: document.querySelectorAll('#as-fb-history li').length,
+    }))).catch(() => null);
+    const copyLeftSourceAlone = !!sourceAfterCopy
+      && sourceAfterCopy.revisions === sourceShape.revisions
+      && sourceAfterCopy.feedback === sourceShape.feedback;
+    if (!copyLeftSourceAlone) {
+      await abort('E2E_ASSISTANT_DUPLICATE_MOVED_SOURCE: before='
+                  + JSON.stringify(sourceShape) + ' after='
+                  + JSON.stringify(sourceAfterCopy), 15, ctx, b);
+    }
+    // ---- 未完成的编辑（DL-KB-12）----------------------------------------------
+    // The card asks for「重启后仍能看到上一次筛选与未完成的编辑」. Filters were checked above; this
+    // is the draft half, and both directions are asserted: a draft that is written but never offered
+    // back is as useless as one never written, and a draft that outlives its own successful save
+    // would paste yesterday's text into the next plan. Nothing here may reach the service.
+    const draftKeys = () => page.evaluate(() => Object.keys(localStorage)
+      .filter((key) => key.startsWith('design-lab.plan-draft')).sort());
+    const keysAfterSaves = await draftKeys();
+    if (keysAfterSaves.length > 0) {
+      await abort('E2E_PLAN_DRAFT_SURVIVED_ITS_OWN_SAVE: ' + JSON.stringify(keysAfterSaves),
+                  15, ctx, b);
+    }
+    const draftObjective = '草稿回归：这条没有保存，只该活在本机的存储里';
+    const draftCreative = '草稿里的创意——提交前的一个字都不该进服务。';
+    const draftPurpose = '草稿镜头：一次落定';
+    const rowsBeforeDraft = await page.locator('#as-list .as-plan-row').count();
+    await page.locator('#as-objective').fill(draftObjective);
+    await page.locator('#as-creative').fill(draftCreative);
+    await page.locator('#as-add-shot').click();
+    await page.locator('#as-shot-rows .as-shot-row').last().locator('input').nth(2)
+      .fill(draftPurpose);
+    await page.waitForTimeout(900);  // the write is debounced; a snapshot taken too early is not a failure
+    const keysWritten = await draftKeys();
+    await reloadAssistant();
+    const draftBack = await page.waitForFunction(([o, c, p]) => {
+      const objective = document.getElementById('as-objective');
+      const creative = document.getElementById('as-creative');
+      const status = document.getElementById('as-form-status');
+      const purposes = Array.from(document.querySelectorAll('#as-shot-rows input'))
+        .map((node) => node.value);
+      return objective && creative && status
+        && objective.value === o && creative.value === c
+        && purposes.includes(p)
+        && /未完成的编辑/.test(status.textContent ?? '')
+        && /参考与附件不在草稿里/.test(status.textContent ?? '');
+    }, [draftObjective, draftCreative, draftPurpose], { timeout: 20000 })
+      .then(() => true).catch(() => false);
+    const rowsAfterDraft = await page.locator('#as-list .as-plan-row').count();
+    if (keysWritten.length !== 1) {
+      await abort('E2E_PLAN_DRAFT_WRITE: expected exactly one draft key, got '
+                  + JSON.stringify(keysWritten), 15, ctx, b);
+    }
+    if (!draftBack) {
+      await abort('E2E_PLAN_DRAFT_NOT_RESTORED: ' + JSON.stringify(await page.evaluate(() => ({
+        objective: document.getElementById('as-objective')?.value ?? '',
+        creative: document.getElementById('as-creative')?.value ?? '',
+        shots: Array.from(document.querySelectorAll('#as-shot-rows input'))
+          .map((node) => node.value).slice(0, 8),
+        status: document.getElementById('as-form-status')?.textContent ?? '',
+      }))), 15, ctx, b);
+    }
+    if (rowsAfterDraft !== rowsBeforeDraft) {
+      await abort(`E2E_PLAN_DRAFT_WROTE_TO_SERVICE: list went ${rowsBeforeDraft} -> `
+                  + `${rowsAfterDraft} from an unsaved draft`, 15, ctx, b);
+    }
+    // Then the edit is really saved: the draft must go with it, otherwise the next plan opens with
+    // this one's text pasted back in. The type is picked here on purpose -- a draft never stores it,
+    // so this is the served word list doing the choosing, the same as the designer would do.
+    await page.locator('#as-output-type').selectOption('MOTION');
+    await page.locator('#as-author').fill('E2E Assistant Draft Author');
+    await page.locator('#as-submit').click();
+    const draftSaved = await page.waitForFunction(() => {
+      const status = document.getElementById('as-form-status');
+      return !!status && /已保存 r1/.test(status.textContent ?? '');
+    }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+    const keysAfterDraftSave = await draftKeys();
+    if (!draftSaved || keysAfterDraftSave.length > 0) {
+      await abort('E2E_PLAN_DRAFT_AFTER_SUBMIT: saved=' + draftSaved
+                  + ' keys=' + JSON.stringify(keysAfterDraftSave), 15, ctx, b);
+    }
+    if (errors.length) {
+      await abort('E2E_ASSISTANT_BROWSER_ERRORS: ' + errors.slice(0, 6).join(' ;; '),
+                  15, ctx, b);
+    }
+
+    assistantLoop = {
+      outputType: outputTypeLabel,
+      draftKeysAfterSaves: keysAfterSaves.length,
+      draftWrittenKeys: keysWritten.length,
+      draftSurvivedReload: draftBack,
+      draftListUntouched: rowsBeforeDraft === rowsAfterDraft,
+      draftClearedAfterSubmit: keysAfterDraftSave.length === 0,
+      saved: afterSave.saved.state === 'true',
+      providedAfterSave: afterSave.provided.state === 'true',
+      chosenAfterSave: afterSave.chosen.state === 'true',
+      externalVerified: afterSave.external.state === 'true',
+      copyWorked: /已复制/.test(copyNote),
+      copyCarriedHonesty: clipboardText.includes('外部结果未被系统核验') &&
+                          clipboardText.includes('下载不等于交付'),
+      copyFormat,
+      materialFormatsOffered: materialDom.length,
+      materialCsvRefused: csvRefused,
+      materialDownloaded,
+      copyWroteNothing,
+      copyChoseNothing,
+      emptyObjectiveRefused: emptyRefused,
+      suppliedCreative: providedTrue,
+      providerPrimary: afterProvided.primary[0] ?? '',
+      chosen: chosenTrue,
+      chosenActorShown: /E2E Assistant Reviewer/.test(choiceLine),
+      revisionRows: revisionRows.length,
+      reloadReadback: reloaded.chosen.state === 'true',
+      noChatSurface: initial.canvases === 0 && initial.logs === 0,
+      feedbackOutcomeOptionsRendered: feedbackDom.outcomes.length,
+      feedbackRecorded,
+      feedbackKeptPlan,
+      feedbackOverclaim,
+      feedbackWrites,
+      feedbackSurvivedReload,
+      planSearchFiltered: searchApplied,
+      filterSurvivedReload: filtersRestored,
+      compareRealRevisions: compareReal,
+      compareFieldRows: compareRows.length,
+      duplicateId: copyId,
+      duplicateLeftSourceAlone: copyLeftSourceAlone,
+      sourceRevisionsAfterCopy: sourceAfterCopy ? sourceAfterCopy.revisions : 0,
+      sourceFeedbackAfterCopy: sourceAfterCopy ? sourceAfterCopy.feedback : 0,
+    };
+    console.log('E2E_ASSISTANT_LOOP: ' + JSON.stringify(assistantLoop));
+  });
+
+  // ------------------------------------------------------------------------
+  // DL-KB-14 屏幕六：状态与错误面。六种状态各有一条真断言，每种都读它在屏幕上看到的东西。
+  // 这里刻意不用 route 拦截伪造失败：②那条保存失败是服务自己按名字拒绝的（把镜头行写给一份
+  // 平面方案），所以同一条断言同时证明「页面说的拒绝理由来自服务」和「没写进去」。
+  // ------------------------------------------------------------------------
+  await step('six state surfaces', async () => {
+    const states = {};
+    const overclaim = /已发送|发送成功|delivered|模型已执行/;
+    // `<summary>` clicks toggle, and two earlier steps in this lane already opened these panels --
+    // a second click would have closed them and the hidden control would fail for the wrong reason.
+    // Opening by the property is idempotent and says what the step actually needs.
+    const openDetails = (selector) => page.locator(selector)
+      .evaluate((node) => { node.open = true; });
+
+    // ③ 附件未解析：方案详情里那条参考必须说清它只是登记了链接，没有反推证据。
+    // 这里开的是有两次修订的那条源方案：复制出来的那条只有一个修订，⑥就没有两个可比的对象。
+    await page.evaluate(() => { window.location.hash = '#/assistant'; });
+    await page.locator('#as-list .as-plan-row', { hasText: '用户选用 r2' }).first()
+      .locator('.as-plan-open').click();
+    await page.locator('#as-basis > summary').waitFor({ state: 'visible', timeout: 20000 });
+    const basisHead = await page.locator('#as-basis > summary').innerText();
+    await openDetails('#as-basis');
+    const basisBody = await page.locator('#as-basis').innerText();
+    const basisRows = await page.locator('#as-basis li').allInnerTexts();
+    states.attachmentUnparsed = /已分析 \d+ · 仅登记链接 \d+/.test(basisHead)
+      && basisRows.length >= 1 && /仅登记链接|未分析|LINKED_ONLY/.test(basisBody)
+      && !overclaim.test(basisBody);
+
+    // ⑥ 旧版本查看：读 r1 是一次都不写的读，四个状态与列表都不能动。
+    const writesBeforeView = assistanceWrites;
+    await openDetails('#as-compare');
+    await page.locator('#as-compare-from').selectOption('1');
+    await page.locator('#as-compare-to').selectOption('2');
+    const chipsBeforeView = await page.evaluate(() => ['as-saved', 'as-provided', 'as-chosen',
+      'as-external'].map((id) => document.getElementById(id)?.dataset.state ?? ''));
+    await page.locator('#as-compare-run').click();
+    await page.waitForFunction(() => /对比的是/.test(
+      document.getElementById('as-compare-status')?.textContent ?? ''),
+    null, { timeout: 20000 }).catch(() => {});
+    const chipsAfterView = await page.evaluate(() => ['as-saved', 'as-provided', 'as-chosen',
+      'as-external'].map((id) => document.getElementById(id)?.dataset.state ?? ''));
+    states.oldVersionReadOnly = assistanceWrites === writesBeforeView
+      && JSON.stringify(chipsBeforeView) === JSON.stringify(chipsAfterView);
+
+    // ② 保存失败：把镜头行写给一份 IMAGE 方案，服务按名字 409 拒绝，页面把那句理由原样说出，
+    // 需求留在框里，列表不能多出一条。
+    const plansBeforeRefusal = await page.locator('#as-list .as-plan-row').count();
+    await page.locator('#as-objective').fill('把同一份镜头行写给一张海报方案，看服务怎么拒绝');
+    await page.locator('#as-author').fill('E2E State Tester');
+    await page.locator('#as-output-type').selectOption('IMAGE');
+    await openDetails('#as-advanced');
+    await page.locator('#as-add-shot').click();
+    // The row's inputs are 序号(只读) / 时长 / 要完成什么 / 镜头运动 / 声音 / 参考角色.
+    await page.locator('#as-shot-rows .as-shot-row input').nth(2)
+      .fill('这一行不该出现在海报方案里');
+    const refusalPost = page.waitForResponse((r) => r.request().method() === 'POST'
+      && /\/assistance-plans$/.test(r.url()), { timeout: 25000 });
+    const errorsBeforeRefusal = errors.length;
+    await page.locator('#as-submit').click();
+    const refusalStatus = await refusalPost.then((r) => r.status()).catch(() => 0);
+    // Chromium logs a console error for the deliberate 409, and the `errors` array is shared by
+    // every step in this file. Account for this one message here, or a later step would report a
+    // failure it did not cause -- the same reason the 分镜 CSV refusal above splices its own entry.
+    let refusalConsole = [];
+    for (let tick = 0; tick < 60; tick += 1) {
+      refusalConsole = errors.splice(errorsBeforeRefusal);
+      if (refusalConsole.length) break;
+      await new Promise((resolve) => { setTimeout(resolve, 50); });
+    }
+    const refusalError = await page.waitForFunction(() => {
+      const node = document.getElementById('as-form-error');
+      const text = node ? (node.textContent ?? '') : '';
+      return text.includes('ASSISTANCE_PLAN_SHOTS_NOT_APPLICABLE') ? text : null;
+    }, null, { timeout: 20000 }).then((handle) => handle.jsonValue()).catch(() => '');
+    const plansAfterRefusal = await page.locator('#as-list .as-plan-row').count();
+    states.saveFailureNamed = refusalStatus === 409
+      && refusalError.includes('ASSISTANCE_PLAN_SHOTS_NOT_APPLICABLE')
+      && /要么|改成/.test(refusalError) && refusalError.includes('你的输入还在')
+      && refusalConsole.length === 1 && /status of 409 \(Conflict\)/.test(refusalConsole[0])
+      && !/。。/.test(refusalError)
+      && plansAfterRefusal === plansBeforeRefusal
+      && (await page.locator('#as-objective').inputValue()).includes('看服务怎么拒绝');
+
+    // ① 知识空态：搜一个库里不存在的词。页面不能把任何东西画成命中，也要把话说完。
+    await page.evaluate(() => { window.location.hash = '#/knowledge'; });
+    await page.locator('#kb-query').waitFor({ state: 'visible', timeout: 20000 });
+    const nonsense = 'zzqqx不存在的检索词';
+    const searchGet = page.waitForResponse((r) => /\/knowledge-entries\/search/.test(r.url()),
+      { timeout: 25000 });
+    await page.locator('#kb-query').fill(nonsense);
+    await page.locator('#kb-search').click();
+    const servedSearch = await searchGet.then((r) => r.json()).catch(() => null);
+    const kbResultText = await page.locator('#kb-results').innerText();
+    states.knowledgeEmpty = !!servedSearch && Array.isArray(servedSearch.entries)
+      && servedSearch.entries.length === 0 && servedSearch.total === 0
+      && !/kentry-/.test(kbResultText) && kbResultText.length > 0
+      && !overclaim.test(kbResultText);
+
+    // ④ 模型不可用：模型屏必须把「合格 0」说出来，而且不把可选说成可用。
+    await page.evaluate(() => { window.location.hash = '#/models'; });
+    await page.locator('#route-view').waitFor({ state: 'visible', timeout: 20000 });
+    await page.waitForFunction(() => /合格本地模型/.test(
+      document.getElementById('route-view')?.textContent ?? ''),
+    null, { timeout: 20000 }).catch(() => {});
+    const modelText = await page.locator('#route-view').innerText();
+    states.modelUnavailable = /合格本地模型\s*0/.test(modelText) && !overclaim.test(modelText);
+
+    // ⑤ 目标不兼容：目标档案屏的「本项目未测试」栏必须真有内容，两栏不能长成同一句话。
+    await page.evaluate(() => { window.location.hash = '#/target-profiles'; });
+    await page.locator('#tp-untested-list').waitFor({ state: 'visible', timeout: 25000 });
+    const untestedRows = await page.locator('#tp-untested-list li').count();
+    const untestedText = await page.locator('#tp-untested-list').innerText();
+    const officialText = await page.locator('#tp-official-list').innerText();
+    // The column's own sentence is the proof: an official page mentions the item, this project has
+    // never run it. Matching the phrase the panel prints -- not a guessed synonym -- is what keeps
+    // this guard from going red on wording the service chose and green on a claim it never made.
+    states.targetIncompatibleShown = untestedRows >= 1
+      && /本项目没有跑过|未测试|未触达|条件可用/.test(untestedText)
+      && untestedText !== officialText && !overclaim.test(untestedText);
+
+    const missing = Object.keys(states).filter((key) => states[key] !== true);
+    stateLoop = { states, allSixAsserted: missing.length === 0, missing };
+    console.log('E2E_STATE_LOOP: ' + JSON.stringify(stateLoop));
+    if (missing.length) {
+      await abort('E2E_STATE_SURFACES_NOT_ASSERTED: ' + JSON.stringify(missing)
+                  + ' detail=' + JSON.stringify({
+                    refusal: refusalError.slice(0, 200), kb: kbResultText.slice(0, 160),
+                    model: modelText.slice(0, 160), untested: untestedText.slice(0, 160),
+                  }), 15, ctx, b);
+    }
+  });
+
+  // ------------------------------------------------------------------------
+  // DL-KB-10 屏幕三：目标组合选择面板（#/target-profiles）。
+  //
+  // 这里断言的是几何与状态，不是"元素存在"：
+  //  · 两栏必须是并排的两个框、标题与数值互不相同（08:13「显示官方支持与本项目未测试的
+  //    区别」），并且四档 support_state 药丸的计算背景两两不同——UNREACHED 与 CONDITIONAL
+  //    必须看得出和 DOCUMENTED_CLAIM 不是一回事；
+  //  · 选择顺序必须是先软件/Agent 再看下游（08:13 那句的前半），所以没选软件时那四个
+  //    下游选择框只能有占位这一项；
+  //  · 路线最多两条、并列、不打分（02:66「不做没有样本依据的"最强榜"和虚构百分制评分」）；
+  //  · 每个状态只有一个主要动作——这条约定写在 08 line 12（屏幕二那句「每个状态仅一个主要
+  //    动作」），本屏按同一约定走，不冒充是屏幕三自己说的；
+  //  · 切换目标模型时，创意方向与品牌约束必须是**同一批 DOM 节点**且逐字节同值，而校验区
+  //    必须变脏并重新发一次 validate；服务返回的每条 verdict 的 grants_execution 恒 false
+  //    （06:20 验收 B2「切换目标模型，原创意和品牌约束保留，参数及参考角色重新校验」）；
+  //  · 长中文型号名（「MiniMax H3（ComfyUI 集成）」）在 1440×900 / 1280×800 / 1920×1080
+  //    三档都必须整段落在自己的框里、不被 ellipsis 截掉、不越出视口（02:150 / 06:48；
+  //    三档视口本身出自 08:1）。「暂不指定」出自 08 line 9（屏幕一那句）。
+  // ------------------------------------------------------------------------
+  await step('target combination panel', async () => {
+    const read = () => page.evaluate(() => {
+      const text = (id) => (document.getElementById(id)?.textContent ?? '').trim();
+      const rect = (id) => {
+        const node = document.getElementById(id);
+        if (!node) return null;
+        const r = node.getBoundingClientRect();
+        return { left: Math.round(r.left), right: Math.round(r.right),
+          top: Math.round(r.top), bottom: Math.round(r.bottom),
+          width: Math.round(r.width), height: Math.round(r.height) };
+      };
+      const article = document.querySelector('#tp-routes article');
+      return {
+        mode: document.getElementById('tp-combination')?.dataset.mode ?? '',
+        combination: text('tp-combination'),
+        limits: text('tp-limits'),
+        meta: text('tp-meta'),
+        selects: ['tp-software', 'tp-agent', 'tp-entry', 'tp-model', 'tp-task-mode']
+          .map((id) => ({ id, options: document.getElementById(id)?.options.length ?? -1 })),
+        official: rect('tp-official'), untested: rect('tp-untested'),
+        officialHead: (document.querySelector('#tp-official h3')?.textContent ?? '').trim(),
+        untestedHead: (document.querySelector('#tp-untested h3')?.textContent ?? '').trim(),
+        officialCount: (document.querySelector('#tp-official-head p')?.textContent ?? '').trim(),
+        measuredAll: document.getElementById('tp-measured-count')?.dataset.all ?? '',
+        measuredProfile: document.getElementById('tp-measured-count')?.dataset.profile ?? '',
+        officialRows: document.querySelectorAll('#tp-official-list li').length,
+        untestedRows: document.querySelectorAll('#tp-untested-list li').length,
+        supports: Array.from(document.querySelectorAll('#tp-support-histogram [data-support]'))
+          .map((t) => ({ support: t.dataset.support ?? '',
+            bg: getComputedStyle(t).backgroundImage,
+            lang: t.firstElementChild?.lang ?? '' })),
+        routes: Array.from(document.querySelectorAll('#tp-routes article'))
+          .map((a) => ({ id: a.id, profile: a.dataset.profile ?? '',
+            support: a.dataset.support ?? '',
+            width: Math.round(a.getBoundingClientRect().width) })),
+        routesEmpty: !!document.getElementById('tp-routes-empty'),
+        routeNote: text('tp-route-note'),
+        routeAdvantage: text('tp-route-1-advantage'),
+        routeLimit: text('tp-route-1-limit'),
+        routeDisclaimer: article
+          ? (article.querySelector('p.view-hint')?.textContent ?? '').trim() : '',
+        primaries: Array.from(document.querySelectorAll('#route-view .primary-btn'))
+          .filter((b) => b.getClientRects().length > 0).map((b) => b.id),
+        validateDisabled: !!document.getElementById('tp-validate')?.disabled,
+        validateLabel: text('tp-validate'),
+        verifyState: text('tp-verify-state'),
+        verdictKey: document.getElementById('tp-verdict-list')?.dataset.answerKey ?? '',
+        verdictGrants: document.getElementById('tp-verdict-list')
+          ?.dataset.grantsExecution ?? '(no list)',
+        verdicts: Array.from(document.querySelectorAll('#tp-verdict-list li'))
+          .filter((li) => li.querySelector('[data-verdict]'))
+          .map((li) => ({
+            head: (li.querySelector('strong')?.textContent ?? '').trim(),
+            verdict: li.querySelector('[data-verdict]')?.dataset.verdict ?? '',
+            grants: li.querySelector('[data-grants]')?.dataset.grants ?? '',
+          })),
+        reachRows: document.querySelectorAll('#tp-reach-attempts small').length,
+        conditional: text('tp-conditional-reason'),
+        executionNote: text('tp-execution-note'),
+        creative: document.getElementById('tp-creative')?.value ?? '',
+        brand: document.getElementById('tp-brand')?.value ?? '',
+        draftOut: text('tp-draft-out'),
+        // 02:66 禁的是"没有样本依据的榜单与虚构百分制"。这里量的是**渲染出来的分数形状**
+        // （数字加百分号、n/100、星、最强榜/排行榜），不是页面自己写的"不排名"那句说明——
+        // 把后者也算成违规，这条断言就变成了惩罚诚实的措辞。
+        scores: Array.from(document.querySelectorAll(
+          '#route-view p, #route-view li, #route-view h3, #route-view h4, #route-view strong'))
+          .map((n) => (n.textContent ?? '').trim())
+          .filter((t) => /\d+(?:\.\d+)?\s*[%％]|\d+\s*\/\s*100|[★☆]|最强榜|排行榜/.test(t))
+          .slice(0, 3),
+        // 按 class **整词**找排名构件，不用子串：子串会把 .kb-badges-start 里的 "start"
+        // 读成 "star"，27 个假阳性就是这么来的（那是一条测量错误，不是一条设计发现）。
+        rankingParts: Array.from(document.querySelectorAll('#route-view [class]')).filter((n) =>
+          String(n.className).toLowerCase().split(/[\s_.-]+/)
+            .some((token) => ['score', 'ranking', 'rank', 'leaderboard', 'star', 'stars']
+              .includes(token))).length,
+        pageOverflow: document.documentElement.scrollWidth - window.innerWidth,
+      };
+    });
+
+    // 只在**已排版**的文本节点上量几何：<option> 的矩形在 Chromium 里是 0×0，把它算进来
+    // 就得到一次"全都对"的空测量。长名必须至少出现在两处可见文本里（组合读回与路线标题），
+    // 否则这一条等于没测。
+    const longNameGeometry = () => page.evaluate(() => {
+      const root = document.getElementById('route-view');
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const hits = [];
+      let node = walker.nextNode();
+      while (node) {
+        const value = node.textContent ?? '';
+        if (/MiniMax H3（ComfyUI 集成）/.test(value)) {
+          const owner = node.parentElement;
+          const r = owner.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) {
+            const box = owner.closest('.list-item, .row-card, .panel, article')
+              ?? owner.parentElement;
+            const br = box.getBoundingClientRect();
+            const style = getComputedStyle(owner);
+            hits.push({
+              tag: owner.tagName.toLowerCase(), id: owner.id,
+              text: value.trim().slice(0, 42),
+              inside: r.right <= br.right + 1 && r.bottom <= br.bottom + 1,
+              insideViewport: r.left >= 0 && r.right <= window.innerWidth + 1,
+              clips: style.overflowX !== 'visible' || style.overflowY !== 'visible',
+              ellipsis: style.textOverflow === 'ellipsis',
+              overflowX: owner.scrollWidth - owner.clientWidth,
+              overflowY: owner.scrollHeight - owner.clientHeight,
+              wraps: style.overflowWrap,
+            });
+          }
+        }
+        node = walker.nextNode();
+      }
+      return hits;
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.evaluate(() => { window.location.hash = '#/target-profiles'; });
+    await page.locator('#tp-software').waitFor({ state: 'visible', timeout: 20000 });
+    const opened = await read();
+
+    if (opened.mode !== 'unspecified' || !opened.routesEmpty || opened.routes.length !== 0
+        || opened.validateDisabled !== true || opened.verdicts.length !== 0) {
+      await abort('E2E_TARGET_UNINITIALISED: ' + JSON.stringify({
+        mode: opened.mode, routesEmpty: opened.routesEmpty, routes: opened.routes,
+        validateDisabled: opened.validateDisabled, verdicts: opened.verdicts.length }), 17, ctx, b);
+    }
+    // 屏幕三那句的顺序在这一屏是可测的：软件没定，"该入口可用的模型/模式"就只能是空集。
+    const alreadyOpen = opened.selects.filter((s) => s.id !== 'tp-software' && s.options > 1);
+    if (opened.selects[0].options < 2 || alreadyOpen.length) {
+      await abort('E2E_TARGET_PICKER_ORDER: 软件未选时下游选择框已经铺开了候选 '
+                  + JSON.stringify(opened.selects), 17, ctx, b);
+    }
+    // 两栏对照：并排的两个框，标题不同，而且两栏说的不是同一个数。
+    if (!opened.official || !opened.untested || opened.official.width <= 0
+        || opened.untested.width <= 0
+        || opened.official.right > opened.untested.left + 1
+        || opened.officialHead === opened.untestedHead
+        || !/官方支持/.test(opened.officialHead) || !/未测试/.test(opened.untestedHead)) {
+      await abort('E2E_TARGET_TWO_COLUMNS: ' + JSON.stringify({
+        official: opened.official, untested: opened.untested,
+        heads: [opened.officialHead, opened.untestedHead] }), 17, ctx, b);
+    }
+    if (opened.measuredAll !== '0') {
+      await abort('E2E_TARGET_MEASURED_NOT_ZERO: 服务读回的实测字段数是 '
+                  + opened.measuredAll + '，本轮必须是 0', 17, ctx, b);
+    }
+    // UNREACHED / CONDITIONAL / DOCUMENTED_CLAIM 必须能被眼睛分开（08:13）。
+    const three = ['DOCUMENTED_CLAIM', 'CONDITIONAL', 'UNREACHED']
+      .map((state) => opened.supports.find((s) => s.support === state));
+    const backgrounds = new Set(three.map((s) => (s ? s.bg : '')));
+    if (three.some((s) => !s) || backgrounds.size !== 3) {
+      await abort('E2E_TARGET_SUPPORT_STATES 分不开: ' + JSON.stringify(opened.supports), 17, ctx, b);
+    }
+    if (three.some((s) => s.lang !== 'en')) {
+      await abort('E2E_TARGET_SUPPORT_STATE_NOT_MARKED: 状态词没有 lang="en"，读屏会用中文'
+                  + '音读它 ' + JSON.stringify(opened.supports.map((s) => [s.support, s.lang])),
+                  17, ctx, b);
+    }
+    if (opened.primaries.length !== 1 || opened.primaries[0] !== 'tp-validate') {
+      await abort('E2E_TARGET_PRIMARY_ACTIONS: ' + JSON.stringify(opened.primaries), 17, ctx, b);
+    }
+
+    await page.locator('#tp-software').selectOption('MiniMax H3');
+    const picked = await read();
+    const entryOptions = picked.selects.find((s) => s.id === 'tp-entry')?.options ?? 0;
+    const modelOptions = picked.selects.find((s) => s.id === 'tp-model')?.options ?? 0;
+    const modeOptions = picked.selects.find((s) => s.id === 'tp-task-mode')?.options ?? 0;
+    if (picked.mode !== 'target' || entryOptions < 2 || modelOptions < 2 || modeOptions < 2
+        || picked.routes.length < 1 || picked.routes.length > 2
+        || picked.routes[0].profile !== 'minimax-h3--api--video-reference'
+        || picked.officialRows < 1 || picked.measuredProfile !== '0'
+        || !/不给分|不排名/.test(picked.routeDisclaimer)) {
+      await abort('E2E_TARGET_AFTER_SOFTWARE: ' + JSON.stringify({
+        mode: picked.mode, entryOptions, modelOptions, modeOptions, routes: picked.routes,
+        officialRows: picked.officialRows, measuredProfile: picked.measuredProfile,
+        routeDisclaimer: picked.routeDisclaimer.slice(0, 120) }), 17, ctx, b);
+    }
+
+    // 创意方向与品牌约束：B2 要求它们跨目标存在，所以这里填的是真实文本而不是默认值。
+    const CREATIVE = '镜头 1：俯拍整张桌面；镜头 2：手指沿纸边划过；镜头 3：标题留白收束。';
+    const BRAND = '只用两种油墨、大面积留白、不用渐变';
+    await page.locator('#tp-creative').fill(CREATIVE);
+    await page.locator('#tp-brand').fill(BRAND);
+    await page.locator('#tp-dim-negative_input').waitFor({ state: 'attached', timeout: 15000 });
+    const writesBeforeValidate = targetProfilePosts;
+    await page.locator('#tp-validate').click();
+    await page.waitForFunction(() => !!document.getElementById('tp-verdict-list'),
+      null, { timeout: 25000 }).catch(() => {});
+    const first = await read();
+    if (first.verdictKey !== 'minimax-h3--api--video-reference'
+        || first.verdictGrants !== 'true' || first.verdicts.length < 4
+        || first.verdicts.some((v) => v.grants !== 'false')
+        || !/不授予可执行状态/.test(first.executionNote)
+        || !/已重新校验/.test(first.verifyState)
+        || targetProfilePosts !== writesBeforeValidate + 1
+        || targetProfileValidates < 1) {
+      await abort('E2E_TARGET_VALIDATE_NOT_READ_BACK: ' + JSON.stringify({
+        verdictKey: first.verdictKey, verdictGrants: first.verdictGrants,
+        verdicts: first.verdicts, executionNote: first.executionNote.slice(0, 120),
+        verifyState: first.verifyState.slice(0, 120),
+        posts: targetProfilePosts + '/' + (writesBeforeValidate + 1),
+        validates: targetProfileValidates }), 17, ctx, b);
+    }
+
+    // ---- B2：换目标模型，创意与品牌保留，参数与参考角色重新校验 ----------------
+    // 节点身份也是断言之一：文本相同但节点被重建，就说明"保留"只是页面重画了一遍。
+    await page.evaluate(() => {
+      window.__tpKept = {
+        creative: document.getElementById('tp-creative'),
+        brand: document.getElementById('tp-brand'),
+        route: document.querySelector('#tp-routes article'),
+      };
+    });
+    await page.locator('#tp-software').selectOption('Black Forest Labs FLUX.2');
+    await page.waitForFunction(() => {
+      const article = document.querySelector('#tp-routes article');
+      return !!article && article.dataset.profile === 'flux2--api--image-generation';
+    }, null, { timeout: 20000 }).catch(() => {});
+    const switched = await read();
+    const kept = await page.evaluate(() => ({
+      sameCreative: document.getElementById('tp-creative') === window.__tpKept.creative,
+      sameBrand: document.getElementById('tp-brand') === window.__tpKept.brand,
+      sameRouteNode: document.querySelector('#tp-routes article') === window.__tpKept.route,
+      creativeValue: document.getElementById('tp-creative')?.value ?? '',
+      brandValue: document.getElementById('tp-brand')?.value ?? '',
+    }));
+    if (!kept.sameCreative || !kept.sameBrand || kept.creativeValue !== CREATIVE
+        || kept.brandValue !== BRAND || switched.verdicts.length !== 0
+        || switched.verdictKey !== '' || !/需要重新校验/.test(switched.verifyState)
+        || !/flux2--api--image-generation/.test(switched.verifyState)
+        || switched.routes[0]?.profile !== 'flux2--api--image-generation') {
+      await abort('E2E_TARGET_B2_NOT_PRESERVED: kept=' + JSON.stringify(kept)
+                  + ' switched=' + JSON.stringify({
+                    verdictKey: switched.verdictKey, verdicts: switched.verdicts.length,
+                    verifyState: switched.verifyState.slice(0, 160),
+                    routes: switched.routes }), 17, ctx, b);
+    }
+    // 换了目标，创意两栏的节点不许被重建；路线卡则必须被重建，否则"参数或参考角色变化"
+    // 这件事根本不会显示出来。
+    if (kept.sameRouteNode) {
+      await abort('E2E_TARGET_ROUTE_NOT_REVALIDATED: 换了目标但路线卡节点没重建 '
+                  + JSON.stringify(switched.routes), 17, ctx, b);
+    }
+    const writesBeforeFlux = targetProfilePosts;
+    await page.locator('#tp-validate').click();
+    await page.waitForFunction(() => {
+      const list = document.getElementById('tp-verdict-list');
+      return !!list && list.dataset.answerKey === 'flux2--api--image-generation';
+    }, null, { timeout: 25000 }).catch(() => {});
+    const flux = await read();
+    const negative = flux.verdicts.find((v) => /^negative_input/.test(v.head));
+    if (flux.verdictKey !== 'flux2--api--image-generation'
+        || flux.verdictGrants !== 'true'
+        || flux.verdicts.some((v) => v.grants !== 'false')
+        || !negative || negative.verdict !== 'DOCUMENTED_NOT_SUPPORT'
+        || !/不支持负向提示/.test(flux.routeLimit)
+        || writesBeforeFlux + 1 !== targetProfilePosts) {
+      await abort('E2E_TARGET_FLUX_VERDICT: ' + JSON.stringify({
+        verdictKey: flux.verdictKey, verdictGrants: flux.verdictGrants, negative,
+        verdicts: flux.verdicts.map((v) => [v.head.slice(0, 24), v.verdict, v.grants]),
+        routeLimit: flux.routeLimit.slice(0, 160),
+        posts: targetProfilePosts + '/' + (writesBeforeFlux + 1) }), 17, ctx, b);
+    }
+    // 档案正文里的否定必须原样上屏（服务在 reason 里写的就是"按原样报告，不软化"）。
+    if (!/不软化|按原样报告/.test(flux.verdicts.map((v) => v.head).join(' '))) {
+      // reason 不在 strong 里，这里读整段文本再判一次，避免断言退化成只看 verdict 词。
+      const raw = await page.evaluate(() => (document
+        .getElementById('tp-verdict-list')?.textContent ?? ''));
+      if (!/不软化/.test(raw)) {
+        await abort('E2E_TARGET_NEGATIVE_NOT_QUOTED: ' + raw.slice(0, 300), 17, ctx, b);
+      }
+    }
+
+    // UNREACHED：Meshy 的每一次取回尝试都要上屏，不能只折叠成"不支持"。
+    await page.locator('#tp-software').selectOption('Meshy');
+    await page.waitForFunction(() => {
+      const a = document.querySelector('#tp-routes article');
+      return !!a && a.dataset.support === 'UNREACHED';
+    }, null, { timeout: 20000 }).catch(() => {});
+    const meshy = await read();
+    if (meshy.routes[0]?.support !== 'UNREACHED' || meshy.reachRows !== 4
+        || meshy.measuredProfile !== '0' || meshy.scores.length !== 0) {
+      await abort('E2E_TARGET_UNREACHED: ' + JSON.stringify({
+        routes: meshy.routes, reachRows: meshy.reachRows,
+        measuredProfile: meshy.measuredProfile, scores: meshy.scores }), 17, ctx, b);
+    }
+
+    // CONDITIONAL：官方页自述 coming soon 的那份档案；长中文名几何同样在三档里量。
+    await page.locator('#tp-software').selectOption('MiniMax H3（ComfyUI 集成）');
+    await page.waitForFunction(() => {
+      const a = document.querySelector('#tp-routes article');
+      return !!a && a.dataset.support === 'CONDITIONAL';
+    }, null, { timeout: 20000 }).catch(() => {});
+    const conditional = await read();
+    if (conditional.routes[0]?.support !== 'CONDITIONAL'
+        || !/coming soon/i.test(conditional.conditional)) {
+      await abort('E2E_TARGET_CONDITIONAL: ' + JSON.stringify({
+        routes: conditional.routes, conditional: conditional.conditional.slice(0, 160) }),
+        17, ctx, b);
+    }
+    const viewports = [[1440, 900], [1280, 800], [1920, 1080]];
+    const geometryByWidth = {};
+    for (const [width, height] of viewports) {
+      await page.setViewportSize({ width, height });
+      const hits = await longNameGeometry();
+      geometryByWidth[width + 'x' + height] = hits;
+      if (hits.length < 2) {
+        await abort(`E2E_TARGET_LONG_NAME_NOT_MEASURED at ${width}x${height}: `
+                    + '长中文型号名在已排版的文本节点里只出现 ' + hits.length
+                    + ' 次（要求至少 2 次），几何检查不能对空集合成立', 17, ctx, b);
+      }
+      const bad = hits.filter((h) => !h.inside || !h.insideViewport
+        || h.ellipsis || h.clips || h.overflowX > 1 || h.overflowY > 1 || h.wraps !== 'anywhere');
+      if (bad.length) {
+        await abort(`E2E_TARGET_LONG_NAME_CLIPPED at ${width}x${height}: `
+                    + JSON.stringify(bad), 17, ctx, b);
+      }
+      const pageWide = await page.evaluate(
+        () => document.documentElement.scrollWidth - window.innerWidth);
+      if (pageWide > 0) {
+        await abort(`E2E_TARGET_PAGE_OVERFLOW at ${width}x${height}: +${pageWide}px`, 17, ctx, b);
+      }
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+
+    // 「仅规划」与「暂不指定」：两个状态都要把"没有运行"说出来，且各自仍只有一个主要动作。
+    await page.locator('#tp-plan-only').check();
+    const planning = await read();
+    if (planning.mode !== 'plan-only' || !/仅规划/.test(planning.limits)
+        || !/executable=false/.test(planning.limits)
+        || planning.primaries.length !== 1 || planning.scores.length !== 0
+        || planning.rankingParts !== 0) {
+      await abort('E2E_TARGET_PLAN_ONLY: ' + JSON.stringify({
+        mode: planning.mode, limits: planning.limits.slice(0, 200),
+        primaries: planning.primaries, scores: planning.scores,
+        rankingParts: planning.rankingParts }), 17, ctx, b);
+    }
+    await page.locator('#tp-plan-only').uncheck();
+    await page.locator('#tp-software').selectOption('');
+    const unspecified = await read();
+    if (unspecified.mode !== 'unspecified' || !unspecified.routesEmpty
+        || unspecified.validateDisabled !== true
+        || !/executable=false/.test(unspecified.limits)
+        || unspecified.primaries.length !== 1) {
+      await abort('E2E_TARGET_UNSPECIFIED: ' + JSON.stringify({
+        mode: unspecified.mode, routesEmpty: unspecified.routesEmpty,
+        validateDisabled: unspecified.validateDisabled,
+        limits: unspecified.limits.slice(0, 200),
+        primaries: unspecified.primaries }), 17, ctx, b);
+    }
+
+    // 草稿目标：这一屏的第 4 条路由。空 source_ref 必须读回字面 UNUSED——页面不代人铸编号。
+    await page.locator('#tp-software').selectOption('ElevenLabs');
+    await page.locator('#route-view details.advanced > summary').click();
+    await page.locator('#tp-actor').fill('E2E Target Reviewer');
+    const postsBeforeDraft = targetProfilePosts;
+    await page.locator('#tp-draft-save').click();
+    await page.waitForFunction(() => {
+      const node = document.getElementById('tp-draft-out');
+      return !!node && /已存为草稿/.test(node.textContent ?? '');
+    }, null, { timeout: 25000 });
+    // Wait on the screen's own "the post-write re-read landed" flag, not on the number this case
+    // then asserts: waiting for total=6 would make the assertion true by construction.
+    await page.waitForFunction(
+      () => document.getElementById('tp-meta')?.dataset?.reread === 'done',
+      null, { timeout: 25000 });
+    const draft = await read();
+    // total 从 5 变 6 才算"按服务返回的清单重读过"；组合仍写着"还没唯一到一个目标"才算
+    // 没有替两份同键档案偷偷挑一份。
+    if (!/USER_DRAFT/.test(draft.draftOut) || !/UNUSED/.test(draft.draftOut)
+        || !/本项目未实测该入口/.test(draft.draftOut)
+        || postsBeforeDraft + 1 !== targetProfilePosts
+        || !/total=6/.test(draft.meta)
+        || !/还没唯一到一个目标/.test(draft.combination)) {
+      await abort('E2E_TARGET_DRAFT_WRITE: ' + JSON.stringify({
+        draftOut: draft.draftOut.slice(0, 240), meta: draft.meta.slice(0, 160),
+        combination: draft.combination.slice(0, 200),
+        posts: targetProfilePosts + '/' + (postsBeforeDraft + 1) }), 17, ctx, b);
+    }
+
+    if (errors.length) {
+      await abort('E2E_TARGET_PROFILE_BROWSER_ERRORS: ' + errors.slice(0, 6).join(' ;; '),
+                  17, ctx, b);
+    }
+
+    targetProfileLoop = {
+      viewports: viewports.map(([w, h]) => `${w}x${h}`),
+      longNameHits: Object.fromEntries(Object.entries(geometryByWidth)
+        .map(([key, hits]) => [key, hits.length])),
+      twoColumnsSideBySide: opened.official.right <= opened.untested.left + 1,
+      supportStatesSeparable: backgrounds.size,
+      routeCounts: [picked.routes.length, switched.routes.length, flux.routes.length],
+      negativeVerdict: negative ? negative.verdict : '',
+      creativePreserved: kept.creativeValue === CREATIVE,
+      brandPreserved: kept.brandValue === BRAND,
+      creativeNodesReused: kept.sameCreative && kept.sameBrand,
+      revalidatedAfterSwitch: flux.verdictKey === 'flux2--api--image-generation',
+      grantsExecutionFalse: flux.verdicts.every((v) => v.grants === 'false')
+        && flux.verdictGrants === 'true',
+      unreachedAttemptsShown: meshy.reachRows,
+      conditionalShown: /coming soon/i.test(conditional.conditional),
+      planOnlyStated: /仅规划/.test(planning.limits),
+      unspecifiedStated: unspecified.mode === 'unspecified' && unspecified.routesEmpty,
+      draftStored: /USER_DRAFT/.test(draft.draftOut),
+      sourceRefUnusedLiteral: /UNUSED/.test(draft.draftOut),
+      scoreShapesFound: opened.scores.length + meshy.scores.length + flux.scores.length,
+      rankingPartsFound: planning.rankingParts,
+      primaryActionsPerState: [opened.primaries.length, picked.primaries.length,
+        planning.primaries.length, unspecified.primaries.length],
+      validatesPosted: targetProfileValidates,
+    };
+    console.log('E2E_TARGET_PROFILE_LOOP: ' + JSON.stringify(targetProfileLoop));
+  });
 
   await ctx.close();
   await b.close();

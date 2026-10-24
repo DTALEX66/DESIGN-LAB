@@ -1023,6 +1023,156 @@
       "version": "design-lab/knowledge-index-rebuild/v1",
       "emitter": "src/design_lab/knowledge_library.py:879",
       "reason": "DL-KB-04. The rebuild is the index's proof of derivability: it deletes every FTS5 row and reconstructs them from knowledge_entry_revision, then answers with `indexed` (rows written during this rebuild) and `index` (the state the read routes will report from now on) as separate numbers, so a rebuild that indexed nothing is visible instead of reading as healthy. It never writes a canonical row -- an index that could change the entries would be a second truth source. The request body is an exact empty object: the route takes no parameter it would only pretend to honour."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-write-v1.schema.json",
+      "version": "design-lab/assistance-plan-write/v1",
+      "emitter": "src/design_lab/assistance_plan.py:47",
+      "reason": "DL-KB-07. A short task is written down as one neutral plan: objective, output type, neutral creative, brand/role constraints, lens and sound, references, external steps, known gaps and limits. The caller supplies only inputs; the document is built and validated server-side (assistance-plan-v1 via the write envelope's $ref) and the answer's `plan` member is the stored document, not a rebuilt copy. References are two-key {kind,id}: revision and digest are pinned from the live object by the store, and a caller that supplies them is refused, because a caller-authored digest would be a claim this service never measured. A missing job_id/operation_id is the literal UNUSED -- the service mints no external id. Refusals keep their codes: 400 ASSISTANCE_PLAN_OUTPUT_TYPE_INVALID / FIELD_MISSING / REFERENCE_KIND_INVALID, 404 ASSISTANCE_PLAN_REFERENCE_NOT_FOUND / PROJECT_NOT_FOUND, 409 ASSISTANCE_PLAN_REFERENCE_PROJECT_MISMATCH / REFERENCE_NOT_READY."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-write-v1.schema.json",
+      "version": "design-lab/assistance-plan-write/v1",
+      "emitter": "src/design_lab/assistance_plan.py:47",
+      "reason": "DL-KB-07. A correction is a new revision: the previous row keeps its bytes and current is MAX(revision) at read time, so no mutable current-marker can become a second truth source. expected_revision is required by the route's exact key set and again by the store; a write prepared against a revision that has since moved answers 409 ASSISTANCE_PLAN_REVISION_CONFLICT naming the actual current revision instead of silently overwriting the other writer. An unknown plan id is 404 ASSISTANCE_PLAN_NOT_FOUND. The envelope is the same write contract as create, so one document shape has one schema."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-readback-v1.schema.json",
+      "version": "design-lab/assistance-plan-readback/v1",
+      "emitter": "src/design_lab/assistance_plan.py:48",
+      "reason": "DL-KB-07/08. The readback is where the screen's four states come from, computed by the service rather than the view: saved (this readback exists), provided (the current revision carries a creative), chosen (a named human adopted a revision), externally_verified (const false -- no route dispatches an external step). `reference_status` re-reads every pinned reference at its live revision: CURRENT means the bytes are still the ones the plan recorded, CHANGED means the object moved on, and `analysis` reports ANALYZED only when a stored reversal exists for that exact asset digest -- a reference registered as a link stays LINKED_ONLY, which is the measurement DL-KB-08's image state depends on. `current` is the stored document via $ref, not a re-render."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions/([1-9][0-9]{0,8})",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-revision-v1.schema.json",
+      "version": "design-lab/assistance-plan-revision/v1",
+      "emitter": "src/design_lab/assistance_plan.py:51",
+      "reason": "DL-KB-12, 「新版本不覆盖历史；对比页读的是两份真实修订」. The readback above serves only the NEWEST revision's document -- its `revisions` rows carry a digest, a created_at and an author, and nothing else -- so the stored body of an older revision was unreadable through every route and a comparison page could only restate hashes or guess the old text. This row binds the read that returns one row's own bytes: `document` is the stored JSON served verbatim, $ref-ed to design-lab/schemas/assistance-plan-v1.schema.json (the contract the write path validated those bytes against when they were filed) rather than restated here, and `content_sha256`/`created_at`/`created_by` are THIS row's columns while `latest_revision` and `is_latest` say where the plan has since moved -- so two calls that return the same document are a visible defect rather than the quiet bug. `is_chosen` is computed by the one query the readback's `choice` is built from (assistance_plan._choice_row), not by a second rule about a Human Gate record. There is no query string by design: the revision number is a path segment matched against the raw target, so `?revision=2` is a 404 rather than a parameter this route would pretend to honour, and `revisions/0` never reaches the store at all. Each refusal keeps its own code instead of collapsing into one generic error: unknown project 404 PROJECT_NOT_FOUND, a plan that is not in this project 404 ASSISTANCE_PLAN_NOT_FOUND, a number no row carries 404 ASSISTANCE_PLAN_REVISION_NOT_FOUND naming the plan id and the highest revision that does exist, an unparseable `document_json` 409 ASSISTANCE_PLAN_REVISION_UNREADABLE because the service does not hand back a guessed version, and a row whose published digest no longer covers its own bytes 500 ASSISTANCE_PLAN_REVISION_BYTES_MOVED -- the discipline of PLAN_FEEDBACK_BYTES_MOVED, since serving those bytes anyway would put one revision's digest beside another revision's words. What is deliberately NOT claimed: this is a read of stored history, so it reports no run, no send, no delivery and no model execution and declares no field that could imply one; the plan's four-state block stays the readback's single answer instead of being copied into a second envelope that could drift; and `reference_status` is not recomputed here, because whether a pinned reference has moved is a statement about the plan read today and must not silently rewrite what a 2026 revision said it used."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans(?:\\?[^#]*)?",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-list-v1.schema.json",
+      "version": "design-lab/assistance-plan-list/v1",
+      "emitter": "src/design_lab/assistance_plan.py:49",
+      "reason": "DL-KB-07. The collection lists each plan at its newest revision with the one sentence a reader needs to pick one: objective, output type, author, reference count, whether a creative was provided, and which revision a human chose (null until someone does). The query is named in the route pattern -- the same reason /api/knowledge-entries keeps search on its own path -- so one ledger row describes one document; offset/limit are parsed inside the handler, and a malformed number answers ASSISTANCE_PLAN_OFFSET_INVALID / LIMIT_INVALID rather than being silently ignored. next_offset is null on the last page, and an unknown project is 404 PROJECT_NOT_FOUND."
+    },
+    {
+      "route": "/api/assistance-plan-output-types",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-output-types-v1.schema.json",
+      "version": "design-lab/assistance-plan-output-types/v1",
+      "emitter": "src/design_lab/assistance_plan.py:50",
+      "reason": "DL-KB-08. The initial screen must offer an output type before any workspace exists, so this read is deliberately project-independent: the project-scoped list route answers 404 until a project is created, which would leave the first plan unsaveable. The six values and their Chinese labels are the same table the create route validates against, served from the store's OUTPUT_TYPES/OUTPUT_LABELS rather than hand-copied into the view -- a second copy in TypeScript could offer a word the service refuses, and the page would only find out on submit."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-readback-v1.schema.json",
+      "version": "design-lab/assistance-plan-readback/v1",
+      "emitter": "src/design_lab/assistance_plan.py:48",
+      "reason": "DL-KB-07. Choosing is a Human Gate record, not a preference toggle: the route refuses actor_kind other than 'human' with 409 ASSISTANCE_PLAN_CHOICE_NOT_HUMAN, the table repeats the rule as a storage CHECK so the rule survives an application bug, and a revision outside the stored range is 400 CHOICE_REVISION_INVALID. The answer is the same readback the GET route serves, so the state the page shows after choosing is not a second envelope that could disagree. A second choice on the same revision is 409 ALREADY_CHOSEN: the record is a statement, not a switch."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/export(?:\\?[^#]*)?",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "PlanExport",
+      "schema": "design-lab/schemas/plan-export-v1.schema.json",
+      "version": "design-lab/plan-export/v1",
+      "emitter": "src/design_lab/plan_export.py:67",
+      "reason": "DL-KB-11. The handoff material a plan produces on the way out: markdown, plain text, structured JSON and the 分镜 CSV, all four rendered from ONE builder (plan_export._intent) so 'the three exports agree' is a property of the code rather than of three hand-copied templates -- the schema's allOf block also ties each format word to the content_type and the filename extension a reader actually receives, because a mismatched pair is the shape a page cannot detect from the text. Every answer carries the revision it exported with that revision's content digest, the pinned reference snapshot copied from the stored document (an export freezes what the plan claimed; whether an object has since moved is the readback's reference_status, and an export may not quietly restate today's bytes), the emitter contract version, and an explicit not-executed statement. `sent`, `executed` and `external_verified` are `const false` in this contract: there is no outbound transport in this repository, so a download is a file in the designer's own folder and no flag can turn it into a delivery -- the exported bytes likewise never print 已发送/发送成功/delivered/模型已执行, which design-lab/tests/test_plan_export.py reads all four formats to prove. The route writes nothing and leaves the plan's four states byte-identical, and its two refusals are the point rather than edge cases: 409 PLAN_EXPORT_NO_SHOTS when the 分镜 CSV would be an empty table dressed as a storyboard (the reason `shots` had to become stored, validated, digest-covered data first -- an optional field added to assistance-plan/v1, so a plan stored before it existed still validates, and the create/revise routes accept the key without demanding it), and 400 PLAN_EXPORT_FORMAT_REQUIRED/_INVALID so an unnamed or unknown material keeps its own code instead of a 404 that reads like a deleted plan. A shot row filed under an output type that has no 分镜 is refused where it is written (409 ASSISTANCE_PLAN_SHOTS_NOT_APPLICABLE), so no plan can reach this route holding rows its own type disowns. Spreadsheet formula cells are handled by stating the rule to the reader, not by rewriting what a person typed: every field goes through csv.writer untouched (RFC4180 quoting, CRLF, leading BOM) and a 镜头说明 containing a quote, a comma or a newline is proven to survive the round trip."
+    },
+    {
+      "route": "/api/target-profile-axes",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "TargetProfiles",
+      "schema": "design-lab/schemas/target-profile-axes-v1.schema.json",
+      "version": "design-lab/target-profile-axes/v1",
+      "emitter": "src/design_lab/target_profile.py:47",
+      "reason": "DL-KB-09/10. The closed vocabulary the selection panel builds its selects from: the seven identity axes (07 line 29) and the thirteen capability fields (02 line 64), the five provenance kinds, the four support states, the five entry kinds and the nine validation dimensions. It is project-independent and served from the store's own constants because a hand-copy in TypeScript would be a second table that can offer a word the service refuses. `measured_fields` travels with it so the 「本项目未测试」 column is a number read from the service rather than a label the view decided."
+    },
+    {
+      "route": "/api/target-profiles(?:\\?[^#]*)?",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "TargetProfiles",
+      "schema": "design-lab/schemas/target-profile-list-v1.schema.json",
+      "version": "design-lab/target-profile-list/v1",
+      "emitter": "src/design_lab/target_profile.py:46",
+      "reason": "DL-KB-09. The registry: five seeded profiles served read-only from the tracked config plus any draft a person wrote. The two histograms are part of the contract, not decoration -- the panel separates 官方支持 from 本项目未测试 using them, and PROJECT_MEASURED is 0 here because this round runs no external product or model. offset/limit are parsed in the handler and refused loudly (TARGET_PROFILE_FILTER_MALFORMED / LIMIT_INVALID) instead of failing inside the contract check, which would report a caller's typo as a defect in the registry."
+    },
+    {
+      "route": "/api/target-profiles/(tprof-[0-9a-f]{32})",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "TargetProfiles",
+      "schema": "design-lab/schemas/target-profile-v1.schema.json",
+      "version": "design-lab/target-profile/v1",
+      "emitter": "src/design_lab/target_profile.py:44",
+      "reason": "DL-KB-09. One profile document, byte for byte what the config carries or the draft stored: a seeded id is derived from its own profile_key (never minted), a draft id is the one the create route wrote. Every field keeps its own provenance, an UNKNOWN keeps the reason it is unknown, `executable` is const false and `external_run_record` is const null. An unknown id is 404 TARGET_PROFILE_NOT_FOUND saying a profile is either a seeded config row or somebody's draft, so no caller can read a miss as \"unsupported\"."
+    },
+    {
+      "route": "/api/target-profiles",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "TargetProfiles",
+      "schema": "design-lab/schemas/target-profile-write-v1.schema.json",
+      "version": "design-lab/target-profile-write/v1",
+      "emitter": "src/design_lab/target_profile.py:45",
+      "reason": "DL-KB-09, deliverable「用户可添加草稿档案，标未验证」. `stored: true` claims only that the bytes are in the state database. The route accepts the seven axes plus actor, source_ref and fields -- anything else is refused, so a draft cannot invent a column -- support_state is not settable (the table CHECK pins USER_DRAFT), and an absent source_ref becomes the literal UNUSED rather than an id this service minted. Writing PROJECT_MEASURED is 409 TARGET_PROFILE_MEASUREMENT_NOT_AVAILABLE: a measurement needs a run record bound to a real call and a readback, which no draft can supply. claims_not_made carries the denials on the answer itself."
+    },
+    {
+      "route": "/api/target-profiles/(tprof-[0-9a-f]{32})/validate",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "TargetProfiles",
+      "schema": "design-lab/schemas/target-profile-validate-v1.schema.json",
+      "version": "design-lab/target-profile-validate/v1",
+      "emitter": "src/design_lab/target_profile.py:48",
+      "reason": "DL-KB-09, acceptance B3. Input validation against what the profile's own fields say: DOCUMENTED_NOT_SUPPORT keeps a documented incompatibility in the vendor's words (FLUX.2 has no negative prompt) instead of smoothing it into silence, and UNKNOWN keeps its reason. A verdict never grants executability -- `grants_execution` is const false on every verdict and `executable` const false on the answer -- so no caller can read a validation as a go-ahead, and the fallback field travels with the answer because the honest output of an unreached entry is planning material, not a payload."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/feedback(?:\\?[^#]*)?",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "PlanFeedback",
+      "schema": "design-lab/schemas/plan-feedback-list-v1.schema.json",
+      "version": "design-lab/plan-feedback-list/v1",
+      "emitter": "src/design_lab/plan_feedback.py:40",
+      "reason": "DL-KB-16, 「方案与适用经验可再次查找复用」. Every report recorded for one plan, oldest first, with the histogram computed from the same rows the page lists and `latest` a pointer into them: history is served whole rather than merged into one current value, because 「在 Meshy 里可用」 and 「在 Meshy 里不可用」 are both facts someone may need later and a merged field would erase the correction trail. `externally_verified` is a constant false for the collection -- reading reports back never verifies an external run. offset/limit are parsed in the handler and refused loudly (PLAN_FEEDBACK_FILTER_MALFORMED / LIMIT_INVALID / OFFSET_INVALID) rather than failing inside the contract check, which would report a caller typo as a defect in the registry."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/feedback",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "PlanFeedback",
+      "schema": "design-lab/schemas/plan-feedback-write-v1.schema.json",
+      "version": "design-lab/plan-feedback-write/v1",
+      "emitter": "src/design_lab/plan_feedback.py:39",
+      "reason": "DL-KB-16 acceptance 「反馈不得覆盖草稿/材料准备等独立状态」. A voluntary report. Outcome is one of the three words declared in design-lab/config/state-vocabularies.json and checked against plan_feedback.OUTCOMES in both directions by verify_state_vocabularies.py; there is no UNKNOWN outcome because not recording is the absence of a row, and sent/delivered/executed are not outcome words here since the service has no outbound transport. The actor is a named human (the table CHECK pins actor_kind), an absent source_ref becomes the literal UNUSED rather than an id minted here, and `revision` is required because a report is about the material somebody actually took away. `plan_states_unchanged` is a constant true and the plan readback still answers externally_verified=false afterwards: a satisfied report is somebody's word about an external tool, not the system confirming a run. Refusals: 400 OUTCOME_INVALID / REVISION_INVALID / FIELD_NOT_IN_CONTRACT, 404 PROJECT_NOT_FOUND / ASSISTANCE_PLAN_NOT_FOUND, 409 REVISION_NOT_FOUND."
     }
   ]
 }

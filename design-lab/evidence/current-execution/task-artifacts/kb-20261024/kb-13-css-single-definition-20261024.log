@@ -1,0 +1,29 @@
+--- stderr ---
+test_markup_targets_only_the_new_names (design-lab.tests.test_workbench_css_single_definition.DTwoSplitLanded.test_markup_targets_only_the_new_names)
+A renamed class with no call site is dead CSS, and a call site with no ... ok
+test_mono_and_error_were_merged_into_one_authoritative_block (design-lab.tests.test_workbench_css_single_definition.DTwoSplitLanded.test_mono_and_error_were_merged_into_one_authoritative_block) ... ok
+test_retired_overloaded_name_is_gone (design-lab.tests.test_workbench_css_single_definition.DTwoSplitLanded.test_retired_overloaded_name_is_gone) ... ok
+test_split_classes_each_have_one_layout_definition (design-lab.tests.test_workbench_css_single_definition.DTwoSplitLanded.test_split_classes_each_have_one_layout_definition)
+Exactly one block per name may decide how it lays out. ... ok
+test_stack_and_chips_carry_the_layout_their_name_promises (design-lab.tests.test_workbench_css_single_definition.DTwoSplitLanded.test_stack_and_chips_carry_the_layout_their_name_promises)
+A renamed class must keep the layout it was split out for. ... ok
+test_members_and_containers_are_both_present (design-lab.tests.test_workbench_css_single_definition.ListItemIsReallyAListMember.test_members_and_containers_are_both_present)
+Guard against the assertion above passing because everything was deleted. ... ok
+test_no_div_still_claims_to_be_a_list_container (design-lab.tests.test_workbench_css_single_definition.ListItemIsReallyAListMember.test_no_div_still_claims_to_be_a_list_container) ... ok
+test_no_div_still_claims_to_be_a_list_member (design-lab.tests.test_workbench_css_single_definition.ListItemIsReallyAListMember.test_no_div_still_claims_to_be_a_list_member) ... ok
+test_no_card_still_wears_the_list_member_name (design-lab.tests.test_workbench_css_single_definition.RowCardSplitLanded.test_no_card_still_wears_the_list_member_name) ... ok
+test_row_card_is_defined_with_the_card_surface (design-lab.tests.test_workbench_css_single_definition.RowCardSplitLanded.test_row_card_is_defined_with_the_card_surface) ... ok
+test_duplicate_definitions_are_all_sanctioned (design-lab.tests.test_workbench_css_single_definition.SingleDefinitionLedger.test_duplicate_definitions_are_all_sanctioned) ... ok
+test_sanctioned_entries_are_still_real_duplicates (design-lab.tests.test_workbench_css_single_definition.SingleDefinitionLedger.test_sanctioned_entries_are_still_real_duplicates) ... ok
+test_parser_reads_the_real_stylesheet (design-lab.tests.test_workbench_css_single_definition.StylesheetParsing.test_parser_reads_the_real_stylesheet)
+A parser that silently returns nothing would pass every assertion below. ... ok
+test_clean_stylesheet_reports_nothing (design-lab.tests.test_workbench_css_single_definition.ViolationShapeIsDetected.test_clean_stylesheet_reports_nothing) ... ok
+test_media_query_override_is_not_a_duplicate (design-lab.tests.test_workbench_css_single_definition.ViolationShapeIsDetected.test_media_query_override_is_not_a_duplicate) ... ok
+test_no_overlap_means_no_clash (design-lab.tests.test_workbench_css_single_definition.ViolationShapeIsDetected.test_no_overlap_means_no_clash)
+Two blocks of the same selector that set different properties are fine. ... ok
+test_second_definition_of_the_same_class_is_reported (design-lab.tests.test_workbench_css_single_definition.ViolationShapeIsDetected.test_second_definition_of_the_same_class_is_reported) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.044s
+
+OK

@@ -1880,7 +1880,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .cap-drawer-slot[hidden]{display:none}
 .cap-drawer-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
   justify-content:space-between}
-.cap-drawer-head h3{margin:0;font-size:var(--uif-font-heading);overflow-wrap:anywhere}
+.cap-drawer-head h3{margin:0;font-size:var(--uif-font-h3);overflow-wrap:anywhere}
 .cap-drawer-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--uif-space-2);
   padding:var(--uif-space-1) 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
 .cap-drawer-row:first-of-type{border-top:0}
@@ -1949,7 +1949,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .kb-detail-panel{display:grid;gap:var(--uif-space-2);align-content:start}
 .kb-detail-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
   gap:var(--uif-space-2)}
-.kb-detail-head h3{margin:0;font-size:var(--uif-font-heading);overflow-wrap:anywhere}
+.kb-detail-head h3{margin:0;font-size:var(--uif-font-h3);overflow-wrap:anywhere}
 .kb-detail-head p{margin:var(--uif-space-1) 0 0}
 .kb-detail-panel h4{margin:var(--uif-space-3) 0 0;font-size:var(--uif-font-body)}
 .kb-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1);
@@ -1970,3 +1970,75 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .kb-form .field-row .input{width:100%}
 .kb-span{grid-column:1 / -1}
 .kb-form{padding:var(--uif-space-4)}
+
+/* DL-KB-08（2026-10-24）：设计辅助。初始屏只有需求、参考附件与输出类型，结果是服务里的
+   一条方案记录；四态药丸、最近方案行与详情分段沿用既有 .panel/.list-item/.tag/.advanced
+   原语，这里只补排列与几何。宽度用 ch/令牌，不新增字面 px —— 存量由
+   scripts/design_debt_baseline.py 实测看守。 */
+.as-split{align-items:start}
+.as-form{display:grid;gap:var(--uif-space-3);align-content:start}
+.as-form .field-row .input{width:100%}
+.as-more{display:grid;gap:var(--uif-space-2)}
+/* 选中已有工作区时「新工作区名称」整行收起：它只服务于「＋ 新建轻量工作区」那个分支。
+   本规则在文件末尾，与 .field-row 同为 0,1,0，靠顺序压过它的 display:grid；
+   .field-row 没有任何 palette 作用域规则会以更高特异性改写，所以不必用 !important。 */
+.as-hidden{display:none}
+/* 成对字段：工作区/新工作区名称、参考素材/添加参考、输出类型/记录人。窄屏自动落成一列。 */
+.as-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(16ch,1fr));
+  gap:var(--uif-space-3);align-items:end}
+.as-row .input{width:100%;min-width:0}
+.as-row .ghost-btn{align-self:end;justify-self:start}
+.as-refs{margin-top:var(--uif-space-1)}
+.as-ref .value-mono{flex:1 1 16ch}
+.as-ref-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
+.as-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
+.as-plan-row{align-items:flex-start}
+/* 整行可点：标题与元数据在左，三枚状态药丸在右；.list-item 的 space-between 正好是这条轴。 */
+.as-plan-open{display:flex;flex-direction:column;gap:var(--uif-space-1);
+  flex:1 1 24ch;min-width:0;background:none;border:0;padding:0;
+  color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.as-plan-open:hover{color:var(--accent)}
+.as-plan-open small{overflow-wrap:anywhere}
+.as-states{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1);
+  justify-content:flex-end}
+.as-detail{display:grid;gap:var(--uif-space-2);align-content:start;
+  margin-top:var(--uif-space-4);scroll-margin-top:var(--uif-space-4)}
+.as-detail-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
+  gap:var(--uif-space-2)}
+.as-detail-head h3{margin:0;font-size:var(--uif-font-h3);overflow-wrap:anywhere}
+.as-detail-head p{margin:var(--uif-space-1) 0 0}
+.as-detail h4{margin:var(--uif-space-3) 0 0;font-size:var(--uif-font-body)}
+.as-body{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;
+  line-height:var(--uif-body-line-height)}
+.as-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
+  padding:var(--uif-space-2) 0}
+.as-copy-note{margin:0}
+/* 剪贴板被拒时的兜底文本区：它就在说明文字下面，全宽、等宽、可全选。 */
+.as-copy-fallback{display:block;width:100%;margin-top:var(--uif-space-2);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:var(--uif-font-small)}
+.as-choose{display:grid;gap:var(--uif-space-2);flex:1 1 32ch;min-width:0;
+  padding:var(--uif-space-3);border:1px solid var(--line);
+  border-radius:var(--uif-radius-card);background:var(--surface-2)}
+.as-meta{display:grid;gap:var(--uif-space-1);margin-top:var(--uif-space-4)}
+.as-meta p{margin:0}
+
+/* DL-KB-10（2026-10-24）：目标组合选择面板。这一面只有排列与换行是新的：面板、列表、
+   药丸、折叠区、字段行全部复用既有 .panel/.list/.list-item/.tag/.advanced/.field-row/.kb-*
+   原语。宽度一律用 ch 与 --uif-* 令牌，不新增字面 px 或字面色值——§4 的存量由
+   scripts/design_debt_baseline.py 按实测看守，多一处就要连带改契约。
+   .tp-name 的 overflow-wrap:anywhere 是 02:150 / 06:48 那条"长中文型号名不被裁切"在这里的
+   落点：靠换行容纳，不靠缩字号，也不靠 ellipsis 把字藏起来。 */
+.tp-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(22ch,1fr));
+  gap:var(--uif-space-3);align-items:end}
+.tp-row .input{width:100%;min-width:0}
+.tp-line{margin:0;font-size:var(--uif-font-small);line-height:var(--uif-body-line-height);
+  overflow-wrap:anywhere}
+.tp-name{min-width:0;overflow-wrap:anywhere}
+.tp-plan{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
+  font-size:var(--uif-font-small);color:var(--muted)}
+.tp-dimension{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);
+  gap:var(--uif-space-2);align-items:center}
+.tp-dimension-name{display:flex;flex-wrap:wrap;align-items:center;
+  gap:var(--uif-space-1);min-width:0;overflow-wrap:anywhere}
+.tp-dimension .input{width:100%;min-width:0}

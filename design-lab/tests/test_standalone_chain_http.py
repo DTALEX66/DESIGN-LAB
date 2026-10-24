@@ -594,6 +594,46 @@ class StandaloneChainTests(unittest.TestCase):
         '/api/projects/([0-9a-f]{32})/prompt-results': ['/api/projects/{project}/prompt-results'],
         '/api/projects/([0-9a-f]{32})/knowledge-candidates':
             ['/api/projects/{project}/knowledge-candidates'],
+        # DL-KB-08. The output-type vocabulary is read before any workspace exists, which is the
+        # reason it is not part of the project-scoped collection below.
+        '/api/assistance-plan-output-types': ['/api/assistance-plan-output-types'],
+        # DL-KB-07 (batch K). The collection and one plan's readback. The plan is created by this
+        # sweep before the reads, so the detail route is measured on bytes the service stored.
+        '/api/projects/([0-9a-f]{32})/assistance-plans(?:\\?[^#]*)?':
+            ['/api/projects/{project}/assistance-plans'],
+        '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})':
+            ['/api/projects/{project}/assistance-plans/{aplan}'],
+        # DL-KB-12: one stored revision, read by number. The plan this sweep files has exactly one
+        # revision, so r1 is both the row asked for and the newest -- the honest read the comparison
+        # page depends on, reached over a real socket here. The two-revision case, where r1's bytes
+        # are NOT the current ones, is measured by design-lab/tests/test_assistance_plan.py and by
+        # the live payload gate, which reads both rows of a plan that carries a second revision.
+        '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions/([1-9][0-9]{0,8})':
+            ['/api/projects/{project}/assistance-plans/{aplan}/revisions/1'],
+        # DL-KB-11: the handoff material, one read per format. Three of them answer 200 for the plan
+        # this sweep files; the 分镜 CSV answers 409 PLAN_EXPORT_NO_SHOTS, because that plan is a
+        # poster with no shot rows and the route will not render a storyboard out of an empty table.
+        # That refusal is therefore reached in the real chain rather than only asserted, and the
+        # CSV's 200 branch is measured on a shot-bearing plan by
+        # design-lab/tests/test_plan_export.py and by the live payload contract gate.
+        '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/export(?:\\?[^#]*)?':
+            ['/api/projects/{project}/assistance-plans/{aplan}/export?format=markdown',
+             '/api/projects/{project}/assistance-plans/{aplan}/export?format=txt',
+             '/api/projects/{project}/assistance-plans/{aplan}/export?format=json',
+             '/api/projects/{project}/assistance-plans/{aplan}/export?format=storyboard_csv'],
+        # DL-KB-16: the voluntary external-use history of the plan this sweep just filed. Nothing
+        # here records a report, so the honest answer is an empty history that still carries the
+        # outcome words the store enforces -- a page reading it gets its vocabulary from the
+        # service, not from a list someone copied into TypeScript.
+        '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/feedback(?:\\?[^#]*)?':
+            ['/api/projects/{project}/assistance-plans/{aplan}/feedback'],
+        # DL-KB-09: the three target-profile reads. These are project-free (the profiles are the
+        # tracked config's rows, not per-project state), so they are called before the slots that
+        # belong to a project would matter; the detail route is called with an id the list itself
+        # served rather than one assembled by this test.
+        '/api/target-profile-axes': ['/api/target-profile-axes'],
+        '/api/target-profiles(?:\\?[^#]*)?': ['/api/target-profiles'],
+        '/api/target-profiles/(tprof-[0-9a-f]{32})': ['/api/target-profiles/{tprof}'],
         '/api/projects/([0-9a-f]{32})/briefs(?:\\?after=(brief-[0-9a-f]{32}))?':
             ['/api/projects/{project}/briefs'],
         '/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})':
@@ -707,9 +747,29 @@ class StandaloneChainTests(unittest.TestCase):
                        'verification': 'UNVERIFIED'},
             'related_capability_ids': [], 'recommended': True, 'created_by': 'sweep',
             'supersedes': None}, 201)['entry']['knowledge_entry_id']
+        # DL-KB-07: a neutral plan over the asset and brief this sweep already wrote, so both
+        # assistance reads below answer about a stored document rather than a fabricated id.
+        plan = self.hop(
+            'assistance-plan', 'POST', f'/api/projects/{project}/assistance-plans',
+            {'objective': '为秋季新品做一张克制的主视觉海报', 'output_type': 'IMAGE',
+             'neutral_creative': '一束侧光穿过纸纤维，留出大面积空白承载标题。',
+             'brand_constraints': ['只用两种油墨'], 'role_constraints': [],
+             'lens': None, 'sound': None,
+             'references': [{'kind': 'ASSET', 'id': imported['id']}],
+             'external_steps': [{'step': '手动导出印刷 PDF', 'tool': 'Illustrator',
+                                 'job_id': None, 'operation_id': 'op-get-sweep'}],
+             'known_gaps': ['目标纸张未定'], 'limits': ['未包含多语言排版'],
+             'created_by': 'sweep'}, 201)['plan']['plan_id']
         systems = self.call('GET', '/api/design-systems')[1]
         names = _values_under(systems, 'name', 'id')
         self.assertTrue(names, 'the design-system catalog named no entry to build a token route')
+        # DL-KB-09: the profile detail route is called with an id the list itself served. The
+        # profiles are the tracked config's rows, so this sweep writes nothing to reach them -- a
+        # draft would give two owners of the same byte.
+        profiles = self.call('GET', '/api/target-profiles')[1]
+        self.assertTrue(profiles['profiles'],
+                        'the profile list served no row, so …/target-profiles/<id> would go '
+                        'unmeasured rather than be read')
 
         # The delivery leg registers a native asset row (the primary artifact the host read back),
         # so `…/native-assets/<id>/verify` is constructible here -- it was filed UNCONSTRUCTED on the
@@ -723,7 +783,8 @@ class StandaloneChainTests(unittest.TestCase):
                  'direction': direction, 'design_system': names[0],
                  'delivery_project': delivered['project'], 'bundle': delivered['bundle']['id'],
                  'version': delivered['bundle']['version_id'], 'job': delivered['job_id'],
-                 'native_asset': native_assets['assets'][0]['id'], 'kentry': knowledge}
+                 'native_asset': native_assets['assets'][0]['id'], 'kentry': knowledge,
+                 'aplan': plan, 'tprof': profiles['profiles'][0]['profile_id']}
 
         layout = 'installed' if INSTALLED_MODE else 'source'
         answered, verdicts, unmeasured, refused = [], [], [], {}
@@ -735,7 +796,8 @@ class StandaloneChainTests(unittest.TestCase):
                 path = re.sub(r'\{(\w+)\}', lambda match: slots.get(match.group(1), ''), read)
                 missing = sorted(name for name in ('project', 'asset', 'brief', 'direction',
                                                    'design_system', 'delivery_project', 'bundle',
-                                                   'version', 'job', 'native_asset', 'kentry')
+                                                   'version', 'job', 'native_asset', 'kentry',
+                                                   'aplan')
                                  if '{' + name + '}' in read and not slots.get(name))
                 self.assertEqual(missing, [],
                                  f'{read} needs a slot this sweep has no value for: {missing}')
@@ -799,12 +861,25 @@ class StandaloneChainTests(unittest.TestCase):
         what stops a green export from being read as a delivery.
         """
         from design_lab.http_service import ROUTES
-        export_routes = [route.pattern for route in ROUTES if 'export' in route.pattern]
+        export_routes = sorted(route.pattern for route in ROUTES if 'export' in route.pattern)
         self.assertEqual(
-            ['/api/projects/([0-9a-f]{32})/knowledge-candidates'
+            ['/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/export'
+             '(?:\\?[^#]*)?',
+             '/api/projects/([0-9a-f]{32})/knowledge-candidates'
              '/([A-Za-z0-9_.:-]{1,80})/export'], export_routes,
-            'the export route moved or multiplied; the acceptance chain walks exactly one export hop, '
-            'so a second one needs its own hop and its own claim')
+            'an export route moved or multiplied; the acceptance chain walks exactly one candidate '
+            'exit hop, and the plan-material read is a second, different claim -- see the sentence '
+            'below')
+        # The second one appeared on purpose (DL-KB-11, owner 2026-10-23 batch K4). It is not a
+        # transport: it renders the stored revision as markdown/txt/json/分镜 CSV and answers
+        # `sent: false`. Because the two words mean different things, this file keeps them apart in
+        # both directions: the candidate exit is still the only hop that could be read as an
+        # outbound delivery, and the material read is measured on its own four calls in the GET
+        # sweep above -- a route that only existed in the table would not be reached there.
+        self.assertIn('/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/export'
+                      '(?:\\?[^#]*)?', self.GET_READS,
+                      'the plan-material export route is declared but not called by this layout; '
+                      'then no evidence says a real stored plan can be handed over')
         # Nothing in the route table can put the document on a wire.
         self.assertEqual([], [route.pattern for route in ROUTES
                               if 'send' in route.pattern or 'deliver-to' in route.pattern],

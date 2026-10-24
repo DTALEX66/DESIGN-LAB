@@ -29,7 +29,22 @@ FALSIFICATION RECORD (2026-10-06, this machine, real Chromium + real service):
     all" branch put an impossible background into the candidate set, so every
     gradient pill reported 1:1. 44 phantom offenders disappeared once both were
     fixed.
-  - measured on the current build: checked=995 text runs, belowAA=0, mathBad=0.
+  - measured on the current build: checked=995 text runs, belowAA=0, mathBad=0 (2026-10-06).
+  - 2026-10-24, same gate after it learned to open collapsed details and read OKLab: both themes
+    measured 50 route-runs (24 routes x 1440/1920 plus the plan detail at each width),
+    checked=14002 text runs, belowAA=0, collapsedOpened=6228, controlMisses=0, unparsable=0,
+    colourBad=0, tightest margin 4.11:1 (dark) / 4.14:1 (light). That run is what found the two
+    defects below, so the growth in `checked` is the point, not a side effect.
+  - FALSE FAILURE the gate produced first, then a real one it produced second:
+    · a closed `<details>` keeps a real layout box for text Chromium does not paint
+      (`::details-content { content-visibility: hidden }`), so the invisible 接入明细 lines were
+      graded against whatever sibling panel happened to own that pixel -- a 1.31:1 report on text
+      nobody could read. Fixed by opening every detail before the sweep and counting the runs that
+      brought in (`collapsed`), with a planted closed white-on-white control that is only reported
+      when the opening really happened; without the control the skip would look like coverage loss.
+    · `oklab(...)` -- how Chromium serialises a resolved `color-mix(in oklab, …)` -- was unparsable,
+      which the gate refuses loudly rather than dropping the layer. The conversion is now graded
+      against the CSS Color 4 spec's own four sRGB <-> OKLab vectors.
 
 It claims E2 controlled-runtime evidence only: contrast computed from what a real
 browser painted, not an E3 host run and not an E4 human judgement about whether
@@ -165,6 +180,14 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         self.assertEqual(summary.get('unparsable'), '0',
                          'a colour the page computes could not be parsed, so at least one '
                          'background was dropped from the stack: %s' % summary)
+        # OKLab is a colour space this page actually computes in (a resolved
+        # `color-mix(in oklab, …)`), and the conversion is graded against the CSS Color 4
+        # spec's own vectors rather than a helper of this file's.
+        self.assertEqual(summary.get('colourChecks'), '4',
+                         'the oklab->sRGB reference vectors did not run: %s' % summary)
+        self.assertEqual(summary.get('colourBad'), '0',
+                         'the oklab conversion disagrees with published spec vectors: %s'
+                         % summary)
         # The veil control answers a different question: text seen *through* a scrim must be
         # graded against the blended pairing. Its own document, because a fixture has to be
         # inside the viewport for a hit test to find it.
@@ -172,6 +195,24 @@ class WorkbenchContrastGateTests(unittest.TestCase):
                       'the translucent-veil control did not fire: %s' % out[-800:])
         self.assertIn('obscured', summary,
                       'obscured text runs are no longer counted: %s' % summary)
+        # Collapsed `<details>` text is painted only once a person opens it, so a route sweep
+        # that never expanded would silently measure a fraction of the screen it names. The count
+        # has to be non-zero for the population to include that content at all.
+        self.assertGreaterEqual(int(summary.get('collapsedOpened', '0')), 1,
+                                'not one collapsed run was brought into the sweep, so this '
+                                'gate only measures whatever the page happened to leave open: %s'
+                                % summary)
+        # The plan detail is the screen this round added; a name in the log is not proof it was
+        # measured under every width, so the report itself is read back.
+        import json
+        recorded = json.loads(report_path.read_text(encoding='utf-8'))
+        wanted = ['%s:assistant+plan-detail' % w for w in WIDTHS.split(',')]
+        missing = [k for k in wanted if k not in recorded.get('routes', {})]
+        self.assertEqual(missing, [],
+                         'the plan detail was never measured for these widths, so its contrast '
+                         'is unclaimed rather than good: %s' % missing)
+        self.assertIs(recorded.get('auditSeed', {}).get('product_data'), False,
+                      'the seeded plan must be recorded as synthetic scaffolding')
 
     def test_ui2026_light_theme_is_graded_by_the_same_aa_gate(self):
         """DL-UI-U02 (2026-10-09): the 20261009 baseline ships as a *theme*, so it has

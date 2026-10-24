@@ -1,0 +1,24 @@
+--- stderr ---
+test_a_documented_incompatibility_is_kept_in_the_vendors_own_words (design-lab.tests.test_target_profile.TargetProfileTests.test_a_documented_incompatibility_is_kept_in_the_vendors_own_words) ... ok
+test_a_draft_cannot_be_validated_as_if_it_were_documented (design-lab.tests.test_target_profile.TargetProfileTests.test_a_draft_cannot_be_validated_as_if_it_were_documented) ... ok
+test_a_draft_cannot_name_a_column_the_contract_does_not_have (design-lab.tests.test_target_profile.TargetProfileTests.test_a_draft_cannot_name_a_column_the_contract_does_not_have) ... ok
+test_a_draft_cannot_write_itself_as_a_measurement (design-lab.tests.test_target_profile.TargetProfileTests.test_a_draft_cannot_write_itself_as_a_measurement) ... ok
+test_a_draft_is_stored_marked_unverified_and_read_back_after_a_restart (design-lab.tests.test_target_profile.TargetProfileTests.test_a_draft_is_stored_marked_unverified_and_read_back_after_a_restart) ... ok
+test_a_draft_revision_cannot_be_rewritten_or_withdrawn_underneath_a_reader (design-lab.tests.test_target_profile.TargetProfileTests.test_a_draft_revision_cannot_be_rewritten_or_withdrawn_underneath_a_reader) ... ok
+test_a_null_axis_in_the_config_states_its_own_reason_and_not_the_stores_fallback (design-lab.tests.test_target_profile.TargetProfileTests.test_a_null_axis_in_the_config_states_its_own_reason_and_not_the_stores_fallback)
+07 line 29: 未知可空并解释原因，不能自动补支持. ... ok
+test_an_out_of_range_page_is_refused_loudly_at_the_right_layer (design-lab.tests.test_target_profile.TargetProfileTests.test_an_out_of_range_page_is_refused_loudly_at_the_right_layer) ... ok
+test_an_unknown_profile_id_says_what_a_profile_can_be (design-lab.tests.test_target_profile.TargetProfileTests.test_an_unknown_profile_id_says_what_a_profile_can_be) ... ok
+test_an_unreached_entry_carries_its_failed_attempts_and_stays_unknown (design-lab.tests.test_target_profile.TargetProfileTests.test_an_unreached_entry_carries_its_failed_attempts_and_stays_unknown) ... ok
+test_axes_serve_the_two_lists_the_pack_agrees_on_and_counts_measurement_as_zero (design-lab.tests.test_target_profile.TargetProfileTests.test_axes_serve_the_two_lists_the_pack_agrees_on_and_counts_measurement_as_zero) ... ok
+test_seeded_profiles_are_served_from_the_tracked_config_with_no_database_copy (design-lab.tests.test_target_profile.TargetProfileTests.test_seeded_profiles_are_served_from_the_tracked_config_with_no_database_copy) ... ok
+test_the_config_refuses_to_describe_a_capability_nobody_read_without_a_reason (design-lab.tests.test_target_profile.TargetProfileTests.test_the_config_refuses_to_describe_a_capability_nobody_read_without_a_reason)
+The file I edit is itself under test: an empty cell has to say why it is empty. ... ok
+test_the_histogram_a_page_reads_comes_from_the_same_bytes_as_the_profiles (design-lab.tests.test_target_profile.TargetProfileTests.test_the_histogram_a_page_reads_comes_from_the_same_bytes_as_the_profiles) ... ok
+test_validation_of_an_unreached_entry_returns_unknown_without_granting_execution (design-lab.tests.test_target_profile.TargetProfileTests.test_validation_of_an_unreached_entry_returns_unknown_without_granting_execution) ... ok
+test_validation_reports_a_documented_no_as_a_no (design-lab.tests.test_target_profile.TargetProfileTests.test_validation_reports_a_documented_no_as_a_no) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 7.369s
+
+OK

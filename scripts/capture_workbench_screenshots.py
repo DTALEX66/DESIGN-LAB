@@ -88,6 +88,15 @@ def main() -> int:
                              "the screenshots show the affordances a zero-row project cannot render. "
                              "This is capture scaffolding, not product data: it is written down in "
                              "capture-scaffold.json and dies with the temporary project root.")
+    parser.add_argument("--seed-assistance-plan", action="store_true",
+                        help="create ONE synthetic assistance plan (two shot rows, a second "
+                             "revision, a named choice, one voluntary report) in the throwaway "
+                             "capture state, so the screenshots render the plan detail -- the four "
+                             "state chips, the 镜头表, the material formats, the feedback history "
+                             "and the revision comparison are states of a stored plan and appear on "
+                             "no screenshot of an empty form. Capture scaffolding, not product data: "
+                             "written down in capture-scaffold-assistance.json, named as synthetic, "
+                             "and it dies with the temporary project root.")
     args = parser.parse_args()
 
     node = find_node()
@@ -151,6 +160,8 @@ def main() -> int:
             }
             if args.seed_native_plan:
                 env["CAP_SEED_NATIVE_PLAN"] = "1"
+            if args.seed_assistance_plan:
+                env["CAP_SEED_ASSISTANCE_PLAN"] = "1"
             if source_image.is_file():
                 env["CAP_SOURCE_IMAGE"] = str(source_image)
             try:

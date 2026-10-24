@@ -1196,3 +1196,126 @@ adapter 数、两跳链、冻结/派工两个分母——都不受本轮改动�
 第一刀之后的 20 份新件（第二轮 19 份 + 第三轮 1 份 delivery 回执）由账本 `artifact_sha256`
 逐条绑定，不并入那个索引。读证据时以账本为准，
 不要把索引当成"证据包全量清单"。
+
+### 5.35 第四刀 K3：方案对象与设计辅助（`2d9372fb` 实现 → `103a6680` 收口）
+
+**落地形状。** 实现提交 `2d9372fb` 新增六条路由：`GET /api/assistance-plan-output-types`、
+`GET /api/projects/(id)/assistance-plans`、`GET /api/projects/(id)/assistance-plans/(aplan-…)`、
+`POST /api/projects/(id)/assistance-plans`、`POST …/assistance-plans/(aplan-…)/revisions`、
+`POST …/assistance-plans/(aplan-…)/choose`。实测 ROUTES 72 → **78**（42 GET + 36 POST）；合同账本
+74 → **80 行**（BOUND_SCHEMA 66 / SCHEMA_LESS 14；方法分布 44 GET + 35 POST + 1 GET+POST）；live
+载荷绑定 41 → **47**（`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=47 failures=0`）；`ROUTE_VIEWS`
+22 → **23**，`DESIGN.md` 导航 22 → 23。新增五份 plan schema（plan / write / readback / list /
+output-types）与一张 94 行的 state 表。
+
+**`DL-KB-07`（中立方案对象 + 一份创意意图）收口。** `test_assistance_plan` 18 项：
+"已保存／方案已提供／用户选用／外部未验证"是四条独立读回路径，复制不写任何一条；修订追加、
+不改旧链；带过期 `expected_revision` 的写被拒并点名实际版本；只有具名真人能做选用；未接回执的
+选用保持 `LINKED_ONLY`，直到存储里出现反转；缺号一律 `UNUSED` 字面量。路由注册、合同行与 wheel
+打包由 77 项（`test_route_payload_contracts`、`test_ledger_schema`、
+`test_packaged_contract_resources`）复核。
+
+**`DL-KB-08`（设计辅助初始态 + 方案详情屏）收口。** 浏览器实跑 `result PASS`、`consoleErrors 0`：
+保存后 `saved=true` 而 `providedAfterSave`／`chosenAfterSave`／`externalVerified` 全为 `false`；
+复制成功且 `copyCarriedHonesty`、`copyWroteNothing`、`copyChoseNothing` 均为 `true`——复制既不改状态、
+也不代替选用；空目标被拒（`emptyObjectiveRefused`）；手工补创意可行（`suppliedCreative`）；
+`providerPrimary` 是 `as-choose`，选用后 `chosen=true` 且 `chosenActorShown=true`；`revisionRows=2`；
+重载读回一致（`reloadReadback`）；无聊天面（`noChatSurface`）。工作台 node 30 项（含
+`㉔ B10_NAV` 从 `ROUTE_VIEWS` 派生）与 Python 44 项同绿。
+
+**视觉与闸门。** 截图 manifest 绑 `2d9372fb`：81 张（assistant 在 1280/1440/1920），
+视觉复核另存四张（`detail@1440-saved` 378,639 B、`detail@1440-chosen` 455,730 B、
+`detail@1280-chosen` 437,580 B、`list@1280` 214,538 B），逐张 sha256 在收据里。UI audit
+`ok=true`、`violations=[]`；溢出量 1100/900/750/620 四档；对比度 3 项双 palette；设计审查插件
+第一次覆盖 `#/assistant`：27 屏 axe 扫描 0 findings（自动扫描，不是 WCAG 认证），设计债
+713 条（630 minor / 52 major / 31 debt）与助手屏出现前条数、严重度与文件分布相同，
+`(file, rule, severity)` 的 713 条多重集完全一致；差异是 28 条行号随 `shell.ts` 增长而位移，
+不是新增债务。新界面没有新增字面 px 或硬编码颜色。收口树九门 `VERIFY_DESIGN_LAB=OK total=76 failed=0`，并带
+`VERIFY_RESULT 549` / `VERIFY_PRODUCT_MANIFEST_V3 493` / `VERIFY_RUNTIME_CONTRACTS_V3 239` /
+`VERIFY_VISUAL_SCORING_V3 10`；投影新鲜度 0 findings；authority gates 7 项 PASS。账本追加 13 条
+回执（KB-07 两条、KB-08 十一条）后共 **249** 条全部 PASS，直方图
+`FROZEN_DEFERRED 34 / DONE 6 / PARTIAL 2 / NOT_STARTED 8`。本目录现有 86 个受跟踪文件：
+索引仍只覆盖第一刀 47 份，其余 39 份（本轮新增 15 份）由账本 `artifact_sha256` 逐条绑定。
+
+**CI 第一次读数与修复。** PR #277 的首个完整矩阵（run `40048178001`，SHA `142e7efe`）是 9 个作业
+success、Python gate 红，`Branch light` 与 `CI artifact proof` 按规则跳过。shard 3/3 共 1026 项里
+唯一失败是 `test_backup_watches_written_tables.CoverageTests.test_every_written_table_is_watched_by_the_proof`：
+KB-07 新增的 `assistance_plan`、`assistance_plan_revision`、`assistance_plan_choice` 三张表由 store
+直接提交、不持写锁，却没有进 `project_backup.py` 的 `COUNTER_QUERIES`——备份窗口吞掉一次修订或一次
+选用，仍会报 `PROVED_QUIESCENT`。这条规则住在单元测试里，`verify_design_lab.py` 的 76 项不含单元测试，
+所以本机九门全绿也没拦住它。修复是在 `COUNTER_QUERIES` 追加三行 `rowid` 计数并写明理由；复验是
+`test_backup_watches_written_tables` 5 项、`test_project_backup` 加 `test_evidence_artifact_presence`
+48 项（1 skip），本机三 shard 并集 `3213 PASS / 5 SKIP / 0 FAIL`（shard 1108/1084/1026 项，
+用时 408.5 / 1487.1 / 140.4 秒）。同一条并集在 CI 上的分布是 `3195 PASS / 22 SKIP / 1 FAIL`——两边总数
+同为 3218，SKIP 差 17 项来自 runner 与本机的宿主环境差异，不是同一批用例被换掉。修复提交 `dbdee924`
+的复跑 run `40076707359`：见本节末尾的逐作业读数。
+
+**未证与未修。** `1440×900` 与 `1280×800` 下详情屏的主操作落在首屏折叠线以下
+（`1920×1080` 可见）；它不违反任何验收句，但属体验缺陷，留给版式轮次，本轮不为此重排布局——
+重排会让整条刚量好的证据链失效。收据里的选用人写作「示例审阅人」，是**示例**不是真人验收；
+E2E 自己的 `subjectSha` 写的是 `local`，工件身份靠 bundle sha 与截图 manifest 的 commit 绑定，
+账本回执里照实写明。a11y 的 0 是自动扫描。`DL-KB-02` 的 A5 仍无直接断言；`DL-KB-05` 的 D5
+在 KB-07 收口后需要重新量，不能因依赖项 DONE 就写成已证。下一刀是 K4：
+`DL-KB-09`（目标档案：软件×模型×入口）与 `DL-KB-10`（目标组合选择面板屏）。
+
+**复跑逐作业读数（run `40076707359`，`dbdee924`）。** 10 个作业 success，`Branch light` 与
+`CI artifact proof` 按规则跳过——前者只在非 main 的 push 上跑，后者只在 main 的 push 上跑，所以 PR 上
+本来就不该出现它们。三个 shard 分别是 1108 项 `1103 PASS / 5 SKIP`、1084 项 `1071 PASS / 13 SKIP`、
+1026 项 `1022 PASS / 4 SKIP`，合计 `3196 PASS / 22 SKIP / 0 FAIL`；与本机并集同为 3218 项，FAIL 归零，
+`test_every_written_table_is_watched_by_the_proof` 这次在两张表都计数的代码上绿。
+
+### 5.36 第五刀 K4／K5／K6：材料、目标、反馈与复用闭成一条链（实现 `36addfd5`）
+
+**这一刀把七段链接上了。** 真实需求与参考 → 可编辑方案（DL-KB-07/08 已有）→ 按需生成或编辑材料 →
+按材料选择目标 → 实际复制或导出 → 用户自愿记录外部使用反馈 → 方案与适用经验再次查找复用。本轮新增的
+是后四段：`src/design_lab/plan_export.py` 用**一个** `_intent()` 构建器渲染 markdown／txt／json／分镜
+CSV 四种形态，CSV 的转义是在吐出的字节上证的（引号、逗号、换行各一条），没有镜头行的方案**拒绝**出
+CSV 而不是吐一张空表；`src/design_lab/target_profile.py` 把软件×模型×入口做成五条路由加一份
+`design-lab/config/target-profiles.json`，未知入口保留 UNKNOWN、校验永不发放执行权；
+`src/design_lab/plan_feedback.py` 记自愿的外部结果反馈，写完方案的四个状态一个字都不动、修订历史
+仍在、结论词由服务给出；「我的方案」这一面补了页内检索与筛选（说明句写清"筛选只在这 M 条里做，
+不是全库搜索"）、两份**真实修订**的逐字段对照、由服务铸号的复制一份，以及一份活过重载的未完成编辑
+（本机存储、24 小时过期、超长不写、结构不对就当没有、保存成功即清除）。路由面从 86 涨到 **87**
+（48 GET + 39 POST），写侧扫描表 `rows=39 walked=38 written=38 read_backs=47 refused=0 excluded=1`。
+
+**两道闸门被这一刀量出两个真缺陷，都是先红给我看才改的。** 对比度闸报过一条 `1.31:1` 的
+`p.view-hint`，查下去是**假失败**：闭合的 `<details>` 在 Chromium 里仍保留真实布局盒
+（`::details-content` 是 `content-visibility: hidden`），`display`/`visibility`/`opacity`/矩形四道
+过滤都放行，于是"没人看得见的那行字"被按它像素位置上那块兄弟面板的颜色判了分。修法是量之前先把
+所有 `<details>` 展开，并把带进来的行数报成 `collapsedOpened`，同时埋一条**闭合的**白底白字对照件
+——只有真的展开了它才会被报出，所以这条修正不可能悄悄变成少量。同一轮还暴露 `oklab(...)`
+（`color-mix(in oklab, …)` 的序列化形式）这道闸读不懂，按它自己的家规"扩解析器而不是降阈值"补上，
+并且用 CSS Color 4 规范里那四组 sRGB↔OKLab 对照值判分，不是用文件里另一个函数自证。改完两档主题各
+量 50 个面、`checked=14002`、`belowAA=0`、`collapsedOpened=6228`、`unparsable=0`、`colourBad=0`，
+最紧的一对是 4.11:1（深色）与 4.14:1（浅色）。截图闸的等待条件也错过一次：它要求每条
+`[role="status"]` 都有文字，而材料回执那句在人不点"复制"时**本就该是空的**，于是方案详情三档宽度
+全部 `settle-timeout`；改成只等"没有还在读回"，内容由脚手架自己的读回断言保证。
+
+**一处真实超标，所以 `DL-KB-13` 是 PARTIAL。** 交付方案 §14 写的是"首屏 JavaScript gzip 不超过
+150KB"，本轮实测 `apps/workbench/build/main.js` 原始 593,796 字节、gzip **155,787** 字节，超过上限；
+样式表 110,904／gzip 40,530，远程引用 0。不能靠改构建解决：`vite.config.ts` 顶上的合同写明这个包
+**故意不压缩**，因为原生 UI 契约测试要读顶层函数名与界面文字，压缩会让契约静默失效；也不该为凑数字
+删必要内容或换栈（同一节的原话）。搜索与操作延迟达标且余量很大：1,000 条按真实结构生成的样本、
+30 次查询，`search p95=28.89ms`、`create p95=8.14ms`、`detail p95=8.94ms`（阈值分别是 300ms 与
+100ms），推理延迟单独报、不混进界面指标。几何面这轮补了 1536 CSS px——1920 物理屏在 Windows 125%
+下的宽度，100/125/150 三档里此前**没人量过中间那一档**，现在溢出闸扫 `1440,1280,1536,1920`。
+§14 还要求"安排至少 3 位目标用户做无指导任务"，那不是我能替的验收，所以这一行停在 PARTIAL。
+
+**账本读数（`36addfd5` 上现测，21 条新回执，`kb-20261024` 目录）。** `DL-KB-09`、`DL-KB-10`、
+`DL-KB-11`、`DL-KB-12`、`DL-KB-14` 记 DONE（各自 `evidence_requirements` 的轴都有 PASS 回执）；
+`DL-KB-13` PARTIAL（体积超标 + 真人无指导任务未做）；`DL-KB-16` PARTIAL（实现与单元都 PASS，
+`human_review` 只认具名真人，代理不签）；`DL-KB-15` 仍 NOT_STARTED，它的前置是"用户在本机实际可用的
+推理服务与硬件余量"，本轮不部署模型、不自行下载权重。全量门禁 `VERIFY_DESIGN_LAB=OK total=76
+failed=0`，UI 审计闸与截图采集（带合成方案种子）都是 0 退出，受影响的十个 Python 模块单独跑全绿。
+
+**留给下一轮的覆盖洞，点名不猜。** 本轮 grep 过：溢出闸与 UI 审计闸里没有任何 `<details>` 处理，
+所以它们报的几何数是"布局盒"的数，不是"人眼此刻看得到"的数——闭合面板里的文字对这两道闸是可见的，
+对使用者不是。对比度闸这一轮已经用"先展开＋对照件"解决了同一问题，同一把尺子应当量到那两道；改之前
+先把它们的宽度、行数与既有断言重测一遍，别拿这次的结论当它们的现状。另两处未闭环的账：`DL-KB-02`
+的 A5 仍无直接断言，`DL-KB-05` 的 D5 需要重新量（回退要事件表，本轮没有加）。
+
+边界不变：桌面端 only，手机端仍是排除项；不部署模型、不宣称推理已验证；导出与复制是**读回**不是
+发送，页面上那句"这只是把材料交出去，不是选用，也不是发送"是服务给的词；编号仍由人填或显式选
+UNUSED；三方素材与字库在范围外；E 盘不动；旧 34 项仍 `FROZEN_DEFERRED`；release、装机分发、真实宿主
+E3、真人 E4、ComfyUI、MiniMax H3 与外部软件自动操作继续冻结。
+

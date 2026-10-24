@@ -260,6 +260,14 @@ jobs:
         run: pnpm --filter @design-lab/workbench test:unit
       - name: "Workbench Build-Output-Truth / packaging static verifier"
         run: python3 design-lab/scripts/verify_workbench_packaging.py
+      - name: "Workbench weight and remote-reference baseline (DL-KB-13)"
+        # The delivered plan (§14) caps first-screen JS gzip at 150 KB and forbids third-party
+        # remote fonts. Only the remote-reference half is a rule today, so --check fails the job on
+        # a remote fetch and publishes the size reading without gating it: design.qa.yaml declares
+        # no budget, and the measured 155,787 B against that ceiling is an open owner decision
+        # (see DL-KB-13's PARTIAL row), not something to buy back by minifying a bundle the
+        # native-UI contract tests must read un-minified.
+        run: python3 scripts/measure_workbench_weight.py --check
       - name: "No-drift: rebuilt bundle is byte-identical to committed"
         run: git diff --exit-code -- apps/workbench/build
 

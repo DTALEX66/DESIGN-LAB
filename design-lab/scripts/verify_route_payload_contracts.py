@@ -135,6 +135,10 @@ class Harness:
         self._produce_prompt_results()
         self._seed_design_layer()
         self._seed_knowledge()
+        self._seed_assistance()
+        self._seed_plan_export()
+        self._seed_target()
+        self._seed_plan_feedback()
         return self
 
     def _produce_prompt_results(self):
@@ -555,6 +559,251 @@ class Harness:
 
     def knowledge_cases(self, *names):
         return [self.knowledge[name] for name in names]
+
+    # -- assistance plan family (batch K3, 2026-10-24) -------------------------------------
+    #: The create route's exact field set. The creative is present on the plan that gets a second
+    #: revision and a human choice; the draft below leaves it out on purpose, because "saved" and
+    #: "provided" are two different facts the readback has to keep apart.
+    ASSISTANCE_FIELDS = {
+        'objective': '为秋季新品做一张克制的主视觉海报',
+        'output_type': 'IMAGE',
+        'neutral_creative': '一束侧光穿过纸纤维，留出大面积空白承载标题。',
+        'brand_constraints': ['只用两种油墨'],
+        'role_constraints': [],
+        'lens': None,
+        'sound': None,
+        'references': [],
+        'external_steps': [{'step': '手动导出印刷 PDF', 'tool': 'Illustrator',
+                            'job_id': None, 'operation_id': 'op-payload-1024'}],
+        'known_gaps': ['目标纸张未定'],
+        'limits': ['未包含多语言排版'],
+        'created_by': 'payload-contracts',
+    }
+
+    def _seed_assistance(self):
+        """One plan with two revisions and a human choice, a draft, and an empty collection.
+
+        The referenced asset is a stored ``asset_version`` of this same project, inserted with the
+        same call the brief fixture uses -- the plan writer resolves the live revision and digest
+        itself, so what is compared is the readback's own measurement. No reversal exists for it,
+        which is why the compared payload carries LINKED_ONLY rather than ANALYSIS the caller
+        claimed.
+        """
+        asset_id = 'img-' + 'b2' * 32
+        with closing(self.assets.connect(self.service.database,
+                                         project_root=self.service.paths.project_root)) as conn:
+            conn.execute('INSERT INTO asset VALUES (?, ?, "raster", ?)',
+                         (asset_id, self.filled, '2026-10-24T00:00:00Z'))
+            conn.execute('INSERT INTO asset_version (version_id, asset_id, version_no,'
+                         ' content_sha256, state, created_at) VALUES (?,?,?,?,?,?)',
+                         ('v-' + 'b2' * 16, asset_id, 1, 'sha256:' + 'b' * 64, 'ACTIVE',
+                          '2026-10-24T00:00:00Z'))
+            conn.commit()
+        status, created = self.call('POST', f'/api/projects/{self.filled}/assistance-plans',
+                                    dict(self.ASSISTANCE_FIELDS,
+                                         references=[{'kind': 'ASSET', 'id': asset_id}]))
+        if status != 201:
+            raise RuntimeError(f'ASSISTANCE_CREATE_REFUSED {status} {created}')
+        plan_id = created['plan']['plan_id']
+        status, revised = self.call(
+            'POST', f'/api/projects/{self.filled}/assistance-plans/{plan_id}/revisions',
+            dict(self.ASSISTANCE_FIELDS, references=[{'kind': 'ASSET', 'id': asset_id}],
+                 objective='为秋季新品做一张克制的主视觉海报（修订）', expected_revision=1))
+        if status != 201:
+            raise RuntimeError(f'ASSISTANCE_REVISION_REFUSED {status} {revised}')
+        status, chosen = self.call(
+            'POST', f'/api/projects/{self.filled}/assistance-plans/{plan_id}/choose',
+            {'actor': 'dtalex66', 'actor_kind': 'human', 'revision': 2})
+        if status != 200:
+            raise RuntimeError(f'ASSISTANCE_CHOICE_REFUSED {status} {chosen}')
+        status, draft = self.call(
+            'POST', f'/api/projects/{self.filled}/assistance-plans',
+            dict(self.ASSISTANCE_FIELDS, neutral_creative=None,
+                 objective='只有目标，还写不出创意'))
+        if status != 201:
+            raise RuntimeError(f'ASSISTANCE_DRAFT_REFUSED {status} {draft}')
+        self.assistance = {
+            'create': ('POST .../assistance-plans', created),
+            'revise': ('POST .../assistance-plans/<id>/revisions appends revision 2', revised),
+            'choose': ('POST .../assistance-plans/<id>/choose names a human', chosen),
+            'detail': (f'GET .../assistance-plans/{plan_id}',
+                       self.get(f'/api/projects/{self.filled}/assistance-plans/{plan_id}')),
+            'draft': (f'GET .../assistance-plans/{draft["plan"]["plan_id"]} (saved, not provided)',
+                      self.get(f'/api/projects/{self.filled}/assistance-plans'
+                               f'/{draft["plan"]["plan_id"]}')),
+            'list': ('GET .../assistance-plans',
+                     self.get(f'/api/projects/{self.filled}/assistance-plans')),
+            'list-empty': ('GET .../assistance-plans with nothing filed',
+                           self.get(f'/api/projects/{self.empty}/assistance-plans')),
+            'output-types': ('GET /api/assistance-plan-output-types (no project needed)',
+                             self.get('/api/assistance-plan-output-types')),
+            # DL-KB-12. Both revisions of the one plan above, read through the single-revision
+            # route: r1 (not latest, not chosen -- the human adopted r2) and r2 (latest, chosen).
+            # Two cases rather than one is the point of the route: a payload set that only ever
+            # read the newest row would pass with an emitter that ignored the number it was given.
+            'revision-older': (f'GET .../assistance-plans/{plan_id}/revisions/1 (the row r1 '
+                               'actually stores, below the revision a human chose)',
+                               self.get(f'/api/projects/{self.filled}/assistance-plans'
+                                        f'/{plan_id}/revisions/1')),
+            'revision-latest': (f'GET .../assistance-plans/{plan_id}/revisions/2 (the newest row, '
+                                'the one a human adopted)',
+                                self.get(f'/api/projects/{self.filled}/assistance-plans'
+                                         f'/{plan_id}/revisions/2')),
+        }
+        self.assistance_plan_id = plan_id
+
+    def assistance_cases(self, *names):
+        return [self.assistance[name] for name in names]
+
+    #: DL-KB-11: a plan that carries shot rows, because a 分镜 CSV rendered from an object with no
+ #: rows would be a fabricated deliverable and the route refuses that (409 PLAN_EXPORT_NO_SHOTS).
+    #: The purpose text of the second row holds a double quote, a comma and a newline on purpose --
+    #: the same cell the unit test round-trips through csv.DictReader, arriving here as a real
+    #: response body rather than as a fixture this file assembled.
+    EXPORT_SEED_FIELDS = {
+        'objective': '把秋季新品的主视觉做成一段十五秒的门店大屏动效',
+        'output_type': 'MOTION',
+        'neutral_creative': '侧光缓慢移动，标题以一次落定收束，全程留白承载品牌名。',
+        'brand_constraints': ['只用两种油墨'],
+        'role_constraints': ['面向线下门店大屏'],
+        'lens': '固定机位为主，一次缓推',
+        'sound': '无对白，一条低频垫底',
+        'shots': [
+            {'index': 1, 'duration_s': 4, 'purpose': '开场：侧光落在纸纤维上',
+             'camera': '缓推', 'sound': None, 'reference_role': '主参考'},
+            {'index': 2, 'duration_s': None,
+             'purpose': '中景：标题落定，副标题带"引号"、逗号, 与\n换行的说明',
+             'camera': None, 'sound': '低频垫底，无对白', 'reference_role': None},
+        ],
+        'references': [],
+        'external_steps': [{'step': '手动导出 MP4', 'tool': 'After Effects',
+                            'job_id': None, 'operation_id': 'op-plan-export'}],
+        'known_gaps': ['节奏点未定'],
+        'limits': ['不含多语言字幕', '不产出可编辑源文件'],
+        'created_by': 'payload-contracts',
+    }
+
+    def _seed_plan_export(self):
+        """File one shot-bearing plan and read all four materials back from the route."""
+        from design_lab.plan_export import FORMATS
+        status, created = self.call('POST', f'/api/projects/{self.filled}/assistance-plans',
+                                    dict(self.EXPORT_SEED_FIELDS))
+        if status != 201:
+            raise RuntimeError(f'PLAN_EXPORT_SEED_REFUSED {status} {created}')
+        plan_id = created['plan']['plan_id']
+        self.exports = [(f'GET .../assistance-plans/{plan_id}/export?format={fmt}',
+                         self.get(f'/api/projects/{self.filled}/assistance-plans'
+                                  f'/{plan_id}/export?format={fmt}'))
+                        for fmt in FORMATS]
+        # The refusal is proven in design-lab/tests/test_plan_export.py rather than bound here: a
+        # refusal answers {'error', 'detail'}, which is the shape every route in this repository
+        # shares and no schema in this gate binds -- binding it would claim a document contract
+        # that does not exist anywhere else.
+        return plan_id
+
+    def export_cases(self):
+        return list(self.exports)
+
+    TARGET_DRAFT_FIELDS = {
+        'input_modality': {'state': 'DOCUMENTED', 'value': '文本', 'provenance': 'USER_FEEDBACK',
+                            'source': 'owner 在面板里填写'},
+        'ranges': {'state': 'UNKNOWN', 'value': None, 'provenance': 'USER_FEEDBACK',
+                   'reason': '草稿没有记录时长范围'},
+    }
+
+    def _seed_target(self):
+        """The five seeded profiles, one draft, and validations on a documented and an unreached row.
+
+        Nothing here invents a capability: the seeded answers are the config's own bytes, and the
+        two validation answers are chosen because they are the two branches the acceptance names --
+        a documented incompatibility (FLUX.2 has no negative prompt) and an entry nobody reached
+        (Meshy, whose four failed fetch attempts are recorded in its own row).
+        """
+        listing = self.get('/api/target-profiles')
+        meshy = next(p for p in listing['profiles']
+                     if p['profile_key'].startswith('meshy'))
+        flux = next(p for p in listing['profiles']
+                    if p['profile_key'].startswith('flux2'))
+        if meshy['support_state'] != 'UNREACHED' or flux['support_state'] != 'DOCUMENTED_CLAIM':
+            raise RuntimeError('TARGET_SEED_SHAPE_MOVED: the compared payloads would be guesses')
+        status, created = self.call('POST', '/api/target-profiles', {
+            # The route's whole accepted key set: `body()` compares sets, so a caller that omits
+            # an axis is refused rather than silently storing a partial identity.
+            'software': 'Payload 合同的草稿目标', 'agent': None, 'model': None,
+            'provider': None, 'version': None, 'entry': 'DESKTOP_CLIENT',
+            'task_mode': '海报排版', 'actor': 'payload-contracts',
+            'source_ref': None, 'fields': dict(self.TARGET_DRAFT_FIELDS)})
+        if status != 201:
+            raise RuntimeError(f'TARGET_DRAFT_REFUSED {status} {created}')
+        draft_id = created['profile']['profile_id']
+        status, unknown_check = self.call(
+            'POST', f'/api/target-profiles/{meshy["profile_id"]}/validate',
+            {'dimensions': {'modality': 'image', 'asset_count': 1}})
+        if status != 200:
+            raise RuntimeError(f'TARGET_VALIDATE_UNKNOWN_REFUSED {status} {unknown_check}')
+        status, documented_check = self.call(
+            'POST', f'/api/target-profiles/{flux["profile_id"]}/validate',
+            {'dimensions': {'negative_input': 'no people', 'asset_count': 9,
+                            'parameter': 'guidance'}})
+        if status != 200:
+            raise RuntimeError(f'TARGET_VALIDATE_DOCUMENTED_REFUSED {status} {documented_check}')
+        self.target = {
+            'axes': ('GET /api/target-profile-axes (no project needed)',
+                     self.get('/api/target-profile-axes')),
+            'list': ('GET /api/target-profiles (seeded plus one draft)', listing),
+            'detail-seed': (f'GET /api/target-profiles/<unreached meshy>',
+                            self.get(f'/api/target-profiles/{meshy["profile_id"]}')),
+            'detail-draft': (f'GET /api/target-profiles/<draft>',
+                             self.get(f'/api/target-profiles/{draft_id}')),
+            'create': ('POST /api/target-profiles (a marked-unverified draft)', created),
+            'validate': ('POST /api/target-profiles/<id>/validate on a documented and an '
+                         'unreached entry', unknown_check),
+            'validate-documented': ('POST .../validate where the doc says "does not support"',
+                                    documented_check),
+        }
+
+    def target_cases(self, *names):
+        return [self.target[name] for name in names]
+
+    def _seed_plan_feedback(self):
+        """Two voluntary reports on one plan revision, plus the empty collection before them.
+
+        The empty answer is compared as its own case: `total=0` and a non-empty `records` are
+        different documents for the screen, and a list route that never gets read while empty would
+        let an offline answer hide as "no reports yet".
+        """
+        plan_id = self.assistance['create'][1]['plan']['plan_id']
+        base = f'/api/projects/{self.filled}/assistance-plans/{plan_id}/feedback'
+        empty = self.get(base)
+        if empty['total'] != 0 or empty['records']:
+            raise RuntimeError(f'TARGET_FEEDBACK_NOT_EMPTY: {empty["total"]}')
+        status, first = self.call('POST', base, {
+            'outcome': 'MATCHES', 'target_key': 'elevenlabs--web-app--music',
+            'target_model': 'eleven_v4', 'dimensions': [
+                {'name': '曲风', 'verdict': 'MATCHES', 'note': None},
+                {'name': '人声', 'verdict': 'DOES_NOT_MATCH', 'note': '不该有人声'}],
+            'issue_timecodes': ['00:12-00:18'],
+            'actor': 'dtalex66', 'note': '参考曲拿去 ElevenLabs 走了一遍，前 30 秒可用。',
+            'source_ref': None, 'revision': 1})
+        if status != 201:
+            raise RuntimeError(f'FEEDBACK_FIRST_REFUSED {status} {first}')
+        status, second = self.call('POST', base, {
+            'outcome': 'PARTIALLY_MATCHES', 'target_key': 'elevenlabs--web-app--music',
+            'target_model': None, 'dimensions': [], 'issue_timecodes': [],
+            'actor': 'dtalex66', 'note': '同一目标第二次：结尾被模型填满了沉默，只部分符合。',
+            'source_ref': 'op-77', 'revision': 2})
+        if status != 201:
+            raise RuntimeError(f'FEEDBACK_SECOND_REFUSED {status} {second}')
+        self.feedback = {
+            'list-empty': ('GET .../feedback with nothing recorded', empty),
+            'record': ('POST .../feedback names a human and an outcome', first),
+            'record-correction': ('POST .../feedback appends a second statement', second),
+            'list': ('GET .../feedback after two reports', self.get(base)),
+        }
+
+    def feedback_cases(self, *names):
+        return [self.feedback[name] for name in names]
+
 
     def design_write_cases(self, group):
         """The write answers of one route, each produced now, plus its idempotent replay.
@@ -1292,6 +1541,172 @@ def build_bindings():
             'emitter': 'src/design_lab/knowledge_library.py',
             'version': 'design-lab/knowledge-index-rebuild/v1',
             'cases': lambda h: h.knowledge_cases('rebuild'),
+        },
+        # DL-KB-07 (batch K3, 2026-10-24). A plan is written through the routes and read back
+        # through them; the referenced asset is a real stored version of the same project, and
+        # its status in the compared payload is the readback's own measurement (LINKED_ONLY --
+        # no reversal exists), not a value this file supplied.
+        {
+            'name': 'assistance-plan-write-create',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/assistance-plan-write-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-write/v1',
+            'cases': lambda h: h.assistance_cases('create'),
+        },
+        {
+            'name': 'assistance-plan-write-revise',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/assistance-plan-write-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-write/v1',
+            'cases': lambda h: h.assistance_cases('revise'),
+        },
+        {
+            'name': 'assistance-plan-readback',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/assistance-plan-readback-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-readback/v1',
+            # Three readings of the same shape: a plan with a creative, a choice and a linked
+            # asset; a draft with no creative (saved, not provided); and the answer the choose
+            # route returns, which is the same readback rather than a second envelope.
+            'cases': lambda h: h.assistance_cases('detail', 'draft', 'choose'),
+        },
+        {
+            'name': 'assistance-plan-list',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans(?:\\?[^#]*)?',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/assistance-plan-list-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-list/v1',
+            'cases': lambda h: h.assistance_cases('list', 'list-empty'),
+        },
+        # DL-KB-08. Read with no project in the path on purpose: the initial screen offers an
+        # output type before a workspace exists, so the vocabulary cannot be verified only on
+        # the project-scoped collection.
+        {
+            'name': 'assistance-plan-output-types',
+            'route': '/api/assistance-plan-output-types',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/assistance-plan-output-types-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-output-types/v1',
+            'cases': lambda h: h.assistance_cases('output-types'),
+        },
+        {
+            'name': 'assistance-plan-choose',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/assistance-plan-readback-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-readback/v1',
+            'cases': lambda h: h.assistance_cases('choose'),
+        },
+        # DL-KB-12 (2026-10-24): one stored revision, read back as its own bytes. Two real answers
+        # from the same two-revision plan, because the defect this route exists to prevent is a
+        # comparison page reading the newest revision twice: the older case is the only payload here
+        # whose `revision` is below `latest_revision` and whose `document` is not the readback's
+        # `current`, and the newest case is the one a named human chose. The envelope $refs the plan
+        # document rather than restating it, so these two payloads also compare the stored document
+        # against the contract the write path filed it under.
+        {
+            'name': 'assistance-plan-revision',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans'
+                     r'/(aplan-[0-9a-f]{32})/revisions/([1-9][0-9]{0,8})',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/assistance-plan-revision-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-revision/v1',
+            'cases': lambda h: h.assistance_cases('revision-older', 'revision-latest'),
+        },
+        # DL-KB-11 (2026-10-24): the handoff material. Four real answers from one plan, because the
+        # card's B4 is that the three prose materials carry the same content -- and the only way to
+        # compare them is to have the route produce all four. The CSV case is the fourth one, and it
+        # exists only because this plan has shot rows: the same route refuses a plan without them.
+        {
+            'name': 'plan-export',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans'
+                     r'/(aplan-[0-9a-f]{32})/export(?:\?[^#]*)?',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/plan-export-v1.schema.json',
+            'emitter': 'src/design_lab/plan_export.py',
+            'version': 'design-lab/plan-export/v1',
+            'cases': lambda h: h.export_cases(),
+        },
+        # DL-KB-09 (2026-10-24): the target profile registry. The five seeded answers are the
+        # tracked config's own bytes, so a payload here is a real read of what the registry claims
+        # and where it says it does not know -- not a fixture written to match the schema.
+        {
+            'name': 'target-profile-axes',
+            'route': '/api/target-profile-axes',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/target-profile-axes-v1.schema.json',
+            'emitter': 'src/design_lab/target_profile.py',
+            'version': 'design-lab/target-profile-axes/v1',
+            'cases': lambda h: h.target_cases('axes'),
+        },
+        {
+            'name': 'target-profile-list',
+            'route': r'/api/target-profiles(?:\?[^#]*)?',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/target-profile-list-v1.schema.json',
+            'emitter': 'src/design_lab/target_profile.py',
+            'version': 'design-lab/target-profile-list/v1',
+            'cases': lambda h: h.target_cases('list'),
+        },
+        {
+            'name': 'target-profile-detail',
+            'route': r'/api/target-profiles/(tprof-[0-9a-f]{32})',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/target-profile-v1.schema.json',
+            'emitter': 'src/design_lab/target_profile.py',
+            'version': 'design-lab/target-profile/v1',
+            'cases': lambda h: h.target_cases('detail-seed', 'detail-draft'),
+        },
+        {
+            'name': 'target-profile-create',
+            'route': '/api/target-profiles',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/target-profile-write-v1.schema.json',
+            'emitter': 'src/design_lab/target_profile.py',
+            'version': 'design-lab/target-profile-write/v1',
+            'cases': lambda h: h.target_cases('create'),
+        },
+        {
+            'name': 'target-profile-validate',
+            'route': r'/api/target-profiles/(tprof-[0-9a-f]{32})/validate',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/target-profile-validate-v1.schema.json',
+            'emitter': 'src/design_lab/target_profile.py',
+            'version': 'design-lab/target-profile-validate/v1',
+            'cases': lambda h: h.target_cases('validate', 'validate-documented'),
+        },
+        # DL-KB-16 (2026-10-24): the voluntary external-use reports. The empty list, one record and
+        # the correction are three different answers, and the second record is what proves the
+        # history is append-only rather than a mutable current marker.
+        {
+            'name': 'plan-feedback-list',
+            'route': (r'/api/projects/([0-9a-f]{32})/assistance-plans/'
+                      r'(aplan-[0-9a-f]{32})/feedback(?:\?[^#]*)?'),
+            'method': 'GET',
+            'schema': 'design-lab/schemas/plan-feedback-list-v1.schema.json',
+            'emitter': 'src/design_lab/plan_feedback.py',
+            'version': 'design-lab/plan-feedback-list/v1',
+            'cases': lambda h: h.feedback_cases('list-empty', 'list'),
+        },
+        {
+            'name': 'plan-feedback-record',
+            'route': (r'/api/projects/([0-9a-f]{32})/assistance-plans/'
+                      r'(aplan-[0-9a-f]{32})/feedback'),
+            'method': 'POST',
+            'schema': 'design-lab/schemas/plan-feedback-write-v1.schema.json',
+            'emitter': 'src/design_lab/plan_feedback.py',
+            'version': 'design-lab/plan-feedback-write/v1',
+            'cases': lambda h: h.feedback_cases('record', 'record-correction'),
         },
     ]
 

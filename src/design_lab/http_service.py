@@ -16,6 +16,28 @@ from .prompt_results import PromptResults, PromptResultError
 # DL-KB-02 (2026-10-23): the knowledge library is a global surface like /api/capabilities -- it
 # belongs to the operator, not to a project, and nothing on it is scoped by a project id.
 from .knowledge_library import DEFAULT_LIMIT, KnowledgeLibrary, KnowledgeLibraryError
+# DL-KB-07 (2026-10-24): the neutral assistance plan a short task is written down in. It reuses
+# the existing brief/direction/prompt-result/asset objects by reference and owns no second copy
+# of their bytes.
+from .assistance_plan import (AssistancePlanError, AssistancePlans,
+                              DEFAULT_LIMIT as PLAN_DEFAULT_LIMIT)
+# DL-KB-09 (2026-10-24): the target profile registry -- software x model x entry, graded field by
+# field. Project-independent on purpose: a profile describes somebody else's product, so a copy per
+# project would be N tables claiming one fact.
+from .target_profile import (TargetProfileError, TargetProfiles,
+                             DEFAULT_LIMIT as PROFILE_DEFAULT_LIMIT,
+                             MAX_LIMIT as PROFILE_MAX_LIMIT)
+# DL-KB-16 (2026-10-24): a voluntary report about what happened when a plan's material was
+# taken to an external tool. It is a separate record from the plan's four readback states on
+# purpose: a person's word about an external run is not the system confirming one.
+from .plan_feedback import (PlanFeedback, PlanFeedbackError,
+                            DEFAULT_LIMIT as FEEDBACK_DEFAULT_LIMIT,
+                            MAX_LIMIT as FEEDBACK_MAX_LIMIT)
+# DL-KB-11 (2026-10-24): the handoff materials one stored plan revision renders into -- markdown,
+# plain text, structured JSON and the 分镜 CSV -- all four from one builder, each answer carrying the
+# revision it exported, the pinned reference snapshot and the not-executed statement. This route
+# reads and renders; it writes nothing, changes no state, and sends nothing to anybody.
+from .plan_export import PlanExport, PlanExportError, material_table
 from .project_index import ProjectIndex, ProjectIndexError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries, TaskReadbackError
@@ -173,6 +195,48 @@ ROUTES = (
     Route('GET',
           r'/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})',
           '_get_brief'),
+    # DL-KB-07 (2026-10-24). Create answers on the bare collection path; the list names its query
+    # in the route itself so one ledger row still describes one document (the same reason
+    # /api/knowledge-entries keeps search on its own path). offset/limit are parsed inside the
+    # handler, and a malformed number answers ASSISTANCE_PLAN_OFFSET_INVALID / LIMIT_INVALID
+    # instead of a 404.
+    # DL-KB-08. The initial screen must name an output type before any project exists, so the
+    # closed vocabulary travels on its own project-independent read; the list route cannot answer
+    # it, and a copy in TypeScript would be a second table.
+    Route('GET', '/api/assistance-plan-output-types', '_assistance_plan_output_types',
+          exact=True),
+    # DL-KB-09. The axes route carries the closed vocabulary the selection panel builds its
+    # selects from, so the screen cannot offer a word the service refuses; the list is
+    # project-independent for the same reason the output types are.
+    Route('GET', '/api/target-profile-axes', '_target_profile_axes', exact=True),
+    Route('GET',
+          r'/api/target-profiles(?:\?[^#]*)?', '_list_target_profiles'),
+    Route('GET', r'/api/target-profiles/(tprof-[0-9a-f]{32})', '_get_target_profile'),
+    Route('POST', '/api/target-profiles', '_create_target_profile', exact=True),
+    Route('POST', r'/api/target-profiles/(tprof-[0-9a-f]{32})/validate',
+          '_validate_target_profile'),
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans(?:\?[^#]*)?',
+          '_list_assistance_plans'),
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})',
+          '_get_assistance_plan'),
+    # DL-KB-12. One stored revision, so the comparison page reads two real documents instead of the
+    # newest one twice. The revision number is a path segment and there is deliberately NO query
+    # string on this route: dispatch matches a non-`path_only` Route against the raw target, so this
+    # pattern refuses `?revision=2` as a 404 rather than honouring a parameter it does not define --
+    # the same reason the plain detail route above carries no flags either, unlike `/export`, whose
+    # pattern names its `format` query so one ledger row describes one document.
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions/([1-9][0-9]{0,8})',
+          '_get_assistance_plan_revision'),
+    # DL-KB-11. The handoff material for one stored revision. The query is named in the pattern the
+    # way the plan list names its own, so one ledger row describes one document; `format` is parsed
+    # inside the handler and a missing or unknown word answers a named refusal (PLAN_EXPORT_FORMAT_
+    # REQUIRED / _INVALID) instead of a 404 the page could not tell apart from a deleted plan.
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/export(?:\?[^#]*)?',
+          '_export_assistance_plan'),
     Route('GET',
           r'/api/projects/([0-9a-f]{32})/directions(?:\?after=(direction-[0-9a-f]{32}))?',
           '_list_directions'),
@@ -275,6 +339,24 @@ ROUTES = (
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/directions',
           '_create_direction'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans',
+          '_create_assistance_plan'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions',
+          '_revise_assistance_plan'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose',
+          '_choose_assistance_plan'),
+    # DL-KB-16. The GET carries its paging inside the pattern so one ledger row describes one
+    # document, the same way the assistance-plan list does.
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/feedback'
+          r'(?:\?[^#]*)?',
+          '_list_plan_feedback'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/feedback',
+          '_record_plan_feedback'),
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/choose',
           '_choose_direction'),
@@ -379,7 +461,14 @@ def make_server(service, token, port=0, *, local_session=False):
                     auth[0].encode('utf-8'), ('Bearer ' + token).encode('ascii'))):
                 raise RequestError(401, 'UNAUTHORIZED')
 
-        def body(self, *, fields=frozenset({'name'}), limit=16384):
+        def body(self, *, fields=frozenset({'name'}), limit=16384,
+                 optional=frozenset()):
+            # `fields` is still the exact key set a caller must state; `optional` names the keys a
+            # route accepts but does not demand. It exists for one reason: a field added to an
+            # existing write contract (DL-KB-11's `shots`) must stay writable-by-those-who-have-it
+            # and ignorable-by-those-who-don't, so clients that predate the field keep answering the
+            # same way they did. An unlisted key is still refused with the same code, and a missing
+            # required key is still refused -- the strictness is unchanged where nothing was added.
             if self.headers.get_all('Transfer-Encoding', []):
                 raise RequestError(400, 'TRANSFER_ENCODING_DENIED')
             lengths = self.headers.get_all('Content-Length', [])
@@ -399,7 +488,9 @@ def make_server(service, token, port=0, *, local_session=False):
                 value = json.loads(data.decode('utf-8'), object_pairs_hook=_unique_object)
             except (ValueError, UnicodeError, RecursionError):
                 raise RequestError(400, 'INVALID_JSON') from None
-            if not isinstance(value, dict) or set(value) != fields:
+            named = set(value) if isinstance(value, dict) else set()
+            if (not isinstance(value, dict) or not set(fields) <= named
+                    or not named <= (set(fields) | set(optional))):
                 raise RequestError(400, 'INVALID_PROJECT_FIELDS')
             return value
 
@@ -528,6 +619,34 @@ def make_server(service, token, port=0, *, local_session=False):
             # every one of them would arrive as INVALID_REQUEST and the page could not tell a
             # stale write from a malformed one.
             except KnowledgeLibraryError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
+            # Assistance plans refuse revisions and choices for reasons the page has to branch
+            # on: "the plan moved to revision 4, re-read it", "a reference belongs to another
+            # project", "a machine tried to record a human choice". The generic 400 would tell
+            # the page its request was malformed and hide which of the three happened.
+            except AssistancePlanError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
+            # The export route refuses for reasons the page has to act on differently: "no format
+            # was named", "this plan has no shot rows, so a 分镜表 cannot be rendered -- write them
+            # first", "the newest revision is unreadable". A generic 400/409 would leave the screen
+            # offering a download that produces nothing, which is the false-green this card forbids.
+            except PlanExportError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
+            except PlanFeedbackError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
+            except TargetProfileError as exc:
                 payload = {'error': exc.code}
                 if exc.detail:
                     payload['detail'] = exc.detail
@@ -1117,6 +1236,151 @@ def make_server(service, token, port=0, *, local_session=False):
             # empty body keeps it from taking parameters it would have to pretend to honour.
             self.body(fields=set(), limit=1024)
             return self.send_json(200, KnowledgeLibrary(service).rebuild_index())
+
+        def _list_assistance_plans(self, match):
+            params = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+
+            def number(name, default):
+                raw = params.get(name)
+                if raw is None or raw == '':
+                    return default
+                try:
+                    return int(raw)
+                except ValueError:
+                    raise AssistancePlanError(
+                        400, 'ASSISTANCE_PLAN_FILTER_MALFORMED',
+                        f'{name} must be an integer, got {raw!r}') from None
+
+            return self.send_json(200, AssistancePlans(service).list(
+                match[1], offset=number('offset', 0),
+                limit=number('limit', PLAN_DEFAULT_LIMIT)))
+
+        def _assistance_plan_output_types(self, match):
+            # The material table is the exporter's own list, handed to the plan store here at the
+            # composition root: `assistance_plan.py` cannot import `plan_export` (the exporter
+            # imports the plan store), and the screen must not type the four format words a second
+            # time. The store then validates the merged envelope against one contract.
+            return self.send_json(200, AssistancePlans(service).output_types(material_table()))
+
+        def _get_assistance_plan(self, match):
+            return self.send_json(200, AssistancePlans(service).detail(match[1], match[2]))
+
+        def _get_assistance_plan_revision(self, match):
+            # One stored revision, read back as the bytes that row holds. The number arrives as a
+            # path segment, so a page that asked for r1 of a two-revision plan cannot be answered
+            # with r2: that fallback is the defect this route exists to remove, and the store
+            # refuses an unstored number with ASSISTANCE_PLAN_REVISION_NOT_FOUND naming the highest
+            # revision that does exist. Reading a revision says nothing about whether anything ran.
+            return self.send_json(200, AssistancePlans(service).revision(
+                match[1], match[2], int(match[3])))
+
+        def _export_assistance_plan(self, match):
+            # One read, four renderings, zero writes. `format` is parsed here rather than in the
+            # pattern so an absent or unknown word keeps its own code: a 404 would tell the page the
+            # plan is gone when the plan is perfectly there and only the requested material was not
+            # named. A 分镜 CSV of a plan with no shot rows is refused 409 by the emitter, never
+            # answered as an empty table.
+            params = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+            return self.send_json(200, PlanExport(service).export(
+                match[1], match[2], params.get('format')))
+
+        def _create_assistance_plan(self, match):
+            # The exact key set a plan's create accepts. A caller cannot state a reference's
+            # revision or digest (the store resolves them), and cannot name an `executed` flag:
+            # an unknown field is refused, not dropped. `shots` (DL-KB-11) is the one optional key:
+            # the plan's own shot rows are data a person writes, they are what the 分镜 CSV renders
+            # from, and a caller that has none simply does not send the key -- a plan stored before
+            # the field existed stays valid, which is why demanding it here would be a break.
+            value = self.body(fields={
+                'objective', 'output_type', 'neutral_creative', 'brand_constraints',
+                'role_constraints', 'lens', 'sound', 'references', 'external_steps',
+                'known_gaps', 'limits', 'created_by'}, optional={'shots'}, limit=262144)
+            return self.send_json(201, AssistancePlans(service).create(match[1], value))
+
+        def _revise_assistance_plan(self, match):
+            value = self.body(fields={
+                'objective', 'output_type', 'neutral_creative', 'brand_constraints',
+                'role_constraints', 'lens', 'sound', 'references', 'external_steps',
+                'known_gaps', 'limits', 'created_by', 'expected_revision'},
+                optional={'shots'}, limit=262144)
+            return self.send_json(201, AssistancePlans(service).revise(
+                match[1], match[2], value))
+
+        def _choose_assistance_plan(self, match):
+            value = self.body(fields={'actor', 'actor_kind', 'revision'}, limit=4096)
+            return self.send_json(200, AssistancePlans(service).choose(
+                match[1], match[2], value))
+        def _list_plan_feedback(self, match):
+            params = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+
+            def number(name, default, *, maximum=None):
+                raw = params.get(name)
+                if raw is None or raw == '':
+                    return default
+                try:
+                    value = int(raw)
+                except ValueError:
+                    raise PlanFeedbackError(
+                        400, 'PLAN_FEEDBACK_FILTER_MALFORMED',
+                        f'{name} must be an integer, got {raw!r}') from None
+                if maximum is not None and value > maximum:
+                    raise PlanFeedbackError(400, 'PLAN_FEEDBACK_FILTER_MALFORMED',
+                                            f'{name} may not exceed {maximum}')
+                return value
+
+            return self.send_json(200, PlanFeedback(service).list(
+                match[1], match[2], offset=number('offset', 0),
+                limit=number('limit', FEEDBACK_DEFAULT_LIMIT, maximum=FEEDBACK_MAX_LIMIT)))
+
+        def _record_plan_feedback(self, match):
+            # `revision` is required: a report is about the material somebody actually took away, so
+            # it has to name the revision it describes. There is no `verified` key the caller could
+            # set -- the store refuses to let a feedback row speak for the system.
+            value = self.body(fields={'outcome', 'target_key', 'target_model', 'dimensions',
+                                      'issue_timecodes', 'actor', 'note', 'source_ref',
+                                      'revision'}, limit=16384)
+            return self.send_json(201, PlanFeedback(service).record(match[1], match[2], value))
+
+        def _target_profile_axes(self, match):
+            return self.send_json(200, TargetProfiles(service).axes())
+
+        def _list_target_profiles(self, match):
+            params = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+
+            def number(name, default, *, maximum=None):
+                raw = params.get(name)
+                if raw is None or raw == '':
+                    return default
+                try:
+                    value = int(raw)
+                except ValueError:
+                    raise TargetProfileError(
+                        400, 'TARGET_PROFILE_FILTER_MALFORMED',
+                        f'{name} must be an integer, got {raw!r}') from None
+                if maximum is not None and value > maximum:
+                    raise TargetProfileError(400, 'TARGET_PROFILE_FILTER_MALFORMED',
+                                             f'{name} may not exceed {maximum}')
+                return value
+
+            return self.send_json(200, TargetProfiles(service).list(
+                offset=number('offset', 0),
+                limit=number('limit', PROFILE_DEFAULT_LIMIT, maximum=PROFILE_MAX_LIMIT)))
+
+        def _get_target_profile(self, match):
+            return self.send_json(200, TargetProfiles(service).detail(match[1]))
+
+        def _create_target_profile(self, match):
+            # The exact key set a draft accepts. A caller cannot state support_state or executable:
+            # a draft is marked unverified by the store, and the table's CHECK refuses any other
+            # support state, so no write path can relabel a person's guess as a documented claim.
+            value = self.body(fields={'software', 'agent', 'model', 'provider', 'version',
+                                      'entry', 'task_mode', 'actor', 'source_ref', 'fields'},
+                              limit=262144)
+            return self.send_json(201, TargetProfiles(service).create(value))
+
+        def _validate_target_profile(self, match):
+            value = self.body(fields={'dimensions'}, limit=65536)
+            return self.send_json(200, TargetProfiles(service).validate(match[1], value))
 
         def _create_brief(self, match):
             layer = DesignLayer(service)

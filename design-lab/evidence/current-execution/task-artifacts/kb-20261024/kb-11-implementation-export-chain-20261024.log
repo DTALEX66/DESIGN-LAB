@@ -1,0 +1,23 @@
+GET_SWEEP layout=source routes=50 reads=55 answered=50 verdicts=5 unmeasured=2
+GET_SWEEP_UNMEASURED COVERED-ELSEWHERE /api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/export ::  the acceptance walk above creates, reviews and exports one 
+GET_SWEEP_UNMEASURED NOT-A-PATH workbench.ROUTES ::  a ledger row naming the module table, not a URL
+CHAIN_HOPS project=201 asset=201 brief=201 direction=201 design-layer=200 analysis=201 catalog=200 model-choose=201 prompt-compose=201 prompt-reverse=201 prompt-results=200 prompt-accept=201 jury-verdict=201 jury-readback=200 rights=201 rights-readback=200 candidate=201 review=200 candidate-readback=200 export=200
+DELIVERY_HOPS project=201 native=READBACK bundle=201 preflight=200
+NATIVE_VERIFY layout=source clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED unknown=NATIVE_ASSET_NOT_FOUND
+--- stderr ---
+test_every_ledger_get_route_is_answered_in_this_layout (design-lab.tests.test_standalone_chain_http.StandaloneChainTests.test_every_ledger_get_route_is_answered_in_this_layout)
+Call every GET boundary the ledger declares against objects this service really wrote. ... ok
+test_the_chain_walks_from_project_to_a_reviewed_candidate (design-lab.tests.test_standalone_chain_http.StandaloneChainTests.test_the_chain_walks_from_project_to_a_reviewed_candidate) ... ok
+test_the_delivery_leg_reaches_a_preflight_verdict_on_one_project (design-lab.tests.test_standalone_chain_http.StandaloneChainTests.test_the_delivery_leg_reaches_a_preflight_verdict_on_one_project)
+The last reachable segment, on the SAME project the service already owns. ... ok
+test_the_export_hop_exists_but_still_sends_nothing (design-lab.tests.test_standalone_chain_http.StandaloneChainTests.test_the_export_hop_exists_but_still_sends_nothing)
+The chain now reaches the exit; it still does not reach outside the repository. ... ok
+test_the_jury_readback_offers_an_imported_asset_version_as_a_verdict_target (design-lab.tests.test_standalone_chain_http.StandaloneChainTests.test_the_jury_readback_offers_an_imported_asset_version_as_a_verdict_target)
+What the desktop's jury panel actually reads. ... ok
+test_the_native_asset_verify_route_re_reads_the_stored_bytes (design-lab.tests.test_standalone_chain_http.StandaloneChainTests.test_the_native_asset_verify_route_re_reads_the_stored_bytes)
+What `…/native-assets/<id>/verify` measures, proved by moving the bytes. ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 5.949s
+
+OK
