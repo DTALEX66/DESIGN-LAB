@@ -3875,6 +3875,11 @@ function knowledgeEntryFields(
     ...(licenseStates.length
       ? licenseStates.map((state) => el('option', { value: state }, state))
       : [el('option', { value: '' }, '许可状态清单未读回')]));
+  // A fresh form must not open by claiming "reviewed". The vocabulary's first entry used to win by
+  // default, so an untouched 新增 form said the licence had been reviewed while the licence box was
+  // still empty -- and the store refused that pair with KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION, a
+  // code the reader cannot act on. The honest default is the state that says nobody has looked.
+  if (!initial && licenseStates.includes('unknown')) licenseStatus.value = 'unknown';
   const allowedUsage = el('input', { id: `${prefix}-allowed-usage`, class: 'input',
     maxlength: '400', placeholder: '允许的用途范围' });
   const citationScope = el('input', { id: `${prefix}-citation-scope`, class: 'input',
@@ -3995,8 +4000,13 @@ function knowledgeFormPanel(
       title: fields.title.value.trim(),
       summary: fields.summary.value.trim(),
       body: fields.body.value.trim(),
-      applicability: fields.applicability.value.trim() || undefined,
-      limits: fields.limits.value.trim() || undefined,
+      // Both keys always go on the wire. The create route demands the exact key set, and the store
+      // is what turns an empty string into the literal UNKNOWN -- dropping the key here used to make
+      // "left 适用场景 blank" fail with a bare INVALID_PROJECT_FIELDS the reader cannot act on
+      // (found by the browser walk on 2026-10-24; the DOM harness never caught it because its
+      // fixture typed both boxes).
+      applicability: fields.applicability.value.trim(),
+      limits: fields.limits.value.trim(),
       domain_tags: kbTagList(fields.domainTags.value),
       task_tags: kbTagList(fields.taskTags.value),
       target_tools: kbTagList(fields.targetTools.value),

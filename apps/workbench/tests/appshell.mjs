@@ -3791,6 +3791,13 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     throw new Error(`㉓ 新增表单的类型选项应来自同一份读回词表，实际 ${newType?.options.length}`);
   if (!formText().includes('编号由服务生成') || !formText().includes('UNVERIFIED'))
     throw new Error(`㉓ 新增表单没有说明编号来源与核验状态：${formText().slice(0, 200)}`);
+  // A fresh form used to open with the vocabulary's first state selected, so an untouched 新增
+  // claimed 许可状态=reviewed while 许可 was still empty -- and the store refused that pair
+  // with KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION (found by the browser walk, 2026-10-24).
+  // The default now has to be the state that says nobody has looked.
+  if (byElementId(view, 'kb-new-license-status').value !== 'unknown')
+    throw new Error('㉓ 新增表单替用户预选了许可状态：'
+      + byElementId(view, 'kb-new-license-status').value);
   newType.value = 'METHOD';
   const submitNew = findIn(form(), (node) => node?.className === 'primary-btn');
   if (typeof submitNew?.onclick !== 'function') throw new Error('㉓ 新增表单没有提交按钮');
@@ -3891,6 +3898,12 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   if (byElementId(view, 'kb-revise-author').value !== '')
     throw new Error('㉓ 修订人不得预填：服务不持有身份，读回里也没有「现在的操作者」');
   byElementId(view, 'kb-revise-body').value = '先定机位，再定景别，最后核对轴线与视线高度。';
+  // 适用场景 and 边界与反例 read as optional in this form, and the store does turn an empty
+  // one into the literal UNKNOWN -- but the route demands the key, so the page must still send
+  // it. Clearing both here is the control: a `|| undefined` in collect() drops the key and
+  // the reader gets a bare INVALID_PROJECT_FIELDS (the other defect the browser walk found).
+  byElementId(view, 'kb-revise-applicability').value = '';
+  byElementId(view, 'kb-revise-limits').value = '';
   byElementId(view, 'kb-revise-author').value = 'ALEX';
   findIn(form(), (node) => node?.className === 'primary-btn').onclick();
   await flush();
@@ -3899,6 +3912,9 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     || reviseWrites[0].path !== `/api/knowledge-entries/${NEW_ID}/revisions`)
     throw new Error(`㉓ 修订打到了 ${reviseWrites.map((r) => r.path).join(' ')}`);
   const reviseBody = JSON.parse(reviseWrites[0].init.body);
+  if (reviseBody.applicability !== '' || reviseBody.limits !== '')
+    throw new Error('㉓ 留空的可选字段没有作为空串送出，而是被丢掉了键：'
+      + JSON.stringify([reviseBody.applicability, reviseBody.limits]));
   if (reviseBody.expected_revision !== 1 || reviseBody.created_by !== 'ALEX')
     throw new Error(`㉓ 修订没有带读到的 expected_revision：${JSON.stringify(reviseBody)}`);
   if ('schemaVersion' in reviseBody || 'supersedes' in reviseBody)

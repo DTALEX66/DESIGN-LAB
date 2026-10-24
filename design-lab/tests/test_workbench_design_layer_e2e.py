@@ -290,6 +290,45 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                     'at least one of the six states was not asserted in the browser: '
                     + json.dumps(payload.get('stateLoop'), ensure_ascii=False))
 
+                # DL-KB-05 D5 (2026-10-24): the entry detail and both judgement forms, walked in
+                # Chromium. The card is the shape of the claim -- a run that never opened an entry
+                # leaves `knowledgeLoop` unset and this whole block goes red rather than reading as
+                # "the panel was checked and passed".
+                self.assertIn('knowledge-detail-judgement-walk', payload.get('scenario') or [],
+                              'E2E_REQUIRED summary does not list the knowledge-detail walk: '
+                              + str(payload.get('scenario')))
+                kb_states = (payload.get('knowledgeLoop') or {}).get('states') or {}
+                self.assertEqual(
+                    sorted(kb_states),
+                    ['blankFieldsStoredAsUnknown', 'emptyTrailSaidNotAskedAndAnswered',
+                     'entryWrittenAndOpened',
+                     'judgementRecordedOnce', 'nameRefusedWithoutRequest',
+                     'reasonRefusedWithoutRequest', 'screenMatchesServedReadback',
+                     'sourceNeedsAnOpenableReplacement'],
+                    'the knowledge-detail card is not the eight facts this walk names: '
+                    + json.dumps(kb_states, ensure_ascii=False))
+                self.assertEqual(
+                    (payload.get('knowledgeLoop') or {}).get('allAsserted'), True,
+                    'the knowledge detail or its judgement panel was not asserted in the browser: '
+                    + json.dumps(payload.get('knowledgeLoop'), ensure_ascii=False))
+                # `screenMatchesServedReadback` compares the painted rows with the POST's own
+                # readback, so a page that renders a trail the service never wrote is caught here
+                # rather than by a substring someone typed into the driver.
+                loop = payload.get('knowledgeLoop') or {}
+                self.assertEqual((loop.get('served') or {}).get('trail'),
+                                 (loop.get('onScreen') or {}).get('trailRows'),
+                                 'the painted judgement rows do not match the served readback: '
+                                 + json.dumps(loop, ensure_ascii=False))
+                # Per-phase counters, so a double send names the click that caused it.
+                posts = loop.get('posts') or {}
+                self.assertEqual(
+                    [posts.get('afterReasonClick'), posts.get('afterNameClick'),
+                     posts.get('afterJudgeClick'), posts.get('afterSourceClick')],
+                    [0, 0, 1, 1],
+                    'the judgement forms posted at the wrong moment -- a local refusal must send '
+                    'nothing, and the source form without a replacement must send nothing: '
+                    + json.dumps(posts, ensure_ascii=False))
+
     def test_e2e_script_is_lint_clean(self):
         # The browser driver must be a parseable ESM module; guard against a
         # stray syntax edit by loading it through node's parser only when the

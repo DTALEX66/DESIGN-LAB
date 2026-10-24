@@ -71,6 +71,9 @@ let targetProfileLoop = null;
 // DL-KB-14: 状态与错误面。六种状态各自在真实浏览器里被读到才写这张卡；跳过这一步的运行
 // 不会在 summary 里冒充它发生过。
 let stateLoop = null;
+// DL-KB-05 D5: the knowledge detail walk. Set only when the steps really ran, so a run that
+// never opened an entry cannot leave a summary that describes the panel as browser-proven.
+let knowledgeLoop = null;
 // Counts the /api/target-profile* POSTs from the wire, not from the DOM: a "nothing was
 // executed" claim that still posted twice, or a validate that never left the page, are both
 // invisible to a text-only assertion.
@@ -99,6 +102,7 @@ const writeSummary = (result, error) => {
   if (promptLoop) scenario.push('prompt-result-compose-store-sign');
   if (assistantLoop) scenario.push('assistance-plan-four-states');
   if (stateLoop) scenario.push('six-state-surfaces');
+  if (knowledgeLoop) scenario.push('knowledge-detail-judgement-walk');
   if (targetProfileLoop) scenario.push('target-combination-panel-two-columns-b2');
   const payload = {
     kind: 'workbench-browser-e2',
@@ -112,6 +116,7 @@ const writeSummary = (result, error) => {
   if (promptLoop) payload.promptLoop = promptLoop;
   if (assistantLoop) payload.assistantLoop = assistantLoop;
   if (stateLoop) payload.stateLoop = stateLoop;
+  if (knowledgeLoop) payload.knowledgeLoop = knowledgeLoop;
   if (targetProfileLoop) payload.targetProfileLoop = targetProfileLoop;
   if (routeInventory) payload.routeInventory = routeInventory;
   if (navVisibility) payload.navVisibility = navVisibility;
@@ -1688,6 +1693,123 @@ try {
                     refusal: refusalError.slice(0, 200), kb: kbResultText.slice(0, 160),
                     model: modelText.slice(0, 160), untested: untestedText.slice(0, 160),
                   }), 15, ctx, b);
+    }
+  });
+
+  await step('knowledge detail and judgement walk', async () => {
+    // DL-KB-05 D5 (2026-10-24). The entry detail -- and the judgement panel inside it -- had never
+    // been painted in a real browser: the contrast and geometry gates measure the list screen, so
+    // nothing said the detail is legible or that its buttons do what the service answers. This
+    // walk creates an entry through the UI, lets the page open it, then drives both forms and
+    // compares what is on screen against the readback the route itself returned.
+    const title = 'E2E 判断走查条目';
+    let judgePosts = 0;
+    const watch = (request) => {
+      if (request.method() === 'POST' && /\/judgements$/.test(request.url())) judgePosts += 1;
+    };
+    page.on('request', watch);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.evaluate(() => { window.location.hash = '#/knowledge'; });
+    await page.locator('#kb-query').waitFor({ state: 'visible', timeout: 20000 });
+    await page.locator('#kb-new').click();
+    await page.locator('#kb-new-entry-type').waitFor({ state: 'visible', timeout: 20000 });
+    await page.locator('#kb-new-entry-type').selectOption('METHOD');
+    await page.locator('#kb-new-title').fill(title);
+    await page.locator('#kb-new-summary').fill('用一次真实点击，确认判断面板上屏并按服务读回。');
+    await page.locator('#kb-new-body').fill('第一步定节拍；第二步定景别；第三步只标必要转场。');
+    await page.locator('#kb-new-author').fill('E2E Judgement Recorder');
+    const created = page.waitForResponse((r) => /\/api\/knowledge-entries$/.test(r.url())
+      && r.request().method() === 'POST', { timeout: 25000 });
+    await page.locator('#kb-form button.primary-btn').click();
+    const createdBody = await created.then((r) => r.json()).catch(() => null);
+
+    const detailReady = await page.waitForFunction((want) => {
+      const text = document.getElementById('kb-detail-content')?.textContent ?? '';
+      return text.includes('判断与来源状态') && text.includes('还没有人记下判断')
+        && text.includes(want);
+    }, title, { timeout: 25000 }).then(() => true).catch(() => false);
+
+    // Wait on the sentence, not on a wall clock: a refusal that never renders must read as false.
+    const paintedSentence = (needle) => page.waitForFunction((want) => ((
+      document.getElementById('kb-detail-content')?.textContent ?? '').includes(want)),
+    needle, { timeout: 15000 }).then(() => true).catch(() => false);
+
+    // The two local refusals are the part a browser alone can prove: a page that posts an empty
+    // judgement would leave the refusal to the service and paint nothing while the user waits.
+    // Each phase carries its own post counter, so "it posted twice" names the phase that did it.
+    await page.locator('#kb-judge-submit').click();
+    const postsAfterReasonClick = judgePosts;
+    const reasonRefused = await paintedSentence('判断必须写出理由');
+    await page.locator('#kb-judge-reason').fill('这一步在实际项目里更常回来用。');
+    await page.locator('#kb-judge-submit').click();
+    const postsAfterNameClick = judgePosts;
+    const nameRefused = await paintedSentence('必须填上记录人');
+    await page.locator('#kb-judge-name').fill('张工');
+    const judged = page.waitForResponse((r) => /\/judgements$/.test(r.url())
+      && r.request().method() === 'POST', { timeout: 25000 });
+    await page.locator('#kb-judge-submit').click();
+    const judgedBody = await judged.then((r) => r.json()).catch(() => null);
+    const postsAfterJudgeClick = judgePosts;
+    const served = judgedBody && {
+      recommended: judgedBody.recommended_revision,
+      basis: judgedBody.recommendation_basis,
+      trail: (judgedBody.judgements ?? []).length,
+      recordedBy: (judgedBody.judgements ?? [])[0]?.recorded_by ?? null,
+    };
+    // The page re-reads the entry after the write, so reading the DOM here would measure the panel
+    // from BEFORE the judgement existed. Wait for the trail row, then compare.
+    const trailPainted = await page.waitForFunction(() => document
+      .querySelectorAll('.kb-judgements .list > .list-item').length >= 1,
+    null, { timeout: 25000 }).then(() => true).catch(() => false);
+    const onScreen = await page.evaluate(() => {
+      const text = document.getElementById('kb-detail-content')?.textContent ?? '';
+      return {
+        trailRows: document.querySelectorAll('.kb-judgements .list > .list-item').length,
+        named: text.includes('张工'), reason: text.includes('这一步在实际项目里更常回来用。'),
+        basis: text.includes('来自一次后来记下的判断'),
+        stillSaysNobody: text.includes('还没有人记下判断'),
+      };
+    });
+
+    await page.locator('#kb-source-value').selectOption('INVALID');
+    await page.locator('#kb-source-reason').fill('原稿下架。');
+    await page.locator('#kb-source-name').fill('张工');
+    await page.locator('#kb-source-submit').click();
+    const sourceRefused = await paintedSentence('替代条目的编号');
+    const postsAfterSourceClick = judgePosts;
+    page.off('request', watch);
+
+    const states = {
+      entryWrittenAndOpened: !!createdBody && createdBody.stored === true && detailReady,
+      // The two boxes the walk deliberately left empty. The route demands the key, the store owns
+      // the sentinel, so the saved bytes must say UNKNOWN -- and no bare INVALID_PROJECT_FIELDS.
+      blankFieldsStoredAsUnknown: !!createdBody
+        && createdBody.entry?.applicability === 'UNKNOWN'
+        && createdBody.entry?.limits === 'UNKNOWN',
+      emptyTrailSaidNotAskedAndAnswered: detailReady,
+      reasonRefusedWithoutRequest: reasonRefused && postsAfterReasonClick === 0,
+      nameRefusedWithoutRequest: nameRefused && postsAfterNameClick === 0,
+      judgementRecordedOnce: !!served && postsAfterJudgeClick === 1
+        && postsAfterNameClick === 0 && served.trail === 1 && served.recordedBy === '张工'
+        && served.basis === 'recorded-judgement',
+      screenMatchesServedReadback: trailPainted && !!served
+        && onScreen.trailRows === served.trail && onScreen.named && onScreen.reason
+        && onScreen.basis && !onScreen.stillSaysNobody,
+      sourceNeedsAnOpenableReplacement: sourceRefused
+        && postsAfterSourceClick === postsAfterJudgeClick,
+    };
+    const missing = Object.keys(states).filter((key) => states[key] !== true);
+    knowledgeLoop = { states, allAsserted: missing.length === 0, missing, served, onScreen,
+                      trailPainted, entryId: createdBody?.entry?.knowledge_entry_id ?? null,
+                      posts: { afterReasonClick: postsAfterReasonClick,
+                               afterNameClick: postsAfterNameClick,
+                               afterJudgeClick: postsAfterJudgeClick,
+                               afterSourceClick: postsAfterSourceClick } };
+    console.log('E2E_KNOWLEDGE_LOOP: ' + JSON.stringify(knowledgeLoop));
+    if (missing.length) {
+      await abort('E2E_KNOWLEDGE_DETAIL_NOT_WALKED: ' + JSON.stringify(missing)
+                  + ' detail=' + JSON.stringify({ createdStatus: createdBody?.status,
+                    served, onScreen, posts: knowledgeLoop.posts, trailPainted }), 15, ctx, b);
     }
   });
 
