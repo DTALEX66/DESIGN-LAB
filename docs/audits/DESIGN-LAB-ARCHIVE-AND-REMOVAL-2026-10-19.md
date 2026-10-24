@@ -1461,3 +1461,52 @@ bundle_gzip=157739`（同一把尺、同一份文件），KB-13 的 150 KB 预�
 （implementation／unit）都 PASS，另加 browser 轴两条。没做的仍然写着：
 `DL-KB-13` 的体积裁定与 3 位真人无指导任务、`DL-KB-16` 的具名真人签字、`DL-KB-15` 的本机推理前置，
 以及 `DL-KB-02` 的 A5 直接断言——那几条不是工程缺口，是要 owner 或真人点头的账。
+
+### 5.40 A5 直接量一遍，顺手补上那条一直缺失的复制（`72710b7f`）
+
+**上一轮欠的是什么。** `DL-KB-02` 的 A5 那句话有四个动词——写入、检索、编辑、复制。前三个在
+`test_knowledge_library.py`／`test_knowledge_http.py` 里各有真路由回执；第四个没有，因为
+**条目详情里根本没有复制这个控件**：正文读得回、显示得出，用户要带走只能自己选中再抄。
+上一轮把这格留着不写，是对的——留着是欠账，写成"离线可复制"就是假账。这一轮先补控件，再补断言。
+
+**"模型关闭"怎么量才算数。** 只写一句"这条测试没配模型"不够：模块可能在 import 时就把
+provider 拉起来了，而测试恰好没走到那支。所以 `test_knowledge_library.py` 里加的是一个
+**读 AST 的扫描**：`MODEL_FACING` 是一串模型／供应商／网络方向的模块名，
+`_reached_names()` 把 `knowledge_library` 模块（含它自己的 import 图）里出现的名字取出来，
+`_model_facing_hits()` 按**点号分段**比对——`openai.chat` 这种写法要能被抓住，只比首段就漏了。
+紧接着 `test_the_offline_scanner_notices_a_model_import` 往源码里种一条假的 `import`，
+要求扫描器必须报出来，同时留一个负对照：种回原字节后必须报 0。
+**一把量不出错的尺不能当证据**，这条规则也适用于它自己。
+最后一条 `test_writing_searching_editing_and_copying_answer_with_no_model_configured`
+先断言 `model_selection` 表**行数为 0**（"没配"而不是"配了没用"），再依次建条目、检索、修订、
+读回，并钉 `revised['body'] == detail['current']['body']`。
+
+**界面上加的那一格。** `kb-copy-body` 按钮 + `kb-copy-status` 说明；有
+`navigator.clipboard` 就直接写，被拒（非安全上下文／用户没给权限）时退化成**一段只读且已全选**
+的 `as-copy-fallback` 文本框，配一句"浏览器拒绝写入剪贴板，请手动复制"——两条路给的都是
+**服务答应的同一批字节**，页面不自己拼引用、标题或格式。为了让退化那支在 DOM 桩件里也可测，
+补了桩件缺的三个能力（`navigator`、`focus()`、`select()`）：**桩件缺能力不是测试的失败，
+是产品的盲区**——那一支代码本来每天都在真浏览器里跑，只是没人能在离线桩件里点它。
+
+**浏览器走查到 11 件。** 新增 `clipboardHoldsTheServedBody`：Chromium 拿到剪贴板权限后点
+复制，再读回剪贴板，和**创建路由的应答**逐字节比，而不是和走查自己打的字符串比。
+各阶段发请求数仍是 `[0,0,1,1]`：两次"没填理由／没填记录人"的本地拒答**没有真的发出请求**。
+
+**两把静态尺为什么读数一模一样。** 这一轮 `build/main.js` 从 603,048 涨到 605,670 字节，
+但对比度仍是 `checked=14002 belowAA=0 unparsable=0 controlMisses=0`（两套主题各 50 个面）、
+几何仍是 112 个面 `docOverflowX=0 clipped=0 stray=0`。这不是尺坏了：两把尺的路由清单里
+都有 `#/knowledge`（`audit_workbench_contrast.mjs:68`、`audit_workbench_overflow.mjs:106`），
+**但它们只走到列表，从不点开一条条目**，新控件在详情面板里，落在它们的行走路径之外。
+所以这块界面的证据来自走查和 `appshell`，不来自这两把尺——这句话写下来，是为了下一轮
+不要把"读数没变"误读成"改动没被量到所以没风险"。
+
+**于是这一行升到 DONE。** 新增 2 条回执（unit／browser，逐条绑 `72710b7f04b9` 与 bundle
+sha256 `3fdb4f636b5c`），`currentExecution.evidence` 277→**279**，直方图
+**`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**。剩下的两格仍然不是工程缺口：`DL-KB-13` 要 owner
+对 150 KB 上限表态（同一把尺现在读 gzip **158,722** 字节），`DL-KB-16` 要具名真人；
+`DL-KB-15` 的前置是本机可用的推理服务，本轮不部署、不自行下载权重。
+
+**已经看清的下一刀。** 方案的参考选择器现在只给得出 5 种类型里的 2 种（`ASSET`、`KNOWLEDGE`），
+`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到。三条读路由
+（`/api/projects/<id>/briefs`、`/directions`、`/prompt-results`）都已经存在且各有合同行，
+所以这一刀不需要新路由，只把选择器补全并把"这一页读到几条、还有更早的没读到"说清楚。

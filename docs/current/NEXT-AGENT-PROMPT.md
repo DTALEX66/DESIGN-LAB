@@ -107,6 +107,29 @@ checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run 
 以账本 `artifact_sha256` 为准。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
 
+**台账读数（2026-10-24 第八轮收口时现数，取代上面第七轮那一段的"当下"身份）**：`currentExecution`
+仍 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**——
+`DL-KB-02` 升上 DONE，因为 A5 那句"模型服务关闭时仍可写入、检索、编辑与复制"这一轮**被直接量了**：
+`test_knowledge_library.py` 读 AST 扫模型／供应商／网络方向的 import（按点号分段比对，并用一条
+种进去的假 import 证明这把尺会响），先断言 `model_selection` 表行数为 0，再建条目、检索、修订、读回。
+四个动词里"复制"原先**在界面上不存在**，所以这轮先补 `kb-copy-body`（剪贴板被拒时退化成
+全选只读的 `as-copy-fallback`），再让 Chromium 真读回剪贴板并与**创建路由的应答**逐字节比。
+浏览器走查 10 件→**11 件全真**，各阶段发请求数仍 `[0,0,1,1]`（两次本地拒答确实没发请求）。
+`currentExecution.evidence` 现数 **279** 条、全部 PASS，本轮新增 2 条绑 `72710b7f04b9`。
+路由面 **88 条**（48 GET + 40 POST）不变、账本 90 行（50 GET／39 POST／1 GET+POST）、
+载荷比对 **57 条绑定** `failures=0`；写侧扫描
+`rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1`。三把浏览器尺在同一批字节上重跑：
+对比度 50 个面 `checked=14002 belowAA=0 unparsable=0 controlMisses=0`（design-lab/dark 与
+ui2026/light 各一遍）、几何 112 个面（1440/1280/1536/1920）`docOverflowX=0 clipped=0 stray=0`、
+路由级 UI 审计 clean。**两把静态尺的读数与上一轮一字不差，这不是尺坏了**：它们只走到
+`#/knowledge` 列表、从不点开条目，新控件在详情面板里，落在行走路径之外——这块界面的证据来自
+走查与 `appshell.mjs`，不来自这两把尺（细节见审计件 §5.40）。
+本机 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；体积 `build/main.js` 605,670 字节 / gzip
+**158,722** 字节（同一把尺，第七轮记录 158,477），`DL-KB-13` 的 150 KB 裁定仍在 owner 手上。
+**下一刀已经看清，不需要新路由**：方案的参考选择器只给得出 5 种类型里的 2 种
+（`ASSET`、`KNOWLEDGE`），`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到，
+而 `/api/projects/<id>/briefs`、`/directions`、`/prompt-results` 三条读路由都已存在且各有合同行。
+
 **台账读数（2026-10-24 第七轮收口时现数，取代上面第六轮那一段的"当下"身份）**：`currentExecution`
 仍 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图 **`DONE 12`／`PARTIAL 3`／`NOT_STARTED 1`**——
 `DL-KB-05` 升上 DONE，因为 D5 那句话的主语（旧方案）这一轮才真的在产品里走得通：

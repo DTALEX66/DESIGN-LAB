@@ -1,0 +1,113 @@
+# DESIGN-LAB DL-KB-02 acceptance A5: writing, searching, editing and copying with no
+# model service configured. Subject commit 72710b7f04b940f59fec4b92e0312fd44cc7cf38; bundle blob 8c4138b5deda385d8b0d51a5bff5c8f5dd9d434b
+# (sha256 3fdb4f636b5c, 605670 bytes), which is the
+# blob HEAD carries, so these runs are about this commit and not about a dirty tree.
+# Observed 2026-10-24T22:41:53Z. Each block is that command's own output.
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_knowledge_library -v
+# exit=0
+KNOWLEDGE_SEARCH_P95_MS=26.6 budget=300 entries=1000 samples=30
+test_a_rebuild_restores_a_corrupted_index (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_a_rebuild_restores_a_corrupted_index) ... ok
+test_a_revision_appends_and_a_stale_revision_is_refused (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_a_revision_appends_and_a_stale_revision_is_refused) ... ok
+test_a_source_claim_of_verification_is_refused (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_a_source_claim_of_verification_is_refused) ... ok
+test_a_source_field_the_contract_does_not_declare_is_refused (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_a_source_field_the_contract_does_not_declare_is_refused) ... ok
+test_a_three_character_term_goes_through_the_index_and_survives_a_lost_index (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_a_three_character_term_goes_through_the_index_and_survives_a_lost_index)
+Measured on this host: a contiguous three-character CJK run is itself an indexed ... ok
+test_a_two_character_word_finds_its_entry_through_the_fallback (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_a_two_character_word_finds_its_entry_through_the_fallback) ... ok
+test_an_empty_search_explains_and_recommends_nothing (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_an_empty_search_explains_and_recommends_nothing) ... ok
+test_an_import_without_a_source_version_is_refused (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_an_import_without_a_source_version_is_refused) ... ok
+test_english_matching_does_not_mean_chinese_search_is_usable (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_english_matching_does_not_mean_chinese_search_is_usable)
+Two cases, one verdict. `brand` is answered by the index and `品牌` only by the ... ok
+test_every_minimum_field_is_stored_and_a_silent_field_is_unknown (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_every_minimum_field_is_stored_and_a_silent_field_is_unknown) ... ok
+test_filters_are_exact_and_a_bad_type_is_a_refusal_not_an_empty_page (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_filters_are_exact_and_a_bad_type_is_a_refusal_not_an_empty_page) ... ok
+test_import_identity_is_the_source_and_its_version (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_import_identity_is_the_source_and_its_version) ... ok
+test_search_answers_within_the_published_budget_at_a_thousand_entries (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_search_answers_within_the_published_budget_at_a_thousand_entries)
+The docs publish "1,000 records, p95 <= 300 ms". This seeds exactly 1,000 through the ... ok
+test_the_library_reaches_no_model_layer_and_no_network_at_all (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_the_library_reaches_no_model_layer_and_no_network_at_all) ... ok
+test_the_offline_scanner_notices_a_model_import (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_the_offline_scanner_notices_a_model_import) ... ok
+test_the_recommended_revision_can_lag_the_latest_one (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_the_recommended_revision_can_lag_the_latest_one) ... ok
+test_the_search_answer_carries_the_six_type_names (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_the_search_answer_carries_the_six_type_names)
+DL-KB-03's type filter reads one table. The service's TYPE_LABELS travels with the ... ok
+test_the_three_content_fields_cannot_be_unknown (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_the_three_content_fields_cannot_be_unknown) ... ok
+test_the_trigram_index_alone_misses_a_two_character_chinese_word (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_the_trigram_index_alone_misses_a_two_character_chinese_word)
+The failing control for the fallback. If this ever passes on the index alone the ... ok
+test_writing_searching_editing_and_copying_answer_with_no_model_configured (design-lab.tests.test_knowledge_library.KnowledgeLibraryTests.test_writing_searching_editing_and_copying_answer_with_no_model_configured)
+A5 measured, not assumed: the model store is empty, and all four acts still answer. ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 2.592s
+
+OK
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_knowledge_http design-lab.tests.test_knowledge_judgement -v
+# exit=0
+test_a_candidate_may_declare_the_ids_unused_but_not_leave_them_blank (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_a_candidate_may_declare_the_ids_unused_but_not_leave_them_blank)
+`UNUSED` is an explicit operator choice; absence is still a refusal. ... ok
+test_a_corrupt_row_is_named_and_does_not_hide_the_read (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_a_corrupt_row_is_named_and_does_not_hide_the_read) ... ok
+test_a_decided_candidate_is_not_re_signed (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_a_decided_candidate_is_not_re_signed) ... ok
+test_a_decision_survives_a_server_restart (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_a_decision_survives_a_server_restart) ... ok
+test_a_rejection_must_say_why_and_is_not_export_ready (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_a_rejection_must_say_why_and_is_not_export_ready) ... ok
+test_an_agent_may_not_decide_and_the_candidate_stays_pending (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_an_agent_may_not_decide_and_the_candidate_stays_pending) ... ok
+test_an_unapplied_receipt_is_named_as_a_conflict (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_an_unapplied_receipt_is_named_as_a_conflict) ... ok
+test_an_unapproved_candidate_refuses_export_with_its_own_reason (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_an_unapproved_candidate_refuses_export_with_its_own_reason) ... ok
+test_candidates_do_not_cross_project_boundaries (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_candidates_do_not_cross_project_boundaries) ... ok
+test_create_is_pending_and_a_caller_cannot_choose_the_version (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_create_is_pending_and_a_caller_cannot_choose_the_version) ... ok
+test_duplicate_ids_and_forking_chains_are_refused (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_duplicate_ids_and_forking_chains_are_refused) ... ok
+test_empty_readback_names_the_missing_transport_and_counts_zero (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_empty_readback_names_the_missing_transport_and_counts_zero) ... ok
+test_export_produces_both_projections_and_still_says_nothing_was_sent (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_export_produces_both_projections_and_still_says_nothing_was_sent) ... ok
+test_export_refuses_an_unknown_candidate_and_one_from_another_project (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_export_refuses_an_unknown_candidate_and_one_from_another_project) ... ok
+test_exporting_a_revoked_candidate_is_refused (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_exporting_a_revoked_candidate_is_refused) ... ok
+test_freshness_compares_the_recorded_revision_with_this_checkout (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_freshness_compares_the_recorded_revision_with_this_checkout) ... ok
+test_human_approval_is_export_ready_but_never_reported_as_sent (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_human_approval_is_export_ready_but_never_reported_as_sent) ... ok
+test_replaying_the_same_submission_does_not_append_a_second_revision (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_replaying_the_same_submission_does_not_append_a_second_revision) ... ok
+test_revocation_returns_a_receipt_and_blocks_the_export (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_revocation_returns_a_receipt_and_blocks_the_export) ... ok
+test_the_export_labels_whether_the_ids_were_filled_or_declared_unused (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_the_export_labels_whether_the_ids_were_filled_or_declared_unused) ... ok
+test_unaddressable_candidate_id_is_refused_at_creation (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_unaddressable_candidate_id_is_refused_at_creation) ... ok
+test_unknown_project_and_candidate_are_404 (design-lab.tests.test_knowledge_http.KnowledgeHttpTests.test_unknown_project_and_candidate_are_404) ... ok
+test_a_judgement_survives_a_restart_and_still_outranks_the_written_flag (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_judgement_survives_a_restart_and_still_outranks_the_written_flag) ... ok
+test_a_judgement_without_a_reason_is_refused (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_judgement_without_a_reason_is_refused) ... ok
+test_a_recommendation_cannot_name_a_revision_that_was_never_stored (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_recommendation_cannot_name_a_revision_that_was_never_stored) ... ok
+test_a_recorded_judgement_moves_the_recommendation_back (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_recorded_judgement_moves_the_recommendation_back) ... ok
+test_a_source_cannot_be_replaced_by_the_entry_it_marks_dead (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_source_cannot_be_replaced_by_the_entry_it_marks_dead) ... ok
+test_an_agent_may_not_record_a_judgement (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_an_agent_may_not_record_a_judgement) ... ok
+test_an_invalid_source_must_name_its_replacement (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_an_invalid_source_must_name_its_replacement) ... ok
+test_moving_the_recommendation_rewrites_no_stored_bytes (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_moving_the_recommendation_rewrites_no_stored_bytes) ... ok
+test_the_judgement_table_is_append_only (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_judgement_table_is_append_only) ... ok
+test_the_newest_judgement_of_a_kind_is_the_answer_and_the_rest_is_history (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_newest_judgement_of_a_kind_is_the_answer_and_the_rest_is_history) ... ok
+test_the_same_judgement_sent_twice_is_one_judgement (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_same_judgement_sent_twice_is_one_judgement) ... ok
+test_the_table_refuses_a_replacement_that_is_not_an_entry (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_table_refuses_a_replacement_that_is_not_an_entry) ... ok
+test_the_wrong_field_for_the_kind_is_named_not_ignored (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_wrong_field_for_the_kind_is_named_not_ignored) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 13.006s
+
+OK
+
+$ node apps/workbench/tests/appshell.mjs  (drives the refused-clipboard fallback)
+# exit=0
+ok: ⑤ 形状告警渲染在 20 个视图上；3 个路由不读服务：#/collaboration #/states #/components
+ok: ㉔ B10_NAV 从 ROUTE_VIEWS 派生且没有手抄 hash；渲染集合由截图采集在真浏览器里比对
+ok: ⑤ #/domains 读一个路由、缺 packs 说未读回、真实读回上屏带 lang="en" 与原因、空目录照实说尚无
+ok: ⑪ 域包二级入口有独立地址、父级高亮、跨目录动作禁用并说明原因、借用与凭空计数都不出现
+ok: ⑱ §4 可调用能力只收 qualified === true：false 与 null 各自都不算，载入三类取值的读回才分得开这两个谓词
+ok: ⑲ §2→§4 声明领域条件随跳转进入地址（#/capabilities?domain=… 仍解析成能力目录）、条件上屏且分别给出命中数与未分类数、「清除检索条件」不清领域、chip 的 × 才收回条件
+ok: ⑫ §4 资产类型 tabs 跟着真实字段计数、可调用能力不按 kind 充数、空轴共用同一空集并写明、未读回不画 0
+ok: ⑬ 输入与目标的简报写入：构建零 POST、空标题本地拒、一次点击一个请求且只带合同五键、相同内容复用幂等键、改内容换新键、拒绝不谎报已写入
+ok: ⑭ 目标生成包的五种服务端拒绝各说各话且带代码、两种 409 落在不同状态类别、连接失败不冒充业务拒绝、无底图不发包、排队不等于完成、JSON 默认收起
+ok: ① 未连接态 18 个视图报告未读回，9 条实况专属措辞零泄漏
+ok: ④ 真实空读回仍照实报告为空（两个视图正向对照）
+ok: ② 请求失败时 20 个视图只报失败与原因（传输被拒 + 回复不可解析 + 服务错误三条路径都实测到），无旧内容残留
+ok: ⑥ 产物预检列不自动跑、一次点击一个请求、判据与未量项上屏、拒绝替换旧判定、未确认的取消上屏
+ok: ⑦ 证据系统读回裁决/预检/收据：缺字段说未读回不当作空列表、裁决与 lang="en" 上屏、一次点击一个收据请求、404 与 409 两种拒绝各说各话、两框互不覆盖、版本未读回时不发请求
+ok: ⑦b 证据链完整性：构建页面零读回、一次点击一个请求、三个判定各说各话且带 lang="en"、理由分布来自服务端、截断要说明、缺 totals/receipts 说未读回不画数、拒绝带码且不冒充空账本、边界文案与已上线路由不矛盾
+ok: ⑧ 权利门：决定词来自读回且带 lang="en"、无预选、构建页面零 POST、注定被拒的写不发请求、一次点击一个 POST 带契约字段与查询参数替代、成功后读回来自服务端、拒绝替换上一条已提交、证据列读回每人每范围决定与分母/冲突/仅名字核查/does_not_prove、缺分母说未读回不画 0/0、空台账说"没有被问过"不说等待审查
+ok: ⑨ 研究洞察读回已持久化的结论：判定词一个都不画、null 判定给出服务端的说明、置信度选项来自读回且无预选、构建页面零 POST、空正文与无来源两种本地拒绝都不发请求、一次点击一个 POST 且只带契约字段（无 schemaVersion、未勾选的布尔不写成 false）、相同重发沿用 finding_id 而改动必换新 id、替代作为查询参数且只列现行结论、成功后读回来自服务端、拒绝替换上一条已提交、缺计数说未读回不画 0 条
+ok: ⑩ 制作记录读回真实作业：状态词原样出现、领域字段缺失如实说明、取消的 requested 与 ack 分成两段、任务条只数仍在进行/待核对的 2 条而不是 3 条、没人展开就不读 events、展开一行恰好一次读回、最近确认点来自事件而不是猜测
+ok: ⑮ 接续入口只做跳转且真的能点：三条原生作业各一个入口、导入行不给入口、启动/取消仍保持禁用、两次点击都只改 hash 不发请求、简报字段不被谎称带进目标包、声明面板与画出来的控件一致
+ok: ⑯ 运行与恢复现场：ABSENT/空表/未读回三种说法互不混用，占用按 host→attempt 上屏，回执数与记录数分开，预算作为无该字段带理由，does_not_say 逐句成行，面板内没有任何可点动作
+ok: ⑰ 全局搜索的四组对象投影按各自路由的合同字段取行（design_systems 不是 systems），领域行落到 pack 自己的地址
+ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord 的版本链（当前/已被取代、字节数与摘要、权利与核验原词）、空集合说尚无、缺字段说未读回不画 0，并写明本面板只读回不提交改稿
+ok: ㉒ 知识回执与反馈：构建只读一次零写、状态/新鲜度/导出/出站边界全部来自读回、未建的一半写在可见文字里、创建本地拒绝不替人补事实、7 键创建体（无 schemaVersion、created_at=null）、相同重发沿用 candidate_id 而改动换新、6 键 human 裁决与 3 键撤销、成功后读回来自服务端、未读回不画候选数也不提供裁决/撤销控件
+ok: ㉑ D06 截止与取消：读超时（无副作用、可重试）与写超时（结果待核对、禁止盲目重发）彼此可辨，切页只取消读不取消写，401 仍清会话，默认预算读 15s / 写 45s
+ok: ㉓ DL-KB-02/03/04 知识与提示词库：首屏一次检索且词表/许可状态来自读回、列表不带正文哈希路径、详情按需读回、空表单与缺记录人本地拒绝、新增 14 键 POST（无 schemaVersion/created_at、留空来源不编造）、修订带 expected_revision 且旧版本留在历史、写后按返回编号读回、两字检索词走子串回退且无命中只解释不编造、推荐退回旧版本只能靠一条真人判断（缺理由与缺记录人都本地拒绝、七键 POST 不带 recorded_at）、来源失效必须带一个打得开的替代条目
+APPSHELL REGRESSION: all checks passed
