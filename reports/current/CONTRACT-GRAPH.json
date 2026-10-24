@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/contract-graph/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
-  "generated_at": "2026-10-23T17:37:41+00:00",
-  "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
+  "generated_at": "2026-10-24T00:45:55+00:00",
+  "subject_sha": "9eeadd1c85593221482943b815b85fe34fae5989",
   "chain": "Schema -> Python model -> DB -> producer -> consumer -> receipt -> projection",
   "concepts": {
     "Job": {
@@ -346,6 +346,9 @@
     "asset_dependency": "design-lab/schemas/state/design-lab-state-assets-v1.sql",
     "asset_writer_lock": "design-lab/schemas/state/design-lab-state-assets-v1.sql",
     "asset_publication": "design-lab/schemas/state/design-lab-state-assets-v2.sql",
+    "assistance_plan": "design-lab/schemas/state/design-lab-state-assistance-plan-v1.sql",
+    "assistance_plan_revision": "design-lab/schemas/state/design-lab-state-assistance-plan-v1.sql",
+    "assistance_plan_choice": "design-lab/schemas/state/design-lab-state-assistance-plan-v1.sql",
     "attempt_state": "design-lab/schemas/state/design-lab-state-attempt-v2.sql",
     "operation_state": "design-lab/schemas/state/design-lab-state-attempt-v2.sql",
     "attempt_resolution": "design-lab/schemas/state/design-lab-state-attempt-v2.sql",

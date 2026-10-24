@@ -63,6 +63,23 @@ KNOWLEDGE_ENTRY = {
     'created_by': 'sweep', 'supersedes': None,
 }
 
+#: DL-KB-07 (batch K). One neutral plan, its second revision and a named human's choice. The
+#: reference names only `{kind, id}`: the store resolves the revision and digest from the live
+#: object, so the body states neither. External ids are left out (the store writes UNUSED) or
+#: supplied literally, never minted here.
+ASSISTANCE_PLAN = {
+    'objective': '为秋季新品做一张克制的主视觉海报',
+    'output_type': 'IMAGE',
+    'neutral_creative': '一束侧光穿过纸纤维，留出大面积空白承载标题。',
+    'brand_constraints': ['只用两种油墨'], 'role_constraints': [],
+    'lens': None, 'sound': None,
+    'references': [{'kind': 'ASSET', 'id': '{asset}'}],
+    'external_steps': [{'step': '手动导出印刷 PDF', 'tool': 'Illustrator',
+                        'job_id': None, 'operation_id': 'op-sweep-1024'}],
+    'known_gaps': ['目标纸张未定'], 'limits': ['未包含多语言排版'],
+    'created_by': 'sweep',
+}
+
 _SLOT = re.compile(r'\{(\w+)\}')
 
 
@@ -362,6 +379,27 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
         {'route': '/api/knowledge-entries/index-rebuild', 'label': 'knowledge-index-rebuild',
          'status': 200, 'path': '/api/knowledge-entries/index-rebuild', 'body': {},
          'check': 'check_knowledge_index_rebuild'},
+        # DL-KB-07 (batch K): the plan object's create, revise and human choice. The revise row
+        # carries `expected_revision` -- the revision it was prepared against -- so a second
+        # writer is answered with a conflict instead of silently overwriting the first.
+        {'route': '/api/projects/([0-9a-f]{32})/assistance-plans',
+         'label': 'assistance-plan', 'status': 201,
+         'path': '/api/projects/{project}/assistance-plans', 'body': ASSISTANCE_PLAN,
+         'capture': {'aplan': 'plan.plan_id'}, 'check': 'check_assistance_plan'},
+        {'route': ('/api/projects/([0-9a-f]{32})/assistance-plans'
+                   '/(aplan-[0-9a-f]{32})/revisions'),
+         'label': 'assistance-revise', 'status': 201,
+         'path': '/api/projects/{project}/assistance-plans/{aplan}/revisions',
+         'body': {key: value for key, value in ASSISTANCE_PLAN.items()
+                  if key != 'created_by'}
+                 | {'neutral_creative': '两束交叉光，标题压在右下角的留白里。',
+                    'created_by': 'sweep', 'expected_revision': 1},
+         'check': 'check_assistance_revision'},
+        {'route': '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose',
+         'label': 'assistance-choose', 'status': 200,
+         'path': '/api/projects/{project}/assistance-plans/{aplan}/choose',
+         'body': {'actor': 'dtalex66', 'actor_kind': 'human', 'revision': 2},
+         'check': 'check_assistance_choose'},
     )
 
     # -- the walk ---------------------------------------------------------------------
@@ -726,6 +764,52 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
                                 'entries this sweep wrote: the derived index was rebuilt empty')
         self.assertEqual(payload['rebuilt_at'], listed['index']['rebuilt_at'],
                          'the read reports an index state the rebuild did not write')
+
+    def check_assistance_plan(self, row, payload, slots):
+        read = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')
+        self.assertEqual(1, read['latest_revision'])
+        self.assertEqual(payload['plan'], read['current'],
+                         'the bytes the read answers are not the ones the create route stored')
+        self.assertEqual({'saved': True, 'provided': True, 'chosen': False,
+                          'externally_verified': False}, read['states'],
+                         'a saved plan with a creative is saved and provided, and nothing more: '
+                         'no human has chosen it and no external step was verified')
+        status = read['reference_status'][0]
+        self.assertEqual('CURRENT', status['state'])
+        self.assertEqual(slots['asset_sha256'], status['recorded_sha256'],
+                         'the digest the plan pinned is not the one the asset read answers')
+        # The `reverse` row above stored a reversal for this exact asset digest, so the plan's
+        # reference must read ANALYZED -- the evidence is looked up, not inferred from the mention.
+        self.assertEqual('ANALYZED', status['analysis'])
+        self.assertEqual({'analyzed': 1, 'linked_only': 0}, read['analysis_summary'])
+        self.assertFalse(read['external']['verified'])
+        self.assertEqual(1, read['external']['steps'])
+        self.assertEqual(['op-sweep-1024'], read['external']['supplied_ids'],
+                         'only the label the caller supplied may be echoed as a supplied id')
+        self.assertEqual('UNUSED', read['current']['external_steps'][0]['job_id'],
+                         'the id nobody supplied must stay the literal UNUSED')
+
+    def check_assistance_revision(self, row, payload, slots):
+        read = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')
+        self.assertEqual(2, read['latest_revision'], 'the revision did not become the newest bytes')
+        self.assertEqual([1, 2], [item['revision'] for item in read['revisions']],
+                         'the revision replaced its parent instead of appending to it')
+        self.assertEqual(payload['plan'], read['current'])
+        self.assertEqual('两束交叉光，标题压在右下角的留白里。',
+                         read['current']['neutral_creative'])
+        self.assertEqual(slots['asset_sha256'], read['reference_status'][0]['recorded_sha256'],
+                         'the second revision lost the digest it was built from')
+
+    def check_assistance_choose(self, row, payload, slots):
+        read = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')
+        self.assertTrue(read['states']['chosen'],
+                        'the human choice was answered but the readback does not show it')
+        self.assertEqual('dtalex66', read['choice']['actor'])
+        self.assertEqual('human', read['choice']['actor_kind'])
+        self.assertEqual(2, read['choice']['revision'])
+        self.assertTrue(read['choice']['is_latest'], 'revision 2 is still the head')
+        self.assertFalse(read['states']['externally_verified'],
+                         'recording a choice is not external verification')
 
     # -- machinery the table depends on -----------------------------------------------
     def prepare_candidate(self, slots):

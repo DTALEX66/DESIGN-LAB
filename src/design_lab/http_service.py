@@ -16,6 +16,11 @@ from .prompt_results import PromptResults, PromptResultError
 # DL-KB-02 (2026-10-23): the knowledge library is a global surface like /api/capabilities -- it
 # belongs to the operator, not to a project, and nothing on it is scoped by a project id.
 from .knowledge_library import DEFAULT_LIMIT, KnowledgeLibrary, KnowledgeLibraryError
+# DL-KB-07 (2026-10-24): the neutral assistance plan a short task is written down in. It reuses
+# the existing brief/direction/prompt-result/asset objects by reference and owns no second copy
+# of their bytes.
+from .assistance_plan import (AssistancePlanError, AssistancePlans,
+                              DEFAULT_LIMIT as PLAN_DEFAULT_LIMIT)
 from .project_index import ProjectIndex, ProjectIndexError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries, TaskReadbackError
@@ -173,6 +178,22 @@ ROUTES = (
     Route('GET',
           r'/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})',
           '_get_brief'),
+    # DL-KB-07 (2026-10-24). Create answers on the bare collection path; the list names its query
+    # in the route itself so one ledger row still describes one document (the same reason
+    # /api/knowledge-entries keeps search on its own path). offset/limit are parsed inside the
+    # handler, and a malformed number answers ASSISTANCE_PLAN_OFFSET_INVALID / LIMIT_INVALID
+    # instead of a 404.
+    # DL-KB-08. The initial screen must name an output type before any project exists, so the
+    # closed vocabulary travels on its own project-independent read; the list route cannot answer
+    # it, and a copy in TypeScript would be a second table.
+    Route('GET', '/api/assistance-plan-output-types', '_assistance_plan_output_types',
+          exact=True),
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans(?:\?[^#]*)?',
+          '_list_assistance_plans'),
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})',
+          '_get_assistance_plan'),
     Route('GET',
           r'/api/projects/([0-9a-f]{32})/directions(?:\?after=(direction-[0-9a-f]{32}))?',
           '_list_directions'),
@@ -275,6 +296,15 @@ ROUTES = (
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/directions',
           '_create_direction'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans',
+          '_create_assistance_plan'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions',
+          '_revise_assistance_plan'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose',
+          '_choose_assistance_plan'),
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/choose',
           '_choose_direction'),
@@ -528,6 +558,15 @@ def make_server(service, token, port=0, *, local_session=False):
             # every one of them would arrive as INVALID_REQUEST and the page could not tell a
             # stale write from a malformed one.
             except KnowledgeLibraryError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
+            # Assistance plans refuse revisions and choices for reasons the page has to branch
+            # on: "the plan moved to revision 4, re-read it", "a reference belongs to another
+            # project", "a machine tried to record a human choice". The generic 400 would tell
+            # the page its request was malformed and hide which of the three happened.
+            except AssistancePlanError as exc:
                 payload = {'error': exc.code}
                 if exc.detail:
                     payload['detail'] = exc.detail
@@ -1117,6 +1156,53 @@ def make_server(service, token, port=0, *, local_session=False):
             # empty body keeps it from taking parameters it would have to pretend to honour.
             self.body(fields=set(), limit=1024)
             return self.send_json(200, KnowledgeLibrary(service).rebuild_index())
+
+        def _list_assistance_plans(self, match):
+            params = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+
+            def number(name, default):
+                raw = params.get(name)
+                if raw is None or raw == '':
+                    return default
+                try:
+                    return int(raw)
+                except ValueError:
+                    raise AssistancePlanError(
+                        400, 'ASSISTANCE_PLAN_FILTER_MALFORMED',
+                        f'{name} must be an integer, got {raw!r}') from None
+
+            return self.send_json(200, AssistancePlans(service).list(
+                match[1], offset=number('offset', 0),
+                limit=number('limit', PLAN_DEFAULT_LIMIT)))
+
+        def _assistance_plan_output_types(self, match):
+            return self.send_json(200, AssistancePlans(service).output_types())
+
+        def _get_assistance_plan(self, match):
+            return self.send_json(200, AssistancePlans(service).detail(match[1], match[2]))
+
+        def _create_assistance_plan(self, match):
+            # The exact key set a plan's create accepts. A caller cannot state a reference's
+            # revision or digest (the store resolves them), and cannot name an `executed` flag:
+            # an unknown field is refused, not dropped.
+            value = self.body(fields={
+                'objective', 'output_type', 'neutral_creative', 'brand_constraints',
+                'role_constraints', 'lens', 'sound', 'references', 'external_steps',
+                'known_gaps', 'limits', 'created_by'}, limit=262144)
+            return self.send_json(201, AssistancePlans(service).create(match[1], value))
+
+        def _revise_assistance_plan(self, match):
+            value = self.body(fields={
+                'objective', 'output_type', 'neutral_creative', 'brand_constraints',
+                'role_constraints', 'lens', 'sound', 'references', 'external_steps',
+                'known_gaps', 'limits', 'created_by', 'expected_revision'}, limit=262144)
+            return self.send_json(201, AssistancePlans(service).revise(
+                match[1], match[2], value))
+
+        def _choose_assistance_plan(self, match):
+            value = self.body(fields={'actor', 'actor_kind', 'revision'}, limit=4096)
+            return self.send_json(200, AssistancePlans(service).choose(
+                match[1], match[2], value))
 
         def _create_brief(self, match):
             layer = DesignLayer(service)

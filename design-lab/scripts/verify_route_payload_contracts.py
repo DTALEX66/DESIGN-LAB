@@ -135,6 +135,7 @@ class Harness:
         self._produce_prompt_results()
         self._seed_design_layer()
         self._seed_knowledge()
+        self._seed_assistance()
         return self
 
     def _produce_prompt_results(self):
@@ -555,6 +556,88 @@ class Harness:
 
     def knowledge_cases(self, *names):
         return [self.knowledge[name] for name in names]
+
+    # -- assistance plan family (batch K3, 2026-10-24) -------------------------------------
+    #: The create route's exact field set. The creative is present on the plan that gets a second
+    #: revision and a human choice; the draft below leaves it out on purpose, because "saved" and
+    #: "provided" are two different facts the readback has to keep apart.
+    ASSISTANCE_FIELDS = {
+        'objective': '为秋季新品做一张克制的主视觉海报',
+        'output_type': 'IMAGE',
+        'neutral_creative': '一束侧光穿过纸纤维，留出大面积空白承载标题。',
+        'brand_constraints': ['只用两种油墨'],
+        'role_constraints': [],
+        'lens': None,
+        'sound': None,
+        'references': [],
+        'external_steps': [{'step': '手动导出印刷 PDF', 'tool': 'Illustrator',
+                            'job_id': None, 'operation_id': 'op-payload-1024'}],
+        'known_gaps': ['目标纸张未定'],
+        'limits': ['未包含多语言排版'],
+        'created_by': 'payload-contracts',
+    }
+
+    def _seed_assistance(self):
+        """One plan with two revisions and a human choice, a draft, and an empty collection.
+
+        The referenced asset is a stored ``asset_version`` of this same project, inserted with the
+        same call the brief fixture uses -- the plan writer resolves the live revision and digest
+        itself, so what is compared is the readback's own measurement. No reversal exists for it,
+        which is why the compared payload carries LINKED_ONLY rather than ANALYSIS the caller
+        claimed.
+        """
+        asset_id = 'img-' + 'b2' * 32
+        with closing(self.assets.connect(self.service.database,
+                                         project_root=self.service.paths.project_root)) as conn:
+            conn.execute('INSERT INTO asset VALUES (?, ?, "raster", ?)',
+                         (asset_id, self.filled, '2026-10-24T00:00:00Z'))
+            conn.execute('INSERT INTO asset_version (version_id, asset_id, version_no,'
+                         ' content_sha256, state, created_at) VALUES (?,?,?,?,?,?)',
+                         ('v-' + 'b2' * 16, asset_id, 1, 'sha256:' + 'b' * 64, 'ACTIVE',
+                          '2026-10-24T00:00:00Z'))
+            conn.commit()
+        status, created = self.call('POST', f'/api/projects/{self.filled}/assistance-plans',
+                                    dict(self.ASSISTANCE_FIELDS,
+                                         references=[{'kind': 'ASSET', 'id': asset_id}]))
+        if status != 201:
+            raise RuntimeError(f'ASSISTANCE_CREATE_REFUSED {status} {created}')
+        plan_id = created['plan']['plan_id']
+        status, revised = self.call(
+            'POST', f'/api/projects/{self.filled}/assistance-plans/{plan_id}/revisions',
+            dict(self.ASSISTANCE_FIELDS, references=[{'kind': 'ASSET', 'id': asset_id}],
+                 objective='为秋季新品做一张克制的主视觉海报（修订）', expected_revision=1))
+        if status != 201:
+            raise RuntimeError(f'ASSISTANCE_REVISION_REFUSED {status} {revised}')
+        status, chosen = self.call(
+            'POST', f'/api/projects/{self.filled}/assistance-plans/{plan_id}/choose',
+            {'actor': 'dtalex66', 'actor_kind': 'human', 'revision': 2})
+        if status != 200:
+            raise RuntimeError(f'ASSISTANCE_CHOICE_REFUSED {status} {chosen}')
+        status, draft = self.call(
+            'POST', f'/api/projects/{self.filled}/assistance-plans',
+            dict(self.ASSISTANCE_FIELDS, neutral_creative=None,
+                 objective='只有目标，还写不出创意'))
+        if status != 201:
+            raise RuntimeError(f'ASSISTANCE_DRAFT_REFUSED {status} {draft}')
+        self.assistance = {
+            'create': ('POST .../assistance-plans', created),
+            'revise': ('POST .../assistance-plans/<id>/revisions appends revision 2', revised),
+            'choose': ('POST .../assistance-plans/<id>/choose names a human', chosen),
+            'detail': (f'GET .../assistance-plans/{plan_id}',
+                       self.get(f'/api/projects/{self.filled}/assistance-plans/{plan_id}')),
+            'draft': (f'GET .../assistance-plans/{draft["plan"]["plan_id"]} (saved, not provided)',
+                      self.get(f'/api/projects/{self.filled}/assistance-plans'
+                               f'/{draft["plan"]["plan_id"]}')),
+            'list': ('GET .../assistance-plans',
+                     self.get(f'/api/projects/{self.filled}/assistance-plans')),
+            'list-empty': ('GET .../assistance-plans with nothing filed',
+                           self.get(f'/api/projects/{self.empty}/assistance-plans')),
+            'output-types': ('GET /api/assistance-plan-output-types (no project needed)',
+                             self.get('/api/assistance-plan-output-types')),
+        }
+
+    def assistance_cases(self, *names):
+        return [self.assistance[name] for name in names]
 
     def design_write_cases(self, group):
         """The write answers of one route, each produced now, plus its idempotent replay.
@@ -1292,6 +1375,70 @@ def build_bindings():
             'emitter': 'src/design_lab/knowledge_library.py',
             'version': 'design-lab/knowledge-index-rebuild/v1',
             'cases': lambda h: h.knowledge_cases('rebuild'),
+        },
+        # DL-KB-07 (batch K3, 2026-10-24). A plan is written through the routes and read back
+        # through them; the referenced asset is a real stored version of the same project, and
+        # its status in the compared payload is the readback's own measurement (LINKED_ONLY --
+        # no reversal exists), not a value this file supplied.
+        {
+            'name': 'assistance-plan-write-create',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/assistance-plan-write-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-write/v1',
+            'cases': lambda h: h.assistance_cases('create'),
+        },
+        {
+            'name': 'assistance-plan-write-revise',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/assistance-plan-write-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-write/v1',
+            'cases': lambda h: h.assistance_cases('revise'),
+        },
+        {
+            'name': 'assistance-plan-readback',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/assistance-plan-readback-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-readback/v1',
+            # Three readings of the same shape: a plan with a creative, a choice and a linked
+            # asset; a draft with no creative (saved, not provided); and the answer the choose
+            # route returns, which is the same readback rather than a second envelope.
+            'cases': lambda h: h.assistance_cases('detail', 'draft', 'choose'),
+        },
+        {
+            'name': 'assistance-plan-list',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans(?:\\?[^#]*)?',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/assistance-plan-list-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-list/v1',
+            'cases': lambda h: h.assistance_cases('list', 'list-empty'),
+        },
+        # DL-KB-08. Read with no project in the path on purpose: the initial screen offers an
+        # output type before a workspace exists, so the vocabulary cannot be verified only on
+        # the project-scoped collection.
+        {
+            'name': 'assistance-plan-output-types',
+            'route': '/api/assistance-plan-output-types',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/assistance-plan-output-types-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-output-types/v1',
+            'cases': lambda h: h.assistance_cases('output-types'),
+        },
+        {
+            'name': 'assistance-plan-choose',
+            'route': '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/assistance-plan-readback-v1.schema.json',
+            'emitter': 'src/design_lab/assistance_plan.py',
+            'version': 'design-lab/assistance-plan-readback/v1',
+            'cases': lambda h: h.assistance_cases('choose'),
         },
     ]
 

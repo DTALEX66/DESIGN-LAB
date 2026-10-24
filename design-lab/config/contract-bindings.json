@@ -1023,6 +1023,66 @@
       "version": "design-lab/knowledge-index-rebuild/v1",
       "emitter": "src/design_lab/knowledge_library.py:879",
       "reason": "DL-KB-04. The rebuild is the index's proof of derivability: it deletes every FTS5 row and reconstructs them from knowledge_entry_revision, then answers with `indexed` (rows written during this rebuild) and `index` (the state the read routes will report from now on) as separate numbers, so a rebuild that indexed nothing is visible instead of reading as healthy. It never writes a canonical row -- an index that could change the entries would be a second truth source. The request body is an exact empty object: the route takes no parameter it would only pretend to honour."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-write-v1.schema.json",
+      "version": "design-lab/assistance-plan-write/v1",
+      "emitter": "src/design_lab/assistance_plan.py:47",
+      "reason": "DL-KB-07. A short task is written down as one neutral plan: objective, output type, neutral creative, brand/role constraints, lens and sound, references, external steps, known gaps and limits. The caller supplies only inputs; the document is built and validated server-side (assistance-plan-v1 via the write envelope's $ref) and the answer's `plan` member is the stored document, not a rebuilt copy. References are two-key {kind,id}: revision and digest are pinned from the live object by the store, and a caller that supplies them is refused, because a caller-authored digest would be a claim this service never measured. A missing job_id/operation_id is the literal UNUSED -- the service mints no external id. Refusals keep their codes: 400 ASSISTANCE_PLAN_OUTPUT_TYPE_INVALID / FIELD_MISSING / REFERENCE_KIND_INVALID, 404 ASSISTANCE_PLAN_REFERENCE_NOT_FOUND / PROJECT_NOT_FOUND, 409 ASSISTANCE_PLAN_REFERENCE_PROJECT_MISMATCH / REFERENCE_NOT_READY."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/revisions",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-write-v1.schema.json",
+      "version": "design-lab/assistance-plan-write/v1",
+      "emitter": "src/design_lab/assistance_plan.py:47",
+      "reason": "DL-KB-07. A correction is a new revision: the previous row keeps its bytes and current is MAX(revision) at read time, so no mutable current-marker can become a second truth source. expected_revision is required by the route's exact key set and again by the store; a write prepared against a revision that has since moved answers 409 ASSISTANCE_PLAN_REVISION_CONFLICT naming the actual current revision instead of silently overwriting the other writer. An unknown plan id is 404 ASSISTANCE_PLAN_NOT_FOUND. The envelope is the same write contract as create, so one document shape has one schema."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-readback-v1.schema.json",
+      "version": "design-lab/assistance-plan-readback/v1",
+      "emitter": "src/design_lab/assistance_plan.py:48",
+      "reason": "DL-KB-07/08. The readback is where the screen's four states come from, computed by the service rather than the view: saved (this readback exists), provided (the current revision carries a creative), chosen (a named human adopted a revision), externally_verified (const false -- no route dispatches an external step). `reference_status` re-reads every pinned reference at its live revision: CURRENT means the bytes are still the ones the plan recorded, CHANGED means the object moved on, and `analysis` reports ANALYZED only when a stored reversal exists for that exact asset digest -- a reference registered as a link stays LINKED_ONLY, which is the measurement DL-KB-08's image state depends on. `current` is the stored document via $ref, not a re-render."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans(?:\\?[^#]*)?",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-list-v1.schema.json",
+      "version": "design-lab/assistance-plan-list/v1",
+      "emitter": "src/design_lab/assistance_plan.py:49",
+      "reason": "DL-KB-07. The collection lists each plan at its newest revision with the one sentence a reader needs to pick one: objective, output type, author, reference count, whether a creative was provided, and which revision a human chose (null until someone does). The query is named in the route pattern -- the same reason /api/knowledge-entries keeps search on its own path -- so one ledger row describes one document; offset/limit are parsed inside the handler, and a malformed number answers ASSISTANCE_PLAN_OFFSET_INVALID / LIMIT_INVALID rather than being silently ignored. next_offset is null on the last page, and an unknown project is 404 PROJECT_NOT_FOUND."
+    },
+    {
+      "route": "/api/assistance-plan-output-types",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-output-types-v1.schema.json",
+      "version": "design-lab/assistance-plan-output-types/v1",
+      "emitter": "src/design_lab/assistance_plan.py:50",
+      "reason": "DL-KB-08. The initial screen must offer an output type before any workspace exists, so this read is deliberately project-independent: the project-scoped list route answers 404 until a project is created, which would leave the first plan unsaveable. The six values and their Chinese labels are the same table the create route validates against, served from the store's OUTPUT_TYPES/OUTPUT_LABELS rather than hand-copied into the view -- a second copy in TypeScript could offer a word the service refuses, and the page would only find out on submit."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssistancePlans",
+      "schema": "design-lab/schemas/assistance-plan-readback-v1.schema.json",
+      "version": "design-lab/assistance-plan-readback/v1",
+      "emitter": "src/design_lab/assistance_plan.py:48",
+      "reason": "DL-KB-07. Choosing is a Human Gate record, not a preference toggle: the route refuses actor_kind other than 'human' with 409 ASSISTANCE_PLAN_CHOICE_NOT_HUMAN, the table repeats the rule as a storage CHECK so the rule survives an application bug, and a revision outside the stored range is 400 CHOICE_REVISION_INVALID. The answer is the same readback the GET route serves, so the state the page shows after choosing is not a second envelope that could disagree. A second choice on the same revision is 409 ALREADY_CHOSEN: the record is a statement, not a switch."
     }
   ]
 }

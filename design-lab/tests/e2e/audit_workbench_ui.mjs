@@ -330,7 +330,7 @@ await bootCtx.close();
 const ROUTES = ['', '#/dashboard', '#/projects', `#/projects/${projectId}`, '#/tools',
                 '#/deliverables', '#/evidence', '#/preflight', '#/settings',
                 '#/research', '#/domains', '#/collaboration', '#/brand-systems',
-                '#/prompts', '#/models', '#/knowledge'];
+                '#/prompts', '#/models', '#/knowledge', '#/assistant'];
 
 for (const width of widths) {
   const { ctx, page } = await connect(width);

@@ -59,6 +59,13 @@ let navVisibility = null;
 // Set only when the prompt-result slice actually ran, so the summary can never
 // claim a scenario that was skipped and a reader need not scrape stdout.
 let promptLoop = null;
+// DL-KB-08: the design-assistant (assistance plan) slice. Same rule: only set
+// when the steps actually ran, so a summary never claims a skipped scenario.
+let assistantLoop = null;
+// Counts every assistance-plan write the page issued. The copy/choose split is
+// only provable from the wire: copying must leave these counters untouched.
+let assistanceWrites = 0;
+let assistanceChooses = 0;
 
 // P0-G: single evidence writer, used by every exit path (PASS and FAIL).
 const writeSummary = (result, error) => {
@@ -71,6 +78,7 @@ const writeSummary = (result, error) => {
                     'nav-route-inventory-derived-from-served-bundle',
                     'desktop-nav-active-visible'];
   if (promptLoop) scenario.push('prompt-result-compose-store-sign');
+  if (assistantLoop) scenario.push('assistance-plan-four-states');
   const payload = {
     kind: 'workbench-browser-e2',
     subjectSha: process.env.E2E_SUBJECT_SHA || 'local',
@@ -81,6 +89,7 @@ const writeSummary = (result, error) => {
     result,
   };
   if (promptLoop) payload.promptLoop = promptLoop;
+  if (assistantLoop) payload.assistantLoop = assistantLoop;
   if (routeInventory) payload.routeInventory = routeInventory;
   if (navVisibility) payload.navVisibility = navVisibility;
   if (error) payload.error = error;
@@ -234,6 +243,16 @@ try {
   page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push('pageerror: ' + String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  // DL-KB-08: count assistance-plan writes/choices from the wire itself. A copy
+  // that secretly chose, or a "no write" refusal that still posted, would pass a
+  // DOM-only assertion; these counters cannot.
+  page.on('request', (request) => {
+    if (request.method() !== 'POST') return;
+    const url = request.url();
+    if (!/\/assistance-plans(\/|$)/.test(url)) return;
+    assistanceWrites += 1;
+    if (/\/choose$/.test(url)) assistanceChooses += 1;
+  });
 
   const base = serviceUrl.replace(/\/$/, '');
   await page.goto(base + '/workbench', { waitUntil: 'load' });
@@ -820,6 +839,274 @@ try {
     overclaim: /已发送|发送成功|delivered|模型已执行/.test(panelAfter),
   };
   console.log('E2E_PROMPT_LOOP: ' + JSON.stringify(promptLoop));
+
+  // ------------------------------------------------------------------------
+  // DL-KB-08: the design-assistant screen. The acceptance is about the RENDERED
+  // page, so every claim below is read from the DOM after the service answered:
+  //   · the initial screen exposes requirement / reference / output type only
+  //     (no tool or model picker), and the vocabulary comes from the service;
+  //   · one saved plan shows the four states separately: 已保存 / 方案已提供 /
+  //     用户选用 / 外部未验证;
+  //   · copying is a real, working action BEFORE any adoption, and it puts no
+  //     write or choose on the wire;
+  //   · an empty requirement is refused locally and the form still works, so
+  //     there is no dead end;
+  //   · supplying the missing creative appends r2, a named human chooses it, and
+  //     a full page reload rebuilds the same four states from the service.
+  // ------------------------------------------------------------------------
+  await step('design assistant four states', async () => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.evaluate(() => { window.location.hash = '#/assistant'; });
+    await page.locator('#as-objective').waitFor({ state: 'visible', timeout: 20000 });
+
+    const initial = await page.evaluate(() => {
+      const form = document.getElementById('as-form');
+      const controls = Array.from(form.querySelectorAll('select,input,textarea'));
+      return {
+        selects: Array.from(form.querySelectorAll('select')).map((s) => s.id),
+        toolish: controls.map((c) => c.id).filter((id) => /tool|model/i.test(id)),
+        types: Array.from(document.querySelectorAll('#as-output-type option'))
+          .map((o) => o.value).filter(Boolean),
+        canvases: document.querySelectorAll('#route-view canvas').length,
+        logs: document.querySelectorAll('#route-view [role="log"]').length,
+      };
+    });
+    // The task says the initial screen exposes requirement, reference attachment
+    // and output type; tools and models are chosen later. Three selects is the
+    // rendered shape of that sentence, and an id naming a tool/model would mean
+    // the deferred picker had crept back in.
+    if (initial.selects.length !== 3 || initial.toolish.length !== 0 ||
+        initial.types.length !== 6 || !initial.types.includes('STORYBOARD')) {
+      await abort('E2E_ASSISTANT_INITIAL_SURFACE: ' + JSON.stringify(initial), 15, ctx, b);
+    }
+    if (initial.canvases !== 0 || initial.logs !== 0) {
+      await abort('E2E_ASSISTANT_CHAT_SURFACE: the route rendered a canvas or a message log: '
+                  + JSON.stringify(initial), 15, ctx, b);
+    }
+
+    const objectiveText = '为秋季新品写一条可读的分镜目标，给标题留白';
+    await page.locator('#as-output-type').selectOption('STORYBOARD');
+    const outputTypeLabel = await page.locator('#as-output-type option:checked').innerText();
+    await page.locator('#as-objective').fill(objectiveText);
+    await page.locator('#as-author').fill('E2E Assistant Author');
+    await page.locator('#as-submit').click();
+    const savedTrue = () => page.waitForFunction(() => {
+      const node = document.getElementById('as-saved');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 25000 }).then(() => true).catch(() => false);
+    if (!await savedTrue()) {
+      const why = await page.evaluate(() => ({
+        error: document.getElementById('as-form-error')?.textContent ?? '',
+        status: document.getElementById('as-form-status')?.textContent ?? '',
+        detail: document.getElementById('as-detail')?.textContent?.slice(0, 300) ?? '',
+      }));
+      await abort('E2E_ASSISTANT_NOT_SAVED: ' + JSON.stringify(why), 15, ctx, b);
+    }
+
+    const readStates = () => page.evaluate(() => {
+      const chip = (id) => {
+        const node = document.getElementById(id);
+        return node ? { text: node.textContent ?? '', state: node.dataset.state ?? '' } : null;
+      };
+      const primary = Array.from(
+        document.querySelectorAll('#as-actions .primary-btn')).map((b) => b.id);
+      return { saved: chip('as-saved'), provided: chip('as-provided'),
+               chosen: chip('as-chosen'), external: chip('as-external'), primary };
+    });
+    const afterSave = await readStates();
+    if (!afterSave.saved || afterSave.saved.state !== 'true' ||
+        afterSave.provided?.state !== 'false' || afterSave.chosen?.state !== 'false' ||
+        afterSave.external?.state !== 'false' ||
+        afterSave.primary.length !== 1 || afterSave.primary[0] !== 'as-supply') {
+      await abort('E2E_ASSISTANT_STATES_AFTER_SAVE: ' + JSON.stringify(afterSave), 15, ctx, b);
+    }
+    const detailText = () => page.locator('#as-plan').innerText();
+    const savedDetail = await detailText();
+    if (!/尚未提供创意/.test(savedDetail) || !/尚未提供创意，因此还没有可读的脚本与分镜/.test(savedDetail)) {
+      await abort('E2E_ASSISTANT_STORYBOARD_WITHOUT_CREATIVE: '
+                  + savedDetail.slice(0, 400).replace(/[\r\n]+/g, ' · '), 15, ctx, b);
+    }
+
+    // Empty requirement: refused on the page, and no assistance-plan write leaves.
+    const writesBeforeEmpty = assistanceWrites;
+    await page.locator('#as-submit').click();
+    const emptyRefused = await page.waitForFunction(() => {
+      const node = document.getElementById('as-form-error');
+      return !!node && /请先写下/.test(node.textContent ?? '');
+    }, null, { timeout: 8000 }).then(() => true).catch(() => false);
+    const focusAfterEmpty = await page.evaluate(
+      () => document.activeElement?.id ?? '');
+    if (!emptyRefused || assistanceWrites !== writesBeforeEmpty ||
+        focusAfterEmpty !== 'as-objective') {
+      await abort('E2E_ASSISTANT_EMPTY_DEAD_END: refused=' + emptyRefused +
+                  ' writes=' + assistanceWrites + '/' + writesBeforeEmpty +
+                  ' focus=' + focusAfterEmpty, 15, ctx, b);
+    }
+
+    // Copy is available with no approval and no adoption, and it is provably not
+    // an adoption: the counters must not move.
+    const choosesBeforeCopy = assistanceChooses;
+    const writesBeforeCopy = assistanceWrites;
+    await page.bringToFront();
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: base });
+    await page.locator('#as-copy').click();
+    const copyNote = await page.waitForFunction(() => {
+      const note = document.getElementById('as-copy-note');
+      if (!note) return false;
+      return /已复制/.test(note.textContent ?? '') || !!note.querySelector('textarea');
+    }, null, { timeout: 8000 }).then(() => page.locator('#as-copy-note').innerText())
+      .catch(() => '');
+    let clipboardText = '';
+    try {
+      clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    } catch { /* the note path below is still evidence */ }
+    if (!/已复制/.test(copyNote) && !clipboardText.includes(objectiveText)) {
+      await abort('E2E_ASSISTANT_COPY_BLOCKED: note=' + JSON.stringify(copyNote), 15, ctx, b);
+    }
+    if (!clipboardText.includes(objectiveText) || !clipboardText.includes('外部未验证') ||
+        !clipboardText.includes('不是运行结果')) {
+      await abort('E2E_ASSISTANT_COPY_TEXT: clipboard=' + JSON.stringify(clipboardText.slice(0, 200)),
+                  15, ctx, b);
+    }
+    if (assistanceWrites !== writesBeforeCopy || assistanceChooses !== choosesBeforeCopy) {
+      await abort('E2E_ASSISTANT_COPY_WROTE: writes=' + assistanceWrites + '/' + writesBeforeCopy +
+                  ' chooses=' + assistanceChooses + '/' + choosesBeforeCopy, 15, ctx, b);
+    }
+    const copyWroteNothing = assistanceWrites === writesBeforeCopy;
+    const copyChoseNothing = assistanceChooses === choosesBeforeCopy;
+
+    // Supply the missing creative: the primary action opens the prefilled form,
+    // saving appends r2 and the provided state flips — the "no dead end" path.
+    await page.locator('#as-supply').click();
+    const editReady = await page.waitForFunction(() => {
+      const submit = document.getElementById('as-submit');
+      return !!submit && /保存为新修订/.test(submit.textContent ?? '');
+    }, null, { timeout: 15000 }).then(() => true).catch(() => false);
+    if (!editReady) {
+      await abort('E2E_ASSISTANT_EDIT_NOT_PREFILLED', 15, ctx, b);
+    }
+    await page.locator('#as-creative').fill(
+      '镜头 1：俯拍整张桌面；镜头 2：手指沿纸边划过；镜头 3：标题留白收束。');
+    await page.locator('#as-submit').click();
+    const providedTrue = await page.waitForFunction(() => {
+      const node = document.getElementById('as-provided');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 25000 }).then(() => true).catch(() => false);
+    if (!providedTrue) {
+      await abort('E2E_ASSISTANT_CREATIVE_NOT_READ_BACK: '
+                  + JSON.stringify(await readStates()), 15, ctx, b);
+    }
+    const afterProvided = await readStates();
+    if (afterProvided.saved?.state !== 'true' || afterProvided.chosen?.state !== 'false' ||
+        afterProvided.external?.state !== 'false' ||
+        afterProvided.primary.length !== 1 || afterProvided.primary[0] !== 'as-choose') {
+      await abort('E2E_ASSISTANT_STATES_AFTER_CREATIVE: ' + JSON.stringify(afterProvided),
+                  15, ctx, b);
+    }
+    const providedDetail = await detailText();
+    if (!/没有单独的分镜表/.test(providedDetail)) {
+      await abort('E2E_ASSISTANT_STORYBOARD_HONESTY: the storyboard section did not say the '
+                  + 'service has no shot table: '
+                  + providedDetail.slice(0, 400).replace(/[\r\n]+/g, ' · '), 15, ctx, b);
+    }
+
+    // A named human adopts it; the actor is rendered in the detail, not only in
+    // a transient note.
+    await page.locator('#as-choose').click();
+    await page.locator('#as-choose-name').fill('E2E Assistant Reviewer');
+    const choosesBeforeAdopt = assistanceChooses;
+    await page.locator('#as-choose-submit').click();
+    const chosenTrue = await page.waitForFunction(() => {
+      const node = document.getElementById('as-chosen');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 25000 }).then(() => true).catch(() => false);
+    if (!chosenTrue || assistanceChooses !== choosesBeforeAdopt + 1) {
+      await abort('E2E_ASSISTANT_CHOOSE_NOT_RECORDED: chosen=' + chosenTrue +
+                  ' chooses=' + assistanceChooses + '/' + (choosesBeforeAdopt + 1) +
+                  ' states=' + JSON.stringify(await readStates()), 15, ctx, b);
+    }
+    const afterChoose = await readStates();
+    const choiceLine = await page.locator('#as-choice').innerText();
+    if (afterChoose.primary.length !== 1 || afterChoose.primary[0] !== 'as-revise' ||
+        !/E2E Assistant Reviewer/.test(choiceLine) || !/r2/.test(afterChoose.chosen?.text ?? '')) {
+      await abort('E2E_ASSISTANT_STATES_AFTER_CHOOSE: ' + JSON.stringify(afterChoose)
+                  + ' choice=' + choiceLine, 15, ctx, b);
+    }
+    // Revision history keeps both versions, newest marked 最新.
+    await page.locator('#as-revisions > summary').click();
+    await page.waitForFunction(
+      () => document.querySelectorAll('#as-revisions li').length >= 2,
+      null, { timeout: 10000 }).catch(() => {});
+    const revisionRows = await page.locator('#as-revisions li').allInnerTexts();
+    // assistance_plan.detail() orders revisions ascending (`ORDER BY revision`), and the
+    // page renders that readback order unchanged; the newest row carries 最新.
+    if (revisionRows.length !== 2 || !/^r1/.test(revisionRows[0]) ||
+        !/旧版本/.test(revisionRows[0]) || !/^r2/.test(revisionRows[1]) ||
+        !/最新/.test(revisionRows[1])) {
+      await abort('E2E_ASSISTANT_REVISIONS: ' + JSON.stringify(revisionRows), 15, ctx, b);
+    }
+
+    // Throw the page away. The four states must be rebuilt from the service.
+    //
+    // A reload at #/assistant has no in-memory token, and the routed view
+    // deliberately hides the login panel — it shows「请先在工作台连接」instead.
+    // Going back to the workbench first is that screen's own instruction, not a
+    // test shortcut: the token field is only reachable on the workbench view.
+    await page.reload({ waitUntil: 'load' });
+    await page.evaluate(() => { window.location.hash = ''; });
+    await page.locator('#token').waitFor({ state: 'visible', timeout: 15000 });
+    await page.locator('#token').fill(token);
+    await page.locator('#connect-form button').first().click();
+    await page.locator('#workspace').waitFor({ state: 'visible', timeout: 15000 });
+    await page.evaluate(() => { window.location.hash = '#/assistant'; });
+    await page.locator('#as-objective').waitFor({ state: 'visible', timeout: 20000 });
+    await page.locator('#as-list .as-plan-open').first()
+      .waitFor({ state: 'visible', timeout: 20000 });
+    const listRow = await page.locator('#as-list .as-plan-row').first().innerText();
+    if (!/方案已提供/.test(listRow) || !/用户选用 r2/.test(listRow)) {
+      await abort('E2E_ASSISTANT_RELOAD_LIST: ' + listRow.replace(/[\r\n]+/g, ' · '), 15, ctx, b);
+    }
+    await page.locator('#as-list .as-plan-open').first().click();
+    const reloaded = await page.waitForFunction(() => {
+      const node = document.getElementById('as-chosen');
+      return !!node && node.dataset.state === 'true';
+    }, null, { timeout: 20000 }).then(readStates).catch(() => null);
+    if (!reloaded || reloaded.saved?.state !== 'true' || reloaded.provided?.state !== 'true' ||
+        reloaded.chosen?.state !== 'true' || reloaded.external?.state !== 'false') {
+      await abort('E2E_ASSISTANT_RELOAD_STATES: ' + JSON.stringify(reloaded), 15, ctx, b);
+    }
+    const reloadedChoice = await page.locator('#as-choice').innerText();
+    if (!/E2E Assistant Reviewer/.test(reloadedChoice) ||
+        !/外部未验证/.test(await page.locator('#as-plan').innerText())) {
+      await abort('E2E_ASSISTANT_RELOAD_CHOICE: ' + reloadedChoice, 15, ctx, b);
+    }
+    if (errors.length) {
+      await abort('E2E_ASSISTANT_BROWSER_ERRORS: ' + errors.slice(0, 6).join(' ;; '),
+                  15, ctx, b);
+    }
+
+    assistantLoop = {
+      outputType: outputTypeLabel,
+      saved: afterSave.saved.state === 'true',
+      providedAfterSave: afterSave.provided.state === 'true',
+      chosenAfterSave: afterSave.chosen.state === 'true',
+      externalVerified: afterSave.external.state === 'true',
+      copyWorked: /已复制/.test(copyNote),
+      copyCarriedHonesty: clipboardText.includes('外部未验证') &&
+                          clipboardText.includes('不是运行结果'),
+      copyWroteNothing,
+      copyChoseNothing,
+      emptyObjectiveRefused: emptyRefused,
+      suppliedCreative: providedTrue,
+      providerPrimary: afterProvided.primary[0] ?? '',
+      chosen: chosenTrue,
+      chosenActorShown: /E2E Assistant Reviewer/.test(choiceLine),
+      revisionRows: revisionRows.length,
+      reloadReadback: reloaded.chosen.state === 'true',
+      noChatSurface: initial.canvases === 0 && initial.logs === 0,
+    };
+    console.log('E2E_ASSISTANT_LOOP: ' + JSON.stringify(assistantLoop));
+  });
 
   await ctx.close();
   await b.close();

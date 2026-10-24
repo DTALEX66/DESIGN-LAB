@@ -445,7 +445,15 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # search results container is not one of the six: it replaced the pre-existing list
         # in the same position, so only a first-screen form and empty-state paragraph vary
         # around it. Empty states on this screen stay <p>/emptyLi(), as above.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 59)
+        # 2026-10-24 (DL-KB-08) again: 59 -> 66. The assistant screen's seven containers, all
+        # named: the project's plan records (as-list), the 目标与方向 value rows, the external
+        # steps that the service explicitly does not dispatch, the 参考与依据 status rows, the
+        # 已知缺口 rows, the 修订历史 chain, and the does_not_say sentences. Its attached-
+        # reference container is `class: 'list as-refs'` and is therefore NOT one of these --
+        # the exact-substring count is deliberate, so a container that shares the tag but not
+        # the class does not silently inflate it. Empty states here stay <p>/emptyLi() too:
+        # "no plan yet" must not be drawn as a list with zero members.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 66)
 
 
 if __name__ == "__main__":

@@ -66,6 +66,9 @@ const ROUTES = [
   ['analysis', '#/analysis'],
   // DL-KB-03/06: 知识与提示词库的 meta 行、命中说明与详情小字都是小号弱色文本，最容易掉 AA。
   ['knowledge', '#/knowledge'],
+  // DL-KB-08: 设计辅助的四态药丸用的是 .tag 的既有填充，但 meta 行与折叠摘要都是弱色小字，
+  // 必须和知识屏一样逐条量过，否则「四态可读」只是文案断言。
+  ['assistant', '#/assistant'],
 ];
 
 const MEASURE = () => {

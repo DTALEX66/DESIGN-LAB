@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/assistance-plan-output-types-v1.schema.json",
+  "title": "Assistance Plan Output Types V1 (the closed vocabulary the create route accepts)",
+  "$comment": "DL-KB-08. GET /api/assistance-plan-output-types answers with this document. The initial screen must offer an output type before any project exists, so the vocabulary cannot ride the project-scoped list route; it also cannot be hand-copied into TypeScript, because a second table would let the page offer a word the service refuses. Every value here is exactly what `assistance_plan.OUTPUT_TYPES` accepts, and the label is the Chinese name the screen shows for it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "output_types"],
+  "properties": {
+    "schemaVersion": {"const": "design-lab/assistance-plan-output-types/v1"},
+    "output_types": {
+      "type": "array", "minItems": 6, "maxItems": 6,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["value", "label"],
+        "properties": {
+          "value": {"enum": ["IMAGE", "UI", "MOTION", "STORYBOARD", "AUDIO", "CAMPAIGN"]},
+          "label": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

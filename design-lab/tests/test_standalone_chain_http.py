@@ -594,6 +594,15 @@ class StandaloneChainTests(unittest.TestCase):
         '/api/projects/([0-9a-f]{32})/prompt-results': ['/api/projects/{project}/prompt-results'],
         '/api/projects/([0-9a-f]{32})/knowledge-candidates':
             ['/api/projects/{project}/knowledge-candidates'],
+        # DL-KB-08. The output-type vocabulary is read before any workspace exists, which is the
+        # reason it is not part of the project-scoped collection below.
+        '/api/assistance-plan-output-types': ['/api/assistance-plan-output-types'],
+        # DL-KB-07 (batch K). The collection and one plan's readback. The plan is created by this
+        # sweep before the reads, so the detail route is measured on bytes the service stored.
+        '/api/projects/([0-9a-f]{32})/assistance-plans(?:\\?[^#]*)?':
+            ['/api/projects/{project}/assistance-plans'],
+        '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})':
+            ['/api/projects/{project}/assistance-plans/{aplan}'],
         '/api/projects/([0-9a-f]{32})/briefs(?:\\?after=(brief-[0-9a-f]{32}))?':
             ['/api/projects/{project}/briefs'],
         '/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})':
@@ -707,6 +716,19 @@ class StandaloneChainTests(unittest.TestCase):
                        'verification': 'UNVERIFIED'},
             'related_capability_ids': [], 'recommended': True, 'created_by': 'sweep',
             'supersedes': None}, 201)['entry']['knowledge_entry_id']
+        # DL-KB-07: a neutral plan over the asset and brief this sweep already wrote, so both
+        # assistance reads below answer about a stored document rather than a fabricated id.
+        plan = self.hop(
+            'assistance-plan', 'POST', f'/api/projects/{project}/assistance-plans',
+            {'objective': '为秋季新品做一张克制的主视觉海报', 'output_type': 'IMAGE',
+             'neutral_creative': '一束侧光穿过纸纤维，留出大面积空白承载标题。',
+             'brand_constraints': ['只用两种油墨'], 'role_constraints': [],
+             'lens': None, 'sound': None,
+             'references': [{'kind': 'ASSET', 'id': imported['id']}],
+             'external_steps': [{'step': '手动导出印刷 PDF', 'tool': 'Illustrator',
+                                 'job_id': None, 'operation_id': 'op-get-sweep'}],
+             'known_gaps': ['目标纸张未定'], 'limits': ['未包含多语言排版'],
+             'created_by': 'sweep'}, 201)['plan']['plan_id']
         systems = self.call('GET', '/api/design-systems')[1]
         names = _values_under(systems, 'name', 'id')
         self.assertTrue(names, 'the design-system catalog named no entry to build a token route')
@@ -723,7 +745,8 @@ class StandaloneChainTests(unittest.TestCase):
                  'direction': direction, 'design_system': names[0],
                  'delivery_project': delivered['project'], 'bundle': delivered['bundle']['id'],
                  'version': delivered['bundle']['version_id'], 'job': delivered['job_id'],
-                 'native_asset': native_assets['assets'][0]['id'], 'kentry': knowledge}
+                 'native_asset': native_assets['assets'][0]['id'], 'kentry': knowledge,
+                 'aplan': plan}
 
         layout = 'installed' if INSTALLED_MODE else 'source'
         answered, verdicts, unmeasured, refused = [], [], [], {}
@@ -735,7 +758,8 @@ class StandaloneChainTests(unittest.TestCase):
                 path = re.sub(r'\{(\w+)\}', lambda match: slots.get(match.group(1), ''), read)
                 missing = sorted(name for name in ('project', 'asset', 'brief', 'direction',
                                                    'design_system', 'delivery_project', 'bundle',
-                                                   'version', 'job', 'native_asset', 'kentry')
+                                                   'version', 'job', 'native_asset', 'kentry',
+                                                   'aplan')
                                  if '{' + name + '}' in read and not slots.get(name))
                 self.assertEqual(missing, [],
                                  f'{read} needs a slot this sweep has no value for: {missing}')

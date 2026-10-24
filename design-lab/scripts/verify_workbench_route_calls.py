@@ -88,6 +88,9 @@ CANDIDATES = (
     # 2026-10-23: knowledge library entry ids are `kentry-` + 32 hex (the shape
     # src/design_lab/knowledge_library.py mints and the read/revise route patterns require).
     'kentry-' + HEX32,
+    # 2026-10-24: assistance plan ids are `aplan-` + 32 hex, the shape
+    # src/design_lab/assistance_plan.py mints and the detail/choose/revision patterns require.
+    'aplan-' + HEX32,
     'design-system',
     'print',
     'digital',

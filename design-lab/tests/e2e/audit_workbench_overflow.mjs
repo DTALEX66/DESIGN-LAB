@@ -99,6 +99,8 @@ const ROUTES = [
   ['records', '#/records'],
   // DL-KB-03/06: 知识与提示词库是本批新增的读面，搜索框、meta 行与两栏详情都在几何闸里。
   ['knowledge', '#/knowledge'],
+  // DL-KB-08: 设计辅助。成对字段行（.as-row）与四态药丸在窄一档的桌面窗口里最先溢出。
+  ['assistant', '#/assistant'],
 ];
 
 // Deliberate clip: the screen-reader-only route-change announcer.
@@ -542,6 +544,9 @@ for (const w of widths) {
     if (!nav) return { present: false };
     const foot = document.querySelector('.sidebar-footer');
     const read = () => ({
+      // scrollHeight is viewport-independent, so DESIGN.md can quote the list's own height
+      // instead of re-deriving it from (hiddenPx + clientHeight) at one window size.
+      contentPx: nav.scrollHeight,
       hiddenPx: nav.scrollHeight - nav.clientHeight,
       atEnd: nav.scrollTop + nav.clientHeight >= nav.scrollHeight - 1,
       cue: nav.classList.contains('has-scroll-more'),

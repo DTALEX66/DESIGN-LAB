@@ -145,7 +145,20 @@ class RoutePayloadContractTests(unittest.TestCase):
                     # carries the short-word fallback's answer, not one trigram produced.
                     'knowledge-library-search': 1, 'knowledge-entry-write-create': 1,
                     'knowledge-entry-write-revise': 1, 'knowledge-entry-import': 2,
-                    'knowledge-entry-readback': 1, 'knowledge-index-rebuild': 1}
+                    'knowledge-entry-readback': 1, 'knowledge-index-rebuild': 1,
+                    # The assistance plan, paid 2026-10-24. The readback carries three answers
+                    # because its four states are computed per revision: saved-but-unsupplied,
+                    # supplied, and chosen-by-a-named-human are three different documents, and a
+                    # page that cannot tell them apart is the defect the route exists to prevent.
+                    # The list carries an empty project and one with a plan (the two branches the
+                    # `truncated` count separates). The two write answers are one case each: the
+                    # create always answers the first revision and a revise under a stale
+                    # `expected_revision` is a refusal, not a second document shape.
+                    'assistance-plan-write-create': 1, 'assistance-plan-write-revise': 1,
+                    'assistance-plan-readback': 3, 'assistance-plan-list': 2,
+                    # One case: the vocabulary is one closed list with no empty branch (the same
+                    # reason design-collection-systems carries one).
+                    'assistance-plan-output-types': 1, 'assistance-plan-choose': 1}
         self.assertEqual(sorted(expected), sorted(b['name'] for b in self.bindings),
                          'a binding added here without being listed below is a boundary this '
                          'file silently stopped covering')

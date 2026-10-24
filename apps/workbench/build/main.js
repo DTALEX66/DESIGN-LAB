@@ -1365,6 +1365,21 @@ const OFFLINE = {
     index: { rows: 0, indexed: 0, rebuilt_at: null },
     does_not_say: []
   },
+  // DL-KB-08：输出类型词表的诚实空载荷。离线时不手抄六项标签——选择框显示"未读回"，
+  // 也不把一个服务可能拒绝的词画成可选项。方案清单同理：空列表表示没有问到，不是"没有方案"。
+  assistanceOutputTypes: {
+    schemaVersion: "design-lab/assistance-plan-output-types/v1",
+    output_types: []
+  },
+  assistancePlans: {
+    schemaVersion: "design-lab/assistance-plan-list/v1",
+    total: 0,
+    offset: 0,
+    limit: 20,
+    returned: 0,
+    next_offset: null,
+    plans: []
+  },
   // 提示词反推需要一条真实存在的图像资产，所以资产清单也走同一只读接缝：没有读到
   // assets 时说未读回，而不是"这个项目没有素材"。
   assets: { assets: [] },
@@ -1417,6 +1432,9 @@ const OFFLINE = {
 const ROUTE_VIEWS = [
   // 设计辅助：拿到一个目标、看清它、找到参考与方法。
   { hash: "", view: "workbench", label: "工作台", entry: "设计辅助" },
+  // DL-KB-08：日常入口本身。初始屏只露需求、参考附件与输出类型；结果是服务里的一条方案记录，
+  // 四态（已保存／方案已提供／用户选用／外部未验证）由读回计算，页面不替服务下结论。
+  { hash: "#/assistant", view: "assistant", label: "设计辅助", entry: "设计辅助" },
   { hash: "#/dashboard", view: "dashboard", label: "仪表盘", entry: "设计辅助" },
   { hash: "#/intake", view: "intake", label: "输入与目标", entry: "设计辅助" },
   { hash: "#/analysis", view: "analysis", label: "分析与方案", entry: "设计辅助" },
@@ -5609,6 +5627,1063 @@ async function renderKnowledgeLibrary(target) {
   const initial = await load(0);
   if (initial) renderAnswer(initial, false);
 }
+const ASSIST_UNKNOWN = "UNKNOWN";
+const ASSIST_UNUSED = "UNUSED";
+function assistanceWords(value) {
+  return value.split(/[、,，\n]/).map((part) => part.trim()).filter(Boolean);
+}
+function assistanceSteps(text) {
+  const rows = [];
+  for (const line of text.split("\n")) {
+    if (!line.trim()) continue;
+    const parts = line.split("|").map((part) => part.trim());
+    const step = parts[0] ?? "";
+    if (!step) return null;
+    rows.push({
+      step,
+      tool: parts[1] || null,
+      job_id: parts[2] || null,
+      operation_id: parts[3] || null
+    });
+  }
+  return rows;
+}
+function assistanceRefusal(error) {
+  const envelope = error?.serviceEnvelope;
+  const code = envelope?.error;
+  const detail = envelope?.detail;
+  if (typeof code !== "string") return errMsg(error);
+  return typeof detail === "string" && detail ? `${code}：${detail}` : code;
+}
+async function renderDesignAssistant(target) {
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读取输出类型与工作区…"));
+  const objective = el("textarea", {
+    id: "as-objective",
+    class: "input",
+    rows: "4",
+    placeholder: "例如：为秋季新品做一张克制的主视觉海报，给标题留出大面积空白。"
+  });
+  const outputType = el(
+    "select",
+    { id: "as-output-type", class: "input" },
+    el("option", { value: "" }, "输出类型未读回")
+  );
+  const workspace = el("select", { id: "as-workspace", class: "input" });
+  const workspaceName = el("input", {
+    id: "as-workspace-name",
+    class: "input",
+    maxlength: "160",
+    placeholder: "工作区名称（留空则取需求前 20 字）"
+  });
+  const workspaceNameRow = el(
+    "label",
+    { class: "field-row as-new-workspace" },
+    el("span", {}, "新工作区名称"),
+    workspaceName
+  );
+  const author = el("input", {
+    id: "as-author",
+    class: "input",
+    maxlength: "120",
+    placeholder: "你的名字或代号（必填）"
+  });
+  const assetSelect = el("select", { id: "as-reference-select", class: "input" });
+  const addReference = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "as-reference-add"
+  }, "添加参考");
+  const referenceList = el("ul", { class: "list as-refs", id: "as-references" });
+  const submit = el(
+    "button",
+    { type: "submit", class: "primary-btn", id: "as-submit" },
+    "整理方案"
+  );
+  const cancelEdit = el("button", {
+    type: "button",
+    class: "ghost-btn as-hidden",
+    id: "as-cancel-edit"
+  }, "取消修订");
+  const formError = el("p", { class: "error", id: "as-form-error", role: "alert" });
+  const formStatus = el("p", { class: "view-hint", id: "as-form-status", role: "status" });
+  const creative = el("textarea", {
+    id: "as-creative",
+    class: "input",
+    rows: "4",
+    placeholder: "一段中性的创意说明；留空则方案只有目标（保存成功，但未提供创意）。"
+  });
+  const brand = el("input", {
+    id: "as-brand",
+    class: "input",
+    placeholder: "例如：只用两种油墨（用、或逗号分隔）"
+  });
+  const role = el("input", {
+    id: "as-role",
+    class: "input",
+    placeholder: "例如：面向采购负责人（用、或逗号分隔）"
+  });
+  const lens = el("input", {
+    id: "as-lens",
+    class: "input",
+    placeholder: "镜头或视角要求（可留空）"
+  });
+  const sound = el("input", {
+    id: "as-sound",
+    class: "input",
+    placeholder: "声音或配乐要求（可留空）"
+  });
+  const gaps = el("input", {
+    id: "as-gaps",
+    class: "input",
+    placeholder: "待补充内容（可留空）"
+  });
+  const limits = el("input", {
+    id: "as-limits",
+    class: "input",
+    placeholder: "这次不做什么（可留空）"
+  });
+  const stepText = el("textarea", {
+    id: "as-steps",
+    class: "input",
+    rows: "3",
+    placeholder: "每行一条：步骤 | 工具 | 作业编号 | 操作编号\n后三项可留空；服务会写 UNKNOWN / UNUSED，不自造编号。"
+  });
+  const more = el(
+    "details",
+    { class: "advanced" },
+    el("summary", {}, "更多设置（设计建议、约束与外部步骤）"),
+    el(
+      "div",
+      { class: "advanced-body as-more" },
+      el("label", { class: "field-row" }, el("span", {}, "设计建议"), creative),
+      el("label", { class: "field-row" }, el("span", {}, "品牌约束"), brand),
+      el("label", { class: "field-row" }, el("span", {}, "角色约束"), role),
+      el("label", { class: "field-row" }, el("span", {}, "镜头 / 视角"), lens),
+      el("label", { class: "field-row" }, el("span", {}, "声音"), sound),
+      el("label", { class: "field-row" }, el("span", {}, "待补充内容"), gaps),
+      el("label", { class: "field-row" }, el("span", {}, "边界（不做什么）"), limits),
+      el("label", { class: "field-row" }, el("span", {}, "外部步骤"), stepText)
+    )
+  );
+  const form = el(
+    "form",
+    { class: "panel as-form", id: "as-form" },
+    el("h3", {}, "你想完成什么设计？"),
+    el(
+      "p",
+      { class: "view-hint" },
+      "写下目标就能保存一条方案。保存的是方案本身，不是一次模型运行；工具与模型不在这里选，稍后在工具交接里补。"
+    ),
+    el("label", { class: "field-row" }, el("span", {}, "需求"), objective),
+    el(
+      "div",
+      { class: "as-row" },
+      el("label", { class: "field-row" }, el("span", {}, "工作区"), workspace),
+      workspaceNameRow
+    ),
+    el(
+      "label",
+      { class: "field-row" },
+      el("span", {}, "参考附件"),
+      el("div", { class: "as-row" }, assetSelect, addReference)
+    ),
+    referenceList,
+    el(
+      "div",
+      { class: "as-row" },
+      el("label", { class: "field-row" }, el("span", {}, "输出类型"), outputType),
+      el("label", { class: "field-row" }, el("span", {}, "记录人"), author)
+    ),
+    more,
+    formError,
+    formStatus,
+    el("div", { class: "as-actions" }, submit, cancelEdit)
+  );
+  const planList = el("ul", { class: "list", id: "as-list" });
+  const listMeta = el("p", { class: "view-hint", id: "as-list-meta" });
+  const listPanel = el(
+    "section",
+    { class: "panel" },
+    el("h3", {}, "最近的方案"),
+    listMeta,
+    planList
+  );
+  const meta = el("div", { class: "as-meta", id: "as-meta", role: "status" });
+  const detailHost = el("div", { id: "as-detail" });
+  let outputTypes = [];
+  let workspaces = [];
+  let selected = "";
+  let references = [];
+  let assets = [];
+  let plans = [];
+  let planAnswer = OFFLINE.assistancePlans;
+  let editing = null;
+  let busy2 = false;
+  let vocabularyNotice = "";
+  let workspaceNotice = "";
+  let plansNotice = "";
+  let assetsNotice = "";
+  async function loadVocabulary() {
+    const answer = await apiOrEmpty(
+      "/assistance-plan-output-types",
+      OFFLINE.assistanceOutputTypes
+    );
+    vocabularyNotice = shapeNotice(answer);
+    return answer;
+  }
+  async function loadWorkspaces() {
+    const answer = await apiOrEmpty("/projects", OFFLINE.projects);
+    workspaceNotice = shapeNotice(answer);
+    return answer;
+  }
+  async function loadPlans(projectId) {
+    const answer = await apiOrEmpty(
+      `/projects/${projectId}/assistance-plans?limit=20`,
+      OFFLINE.assistancePlans
+    );
+    plansNotice = shapeNotice(answer);
+    return answer;
+  }
+  async function loadAssets(projectId) {
+    const answer = await apiOrEmpty(
+      `/projects/${projectId}/assets`,
+      OFFLINE.assets
+    );
+    assetsNotice = shapeNotice(answer);
+    return answer;
+  }
+  const labelOf = (value) => outputTypes.find((option) => option.value === value)?.label ?? value;
+  const notices = () => [vocabularyNotice, workspaceNotice, plansNotice, assetsNotice].filter(Boolean).join("；");
+  function fillWorkspaces() {
+    workspace.replaceChildren(
+      el("option", { value: "" }, "＋ 新建轻量工作区"),
+      ...workspaces.map((project2) => el("option", { value: project2.id }, project2.name))
+    );
+    workspace.value = selected;
+    workspaceNameRow.classList.toggle("as-hidden", selected !== "");
+  }
+  function fillAssets() {
+    assetSelect.replaceChildren(
+      el("option", { value: "" }, assets.length ? "选择参考素材" : "此工作区还没有素材"),
+      ...assets.map((asset) => el(
+        "option",
+        { value: asset.id },
+        `${asset.kind === "raster" ? "图片" : asset.kind} · ${asset.id}`
+      ))
+    );
+    addReference.disabled = !assets.length;
+  }
+  function renderReferences() {
+    const known = new Set(assets.map((asset) => asset.id));
+    referenceList.replaceChildren(...references.length ? references.map((id) => el(
+      "li",
+      { class: "list-item as-ref" },
+      el("span", { class: "value-mono" }, id),
+      el(
+        "span",
+        { class: "tag " + (known.has(id) ? "neutral" : "warn") },
+        known.has(id) ? "已选参考" : "不在当前素材清单"
+      ),
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          references = references.filter((entry) => entry !== id);
+          renderReferences();
+        }
+      }, "移除")
+    )) : [el(
+      "li",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, "未添加参考"),
+        el("small", {}, "参考只登记链接与当时的版本；服务不会因此分析图片。")
+      )
+    )]);
+  }
+  function renderPlans() {
+    if (!selected) {
+      listMeta.textContent = "还没有工作区：保存第一条方案时会新建一个轻量工作区。";
+      planList.replaceChildren();
+      return;
+    }
+    if (plansNotice) {
+      listMeta.textContent = plansNotice;
+      planList.replaceChildren(el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "未读回"),
+          el("small", {}, `${plansNotice}，因此不能说这个工作区没有方案。`)
+        )
+      ));
+      return;
+    }
+    listMeta.textContent = plans.length ? `共 ${plans.length} 条（最近 20 条）` : "";
+    if (!plans.length) {
+      planList.replaceChildren(emptyLi(
+        planAnswer,
+        "尚无方案",
+        "在上方写下需求并保存第一条；保存后会在这里读回。"
+      ));
+      return;
+    }
+    planList.replaceChildren(...plans.map((row) => {
+      const badges = [el("span", { class: "tag info" }, `r${row.revision}`)];
+      badges.push(row.provided ? el("span", { class: "tag ok" }, "方案已提供") : el("span", { class: "tag warn" }, "尚未提供创意"));
+      badges.push(row.chosen_revision === null ? el("span", { class: "tag neutral" }, "尚无用户选用") : el("span", { class: "tag ok" }, `用户选用 r${row.chosen_revision}`));
+      return el(
+        "li",
+        { class: "list-item as-plan-row" },
+        el(
+          "button",
+          {
+            type: "button",
+            class: "as-plan-open",
+            onclick: () => {
+              void openPlan(row.plan_id);
+            }
+          },
+          el("strong", {}, row.objective),
+          el("small", {}, `${labelOf(row.output_type)} · ${row.created_by} · ${row.created_at}`)
+        ),
+        el("div", { class: "as-badges" }, ...badges)
+      );
+    }));
+  }
+  async function refreshPlans() {
+    if (!selected) {
+      plans = [];
+      planAnswer = OFFLINE.assistancePlans;
+      plansNotice = "";
+      renderPlans();
+      return;
+    }
+    const answer = await loadPlans(selected);
+    plans = answer.plans;
+    planAnswer = answer;
+    renderPlans();
+  }
+  async function refreshAssets() {
+    if (!selected) {
+      assets = [];
+      assetsNotice = "";
+      fillAssets();
+      renderReferences();
+      return;
+    }
+    const answer = await loadAssets(selected);
+    assets = answer.assets;
+    fillAssets();
+    renderReferences();
+  }
+  function referenceRow(status) {
+    const stateLabel = status.state === "CURRENT" ? "当前" : status.state === "CHANGED" ? "已变化" : "找不到";
+    const stateClass = status.state === "CURRENT" ? "ok" : status.state === "CHANGED" ? "warn" : "bad";
+    const analysisLabel = status.analysis === "ANALYZED" ? "已分析" : status.analysis === "LINKED_ONLY" ? "仅登记链接" : "不适用";
+    return el(
+      "li",
+      { class: "list-item value-row" },
+      el(
+        "div",
+        { class: "as-ref-head" },
+        el("span", { class: "tag info" }, status.kind),
+        el("span", { class: "tag " + stateClass }, stateLabel),
+        el(
+          "span",
+          { class: "tag " + (status.analysis === "ANALYZED" ? "ok" : "neutral") },
+          analysisLabel
+        )
+      ),
+      el("span", { class: "value-mono" }, status.id),
+      el(
+        "small",
+        {},
+        `登记 r${status.recorded_revision} · 现为 ` + (status.current_revision === null ? "找不到" : `r${status.current_revision}`)
+      )
+    );
+  }
+  function stepRow(step) {
+    const label = (value) => {
+      if (value === ASSIST_UNKNOWN) return el("span", { class: "tag neutral" }, "未登记");
+      if (value === ASSIST_UNUSED) return el("span", { class: "tag neutral" }, "未使用 ", en(ASSIST_UNUSED));
+      return value;
+    };
+    return el(
+      "li",
+      { class: "list-item value-row" },
+      el("span", {}, step.step),
+      el("small", {}, "工具："),
+      el("span", {}, label(step.tool)),
+      el("small", {}, "作业编号："),
+      el("span", {}, label(step.job_id)),
+      el("small", {}, "操作编号："),
+      el("span", {}, label(step.operation_id))
+    );
+  }
+  function planText(doc, answer) {
+    const lines = [
+      `设计辅助方案 · r${doc.revision}`,
+      `目标：${doc.objective}`,
+      `输出类型：${labelOf(doc.output_type)}`,
+      `记录人：${doc.created_by} · ${doc.created_at}`,
+      "",
+      "目标与方向",
+      `品牌约束：${doc.brand_constraints.join("、") || "未登记"}`,
+      `角色约束：${doc.role_constraints.join("、") || "未登记"}`,
+      `镜头 / 视角：${doc.lens === ASSIST_UNKNOWN ? "未登记" : doc.lens}`,
+      `声音：${doc.sound === ASSIST_UNKNOWN ? "未登记" : doc.sound}`,
+      `边界：${doc.limits.join("、") || "未登记"}`,
+      "",
+      "设计建议",
+      doc.neutral_creative === ASSIST_UNKNOWN ? "尚未提供创意。" : doc.neutral_creative,
+      "",
+      "工具交接材料"
+    ];
+    if (!doc.external_steps.length) lines.push("本方案没有登记外部步骤。");
+    for (const step of doc.external_steps) {
+      lines.push(`- ${step.step} · 工具 ${step.tool} · 作业编号 ${step.job_id} · 操作编号 ${step.operation_id}`);
+    }
+    lines.push("", "待补充内容", doc.known_gaps.join("、") || "未登记", "");
+    lines.push(`状态：已保存；${answer.states.provided ? "方案已提供" : "尚未提供创意"}；` + (answer.choice.chosen ? `用户选用 r${answer.choice.revision}` : "尚无用户选用") + "；外部未验证。");
+    if (answer.choice.chosen && answer.choice.actor) {
+      lines.push(`选用人：${answer.choice.actor}（${answer.choice.chosen_at}）`);
+    }
+    lines.push("", "服务声明：");
+    for (const line of answer.does_not_say) lines.push(`- ${line}`);
+    lines.push("", "（文本由本机服务读回后复制或下载；不是运行结果，外部步骤未被核验。）");
+    return lines.join("\n");
+  }
+  function copyOrDownload(answer, note, download) {
+    const doc = answer.current;
+    if (!doc) return;
+    const text = planText(doc, answer);
+    if (download) {
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = el("a", {
+        href: url,
+        download: `assistance-plan-${doc.plan_id}-r${doc.revision}.txt`
+      });
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1e3);
+      note.textContent = "材料已作为文本文件下载：它包含方案正文与服务声明，不是运行结果。";
+      return;
+    }
+    const finish = (message) => {
+      note.textContent = message;
+    };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => finish("已复制方案文本（粘贴到任意文档即可使用）；这只是复制，不是选用。"),
+        () => showCopyFallback(text, note)
+      );
+      return;
+    }
+    showCopyFallback(text, note);
+  }
+  function showCopyFallback(text, note) {
+    const area = el("textarea", {
+      class: "input as-copy-fallback",
+      rows: "6",
+      readonly: "readonly"
+    });
+    area.value = text;
+    note.replaceChildren(el(
+      "span",
+      {},
+      "浏览器没有允许写入剪贴板：文本已在下方展开并选中，按 Ctrl+C 复制。这只是复制，不是选用。"
+    ), area);
+    area.focus();
+    area.select();
+  }
+  function renderDetail(answer) {
+    const doc = answer.current;
+    if (!doc) {
+      detailHost.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "这个方案的最新修订无法解析：页面不展示正文，也不猜测它的内容。"
+      ));
+      return;
+    }
+    const states = answer.states;
+    const choice = answer.choice;
+    const chosenElsewhere = choice.chosen && !choice.is_latest;
+    const chips = el(
+      "div",
+      { class: "as-states", id: "as-states" },
+      el(
+        "span",
+        {
+          class: "tag " + (states.saved ? "ok" : "neutral"),
+          id: "as-saved",
+          dataset: { state: String(states.saved) }
+        },
+        states.saved ? "已保存" : "尚未保存"
+      ),
+      el(
+        "span",
+        {
+          class: "tag " + (states.provided ? "ok" : "warn"),
+          id: "as-provided",
+          dataset: { state: String(states.provided) }
+        },
+        states.provided ? "方案已提供" : "尚未提供创意"
+      ),
+      el(
+        "span",
+        {
+          class: "tag " + (states.chosen ? "ok" : "neutral"),
+          id: "as-chosen",
+          dataset: { state: String(states.chosen) }
+        },
+        states.chosen ? `用户选用 · r${choice.revision}` : "尚无用户选用"
+      ),
+      el(
+        "span",
+        {
+          class: "tag " + (states.externally_verified ? "ok" : "warn"),
+          id: "as-external",
+          dataset: { state: String(states.externally_verified) }
+        },
+        states.externally_verified ? "外部已验证" : "外部未验证"
+      )
+    );
+    const note = el("p", { class: "view-hint as-copy-note", id: "as-copy-note" });
+    const actions = el("div", { class: "as-actions", id: "as-actions" });
+    const copyButton = el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-copy",
+      onclick: () => copyOrDownload(answer, note, false)
+    }, "复制文本");
+    const downloadButton = el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-download",
+      onclick: () => copyOrDownload(answer, note, true)
+    }, "下载材料");
+    let primary;
+    if (!states.provided) {
+      primary = el("button", {
+        type: "button",
+        class: "primary-btn",
+        id: "as-supply",
+        onclick: () => {
+          void startEditing(answer, true);
+        }
+      }, "补充创意");
+    } else if (!states.chosen || chosenElsewhere) {
+      primary = el(
+        "button",
+        {
+          type: "button",
+          class: "primary-btn",
+          id: "as-choose",
+          onclick: () => openChooseForm(answer, actions, note)
+        },
+        chosenElsewhere ? `设为选用 r${answer.latest_revision}` : "设为选用"
+      );
+    } else {
+      primary = el("button", {
+        type: "button",
+        class: "primary-btn",
+        id: "as-revise",
+        onclick: () => {
+          void startEditing(answer, false);
+        }
+      }, "修订方案");
+    }
+    const reviseGhost = states.provided && !(primary.id === "as-revise") ? el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-revise",
+      onclick: () => {
+        void startEditing(answer, false);
+      }
+    }, "修订方案") : null;
+    actions.replaceChildren(
+      primary,
+      ...reviseGhost ? [reviseGhost] : [],
+      copyButton,
+      downloadButton
+    );
+    const sections = [
+      el(
+        "div",
+        { class: "as-detail-head" },
+        el(
+          "div",
+          {},
+          el("h3", {}, doc.objective),
+          el(
+            "p",
+            { class: "muted" },
+            `${labelOf(doc.output_type)} · 最新 r${answer.latest_revision} · 记录人 ${doc.created_by} · ${doc.created_at}`
+          )
+        ),
+        chips
+      )
+    ];
+    if (chosenElsewhere) {
+      sections.push(el(
+        "p",
+        { class: "error" },
+        `选用记录在 r${choice.revision}，最新已是 r${answer.latest_revision}：选用的不是最新修订，两者都如实保留。`
+      ));
+    }
+    if (choice.chosen && choice.actor) {
+      sections.push(el(
+        "p",
+        { class: "view-hint", id: "as-choice" },
+        `选用人 ${choice.actor} · ${choice.chosen_at ?? "时间未读回"}` + (choice.is_latest ? "" : `（选用的是 r${choice.revision}，不是最新修订）`)
+      ));
+    }
+    sections.push(el("h4", {}, "目标与方向"));
+    sections.push(el("p", { class: "as-body" }, doc.objective));
+    sections.push(el(
+      "ul",
+      { class: "list" },
+      valueRow("输出类型", labelOf(doc.output_type), false),
+      valueRow("品牌约束", doc.brand_constraints.join("、") || "未登记", true),
+      valueRow("角色约束", doc.role_constraints.join("、") || "未登记", true),
+      valueRow("镜头 / 视角", doc.lens === ASSIST_UNKNOWN ? "未登记" : doc.lens, true),
+      valueRow("声音", doc.sound === ASSIST_UNKNOWN ? "未登记" : doc.sound, true),
+      valueRow("边界", doc.limits.join("、") || "未登记", true)
+    ));
+    sections.push(el("h4", {}, "设计建议"));
+    sections.push(el(
+      "p",
+      { class: states.provided ? "as-body" : "view-hint" },
+      states.provided ? doc.neutral_creative : "尚未提供创意：这条方案已经保存，只是还没有写到创意。用「补充创意」补上。"
+    ));
+    const storyboardApplies = doc.output_type === "STORYBOARD" || doc.output_type === "MOTION";
+    sections.push(el("h4", {}, "脚本与分镜"));
+    if (!storyboardApplies) {
+      sections.push(el(
+        "p",
+        { class: "view-hint" },
+        `输出类型是「${labelOf(doc.output_type)}」，本方案不要求分镜；分镜只在分镜与动效方案里出现。`
+      ));
+    } else if (!states.provided) {
+      sections.push(el(
+        "p",
+        { class: "view-hint" },
+        "尚未提供创意，因此还没有可读的脚本与分镜。"
+      ));
+    } else {
+      sections.push(el("p", { class: "as-body" }, doc.neutral_creative));
+      sections.push(el(
+        "p",
+        { class: "view-hint" },
+        "本版本的脚本与分镜就是「设计建议」这一段正文：服务没有单独的分镜表，页面不把它拆成并不存在的镜头行。"
+      ));
+    }
+    sections.push(el("h4", {}, "工具交接材料"));
+    sections.push(doc.external_steps.length ? el("ul", { class: "list" }, ...doc.external_steps.map(stepRow)) : el("p", { class: "view-hint" }, "本方案没有登记外部步骤。"));
+    sections.push(el(
+      "p",
+      { class: "view-hint" },
+      "服务不派发也不核验这些步骤；编号是登记值，不是执行证据。"
+    ));
+    const referenceSummary = `当前 ${answer.reference_status.length} 条参考 · 已分析 ${answer.analysis_summary.analyzed} · 仅登记链接 ${answer.analysis_summary.linked_only}`;
+    sections.push(el(
+      "details",
+      { class: "advanced", id: "as-basis" },
+      el("summary", {}, `参考与依据（${referenceSummary}）`),
+      el(
+        "div",
+        { class: "advanced-body" },
+        el("ul", { class: "list" }, ...answer.reference_status.length ? answer.reference_status.map(referenceRow) : [el("li", { class: "list-item" }, "这条方案没有登记参考。")]),
+        el(
+          "p",
+          { class: "view-hint" },
+          "参考按写入时的版本与摘要固定；「已变化」表示对象后来前进了，「仅登记链接」表示没有那次摘要的反推证据。"
+        )
+      )
+    ));
+    const tools = doc.external_steps.map((step) => step.tool).filter((tool) => tool !== ASSIST_UNKNOWN && tool !== ASSIST_UNUSED);
+    sections.push(el(
+      "details",
+      { class: "advanced", id: "as-tools" },
+      el("summary", {}, "适用工具"),
+      el(
+        "div",
+        { class: "advanced-body" },
+        tools.length ? el("p", {}, `方案登记的工具：${tools.join("、")}。工具组合可以稍后再选。`) : el("p", { class: "view-hint" }, "还没有登记工具；这不妨碍保存与复制方案。")
+      )
+    ));
+    sections.push(el(
+      "details",
+      { class: "advanced", id: "as-gaps" },
+      el("summary", {}, `待补充内容（${doc.known_gaps.length}）`),
+      el(
+        "div",
+        { class: "advanced-body" },
+        doc.known_gaps.length ? el("ul", { class: "list" }, ...doc.known_gaps.map((gap) => el("li", { class: "list-item" }, gap))) : el("p", { class: "view-hint" }, "服务没有记录待补充项。")
+      )
+    ));
+    const revisionRow = (revision) => el(
+      "li",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, `r${revision.revision}`),
+        el("small", {}, `${revision.created_by} · ${revision.created_at}` + (revision.readable ? "" : " · JSON 不可读")),
+        el("small", { class: "value-mono" }, revision.content_sha256)
+      ),
+      el(
+        "span",
+        { class: "tag " + (revision.revision === answer.latest_revision ? "info" : "neutral") },
+        revision.revision === answer.latest_revision ? "最新" : "旧版本"
+      )
+    );
+    sections.push(el(
+      "details",
+      { class: "advanced", id: "as-revisions" },
+      el("summary", {}, `修订历史（${answer.revisions.length}）`),
+      el(
+        "div",
+        { class: "advanced-body" },
+        el("ul", { class: "list" }, ...answer.revisions.map(revisionRow))
+      )
+    ));
+    if (answer.does_not_say.length) {
+      sections.push(el(
+        "details",
+        { class: "advanced", id: "as-claims" },
+        el("summary", {}, "服务声明它没有说的话"),
+        el(
+          "div",
+          { class: "advanced-body" },
+          el("ul", { class: "list" }, ...answer.does_not_say.map((line) => el("li", { class: "list-item" }, line)))
+        )
+      ));
+    }
+    sections.push(actions, note);
+    detailHost.replaceChildren(el(
+      "section",
+      { class: "panel as-detail", id: "as-plan" },
+      ...sections
+    ));
+  }
+  function openChooseForm(answer, actions, note) {
+    const name = el("input", {
+      id: "as-choose-name",
+      class: "input",
+      maxlength: "200",
+      placeholder: "选用人姓名（必填；这是一条具名人工记录）"
+    });
+    const error = el("p", { class: "error", role: "alert" });
+    const confirm = el("button", {
+      type: "submit",
+      class: "primary-btn",
+      id: "as-choose-submit"
+    }, "确认选用");
+    const cancel = el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-choose-cancel"
+    }, "取消");
+    const chooseForm = el(
+      "form",
+      { class: "as-choose", id: "as-choose-form" },
+      el("label", { class: "field-row" }, el("span", {}, "以谁的名义选用"), name),
+      el(
+        "p",
+        { class: "view-hint" },
+        `将记录：${answer.latest_revision} 这一次修订被具名的人选用。它不是评分，也不是系统推荐；复制文本不需要这一步。`
+      ),
+      error,
+      el("div", { class: "as-actions" }, confirm, cancel)
+    );
+    chooseForm.onsubmit = (event) => {
+      event.preventDefault();
+      const actor = name.value.trim();
+      if (!actor) {
+        error.textContent = "请填写选用人姓名：只有具名的人可以选用，代理不能替人选用。";
+        name.focus();
+        return;
+      }
+      confirm.disabled = true;
+      void (async () => {
+        try {
+          const chosen = await api(
+            `/projects/${selected}/assistance-plans/${answer.plan_id}/choose`,
+            { actor, actor_kind: "human", revision: answer.latest_revision }
+          );
+          note.textContent = `已记录：${actor} 选用 r${answer.latest_revision}。`;
+          renderDetail(chosen);
+          await refreshPlans();
+        } catch (failure) {
+          error.textContent = `选用失败：${assistanceRefusal(failure)}`;
+          confirm.disabled = false;
+        }
+      })();
+    };
+    cancel.onclick = () => {
+      actions.replaceChildren();
+      renderDetail(answer);
+    };
+    actions.replaceChildren(chooseForm);
+    name.focus();
+  }
+  function endEditing() {
+    editing = null;
+    submit.textContent = "整理方案";
+    cancelEdit.classList.add("as-hidden");
+  }
+  async function startEditing(answer, focusCreative) {
+    const doc = answer.current;
+    if (!doc) return;
+    editing = { planId: answer.plan_id, expectedRevision: answer.latest_revision };
+    if (!workspaces.some((project2) => project2.id === doc.project_id)) {
+      workspaces = (await loadWorkspaces()).projects;
+    }
+    selected = doc.project_id;
+    fillWorkspaces();
+    objective.value = doc.objective;
+    outputType.value = doc.output_type;
+    creative.value = doc.neutral_creative === ASSIST_UNKNOWN ? "" : doc.neutral_creative;
+    brand.value = doc.brand_constraints.join("、");
+    role.value = doc.role_constraints.join("、");
+    lens.value = doc.lens === ASSIST_UNKNOWN ? "" : doc.lens;
+    sound.value = doc.sound === ASSIST_UNKNOWN ? "" : doc.sound;
+    gaps.value = doc.known_gaps.join("、");
+    limits.value = doc.limits.join("、");
+    stepText.value = doc.external_steps.map((step) => [
+      step.step,
+      step.tool === ASSIST_UNKNOWN ? "" : step.tool,
+      step.job_id === ASSIST_UNUSED ? "" : step.job_id,
+      step.operation_id === ASSIST_UNUSED ? "" : step.operation_id
+    ].join(" | ")).join("\n");
+    references = doc.references.map((reference) => reference.id);
+    await refreshAssets();
+    await refreshPlans();
+    submit.textContent = "保存为新修订";
+    cancelEdit.classList.remove("as-hidden");
+    more.open = true;
+    formStatus.textContent = `正在修订 r${answer.latest_revision}：保存会追加一条新修订，旧版本保留。`;
+    formError.replaceChildren();
+    form.scrollIntoView({ block: "start" });
+    (focusCreative ? creative : objective).focus();
+  }
+  async function openPlan(planId) {
+    if (!selected) return;
+    detailHost.replaceChildren(el("p", { class: "view-loading" }, "正在读回方案…"));
+    try {
+      const answer = await api(
+        `/projects/${selected}/assistance-plans/${planId}`
+      );
+      renderDetail(answer);
+      document.getElementById("as-plan")?.scrollIntoView({ block: "start" });
+    } catch (error) {
+      detailHost.replaceChildren(
+        el("p", { class: "error" }, `方案读回失败：${assistanceRefusal(error)}`),
+        el("button", {
+          type: "button",
+          class: "ghost-btn",
+          onclick: () => {
+            void openPlan(planId);
+          }
+        }, "重新读回")
+      );
+    }
+  }
+  async function afterWrite(planId, message) {
+    formStatus.textContent = message;
+    await openPlan(planId);
+    await refreshPlans();
+  }
+  async function submitPlan() {
+    if (busy2) return;
+    formError.replaceChildren();
+    formStatus.replaceChildren();
+    const text = objective.value.trim();
+    if (!text) {
+      formError.textContent = "请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。";
+      objective.focus();
+      return;
+    }
+    if (!author.value.trim()) {
+      formError.textContent = "记录人不能为空：方案要写明是谁写的。";
+      author.focus();
+      return;
+    }
+    if (!outputType.value) {
+      formError.textContent = "输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。";
+      outputType.focus();
+      return;
+    }
+    const stepRows = assistanceSteps(stepText.value);
+    if (stepRows === null) {
+      formError.textContent = "外部步骤每行都要有步骤名称：格式是「步骤 | 工具 | 作业编号 | 操作编号」，后三项可留空。";
+      stepText.focus();
+      return;
+    }
+    busy2 = true;
+    submit.disabled = true;
+    try {
+      if (!selected) {
+        const name = workspaceName.value.trim() || text.slice(0, 20);
+        const created = await api("/projects", { name });
+        selected = created.project.id;
+        workspaces = (await loadWorkspaces()).projects;
+        fillWorkspaces();
+      }
+      const body = {
+        objective: text,
+        output_type: outputType.value,
+        neutral_creative: creative.value.trim() || null,
+        brand_constraints: assistanceWords(brand.value),
+        role_constraints: assistanceWords(role.value),
+        lens: lens.value.trim() || null,
+        sound: sound.value.trim() || null,
+        references: references.map((id) => ({ kind: "ASSET", id })),
+        external_steps: stepRows,
+        known_gaps: assistanceWords(gaps.value),
+        limits: assistanceWords(limits.value),
+        created_by: author.value.trim()
+      };
+      if (editing) {
+        const saved = await api(
+          `/projects/${selected}/assistance-plans/${editing.planId}/revisions`,
+          { ...body, expected_revision: editing.expectedRevision }
+        );
+        const planId = saved.plan.plan_id;
+        endEditing();
+        objective.value = "";
+        creative.value = "";
+        references = [];
+        stepText.value = "";
+        renderReferences();
+        await afterWrite(planId, `已保存为 r${saved.revision}：旧修订保留，新修订成为最新。`);
+      } else {
+        const saved = await api(
+          `/projects/${selected}/assistance-plans`,
+          body
+        );
+        objective.value = "";
+        creative.value = "";
+        references = [];
+        stepText.value = "";
+        renderReferences();
+        await afterWrite(saved.plan.plan_id, `已保存 r${saved.revision}。` + (saved.plan.neutral_creative === ASSIST_UNKNOWN ? "这条方案还没有创意，四态里「方案已提供」会保持为否。" : ""));
+      }
+      await refreshAssets();
+    } catch (error) {
+      const envelope = error?.serviceEnvelope;
+      if (editing && envelope?.error === "ASSISTANCE_PLAN_REVISION_CONFLICT") {
+        formError.replaceChildren(
+          el("span", {}, `保存失败：${assistanceRefusal(error)}。这次写入按 r${editing.expectedRevision} 准备，服务里的方案已经前进；你的输入还在，读回最新后可以再保存。`),
+          el("button", {
+            type: "button",
+            class: "ghost-btn",
+            id: "as-reload-latest",
+            onclick: () => {
+              void (async () => {
+                const planId = editing?.planId;
+                if (!planId) return;
+                const answer = await api(
+                  `/projects/${selected}/assistance-plans/${planId}`
+                );
+                renderDetail(answer);
+                await startEditing(answer, false);
+              })();
+            }
+          }, "读回最新并保留我的输入")
+        );
+      } else {
+        formError.textContent = `保存失败：${assistanceRefusal(error)}`;
+      }
+    } finally {
+      busy2 = false;
+      submit.disabled = outputTypes.length === 0;
+    }
+  }
+  form.onsubmit = (event) => {
+    event.preventDefault();
+    void submitPlan();
+  };
+  cancelEdit.onclick = () => {
+    endEditing();
+    formStatus.textContent = "已取消修订；服务里的方案没有变化。";
+    formError.replaceChildren();
+  };
+  addReference.onclick = () => {
+    const id = assetSelect.value;
+    if (!id || references.includes(id)) return;
+    references = [...references, id];
+    renderReferences();
+  };
+  workspace.onchange = () => {
+    selected = workspace.value;
+    workspaceNameRow.classList.toggle("as-hidden", selected !== "");
+    references = [];
+    void (async () => {
+      try {
+        await refreshAssets();
+        await refreshPlans();
+      } catch (error) {
+        formError.textContent = `工作区读数失败：${assistanceRefusal(error)}`;
+      }
+    })();
+  };
+  const types = await loadVocabulary();
+  outputTypes = types.output_types;
+  outputType.replaceChildren(
+    ...outputTypes.length ? [
+      el("option", { value: "" }, "选择输出类型"),
+      ...outputTypes.map((option) => el("option", { value: option.value }, option.label))
+    ] : [el("option", { value: "" }, "输出类型未读回")]
+  );
+  submit.disabled = outputTypes.length === 0;
+  const listing = await loadWorkspaces();
+  workspaces = listing.projects;
+  selected = workspaces.length ? workspaces[workspaces.length - 1].id : "";
+  fillWorkspaces();
+  fillAssets();
+  renderReferences();
+  renderPlans();
+  if (selected) {
+    await refreshAssets();
+    await refreshPlans();
+  } else {
+    assetsNotice = "";
+  }
+  const notice = notices();
+  meta.replaceChildren(
+    ...notice ? [el("p", { class: "error" }, notice)] : [],
+    el(
+      "p",
+      { class: "view-hint" },
+      "四态由服务读回：已保存、方案已提供、用户选用、外部未验证。「已保存」不等于「已生成」；「外部未验证」不是警告，是服务不派发也不核验外部步骤。"
+    )
+  );
+  target.replaceChildren(
+    el(
+      "div",
+      { class: "page-head as-head" },
+      el(
+        "div",
+        {},
+        el("h2", {}, "设计辅助"),
+        el("p", {}, "写下一个目标，保存为一条可读的方案：先有需求、参考附件与输出类型，工具与模型稍后再选。页面不做聊天气泡流、节点画布或多 Agent 控制台。")
+      )
+    ),
+    el("div", { class: "split as-split" }, form, listPanel),
+    detailHost,
+    meta
+  );
+}
 async function projectPickerPanel(target, title, body, preamble, caption = "只读回服务端台账；本页不提交、不修改。") {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
   const data = await apiOrEmpty("/projects", OFFLINE.projects);
@@ -8051,6 +9126,9 @@ async function renderRoute(view, target) {
     // DL-KB-03/04: 知识与提示词库。搜索是主视觉，列表是检索的答案；详情、修订、导入都读回服务。
     case "knowledge":
       await renderKnowledgeLibrary(target);
+      return;
+    case "assistant":
+      await renderDesignAssistant(target);
       return;
     case "projects":
       await renderProjects(target);

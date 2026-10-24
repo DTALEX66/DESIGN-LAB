@@ -240,6 +240,9 @@ const PAGES = [
   // DL-KB-03 (2026-10-23): 知识与提示词库。搜索是主视觉，读 GET /api/knowledge-entries/search；
   // 不进这份清单就等于这一面从没被真实渲染过，也就不会在任何闸上报错。
   { key: 'knowledge', hash: '#/knowledge' },
+  // DL-KB-08 (2026-10-24): 设计辅助的初始态与方案详情。空台账下只有表单与「尚无方案」，
+  // 四态图例与输出类型词表都来自服务读回；它是日常入口，不能只存在于路由表里。
+  { key: 'assistant', hash: '#/assistant' },
   // R2 §9 (DL-FINAL-T08): 分组全局搜索是浮层，只能靠真实点击打开后才有可审阅的一张图。
   { key: 'search-groups', hash: '#/capabilities', click: '#openPalette' },
 ];

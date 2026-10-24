@@ -125,6 +125,15 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "design-lab/schemas/design-collection-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-collection-v1.schema.json"
 "design-lab/schemas/design-lineage-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-lineage-v1.schema.json"
 "design-lab/schemas/design-layer-rollup-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-layer-rollup-v1.schema.json"
+# DL-KB-07 (2026-10-24): the assistance plan's document, write, readback and list contracts, all
+# opened through repo_resource by `assistance_plan.py` on every route. Without these lines an
+# installed wheel would answer 500 ASSISTANCE_PLAN_CONTRACT_UNREADABLE -- a missing packaged file
+# reported as a verdict about the plan. The state SQL rides the `schemas/state` directory above.
+"design-lab/schemas/assistance-plan-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-v1.schema.json"
+"design-lab/schemas/assistance-plan-write-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-write-v1.schema.json"
+"design-lab/schemas/assistance-plan-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-readback-v1.schema.json"
+"design-lab/schemas/assistance-plan-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-list-v1.schema.json"
+"design-lab/schemas/assistance-plan-output-types-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-output-types-v1.schema.json"
 "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
 "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
 

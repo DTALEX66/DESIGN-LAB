@@ -179,6 +179,33 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                                          str(loop.get('resultId'))),
                                 'E2E prompt-result id is not the id shape the route '
                                 'accepts: ' + str(loop.get('resultId')))
+                # DL-KB-08: the design-assistant screen must be visible in the artifact.
+                # The four states are asserted from the rendered page in the driver; this
+                # records what the artifact says they were, so a green run whose evidence
+                # never mentions the assistant is a gap, not a pass.
+                self.assertIn('assistance-plan-four-states',
+                              payload.get('scenario') or [],
+                              'E2E_REQUIRED summary does not list the design-assistant '
+                              'scenario: ' + str(payload.get('scenario')))
+                assistant = payload.get('assistantLoop') or {}
+                self.assertEqual(
+                    [assistant.get('saved'), assistant.get('providedAfterSave'),
+                     assistant.get('chosenAfterSave'), assistant.get('externalVerified')],
+                    [True, False, False, False],
+                    'E2E design-assistant states after the first save are not the '
+                    'expected shape: ' + json.dumps(assistant, ensure_ascii=False))
+                self.assertEqual(
+                    [assistant.get('copyWorked'), assistant.get('copyCarriedHonesty'),
+                     assistant.get('copyWroteNothing'), assistant.get('copyChoseNothing'),
+                     assistant.get('emptyObjectiveRefused'),
+                     assistant.get('suppliedCreative'), assistant.get('chosen'),
+                     assistant.get('chosenActorShown'), assistant.get('reloadReadback'),
+                     assistant.get('noChatSurface'), assistant.get('providerPrimary'),
+                     assistant.get('revisionRows')],
+                    [True, True, True, True, True, True, True, True, True, True,
+                     'as-choose', 2],
+                    'E2E design-assistant flow facts are not the expected shape: '
+                    + json.dumps(assistant, ensure_ascii=False))
 
     def test_e2e_script_is_lint_clean(self):
         # The browser driver must be a parseable ESM module; guard against a
