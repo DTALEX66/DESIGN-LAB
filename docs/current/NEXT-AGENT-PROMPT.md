@@ -644,6 +644,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 
 ## 9. 工具事实（省得再踩）
 
+- **登记册的重钉必须是"文档定稿之后的另一个提交"**（2026-10-24 自己踩过一次）。`scripts/generate_archive_record_register.py` 钉的是 **HEAD 里那份 blob**，不是工作区那一份；把 §5.42 的追加和重钉塞进同一个提交，本地 `RECORD_REGISTER_GATE=PASS`（两边都读旧 blob，自洽），CI 却按新 blob 复算，判 `blob SHA-1 claim … vs …`、`bytes claim 238,875 vs 241,745` 五条 PROBLEM。正确顺序永远是：提交文档 → 重跑生成器 → 另一个提交只带登记册。本地绿的那句"PASS"在当时也是真的，只是它说的是上一个提交——这也是为什么 CI 的逐作业读数不能被本地并集替掉。
+
 - **本机 `.venv` 里没有 pytest，但装得上**：
   `uv run --python .venv/Scripts/python.exe --with pytest --no-sync -m pytest <files> -q`。
   这条取代早前"本机没有 pytest，只能用 unittest"的记录（2026-10-19 实测：单文件与 21 项子集都能跑）。
