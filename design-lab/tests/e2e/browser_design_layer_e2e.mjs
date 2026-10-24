@@ -1804,10 +1804,22 @@ try {
     const optionValues = await page.evaluate(() => Array.from(
       document.getElementById('as-reference-select')?.options ?? []).map((o) => o.value));
     const entryId = createdBody?.entry?.knowledge_entry_id ?? '';
-    const pickerOffersBothSources = optionValues.includes(`KNOWLEDGE:${entryId}`)
-      && optionValues.some((value) => value.startsWith('ASSET:'));
+    // The service accepts five reference kinds; the picker used to offer two of them, so three
+    // of the project's own materials (its brief, its direction, its prompt results) could be
+    // stored but never cited from the screen. Earlier lanes of this very walk created all of
+    // them in this project, so each kind must now show up as a selectable option.
+    const optionOf = (kind) => optionValues.find((value) => value.startsWith(`${kind}:`)) ?? '';
+    const pickerOffersAllFiveKinds = ['ASSET', 'BRIEF', 'DIRECTION', 'PROMPT_RESULT', 'KNOWLEDGE']
+      .every((kind) => optionOf(kind) !== '');
     await page.selectOption('#as-reference-select', `KNOWLEDGE:${entryId}`);
     await page.locator('#as-reference-add').click();
+    for (const kind of ['BRIEF', 'DIRECTION', 'PROMPT_RESULT']) {
+      const value = optionOf(kind);
+      if (value) {
+        await page.selectOption('#as-reference-select', value);
+        await page.locator('#as-reference-add').click();
+      }
+    }
     const citedRow = await page.evaluate(() => ((
       document.getElementById('as-references')?.textContent ?? '')));
     // STORYBOARD, not IMAGE: this page session still carries the shot rows an earlier
@@ -1820,7 +1832,8 @@ try {
       && r.request().method() === 'POST', { timeout: 25000 });
     await page.locator('#as-submit').click();
     const planBody = await planSaved.then((r) => r.json()).catch(() => null);
-    const cited = (planBody?.plan?.references ?? [])[0] ?? null;
+    const citedList = planBody?.plan?.references ?? [];
+    const cited = citedList.find((entry) => entry?.kind === 'KNOWLEDGE') ?? null;
     const citeDiagnosis = {
       rowText: citedRow.slice(0, 160),
       planStatus: planBody?.status ?? planBody?.error ?? null,
@@ -1828,14 +1841,25 @@ try {
         ?.textContent ?? ''),
       formStatus: await page.evaluate(() => document.getElementById('as-form-status')
         ?.textContent ?? ''),
-      cited, want: { kind: 'KNOWLEDGE', id: entryId, revision: createdBody?.entry?.revision,
-                    sha256: createdBody?.entry?.content_sha256 },
+      references: citedList,
+      want: { kind: 'KNOWLEDGE', id: entryId, revision: createdBody?.entry?.revision,
+              sha256: createdBody?.entry?.content_sha256 },
     };
     const planCitesTheKnowledgeEntry = citedRow.includes(entryId)
       && citedRow.includes('知识条目')
       && cited?.kind === 'KNOWLEDGE' && cited?.id === entryId
       && cited?.revision === createdBody?.entry?.revision
       && cited?.sha256 === createdBody?.entry?.content_sha256;
+    // Every kind the picker offered must come back pinned by the STORE: a revision number and a
+    // digest that the service resolved from its own rows. The page never sends either of those,
+    // so a picker that listed an id the store could not resolve would fail here rather than
+    // quietly saving an unpinnable citation.
+    const planCitesEveryKind = ['KNOWLEDGE', 'BRIEF', 'DIRECTION', 'PROMPT_RESULT']
+      .every((kind) => {
+        const entry = citedList.find((item) => item?.kind === kind);
+        return !!entry && Number.isInteger(entry.revision) && entry.revision >= 1
+          && typeof entry.sha256 === 'string' && entry.sha256.length >= 64;
+      });
     page.off('request', watch);
 
     const states = {
@@ -1856,11 +1880,12 @@ try {
         && onScreen.basis && !onScreen.stillSaysNobody,
       sourceNeedsAnOpenableReplacement: sourceRefused
         && postsAfterSourceClick === postsAfterJudgeClick,
-      // The reuse link: the picker offers the library entry as well as the workspace's
-      // assets, and the plan that cites it comes back pinned to that entry's revision and
-      // digest -- the numbers the store resolved, not the ones the page sent.
-      pickerOffersBothSources,
+      // The reuse link: the picker offers every kind the service accepts, and the plan that
+      // cites them comes back pinned to revisions and digests the STORE resolved -- not the
+      // numbers the page sent, because the page sends only kind and id.
+      pickerOffersAllFiveKinds,
       planCitesTheKnowledgeEntry,
+      planCitesEveryKind,
       clipboardHoldsTheServedBody,
     };
     const missing = Object.keys(states).filter((key) => states[key] !== true);

@@ -18,6 +18,7 @@ import type {
   DesignLayerReadback,
   DesignSystemListResponse,
   DesignSystemRecord,
+  DirectionListResponse,
   DomainListResponse,
   DomainPackRecord,
   DomainPackValidation,
@@ -250,6 +251,11 @@ const OFFLINE = {
   // 提示词反推需要一条真实存在的图像资产，所以资产清单也走同一只读接缝：没有读到
   // assets 时说未读回，而不是"这个项目没有素材"。
   assets: { assets: [] } as AssetListResponse,
+  // 方案参考选择器读的三份项目内清单。空在这里只表示"没读到"，不表示"这个工作区没有
+  // brief / 方向 / 提示词结果"——那句只有服务能回答，由 shapeNotice 写出来的缺字段说明负责。
+  briefs: { briefs: [], next_cursor: null } as BriefListResponse,
+  directions: { directions: [], next_cursor: null } as DirectionListResponse,
+  promptResults: { results: [] } as PromptResultsResponse,
   designLayer: {
     design_layer: {
       briefs: [], directions: [], chosen_direction: null,
@@ -3597,6 +3603,13 @@ const KB_JUDGEMENT_KIND_LABELS: Record<string, string> = {
   RECOMMENDATION: '推荐版本', SOURCE_STATE: '来源状态',
 };
 const KB_SOURCE_STATE_LABELS: Record<string, string> = { ACTIVE: '仍然有效', INVALID: '已失效' };
+// 方案能引用的五种材料（`REFERENCE_KINDS`）。这里只加显示用的名字，不收窄也不放宽那份清单：
+// 两边由 design-lab/tests/test_assistance_plan.py 逐键钉在一起，界面上少一类就是服务收得下、
+// 用户选不到，多一类就是页面在承诺一个服务还没有的类型。
+const REFERENCE_KIND_LABELS: Record<string, string> = {
+  ASSET: '素材', BRIEF: '需求 Brief', DIRECTION: '方向',
+  PROMPT_RESULT: '提示词结果', KNOWLEDGE: '知识条目',
+};
 
 /** 这一条判断此刻说明了什么。null 一律写成「没有人说过」，不写成「没问题」。 */
 function kbJudgementSentence(item: KnowledgeJudgementView | null): string {
@@ -4917,12 +4930,15 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   let materials: PlanMaterialFormat[] = [];
   let workspaces: ProjectSummary[] = [];
   let selected = '';
-  // A reference is a kind plus an id: the picker offers this workspace's assets and the
-  // library's knowledge entries, and a plan revised from an older document may also carry a
-  // brief/direction/prompt-result kind the picker cannot offer -- those are preserved, not
-  // dropped, because dropping one would rewrite what the plan says it worked from.
+  // A reference is a kind plus an id. The picker offers the five kinds the service accepts:
+  // this workspace's assets, its briefs, its directions, its prompt results, and the library's
+  // knowledge entries. A plan revised from an older document may still carry a kind the current
+  // page cannot offer (a superseded row that fell off the page, an entry deleted since) -- those
+  // are preserved, not dropped, because dropping one would rewrite what the plan says it worked
+  // from, and the row then says so instead of pretending it was never there.
   let references: { kind: string; id: string }[] = [];
   let knowledgeChoices: { id: string; title: string }[] = [];
+  let projectChoices: { kind: string; id: string; label: string }[] = [];
   let assets: AssetRecord[] = [];
   let assetAnswer: AssetListResponse = OFFLINE.assets;
   let plans: AssistancePlanRow[] = [];
@@ -4937,6 +4953,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   let plansNotice = '';
   let assetsNotice = '';
   let knowledgeNotice = '';
+  let projectNotice = '';
 
   async function loadVocabulary(): Promise<AssistanceOutputTypesView> {
     const answer = await apiOrEmpty<AssistanceOutputTypesView>(
@@ -4979,11 +4996,51 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     renderReferences();
   }
 
+  // 参考可以是五种类型，服务五种都收（`REFERENCE_KINDS`）。之前选择器只给得出两种，
+  // 于是"真实需求与参考"这一环在界面上是断的：brief、方向、提示词结果都在这个项目里存着，
+  // 也各有读路由，用户却没法把它们挂进方案。三条清单一起读，一条读不到不拖垮另外两条。
+  async function loadProjectChoices(projectId: string): Promise<void> {
+    const [briefs, directions, results] = await Promise.all([
+      apiOrEmpty<BriefListResponse>(`/projects/${projectId}/briefs`, OFFLINE.briefs),
+      apiOrEmpty<DirectionListResponse>(`/projects/${projectId}/directions`, OFFLINE.directions),
+      apiOrEmpty<PromptResultsResponse>(`/projects/${projectId}/prompt-results`,
+                                        OFFLINE.promptResults),
+    ]);
+    // 每个 result_id 在服务里按修订存成多行，而方案引用它时钉的是当时最大的那一版，
+    // 所以一个编号只在清单里出现一次。
+    const latestResult = new Map<string, PromptResultRow>();
+    for (const row of results.results ?? []) {
+      if (!row.result_id) continue;
+      const seen = latestResult.get(row.result_id);
+      if (!seen || (row.revision ?? 0) > (seen.revision ?? 0)) latestResult.set(row.result_id, row);
+    }
+    projectChoices = [
+      ...(briefs.briefs ?? []).map((brief) => ({
+        kind: 'BRIEF', id: brief.brief_id, label: `${brief.title} · r${brief.version}`,
+      })),
+      ...(directions.directions ?? []).map((direction) => ({
+        kind: 'DIRECTION', id: direction.direction_id,
+        label: `${direction.title} · r${direction.version}`,
+      })),
+      ...[...latestResult].map(([id, row]) => ({
+        kind: 'PROMPT_RESULT', id,
+        label: `${row.kind === 'reversal' ? '反推' : '生成'} · r${row.revision}`,
+      })),
+    ];
+    // 分页没说清就是页面在替服务说话：两条清单的 next_cursor 不是 null，说明这一页之外还有。
+    const truncated = [briefs.next_cursor ? '需求 Brief' : '',
+      directions.next_cursor ? '方向' : ''].filter(Boolean).join('、');
+    projectNotice = [shapeNotice(briefs), shapeNotice(directions), shapeNotice(results),
+      truncated ? `这一页之后还有更早的${truncated}没有读到` : ''].filter(Boolean).join('；');
+    fillAssets();
+    renderReferences();
+  }
+
   const labelOf = (value: string): string =>
     outputTypes.find((option) => option.value === value)?.label ?? value;
 
-  const notices = (): string => [vocabularyNotice, workspaceNotice, plansNotice, assetsNotice]
-    .filter(Boolean).join('；');
+  const notices = (): string => [vocabularyNotice, workspaceNotice, plansNotice, assetsNotice,
+    projectNotice, knowledgeNotice].filter(Boolean).join('；');
 
   function fillWorkspaces(): void {
     workspace.replaceChildren(
@@ -4993,30 +5050,56 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     workspaceNameRow.classList.toggle('as-hidden', selected !== '');
   }
 
+  // 一个选择器、五组来源，值里始终带着类型（`KIND:id`）：提交时按第一个冒号拆开，
+  // 所以引用一条 brief 不会被贴成 ASSET 交给服务。空组说的是"这一组没读到／没有"，
+  // 不是"整个工作区没有材料"。
+  function referenceGroup(kind: string, label: string, options: { id: string; text: string }[],
+                          emptyText: string): HTMLElement {
+    return el('optgroup', { label },
+      ...(options.length
+        ? options.map((option) => el('option', { value: `${kind}:${option.id}` }, option.text))
+        : [el('option', { value: '' }, emptyText)]));
+  }
+
+  const ofKind = (kind: string) => projectChoices.filter((choice) => choice.kind === kind);
+
   function fillAssets(): void {
-    const none = el('option', { value: '' },
-      assets.length || knowledgeChoices.length
-        ? '选择参考（素材或知识条目）'
-        : (knowledgeNotice ? '参考清单未读回' : '此工作区还没有素材，库里也还没有条目'));
+    const groups = [
+      referenceGroup('ASSET', '本工作区素材',
+        assets.map((asset) => ({
+          id: asset.id, text: `${asset.kind === 'raster' ? '图片' : asset.kind} · ${asset.id}`,
+        })), assetsNotice || '这个工作区还没有素材'),
+      referenceGroup('BRIEF', '本工作区的需求 Brief',
+        ofKind('BRIEF').map((choice) => ({ id: choice.id, text: `${choice.label} · ${choice.id}` })),
+        projectNotice || '这个工作区还没有需求 Brief'),
+      referenceGroup('DIRECTION', '本工作区的方向',
+        ofKind('DIRECTION').map((choice) => ({ id: choice.id,
+          text: `${choice.label} · ${choice.id}` })),
+        projectNotice || '这个工作区还没有方向'),
+      referenceGroup('PROMPT_RESULT', '本工作区的提示词结果',
+        ofKind('PROMPT_RESULT').map((choice) => ({ id: choice.id,
+          text: `${choice.label} · ${choice.id}` })),
+        projectNotice || '这个工作区还没有提示词结果'),
+      referenceGroup('KNOWLEDGE', '知识与提示词库',
+        knowledgeChoices.map((entry) => ({ id: entry.id, text: `${entry.title} · ${entry.id}` })),
+        knowledgeNotice || '库里还没有条目'),
+    ];
+    const offered = assets.length + projectChoices.length + knowledgeChoices.length;
     assetSelect.replaceChildren(
-      none,
-      el('optgroup', { label: '本工作区素材' },
-        ...assets.map((asset) => el('option', { value: `ASSET:${asset.id}` },
-          `${asset.kind === 'raster' ? '图片' : asset.kind} · ${asset.id}`))),
-      el('optgroup', { label: '知识与提示词库' },
-        ...(knowledgeChoices.length
-          ? knowledgeChoices.map((entry) => el('option', { value: `KNOWLEDGE:${entry.id}` },
-            `${entry.title} · ${entry.id}`))
-          : [el('option', { value: '' }, knowledgeNotice || '库里还没有条目')])));
-    addReference.disabled = !assets.length && !knowledgeChoices.length;
+      el('option', { value: '' }, offered
+        ? '选择参考（素材、需求、方向、提示词结果或知识条目）'
+        : ([assetsNotice, projectNotice, knowledgeNotice].filter(Boolean).join('；')
+            || '这一页没有可引用的材料')),
+      ...groups);
+    addReference.disabled = offered === 0;
   }
 
   function renderReferences(): void {
     const known = new Set([
       ...assets.map((asset) => `ASSET:${asset.id}`),
+      ...projectChoices.map((choice) => `${choice.kind}:${choice.id}`),
       ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)]);
-    const kindLabel = (kind: string): string => kind === 'ASSET' ? '素材'
-      : (kind === 'KNOWLEDGE' ? '知识条目' : kind);
+    const kindLabel = (kind: string): string => REFERENCE_KIND_LABELS[kind] ?? kind;
     referenceList.replaceChildren(...(references.length
       ? references.map((reference) => el('li', { class: 'list-item as-ref' },
           el('span', { class: 'tag neutral' }, kindLabel(reference.kind)),
@@ -5127,11 +5210,15 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     renderPlans();
   }
 
-  async function refreshAssets(): Promise<void> {
+  // 换工作区时要重读的是"这一份方案能引用什么"：素材、它自己的 brief／方向／提示词结果，
+  // 外加全局库（那一份由 loadKnowledgeChoices 读一次，不随工作区变）。
+  async function refreshReferenceSources(): Promise<void> {
     if (!selected) {
       assets = [];
       assetAnswer = OFFLINE.assets;
       assetsNotice = '';
+      projectChoices = [];
+      projectNotice = '';
       fillAssets();
       renderReferences();
       return;
@@ -5139,8 +5226,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     const answer = await loadAssets(selected);
     assets = answer.assets;
     assetAnswer = answer;
-    fillAssets();
-    renderReferences();
+    await loadProjectChoices(selected);
   }
 
   // ---- 方案详情 --------------------------------------------------------------
@@ -5912,7 +5998,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     fillShotRows(doc.shots ?? []);
     references = doc.references.map((reference) => ({ kind: reference.kind,
                                                       id: reference.id }));
-    await refreshAssets();
+    await refreshReferenceSources();
     await refreshPlans();
     submit.textContent = submitLabel;
     cancelEdit.classList.remove('as-hidden');
@@ -6070,7 +6156,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
           + (saved.plan.neutral_creative === ASSIST_UNKNOWN
             ? '这条方案还没有创意，四态里「方案已提供」会保持为否。' : ''));
       }
-      await refreshAssets();
+      await refreshReferenceSources();
     } catch (error) {
       const envelope = (error as { serviceEnvelope?: Record<string, unknown> } | null)
         ?.serviceEnvelope;
@@ -6133,7 +6219,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     references = [];
     void (async () => {
       try {
-        await refreshAssets();
+        await refreshReferenceSources();
         await refreshPlans();
       } catch (error) {
         formError.textContent = `工作区读数失败：${assistanceRefusal(error)}`;
@@ -6165,7 +6251,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   // for revision or copying -- the create the designer was writing when the window closed.
   offerDraft();
   if (selected) {
-    await refreshAssets();
+    await refreshReferenceSources();
     await refreshPlans();
   } else {
     assetsNotice = '';

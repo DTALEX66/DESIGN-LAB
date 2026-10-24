@@ -300,14 +300,13 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                 kb_states = (payload.get('knowledgeLoop') or {}).get('states') or {}
                 self.assertEqual(
                     sorted(kb_states),
-                    ['blankFieldsStoredAsUnknown',
+                    ['blankFieldsStoredAsUnknown', 'clipboardHoldsTheServedBody',
                      'emptyTrailSaidNotAskedAndAnswered', 'entryWrittenAndOpened',
                      'judgementRecordedOnce', 'nameRefusedWithoutRequest',
-                     'pickerOffersBothSources', 'planCitesTheKnowledgeEntry',
-                     'reasonRefusedWithoutRequest', 'screenMatchesServedReadback',
-                     'sourceNeedsAnOpenableReplacement',
-                     'clipboardHoldsTheServedBody'],
-                    'the knowledge-detail card is not the eleven facts this walk names: '
+                     'pickerOffersAllFiveKinds', 'planCitesEveryKind',
+                     'planCitesTheKnowledgeEntry', 'reasonRefusedWithoutRequest',
+                     'screenMatchesServedReadback', 'sourceNeedsAnOpenableReplacement'],
+                    'the knowledge-detail card is not the twelve facts this walk names: '
                     + json.dumps(kb_states, ensure_ascii=False))
                 self.assertEqual(
                     (payload.get('knowledgeLoop') or {}).get('allAsserted'), True,

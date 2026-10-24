@@ -136,9 +136,6 @@ BACKEND_ONLY: dict[tuple[str, str], str] = {
         'the design view reads briefs, directions and their bindings in one round trip through '
         'GET .../design-layer; the single-brief read is exercised for external clients by '
         'design-lab/tests/test_design_layer_http.py',
-    ('GET', r'/api/projects/([0-9a-f]{32})/directions(?:\?after=(direction-[0-9a-f]{32}))?'):
-        'the Workbench selects directions from the design-layer projection instead of paging '
-        'the list route; the list is covered by design-lab/tests/test_design_layer_http.py',
     ('GET', r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})'):
         'the chosen and live direction arrive inside the design-layer projection; the '
         'single-direction read is exercised by design-lab/tests/test_design_layer_http.py',

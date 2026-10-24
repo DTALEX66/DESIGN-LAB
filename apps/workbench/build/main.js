@@ -1413,6 +1413,11 @@ const OFFLINE = {
   // 提示词反推需要一条真实存在的图像资产，所以资产清单也走同一只读接缝：没有读到
   // assets 时说未读回，而不是"这个项目没有素材"。
   assets: { assets: [] },
+  // 方案参考选择器读的三份项目内清单。空在这里只表示"没读到"，不表示"这个工作区没有
+  // brief / 方向 / 提示词结果"——那句只有服务能回答，由 shapeNotice 写出来的缺字段说明负责。
+  briefs: { briefs: [], next_cursor: null },
+  directions: { directions: [], next_cursor: null },
+  promptResults: { results: [] },
   designLayer: {
     design_layer: {
       briefs: [],
@@ -4895,6 +4900,13 @@ const KB_JUDGEMENT_KIND_LABELS = {
   SOURCE_STATE: "来源状态"
 };
 const KB_SOURCE_STATE_LABELS = { ACTIVE: "仍然有效", INVALID: "已失效" };
+const REFERENCE_KIND_LABELS = {
+  ASSET: "素材",
+  BRIEF: "需求 Brief",
+  DIRECTION: "方向",
+  PROMPT_RESULT: "提示词结果",
+  KNOWLEDGE: "知识条目"
+};
 function kbJudgementSentence(item) {
   if (!item) return "";
   const who = `${item.recorded_by} 于 ${item.recorded_at}`;
@@ -6340,6 +6352,7 @@ async function renderDesignAssistant(target) {
   let selected = "";
   let references = [];
   let knowledgeChoices = [];
+  let projectChoices = [];
   let assets = [];
   let plans = [];
   let planAnswer = OFFLINE.assistancePlans;
@@ -6351,6 +6364,7 @@ async function renderDesignAssistant(target) {
   let plansNotice = "";
   let assetsNotice = "";
   let knowledgeNotice = "";
+  let projectNotice = "";
   async function loadVocabulary() {
     const answer = await apiOrEmpty(
       "/assistance-plan-output-types",
@@ -6393,8 +6407,60 @@ async function renderDesignAssistant(target) {
     fillAssets();
     renderReferences();
   }
+  async function loadProjectChoices(projectId) {
+    const [briefs, directions, results] = await Promise.all([
+      apiOrEmpty(`/projects/${projectId}/briefs`, OFFLINE.briefs),
+      apiOrEmpty(`/projects/${projectId}/directions`, OFFLINE.directions),
+      apiOrEmpty(
+        `/projects/${projectId}/prompt-results`,
+        OFFLINE.promptResults
+      )
+    ]);
+    const latestResult = /* @__PURE__ */ new Map();
+    for (const row of results.results ?? []) {
+      if (!row.result_id) continue;
+      const seen = latestResult.get(row.result_id);
+      if (!seen || (row.revision ?? 0) > (seen.revision ?? 0)) latestResult.set(row.result_id, row);
+    }
+    projectChoices = [
+      ...(briefs.briefs ?? []).map((brief) => ({
+        kind: "BRIEF",
+        id: brief.brief_id,
+        label: `${brief.title} · r${brief.version}`
+      })),
+      ...(directions.directions ?? []).map((direction) => ({
+        kind: "DIRECTION",
+        id: direction.direction_id,
+        label: `${direction.title} · r${direction.version}`
+      })),
+      ...[...latestResult].map(([id, row]) => ({
+        kind: "PROMPT_RESULT",
+        id,
+        label: `${row.kind === "reversal" ? "反推" : "生成"} · r${row.revision}`
+      }))
+    ];
+    const truncated = [
+      briefs.next_cursor ? "需求 Brief" : "",
+      directions.next_cursor ? "方向" : ""
+    ].filter(Boolean).join("、");
+    projectNotice = [
+      shapeNotice(briefs),
+      shapeNotice(directions),
+      shapeNotice(results),
+      truncated ? `这一页之后还有更早的${truncated}没有读到` : ""
+    ].filter(Boolean).join("；");
+    fillAssets();
+    renderReferences();
+  }
   const labelOf = (value) => outputTypes.find((option) => option.value === value)?.label ?? value;
-  const notices = () => [vocabularyNotice, workspaceNotice, plansNotice, assetsNotice].filter(Boolean).join("；");
+  const notices = () => [
+    vocabularyNotice,
+    workspaceNotice,
+    plansNotice,
+    assetsNotice,
+    projectNotice,
+    knowledgeNotice
+  ].filter(Boolean).join("；");
   function fillWorkspaces() {
     workspace.replaceChildren(
       el("option", { value: "" }, "＋ 新建轻量工作区"),
@@ -6403,41 +6469,70 @@ async function renderDesignAssistant(target) {
     workspace.value = selected;
     workspaceNameRow.classList.toggle("as-hidden", selected !== "");
   }
+  function referenceGroup(kind, label, options, emptyText) {
+    return el(
+      "optgroup",
+      { label },
+      ...options.length ? options.map((option) => el("option", { value: `${kind}:${option.id}` }, option.text)) : [el("option", { value: "" }, emptyText)]
+    );
+  }
+  const ofKind = (kind) => projectChoices.filter((choice) => choice.kind === kind);
   function fillAssets() {
-    const none = el(
-      "option",
-      { value: "" },
-      assets.length || knowledgeChoices.length ? "选择参考（素材或知识条目）" : knowledgeNotice ? "参考清单未读回" : "此工作区还没有素材，库里也还没有条目"
-    );
-    assetSelect.replaceChildren(
-      none,
-      el(
-        "optgroup",
-        { label: "本工作区素材" },
-        ...assets.map((asset) => el(
-          "option",
-          { value: `ASSET:${asset.id}` },
-          `${asset.kind === "raster" ? "图片" : asset.kind} · ${asset.id}`
-        ))
+    const groups = [
+      referenceGroup(
+        "ASSET",
+        "本工作区素材",
+        assets.map((asset) => ({
+          id: asset.id,
+          text: `${asset.kind === "raster" ? "图片" : asset.kind} · ${asset.id}`
+        })),
+        assetsNotice || "这个工作区还没有素材"
       ),
-      el(
-        "optgroup",
-        { label: "知识与提示词库" },
-        ...knowledgeChoices.length ? knowledgeChoices.map((entry) => el(
-          "option",
-          { value: `KNOWLEDGE:${entry.id}` },
-          `${entry.title} · ${entry.id}`
-        )) : [el("option", { value: "" }, knowledgeNotice || "库里还没有条目")]
+      referenceGroup(
+        "BRIEF",
+        "本工作区的需求 Brief",
+        ofKind("BRIEF").map((choice) => ({ id: choice.id, text: `${choice.label} · ${choice.id}` })),
+        projectNotice || "这个工作区还没有需求 Brief"
+      ),
+      referenceGroup(
+        "DIRECTION",
+        "本工作区的方向",
+        ofKind("DIRECTION").map((choice) => ({
+          id: choice.id,
+          text: `${choice.label} · ${choice.id}`
+        })),
+        projectNotice || "这个工作区还没有方向"
+      ),
+      referenceGroup(
+        "PROMPT_RESULT",
+        "本工作区的提示词结果",
+        ofKind("PROMPT_RESULT").map((choice) => ({
+          id: choice.id,
+          text: `${choice.label} · ${choice.id}`
+        })),
+        projectNotice || "这个工作区还没有提示词结果"
+      ),
+      referenceGroup(
+        "KNOWLEDGE",
+        "知识与提示词库",
+        knowledgeChoices.map((entry) => ({ id: entry.id, text: `${entry.title} · ${entry.id}` })),
+        knowledgeNotice || "库里还没有条目"
       )
+    ];
+    const offered = assets.length + projectChoices.length + knowledgeChoices.length;
+    assetSelect.replaceChildren(
+      el("option", { value: "" }, offered ? "选择参考（素材、需求、方向、提示词结果或知识条目）" : [assetsNotice, projectNotice, knowledgeNotice].filter(Boolean).join("；") || "这一页没有可引用的材料"),
+      ...groups
     );
-    addReference.disabled = !assets.length && !knowledgeChoices.length;
+    addReference.disabled = offered === 0;
   }
   function renderReferences() {
     const known = /* @__PURE__ */ new Set([
       ...assets.map((asset) => `ASSET:${asset.id}`),
+      ...projectChoices.map((choice) => `${choice.kind}:${choice.id}`),
       ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)
     ]);
-    const kindLabel = (kind) => kind === "ASSET" ? "素材" : kind === "KNOWLEDGE" ? "知识条目" : kind;
+    const kindLabel = (kind) => REFERENCE_KIND_LABELS[kind] ?? kind;
     referenceList.replaceChildren(...references.length ? references.map((reference) => el(
       "li",
       { class: "list-item as-ref" },
@@ -6563,18 +6658,19 @@ async function renderDesignAssistant(target) {
     planAnswer = answer;
     renderPlans();
   }
-  async function refreshAssets() {
+  async function refreshReferenceSources() {
     if (!selected) {
       assets = [];
       assetsNotice = "";
+      projectChoices = [];
+      projectNotice = "";
       fillAssets();
       renderReferences();
       return;
     }
     const answer = await loadAssets(selected);
     assets = answer.assets;
-    fillAssets();
-    renderReferences();
+    await loadProjectChoices(selected);
   }
   function referenceRow(status) {
     const stateLabel = status.state === "CURRENT" ? "当前" : status.state === "CHANGED" ? "已变化" : "找不到";
@@ -7521,7 +7617,7 @@ async function renderDesignAssistant(target) {
       kind: reference.kind,
       id: reference.id
     }));
-    await refreshAssets();
+    await refreshReferenceSources();
     await refreshPlans();
     submit.textContent = submitLabel;
     cancelEdit.classList.remove("as-hidden");
@@ -7678,7 +7774,7 @@ async function renderDesignAssistant(target) {
           (copiedFrom ? `已复制为新的方案 ${saved.plan.plan_id}：内容取自 ${copiedFrom}，那一条与它的修订历史都没有变化。` : "已保存 ") + `r${saved.revision}。` + (saved.plan.neutral_creative === ASSIST_UNKNOWN ? "这条方案还没有创意，四态里「方案已提供」会保持为否。" : "")
         );
       }
-      await refreshAssets();
+      await refreshReferenceSources();
     } catch (error) {
       const envelope = error?.serviceEnvelope;
       if (editing && envelope?.error === "ASSISTANCE_PLAN_REVISION_CONFLICT") {
@@ -7737,7 +7833,7 @@ async function renderDesignAssistant(target) {
     references = [];
     void (async () => {
       try {
-        await refreshAssets();
+        await refreshReferenceSources();
         await refreshPlans();
       } catch (error) {
         formError.textContent = `工作区读数失败：${assistanceRefusal(error)}`;
@@ -7767,7 +7863,7 @@ async function renderDesignAssistant(target) {
   renderPlans();
   offerDraft();
   if (selected) {
-    await refreshAssets();
+    await refreshReferenceSources();
     await refreshPlans();
   } else {
     assetsNotice = "";

@@ -804,6 +804,24 @@ class AssistancePlanTests(unittest.TestCase):
                                  f'{path.name} lists reference kinds the store does not accept '
                                  '(or is missing one): ' + str(kinds))
 
+    def test_the_workbench_picker_labels_exactly_the_kinds_the_store_accepts(self):
+        # The failure this pins already happened once: KNOWLEDGE went into REFERENCE_KINDS, the
+        # four schemas and the resolver, and the picker kept offering two of the five kinds --
+        # so a brief, a direction or a prompt result was citable by API and not from the screen.
+        # No per-file test could see that, because each side was internally consistent.
+        shell = (REPO / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
+        start = shell.index('const REFERENCE_KIND_LABELS')
+        body = shell[start:shell.index('};', start)]
+        labelled = sorted(token.rstrip(':')
+                          for line in body.splitlines()[1:]
+                          for token in line.split()
+                          if token.endswith(':') and token[:-1].isupper())
+        self.assertEqual(sorted(assistance_plan.REFERENCE_KINDS), labelled,
+                         'the kinds the workbench can name are not the kinds the store accepts')
+        for kind in assistance_plan.REFERENCE_KINDS:
+            self.assertIn(f"referenceGroup('{kind}'", shell,
+                          f'{kind} has a label but no group in the reference picker')
+
 
 if __name__ == '__main__':
     unittest.main()
