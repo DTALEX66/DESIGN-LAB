@@ -349,6 +349,19 @@ for (const w of widths) {
   for (const [name, hash] of ROUTES) {
     await page.evaluate((h) => { window.location.hash = h; }, hash);
     await page.waitForTimeout(1000);
+    // A route that is still awaiting its reads renders a `.view-loading` paragraph and no headings,
+    // and a fixed sleep cannot prove that has stopped: on a loaded CI runner this measured
+    // `1440:capabilities` mid-mount and the heading assertion convicted the screen of having no
+    // headings when the truth was "not mounted yet". Wait for the mount to finish before judging
+    // it; a route that never settles is reported as such rather than measured as an empty shell.
+    const settled = await page.waitForFunction(() => {
+      const host = document.getElementById('route-view');
+      return !!host && !host.querySelector('.view-loading');
+    }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+    if (!settled) {
+      console.log(`OV_UNSETTLED ${w}:${name} still shows a loading placeholder after 20s`);
+      interactionMissing.push(`${w}:${name} never finished mounting, so its geometry is unclaimed`);
+    }
     const m = await page.evaluate(MEASURE);
     report.routes[`${w}:${name}`] = m;
     if (m.navEdge && m.navEdge.overflow > 0) {
