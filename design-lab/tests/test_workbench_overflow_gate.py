@@ -252,6 +252,16 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
             self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
         code, out, report_path = self._run_gate('workbench-overflow-gate.json')
         report = self._fail_open(code, out, report_path)
+        # A closed <details> keeps layout boxes for text Chromium does not paint, so the geometry
+        # claims below only describe what a person can see if the gate opened those panels first.
+        # The field counts how many each run expanded: zero everywhere means the step has gone and
+        # CLIPPED / STRAY / TINY are once again measuring invisible layout.
+        expanded = {key: value.get('detailsExpanded') for key, value in report['routes'].items()
+                    if value.get('detailsExpanded')}
+        self.assertTrue(expanded,
+                        'no route reported expanding a collapsed detail, so this gate is measuring '
+                        'boxes behind closed panels again: %s'
+                        % sorted(report['routes'])[:3])
         self._assert_heading_order(report)
         self._assert_utility_geometry(report, 'design-lab/dark:')
         # Every named interaction has to have settled on something a reader can tell apart, and at

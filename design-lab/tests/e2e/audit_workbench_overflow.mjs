@@ -169,7 +169,16 @@ const MEASURE = () => {
     }
     return false;
   };
-  const out = { docOverflowX: 0, clipped: [], stray: [], scrollOk: 0, tiny: [] };
+  // Geometry is a claim about what a person can see, and a closed `<details>` is the one place
+  // where Chromium's layout boxes and its paint disagree: `::details-content` is
+  // `content-visibility: hidden` with `overflow: clip`, so every box below would be measured while
+  // nothing is drawn. Open the panels first so CLIPPED / STRAY / TINY describe the state a designer
+  // actually reaches, and report how many closed panels that took: a run that says 0 on a screen
+  // known to have them means the expansion was removed and the numbers are invisible layout again.
+  const expanded = document.querySelectorAll('details:not([open])').length;
+  for (const host of document.querySelectorAll('details:not([open])')) host.open = true;
+  const out = { docOverflowX: 0, clipped: [], stray: [], scrollOk: 0, tiny: [],
+                detailsExpanded: expanded };
   const de = document.documentElement;
   out.docOverflowX = de.scrollWidth - de.clientWidth;
   const vw = window.innerWidth;

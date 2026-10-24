@@ -39,6 +39,12 @@ const b = await pw.chromium.launch(launchOpts);
 // In-page measurement: contrast is computed from the used colour values,
 // walking up for a non-transparent background the way a browser paints it.
 const PROBE = () => {
+  // A closed `<details>` keeps layout boxes for content Chromium does not paint, so reachability,
+  // legibility and geometry are all judged in the state a person can actually reach. The count is
+  // reported so a wrapper can tell "nothing was collapsed here" from "this expansion step went
+  // away and the numbers describe invisible layout again".
+  const expanded = document.querySelectorAll('details:not([open])').length;
+  for (const host of document.querySelectorAll('details:not([open])')) host.open = true;
   const lum = (c) => {
     const [r, g, bl] = c.map((v) => {
       const s = v / 255;
@@ -158,6 +164,7 @@ const PROBE = () => {
     .map((el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}[role=dialog]`);
   const drawer = document.querySelector('#drawer');
   return {
+    detailsExpanded: expanded,
     contrast, clickableNotReachable, unnamed, images, overflow, targets,
     targetDetail: smallTargets,
     pickers,
@@ -618,6 +625,7 @@ for (const [w, h, label] of [[1280, 500, 'short'], [380, 844, 'narrow']]) {
 await b.close();
 
 notes.totalMetrics = metrics.length;
+notes.detailsExpanded = metrics.reduce((n, m) => n + (m.detailsExpanded || 0), 0);
 notes.hardViolations = violations.length;
 console.log(JSON.stringify({ ok: violations.length === 0, violations, notes,
   worst: metrics.filter((m) => m.contrast.length).slice(0, 12) }, null, 2));

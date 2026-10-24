@@ -95,6 +95,16 @@ class WorkbenchUiAuditGateTests(unittest.TestCase):
                              f'no AUDIT_SCOPES line, so coverage is unknown:\n{output[-600:]}')
         scopes = int(measured.group(1))
         self.assertGreater(scopes, 0, 'the audit measured zero scopes -- a green that means nothing')
+        # Closed <details> keep layout boxes for content Chromium does not paint, so the audit opens
+        # them before measuring. This count is how many it expanded: zero means the step is gone and
+        # the violations list below is once again a statement about invisible layout.
+        expanded = (report.get('notes') or {}).get('detailsExpanded')
+        self.assertIsInstance(expanded, int,
+                              'the report does not say how many collapsed panels were expanded: %s'
+                              % sorted((report.get('notes') or {})))
+        self.assertGreater(expanded, 0,
+                           'the audit expanded no collapsed detail anywhere, so it is measuring '
+                           'boxes behind panels nobody has opened')
         self.assertEqual(
             report.get('violations'), [],
             f'{len(report.get("violations") or [])} UI violations across {scopes} scopes '
