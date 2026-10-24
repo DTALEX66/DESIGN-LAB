@@ -742,7 +742,7 @@
     "TABLE_EXISTS_UNWRITTEN": 3,
     "TABLE_WRITES_THIS_ACTIVITY": 10
   },
-  "tables": 50
+  "tables": 51
 }
 ```
 

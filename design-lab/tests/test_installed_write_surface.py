@@ -379,6 +379,16 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
         {'route': '/api/knowledge-entries/index-rebuild', 'label': 'knowledge-index-rebuild',
          'status': 200, 'path': '/api/knowledge-entries/index-rebuild', 'body': {},
          'check': 'check_knowledge_index_rebuild'},
+        # DL-KB-05 D5: a named person's later judgement about the entry the sweep already wrote.
+        # Revision 2 arrived with recommended:false, so this POST is the only way the recommendation
+        # can move at all -- the revision rows are append-only by trigger.
+        {'route': '/api/knowledge-entries/(kentry-[0-9a-f]{32})/judgements',
+         'label': 'knowledge-judgement', 'status': 201,
+         'path': '/api/knowledge-entries/{kentry}/judgements',
+         'body': {'kind': 'RECOMMENDATION', 'revision': 2, 'value': None, 'replaced_by': None,
+                  'reason': '复核后确认修订版的景别更好用。', 'recorded_by': '张工',
+                  'recorded_by_kind': 'HUMAN'},
+         'check': 'check_knowledge_judgement'},
         # DL-KB-07 (batch K): the plan object's create, revise and human choice. The revise row
         # carries `expected_revision` -- the revision it was prepared against -- so a second
         # writer is answered with a conflict instead of silently overwriting the first.
@@ -792,6 +802,24 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
                                 'entries this sweep wrote: the derived index was rebuilt empty')
         self.assertEqual(payload['rebuilt_at'], listed['index']['rebuilt_at'],
                          'the read reports an index state the rebuild did not write')
+
+    def check_knowledge_judgement(self, row, payload, slots):
+        detail = self.read_back(row, '/api/knowledge-entries/{kentry}')
+        self.assertEqual(2, detail['recommended_revision'],
+                         'a recorded judgement did not move the recommendation the page reads')
+        self.assertEqual('recorded-judgement', detail['recommendation_basis'],
+                         'the answer could not say who decided the recommendation')
+        self.assertEqual(2, detail['latest_revision'],
+                         'recording a judgement wrote a revision; it is a statement, not content')
+        self.assertEqual([1, 2], [item['revision'] for item in detail['revisions']])
+        self.assertEqual(1, len(detail['judgements']),
+                         'the sweep sent one judgement and the trail answers more than that')
+        self.assertEqual('张工', detail['judgements'][0]['recorded_by'],
+                         'the trail lost the name of the person who decided')
+        self.assertIsNone(detail['source_state'],
+                          'a source nobody has judged read back as though it had been cleared')
+        self.assertEqual(detail, payload,
+                         'the write answered a different document than the read route serves')
 
     def check_assistance_plan(self, row, payload, slots):
         read = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')

@@ -114,7 +114,7 @@ checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run 
 `currentExecution.evidence` 从 249 涨到 **270** 条、全部 PASS，本轮回执 21 条落在
 `design-lab/evidence/current-execution/task-artifacts/kb-20261024/`（合计 279,212 字节，单文件最大
 117,639 字节，未触发 `large-assets.json` 的 256 KiB 线），逐条绑 `36addfd5` 的现测字节。路由面
-**87 条**（48 GET + 39 POST），写侧扫描 `rows=39 walked=38 written=38 read_backs=47 refused=0 excluded=1`，
+**88 条**（48 GET + 40 POST），写侧扫描 `rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1`，
 对比度闸两档主题各 50 个面、`checked=14002 belowAA=0 collapsedOpened=6228 unparsable=0 colourBad=0`，
 几何闸扫 `1440,1280,1536,1920`（1536＝1920 在 Windows 125% 下），本机 `VERIFY_DESIGN_LAB=OK total=76
 failed=0`。性能基线里有一条**真实超标**：交付方案 §14 定"首屏 JS gzip ≤ 150KB"，实测
@@ -311,7 +311,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   3. 工具调用 = 静态合同 E1；本机唯一可离线真跑的是 vtracer（`providers/vtracer_provider.py:7` → 外部工具链 1.0.0-alpha.3，MIT，`commercialUse: ALLOWED`）；`design-action.schema.json` 在 `src/` 内**没有 emitter**，`integrations/hosts/ffmpeg/` 是空目录。
   4. 验收 = E2 有路由有 UI（`/jury/verdict`、`/jury/proposal`、`quality`/`rights` CLI），但 E4 真人判定按铁律不由代理填。
   5. 知识候选 = 存储与路由齐（`assurance/knowledge_feedback.py:202 build_candidate`、`knowledge_candidate` 表、create/review/revoke 三路由），**缺的是从验收判定到候选的发射器**；导出合同也已存在（`design-lab/schemas/assurance-knowledge-candidate-v2.schema.json` 的 `$defs.export`，第 178 行），**不要再新建一份 export schema**——那会让一个边界出现两个权威。
-- **独立全链路的真实可跑面（2026-10-24 复测，路由清单以 `http_service.py` 的 `ROUTES` 为准，共 87 条 = 48 GET + 39 POST（2026-10-24 第七次复测：DL-KB-12 的按修订读取加了 `GET …/assistance-plans/<id>/revisions/<n>` 一条读，上一轮的 KB-11 材料导出也在同一族里。账本 `contract-bindings.json` 是 89 行 = 50 GET + 38 POST + 1 `GET+POST`，因为 `/api/projects` 在 ROUTES 里是 GET 与 POST 两枚、在账本里是一行；所以读侧扫描的分母是 50、写侧是 39，两数不可互换。`ROUTES` 的行号本轮读到 119，别抄数字也别抄行号，自读表））**：
+- **独立全链路的真实可跑面（2026-10-24 复测，路由清单以 `http_service.py` 的 `ROUTES` 为准，共 88 条 = 48 GET + 40 POST（2026-10-24 第七次复测：DL-KB-12 的按修订读取加了 `GET …/assistance-plans/<id>/revisions/<n>` 一条读，上一轮的 KB-11 材料导出也在同一族里。账本 `contract-bindings.json` 是 90 行 = 50 GET + 39 POST + 1 `GET+POST`，因为 `/api/projects` 在 ROUTES 里是 GET 与 POST 两枚、在账本里是一行；所以读侧扫描的分母是 50、写侧是 40，两数不可互换。`ROUTES` 的行号本轮读到 119，别抄数字也别抄行号，自读表））**：
   能靠调用入口真跑通的链是 项目 → 简报 → 参考图入库 → 资产分析派生 RIR（CLI `analyze` + POST `…/assets/<img-ID>/analysis`，live HTTP 已测）→ 原生计划提交 → jury 判定 → rights 记录 → 打包 → **preflight**（POST `…/bundles/<id>/preflight`，2026-10-19 起有 live HTTP 测试；此前所有 preflight 测试都只在进程内调 `preflight_bundle`，路由的默认 profile 与返回形状从未被走过）→ 知识候选创建/审阅/撤回。
   **两个断点没有任何调用入口，不是"还没接"而是没有实现**：(1) Prompt Intelligence——`prompt` 在 `http_service.py`、`cli.py`、`apps/workbench/shell.ts` 三处 0 命中，也没有承载模块，它只作为产品主张出现在 BOUNDARY_CONTRACT 与任务包 §9；(2) 候选导出——`assurance/knowledge_feedback.py:458 export_payload` 与 `:521 to_v1_projection` 在整个 `src/` 内**零调用方**（除各自函数体内那行 `_document(candidate, "…")` 自指标签），出站 `outbound.transport` 在 `knowledge_review.py:337` 硬编码 `NOT_CONNECTED`，该模块第 11 行的注释本身就写明"本仓库没有 ArcheAxis transport"。所以导出段缺的不是接线，是一个真实出口。（本行是 2026-10-19 的诊断，两段已于 2026-10-20 落地，见上头两条的落地状态；照本行去"补第一个调用方"会重复劳动。）
   另两处口径要写清：`quality` 记录只有 CLI（`cli.py:99`），**没有路由**，所以它既不算 matched 也不算 backend_only；`/jury/proposal` 有路由但页面不调（BACKEND_ONLY，理由已登记）。
@@ -406,8 +406,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   三分片全 `exit=0`（`shard=1/3 outcomes={'PASS': 1104,'SKIP': 2}`），此前稳定复现的两条本机 ERROR 消失——
   这条只能在 Windows 上量，Linux CI 给不了这个证据。
   **写侧的同一把尺子已于同日第二十四批（后端 G）量完**（审计件 §5.27）：`design-lab/tests/`
-  `test_installed_write_surface.py` 把账本 **39 条 POST 行**（含 `GET+POST` 那条创建行；G 批次当时是 33，K 批新增方案创建/修订/选用三条写行，K4 新增目标档案草稿与校验两条写行，KB-16 新增外部使用反馈一条写行）登记成一张按对象依赖顺序排的覆盖表，
-  其中 **38 行**逐行真写、每行都用 GET 读回，剩下 1 行按政策点名不走，覆盖表双向断言、槽位缺值即红、5xx 名单按布局分开且必须与实际发生
+  `test_installed_write_surface.py` 把账本 **40 条 POST 行**（含 `GET+POST` 那条创建行；G 批次当时是 33，K 批新增方案创建/修订/选用三条写行，K4 新增目标档案草稿与校验两条写行，KB-16 新增外部使用反馈一条写行，KB-05 D5 新增知识判断一条写行）登记成一张按对象依赖顺序排的覆盖表，
+  其中 **39 行**逐行真写、每行都用 GET 读回，剩下 1 行按政策点名不走，覆盖表双向断言、槽位缺值即红、5xx 名单按布局分开且必须与实际发生
   完全相等。今日读数取自源码布局：
   `rows=39 walked=38 written=38 read_backs=47 refused=0 excluded=1`（G 批次当时是 `rows=29 walked=28`
   与 34 次读回，K 批与 K4 把方案、目标档案与反馈的写行逐条加了进来，分母跟着动才是对的——写行增加了
@@ -462,7 +462,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   emitter 逐行重钉为
   `src/design_lab/design_layer.py:104`、`:105`、`:106`、`:107`（各版本常量自己那行，`BRIEF_READBACK` 的
   `:64` 一字未动），设计层这一族付掉 **18 行**，账本仍有 **14 行**没有合同，
-  live 载荷比对现在 **56 条绑定**——每条绑定至少一例真实载荷，多数两例、少数一例或三例（目录读那几行只有一例：`catalog()`
+  live 载荷比对现在 **57 条绑定**——每条绑定至少一例真实载荷，多数两例、少数一例或三例（目录读那几行只有一例：`catalog()`
   没有"空目录"这一分支可给）：活梢与被超版、有内容与空项目、
   追加与同幂等键的重放。一条写在账本 reason 里的旧断言被实测字节推翻并点名更正：brief 链那行原写
   "superseded_by 链**加 design_layer_event 行**"，实测文档里根本没有事件行——`_chain()` 读

@@ -3716,6 +3716,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     knowledge_entry_id: 'kentry-1', status: 'ACTIVE', latest_revision: 2,
     recommended_revision: 1, current: entryView(), recommended: entryView({ revision: 1 }),
     superseded_by: null,
+    recommendation_basis: 'written-flag', recommendation_judgement: null,
+    source_state: null, judgements: [],
     revisions: [
       { revision: 2, content_sha256: 'sha256:' + 'a'.repeat(64), entry_type: 'METHOD',
         title: '分镜拆解三步法', recommended: false, created_at: '2026-10-23T09:00:00+00:00',
@@ -3753,6 +3755,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     current: entryView({ knowledge_entry_id: 'kentry-2', entry_type: 'PROMPT',
       title: '粒子光效提示词模板' }),
     recommended: null, superseded_by: null,
+    recommendation_basis: 'written-flag', recommendation_judgement: null,
+    source_state: null, judgements: [],
     revisions: [
       { revision: 2, content_sha256: 'sha256:' + 'b'.repeat(64), entry_type: 'PROMPT',
         title: '粒子光效提示词模板', recommended: true,
@@ -3861,6 +3865,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     recommended_revision: 1, current: entryView({ knowledge_entry_id: NEW_ID, revision: 1 }),
     recommended: entryView({ knowledge_entry_id: NEW_ID, revision: 1 }),
     superseded_by: null,
+    recommendation_basis: 'written-flag', recommendation_judgement: null,
+    source_state: null, judgements: [],
     revisions: [{ revision: 1, content_sha256: 'sha256:' + 'a'.repeat(64),
       entry_type: 'METHOD', title: '分镜拆解三步法', recommended: true,
       created_at: '2026-10-23T09:00:00+00:00', created_by: 'ALEX', readable: true }],
@@ -3926,6 +3932,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     recommended: entryView({ knowledge_entry_id: NEW_ID, revision: 2,
       body: '先定机位，再定景别，最后核对轴线与视线高度。' }),
     superseded_by: null,
+    recommendation_basis: 'written-flag', recommendation_judgement: null,
+    source_state: null, judgements: [],
     revisions: [
       { revision: 2, content_sha256: 'sha256:' + 'b'.repeat(64), entry_type: 'METHOD',
         title: '分镜拆解三步法', recommended: true,
@@ -3943,6 +3951,134 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   if (!text(byElementId(view, 'kb-detail')).includes('r1 · 分镜拆解三步法'))
     throw new Error('㉓ 修订后旧版本必须仍在修订历史里');
   expectQuiet('修订读回');
+
+  // (4b) DL-KB-05 D5：把推荐退回旧版本只能靠一条真人记下的判断——修订行是只追加的。
+  // 表单必须把 kind/revision/reason/recorded_by 原样送出，写后按服务读回上屏。
+  const judgedDetail = (basis, judgements, extra) => ({
+    schemaVersion: 'design-lab/knowledge-entry-detail/v1',
+    knowledge_entry_id: NEW_ID, status: 'ACTIVE', latest_revision: 2,
+    recommended_revision: 1,
+    current: entryView({ knowledge_entry_id: NEW_ID, revision: 2,
+      body: '先定机位，再定景别，最后核对轴线与视线高度。' }),
+    recommended: entryView({ knowledge_entry_id: NEW_ID, revision: 1,
+      body: '先定机位，再定景别。' }),
+    superseded_by: null,
+    recommendation_basis: basis,
+    recommendation_judgement: judgements.find((item) => item.kind === 'RECOMMENDATION') ?? null,
+    source_state: judgements.find((item) => item.kind === 'SOURCE_STATE') ?? null,
+    judgements,
+    revisions: [
+      { revision: 2, content_sha256: 'sha256:' + 'b'.repeat(64), entry_type: 'METHOD',
+        title: '分镜拆解三步法', recommended: true,
+        created_at: '2026-10-23T10:00:00+00:00', created_by: 'ALEX', readable: true },
+      { revision: 1, content_sha256: 'sha256:' + 'a'.repeat(64), entry_type: 'METHOD',
+        title: '分镜拆解三步法', recommended: false,
+        created_at: '2026-10-23T09:00:00+00:00', created_by: 'ALEX', readable: true },
+    ],
+    unreadable_count: 0, index: { rows: 3, indexed: 3, rebuilt_at: null },
+    does_not_say: ['保存不等于核验'],
+    ...extra,
+  });
+  const RECOMMEND_ROW = {
+    judgement_id: 'kjudge-' + 'd'.repeat(32), kind: 'RECOMMENDATION', revision: 1,
+    value: 'RECOMMENDED', replaced_by: null, reason: '旧版本那三步在实际项目里更稳。',
+    recorded_by: '张工', recorded_at: '2026-10-24T11:00:00+00:00',
+  };
+  byElementId(view, 'kb-judge-revision').value = '1';
+  byElementId(view, 'kb-judge-name').value = '张工';
+  byElementId(view, 'kb-judge-submit').onclick();
+  await flush();
+  if (shell.pending.length !== 0)
+    throw new Error('㉓ 没有理由时页面把判断发给了服务：服务会拒绝，但这一页不该先问一次');
+  if (!text(byElementId(view, 'kb-detail')).includes('判断必须写出理由'))
+    throw new Error('㉓ 缺理由时页面没有就地说明缺什么');
+  byElementId(view, 'kb-judge-reason').value = RECOMMEND_ROW.reason;
+  byElementId(view, 'kb-judge-name').value = '';
+  byElementId(view, 'kb-judge-submit').onclick();
+  await flush();
+  if (shell.pending.length !== 0 || !text(byElementId(view, 'kb-detail')).includes('必须填上记录人'))
+    throw new Error('㉓ 缺记录人时页面没有拒绝并说明验收只接受具名真人');
+  byElementId(view, 'kb-judge-name').value = '张工';
+  byElementId(view, 'kb-judge-submit').onclick();
+  await flush();
+  const judgeWrites = shell.pending.splice(0, shell.pending.length);
+  if (judgeWrites.length !== 1
+    || judgeWrites[0].path !== `/api/knowledge-entries/${NEW_ID}/judgements`
+    || judgeWrites[0].init.method !== 'POST')
+    throw new Error(`㉓ 判断没有打到 judgements 路由：${judgeWrites.map((r) => `${r.init.method} ${r.path}`).join(' ')}`);
+  const judgeBody = JSON.parse(judgeWrites[0].init.body);
+  if (judgeBody.kind !== 'RECOMMENDATION' || judgeBody.revision !== 1
+    || judgeBody.recorded_by !== '张工' || judgeBody.recorded_by_kind !== 'HUMAN'
+    || judgeBody.replaced_by !== null || 'recorded_at' in judgeBody)
+    throw new Error(`㉓ 判断体不对：${JSON.stringify(judgeBody)}`);
+  judgeWrites[0].resolve(response(judgedDetail('recorded-judgement', [RECOMMEND_ROW])));
+  await flush();
+  const judgeSearch = shell.pending.splice(0, shell.pending.length);
+  if (judgeSearch.length !== 1 || !judgeSearch[0].path.startsWith('/api/knowledge-entries/search?'))
+    throw new Error('㉓ 记完判断没有重搜：列表的推荐标记必须跟着读回变');
+  judgeSearch[0].resolve(response(libraryView({
+    total: 3, returned: 3,
+    entries: [rowView({ knowledge_entry_id: NEW_ID, revision: 2, latest_revision: 2,
+      recommended_revision: 1, recommended_is_latest: false }), ...libraryView().entries],
+  })));
+  await flush();
+  const judgeDetail = shell.pending.splice(0, shell.pending.length);
+  if (judgeDetail.length !== 1 || judgeDetail[0].path !== `/api/knowledge-entries/${NEW_ID}`)
+    throw new Error('㉓ 记完判断没有按编号读回详情');
+  judgeDetail[0].resolve(response(judgedDetail('recorded-judgement', [RECOMMEND_ROW])));
+  await flush();
+  const judgedText = text(byElementId(view, 'kb-detail'));
+  for (const needle of ['判断与来源状态', '推荐 r1', '张工', RECOMMEND_ROW.reason,
+    '来自一次后来记下的判断', '来源状态没有人说过'])
+    if (!judgedText.includes(needle))
+      throw new Error(`㉓ 判断读回没有上屏「${needle}」：${judgedText.slice(0, 300)}`);
+  expectQuiet('判断读回');
+
+  // 来源失效必须带替代条目：一个打不开的替代不是替代，页面先问清再发。
+  byElementId(view, 'kb-source-value').value = 'INVALID';
+  byElementId(view, 'kb-source-reason').value = '原稿下架。';
+  byElementId(view, 'kb-source-name').value = '张工';
+  byElementId(view, 'kb-source-submit').onclick();
+  await flush();
+  if (shell.pending.length !== 0)
+    throw new Error('㉓ 没有替代条目编号时不能把失效判断发给服务');
+  if (!text(byElementId(view, 'kb-detail')).includes('替代条目的编号'))
+    throw new Error('㉓ 失效判断缺替代时页面没有说明缺什么');
+  const SOURCE_ROW = {
+    judgement_id: 'kjudge-' + 'e'.repeat(32), kind: 'SOURCE_STATE', revision: null,
+    value: 'INVALID', replaced_by: 'kentry-' + '9'.repeat(32), reason: '原稿下架。',
+    recorded_by: '张工', recorded_at: '2026-10-24T11:30:00+00:00',
+  };
+  byElementId(view, 'kb-source-replacement').value = SOURCE_ROW.replaced_by;
+  byElementId(view, 'kb-source-submit').onclick();
+  await flush();
+  const sourceWrites = shell.pending.splice(0, shell.pending.length);
+  if (sourceWrites.length !== 1
+    || sourceWrites[0].path !== `/api/knowledge-entries/${NEW_ID}/judgements`)
+    throw new Error('㉓ 来源判断没有打到 judgements 路由');
+  const sourceBody = JSON.parse(sourceWrites[0].init.body);
+  if (sourceBody.kind !== 'SOURCE_STATE' || sourceBody.value !== 'INVALID'
+    || sourceBody.revision !== null
+    || sourceBody.replaced_by !== SOURCE_ROW.replaced_by)
+    throw new Error(`㉓ 来源判断体不对：${JSON.stringify(sourceBody)}`);
+  sourceWrites[0].resolve(response(judgedDetail('recorded-judgement',
+    [RECOMMEND_ROW, SOURCE_ROW])));
+  await flush();
+  shell.pending.splice(0, shell.pending.length)
+    [0].resolve(response(libraryView({
+      total: 3, returned: 3,
+      entries: [rowView({ knowledge_entry_id: NEW_ID, revision: 2, latest_revision: 2,
+        recommended_revision: 1, recommended_is_latest: false }), ...libraryView().entries],
+    })));
+  await flush();
+  shell.pending.splice(0, shell.pending.length)
+    [0].resolve(response(judgedDetail('recorded-judgement', [RECOMMEND_ROW, SOURCE_ROW])));
+  await flush();
+  const sourcedText = text(byElementId(view, 'kb-detail'));
+  for (const needle of ['已失效', `替代条目 ${SOURCE_ROW.replaced_by}`, '原稿下架。'])
+    if (!sourcedText.includes(needle))
+      throw new Error(`㉓ 来源判断读回没有上屏「${needle}」：${sourcedText.slice(0, 300)}`);
+  expectQuiet('来源判断读回');
 
   // (5) 无命中只解释，不编造：两字检索词走子串回退，答案为空时列表里只有一行解释。
   const searchForm = findIn(view, (node) => node?.tagName === 'FORM');
@@ -3984,6 +4120,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
 
 console.log('ok: ㉓ DL-KB-02/03/04 知识与提示词库：首屏一次检索且词表/许可状态来自读回、列表不带正文哈希路径、'
   + '详情按需读回、空表单与缺记录人本地拒绝、新增 14 键 POST（无 schemaVersion/created_at、留空来源不编造）、'
-  + '修订带 expected_revision 且旧版本留在历史、写后按返回编号读回、两字检索词走子串回退且无命中只解释不编造');
+  + '修订带 expected_revision 且旧版本留在历史、写后按返回编号读回、两字检索词走子串回退且无命中只解释不编造、'
+  + '推荐退回旧版本只能靠一条真人判断（缺理由与缺记录人都本地拒绝、七键 POST 不带 recorded_at）、'
+  + '来源失效必须带一个打得开的替代条目');
 
 console.log('APPSHELL REGRESSION: all checks passed');

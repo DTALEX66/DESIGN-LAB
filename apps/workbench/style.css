@@ -1952,6 +1952,12 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .kb-detail-head h3{margin:0;font-size:var(--uif-font-h3);overflow-wrap:anywhere}
 .kb-detail-head p{margin:var(--uif-space-1) 0 0}
 .kb-detail-panel h4{margin:var(--uif-space-3) 0 0;font-size:var(--uif-font-body)}
+/* DL-KB-05 D5（2026-10-24）：推荐判断与来源判断各占一格，并排不下时自动堆叠。
+   宽度只用 ch 与令牌，不新增字面 px —— §4 的存量由 scripts/design_debt_baseline.py 按实测看守。 */
+.kb-judge-grid{display:grid;gap:var(--uif-space-3);
+  grid-template-columns:repeat(auto-fit,minmax(28ch,1fr))}
+.kb-judgements{display:grid;gap:var(--uif-space-2);align-content:start}
+.kb-judgements h4{margin:var(--uif-space-3) 0 0;font-size:var(--uif-font-body)}
 .kb-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1);
   justify-content:flex-end}
 .kb-badges-start{justify-content:flex-start}

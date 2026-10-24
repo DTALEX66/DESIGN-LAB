@@ -4875,6 +4875,218 @@ function kbEntryBlocks(doc, vocabulary) {
     )
   ];
 }
+const KB_JUDGEMENT_KIND_LABELS = {
+  RECOMMENDATION: "推荐版本",
+  SOURCE_STATE: "来源状态"
+};
+const KB_SOURCE_STATE_LABELS = { ACTIVE: "仍然有效", INVALID: "已失效" };
+function kbJudgementSentence(item) {
+  if (!item) return "";
+  const who = `${item.recorded_by} 于 ${item.recorded_at}`;
+  if (item.kind === "RECOMMENDATION") return `推荐 r${item.revision} —— ${who}记下，理由：${item.reason}`;
+  return `${KB_SOURCE_STATE_LABELS[item.value ?? ""] ?? en(item.value ?? "")}${item.replaced_by ? `，替代条目 ${item.replaced_by}` : ""} —— ${who}记下，理由：${item.reason}`;
+}
+function kbJudgementList(judgements) {
+  return el("ul", { class: "list" }, ...judgements.map((item) => el(
+    "li",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, KB_JUDGEMENT_KIND_LABELS[item.kind] ?? en(item.kind)),
+      el("small", {}, kbJudgementSentence(item))
+    ),
+    el("span", { class: "tag neutral" }, item.judgement_id)
+  )));
+}
+function kbJudgementPanel(detail, judge) {
+  const basis = detail.recommendation_basis === "recorded-judgement" ? `当前推荐 r${detail.recommended_revision} 来自一次后来记下的判断，不是写入时的标记。` : detail.recommendation_basis === "written-flag" ? `当前推荐 r${detail.recommended_revision} 是写入那个版本时一起记下的标记；之后没有人改过。` : "当前没有推荐版本：没有人写下推荐，服务也不会自动排一个。";
+  const source = detail.source_state ? `来源状态：${kbJudgementSentence(detail.source_state)}` : "来源状态没有人说过——「没有人说过」不等于「来源没问题」。";
+  const revision = el(
+    "select",
+    {
+      id: "kb-judge-revision",
+      class: "input",
+      "aria-label": "要推荐哪一个已存下的修订"
+    },
+    ...detail.revisions.map((row) => el(
+      "option",
+      { value: String(row.revision) },
+      `r${row.revision} · ${row.title}${row.readable ? "" : " · JSON 不可读"}`
+    ))
+  );
+  const preferred = detail.recommended_revision ?? detail.latest_revision;
+  if (preferred !== null) revision.value = String(preferred);
+  const reason = el("input", {
+    id: "kb-judge-reason",
+    class: "input",
+    maxlength: "300",
+    placeholder: "为什么改推荐这一版（必填）",
+    "aria-label": "改推荐理由"
+  });
+  const decider = el("input", {
+    id: "kb-judge-name",
+    class: "input",
+    maxlength: "80",
+    placeholder: "记录人姓名（必填）",
+    "aria-label": "推荐判断的记录人"
+  });
+  const recommendNotice = el("div", { role: "status", "aria-live": "polite" });
+  const recommendSubmit = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "kb-judge-submit"
+  }, "记录推荐判断");
+  recommendSubmit.onclick = () => {
+    if (!reason.value.trim()) {
+      recommendNotice.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "判断必须写出理由：没有理由的排序，服务会直接拒绝。"
+      ));
+      return;
+    }
+    if (!decider.value.trim()) {
+      recommendNotice.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "必须填上记录人：验收只接受具名真人，这一页不会替你铸造一个名字。"
+      ));
+      return;
+    }
+    recommendSubmit.disabled = true;
+    recommendNotice.replaceChildren(el("p", { class: "view-loading" }, "正在记录…"));
+    void (async () => {
+      try {
+        await judge({
+          kind: "RECOMMENDATION",
+          revision: Number(revision.value),
+          value: null,
+          replaced_by: null,
+          reason: reason.value.trim(),
+          recorded_by: decider.value.trim(),
+          recorded_by_kind: "HUMAN"
+        });
+        recommendNotice.replaceChildren(el("p", {}, "已记下，正在按服务的答案读回这条判断。"));
+      } catch (error) {
+        recommendNotice.replaceChildren(el("p", { class: "error" }, `记录或读回失败：${errMsg(error)}`));
+        recommendSubmit.disabled = false;
+      }
+    })();
+  };
+  const stateValue = el(
+    "select",
+    {
+      id: "kb-source-value",
+      class: "input",
+      "aria-label": "来源现在的状态"
+    },
+    el("option", { value: "ACTIVE" }, KB_SOURCE_STATE_LABELS.ACTIVE),
+    el("option", { value: "INVALID" }, KB_SOURCE_STATE_LABELS.INVALID)
+  );
+  const replacement = el("input", {
+    id: "kb-source-replacement",
+    class: "input",
+    placeholder: "kentry-…（标记失效时必填：用哪一条替代）",
+    "aria-label": "替代条目编号"
+  });
+  const sourceReason = el("input", {
+    id: "kb-source-reason",
+    class: "input",
+    maxlength: "300",
+    placeholder: "为什么这样判定（必填）",
+    "aria-label": "来源判定理由"
+  });
+  const sourceDecider = el("input", {
+    id: "kb-source-name",
+    class: "input",
+    maxlength: "80",
+    placeholder: "记录人姓名（必填）",
+    "aria-label": "来源判断的记录人"
+  });
+  const sourceNotice = el("div", { role: "status", "aria-live": "polite" });
+  const sourceSubmit = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "kb-source-submit"
+  }, "记录来源判断");
+  sourceSubmit.onclick = () => {
+    const invalid = stateValue.value === "INVALID";
+    if (invalid && !replacement.value.trim()) {
+      sourceNotice.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "标记失效必须写出替代条目的编号：一个打不开的替代不是替代，服务会拒绝。"
+      ));
+      return;
+    }
+    if (!sourceReason.value.trim() || !sourceDecider.value.trim()) {
+      sourceNotice.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "理由与记录人都必填：这条判断只接受具名真人写明为什么。"
+      ));
+      return;
+    }
+    sourceSubmit.disabled = true;
+    sourceNotice.replaceChildren(el("p", { class: "view-loading" }, "正在记录…"));
+    void (async () => {
+      try {
+        await judge({
+          kind: "SOURCE_STATE",
+          revision: null,
+          value: stateValue.value,
+          replaced_by: invalid ? replacement.value.trim() : null,
+          reason: sourceReason.value.trim(),
+          recorded_by: sourceDecider.value.trim(),
+          recorded_by_kind: "HUMAN"
+        });
+        sourceNotice.replaceChildren(el("p", {}, "已记下，正在按服务的答案读回这条判断。"));
+      } catch (error) {
+        sourceNotice.replaceChildren(el("p", { class: "error" }, `记录或读回失败：${errMsg(error)}`));
+        sourceSubmit.disabled = false;
+      }
+    })();
+  };
+  return el(
+    "div",
+    { class: "kb-judgements" },
+    el("h4", {}, "判断与来源状态（真人记录，不改写任何版本）"),
+    el(
+      "p",
+      { class: "view-hint" },
+      `${basis} ${source} 修订行是只追加的，所以「把推荐退回旧版本」只能靠这样一条记录表达：写下判断不会新增修订，也不会改动任何已存字节。`
+    ),
+    ...detail.judgements.length ? [kbJudgementList(detail.judgements)] : [el(
+      "p",
+      { class: "muted" },
+      "还没有人记下判断：下面两个表单是这条判断的第一次记录。"
+    )],
+    el(
+      "div",
+      { class: "kb-judge-grid" },
+      el(
+        "div",
+        {},
+        fieldRow("推荐哪一个已存版本", revision, "kb-judge-revision"),
+        fieldRow("理由", reason, "kb-judge-reason"),
+        fieldRow("记录人", decider, "kb-judge-name"),
+        el("div", { class: "kb-actions" }, recommendSubmit),
+        recommendNotice
+      ),
+      el(
+        "div",
+        {},
+        fieldRow("来源状态", stateValue, "kb-source-value"),
+        fieldRow("替代条目（仅失效时必填）", replacement, "kb-source-replacement"),
+        fieldRow("理由", sourceReason, "kb-source-reason"),
+        fieldRow("记录人", sourceDecider, "kb-source-name"),
+        el("div", { class: "kb-actions" }, sourceSubmit),
+        sourceNotice
+      )
+    )
+  );
+}
 function kbDetailPanel(detail, vocabulary, actions) {
   const current = detail.current;
   const sameRevision = detail.recommended_revision !== null && detail.recommended_revision === detail.latest_revision;
@@ -4950,10 +5162,11 @@ function kbDetailPanel(detail, vocabulary, actions) {
     children.push(el(
       "p",
       { class: "view-hint" },
-      "推荐版本是写入时记录下来的判断，不是自动排序；下面是那个版本的正文。"
+      detail.recommendation_basis === "recorded-judgement" ? "这个推荐版本是后来有人记下的判断，不是写入时的标记，也不是自动排序；下面是那个版本的正文。" : "推荐版本是写入时记录下来的判断，不是自动排序；下面是那个版本的正文。"
     ));
     children.push(...kbEntryBlocks(detail.recommended, vocabulary));
   }
+  children.push(kbJudgementPanel(detail, actions.judge));
   children.push(el("h4", {}, "修订历史（旧版本保留，不覆盖）"));
   children.push(el("ul", { class: "list" }, ...detail.revisions.map((revision) => el(
     "li",
@@ -5460,7 +5673,18 @@ async function renderKnowledgeLibrary(target) {
         void openDetail(id);
       },
       revise: (doc) => openForm("revise", doc, null),
-      importReplace: (doc) => openForm("import", doc, doc.knowledge_entry_id)
+      importReplace: (doc) => openForm("import", doc, doc.knowledge_entry_id),
+      // The judgement route answers the entry's own readback, and the honest confirmation is that
+      // readback re-rendered -- list badges included -- not a sentence this page wrote about a
+      // POST it hopes succeeded.
+      judge: async (body) => {
+        await api(
+          `/knowledge-entries/${detail.knowledge_entry_id}/judgements`,
+          body
+        );
+        await runSearch(0);
+        await openDetail(detail.knowledge_entry_id);
+      }
     }));
   }
   async function openDetail(id) {

@@ -164,6 +164,11 @@ ROUTES = (
     Route('GET', r'/api/knowledge-entries/(kentry-[0-9a-f]{32})', '_get_knowledge_entry'),
     Route('POST', r'/api/knowledge-entries/(kentry-[0-9a-f]{32})/revisions',
           '_revise_knowledge_entry'),
+    # DL-KB-05 D5: a later human judgement about an entry -- moving the recommended revision
+    # (including back to an older one) or marking its source invalid with a replacement. It writes
+    # no revision, so every stored document and digest stays where it was.
+    Route('POST', r'/api/knowledge-entries/(kentry-[0-9a-f]{32})/judgements',
+          '_record_knowledge_judgement'),
     Route('GET', '/api/projects', '_list_projects', exact=True),
     Route('GET', '/api/evidence-projection', '_evidence_projection', exact=True),
     Route('GET', '/api/design-systems', '_list_design_systems', exact=True),
@@ -1218,6 +1223,16 @@ def make_server(service, token, port=0, *, local_session=False):
                 'body', 'applicability', 'limits', 'source', 'related_capability_ids',
                 'recommended', 'created_by', 'expected_revision'}, limit=262144)
             return self.send_json(201, KnowledgeLibrary(service).revise(
+                match[1], value))
+
+        def _record_knowledge_judgement(self, match):
+            # `recorded_at` is not a caller field: the service stamps the moment it accepts the
+            # judgement, so a client cannot date its own decision. The answer is the entry's own
+            # readback, which now carries the judgement and the moved pointer.
+            value = self.body(fields={
+                'kind', 'revision', 'value', 'replaced_by', 'reason', 'recorded_by',
+                'recorded_by_kind'}, limit=65536)
+            return self.send_json(201, KnowledgeLibrary(service).record_judgement(
                 match[1], value))
 
         def _import_knowledge_entry(self, match):

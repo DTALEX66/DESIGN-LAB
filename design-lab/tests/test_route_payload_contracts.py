@@ -146,6 +146,11 @@ class RoutePayloadContractTests(unittest.TestCase):
                     'knowledge-library-search': 1, 'knowledge-entry-write-create': 1,
                     'knowledge-entry-write-revise': 1, 'knowledge-entry-import': 2,
                     'knowledge-entry-readback': 1, 'knowledge-index-rebuild': 1,
+                    # DL-KB-05 D5: two judgements of the same entry, both read back as the entry's
+                    # own document. One is the recommendation moving BACK to an older revision and
+                    # the other is a source marked dead with a stored replacement -- the two facts
+                    # the acceptance clause asks the library to be able to say at all.
+                    'knowledge-entry-judgement': 2,
                     # The assistance plan, paid 2026-10-24. The readback carries three answers
                     # because its four states are computed per revision: saved-but-unsupplied,
                     # supplied, and chosen-by-a-named-human are three different documents, and a

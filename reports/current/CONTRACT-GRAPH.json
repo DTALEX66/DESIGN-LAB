@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/contract-graph/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
-  "generated_at": "2026-10-24T18:42:42+00:00",
-  "subject_sha": "8e2b3c4913dcd47d1607b295146fba8d3b167095",
+  "generated_at": "2026-10-24T20:16:41+00:00",
+  "subject_sha": "c79e6aa756a8fe6134bb0cd8b6ab747790e79559",
   "chain": "Schema -> Python model -> DB -> producer -> consumer -> receipt -> projection",
   "concepts": {
     "Job": {
@@ -368,6 +368,7 @@
     "design_layer_event": "design-lab/schemas/state/design-lab-state-design-layer-v3.sql",
     "design_system_token": "design-lab/schemas/state/design-lab-state-design-layer-v4.sql",
     "jury_record": "design-lab/schemas/state/design-lab-state-jury-v1.sql",
+    "knowledge_judgement": "design-lab/schemas/state/design-lab-state-knowledge-judgement-v1.sql",
     "knowledge_entry": "design-lab/schemas/state/design-lab-state-knowledge-library-v1.sql",
     "knowledge_entry_revision": "design-lab/schemas/state/design-lab-state-knowledge-library-v1.sql",
     "knowledge_index_state": "design-lab/schemas/state/design-lab-state-knowledge-library-v1.sql",

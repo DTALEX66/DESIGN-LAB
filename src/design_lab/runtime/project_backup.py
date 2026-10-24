@@ -280,6 +280,11 @@ COUNTER_QUERIES = (
     ('knowledge_entry', 'rowid'),
     ('knowledge_entry_revision', 'rowid'),
     ('knowledge_index_state', 'rowid'),
+    # 2026-10-24 DL-KB-05 D5: a recorded judgement (recommendation moved back, source marked dead)
+    # is appended with no writer lease. It changes what the library answers as recommended without
+    # touching a revision row, so a proof blind to this table could call a window quiescent while
+    # the pointer every plan reads had moved.
+    ('knowledge_judgement', 'rowid'),
     # 2026-10-24 DL-KB-07: the assistance plan store writes its identity row, its
     # append-only revisions and the recorded choice with no writer lease. A backup
     # window that swallowed a revision or a named-human choice would otherwise still

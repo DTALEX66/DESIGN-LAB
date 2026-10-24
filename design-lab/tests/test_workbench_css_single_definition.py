@@ -468,7 +468,11 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # field rows (`as-compare-body`). The 镜头表 read back in the plan body is
         # `'list as-shot-list'`, which the exact substring deliberately does not count, and the
         # comparison's "cannot read, so nothing is compared" case stays on the status <p>.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 72)
+        # 2026-10-24 (DL-KB-05 D5) again: 72 -> 73. One new container, named: the entry detail's
+        # judgement trail (`kb-judgements`). It is emitted only when the readback carries rows --
+        # "nobody has recorded a judgement yet" is a sentence (`<p class="muted">`), not an empty
+        # list that would read as "asked and answered with nothing".
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 73)
 
 
 if __name__ == "__main__":

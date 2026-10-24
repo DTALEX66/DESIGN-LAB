@@ -58,6 +58,12 @@ _IMPORT_SCHEMA_PATH = repo_resource('schemas/knowledge-import-v1.schema.json')
 _WRITE_SCHEMA_PATH = repo_resource('schemas/knowledge-entry-write-v1.schema.json')
 _INDEX_SCHEMA_PATH = repo_resource('schemas/knowledge-index-rebuild-v1.schema.json')
 _STATE = state_schema('design-lab-state-knowledge-library-v1.sql')
+#: Recorded judgements (DL-KB-05 D5). Separate resource, same database: the entry's revision rows
+#: stay append-only, and a judgement made later is a new row of its own.
+_JUDGEMENT_STATE = state_schema('design-lab-state-knowledge-judgement-v1.sql')
+JUDGEMENT_KINDS = ('RECOMMENDATION', 'SOURCE_STATE')
+RECOMMENDATION_VALUE = 'RECOMMENDED'
+SOURCE_STATES = ('ACTIVE', 'INVALID')
 
 ENTRY_TYPES = ('STANDARD', 'METHOD', 'PROMPT', 'MODEL_GUIDE', 'RECIPE', 'CASE')
 #: The six types as the screen names them. Kept here (not in the view) so the wire's machine
@@ -129,6 +135,7 @@ def connect(db_path, *, project_root=None) -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     try:
         connection.executescript(_STATE.read_text(encoding='utf-8'))
+        connection.executescript(_JUDGEMENT_STATE.read_text(encoding='utf-8'))
     except sqlite3.OperationalError as exc:
         # The derived index needs FTS5 with the trigram tokenizer. A build without it must not
         # degrade into "search silently returns the whole library": no index, no Chinese search,
@@ -385,7 +392,13 @@ def _field_text(document, field):
 
 
 def _statuses(conn):
-    """Which entries are superseded, and by whom; and each entry's recommended revision."""
+    """Which entries are superseded, and by whom; and each entry's recommended revision.
+
+    A recorded RECOMMENDATION judgement outranks the flag written with the revision: the flag can
+    only ever say what was recommended when those bytes were created, while the judgement is the
+    later act of moving the recommendation back (DL-KB-05 D5). Entries with no judgement keep the
+    flag, so nothing changes for a library nobody has re-ranked.
+    """
     superseded_by = {}
     for row in conn.execute(
             'SELECT entry_id, supersedes FROM knowledge_entry WHERE supersedes IS NOT NULL'):
@@ -393,7 +406,47 @@ def _statuses(conn):
     recommended = {row['entry_id']: row['top'] for row in conn.execute(
         'SELECT entry_id, MAX(revision) AS top FROM knowledge_entry_revision'
         ' WHERE recommended=1 GROUP BY entry_id')}
+    for entry_id, judgement in _latest_judgements(conn).get('RECOMMENDATION', {}).items():
+        recommended[entry_id] = judgement['revision']
     return superseded_by, recommended
+
+
+def _latest_judgements(conn, entry_id=None):
+    """The newest judgement of each kind, per entry, optionally for one entry only.
+
+    `rowid` is the record order because the table is append-only: no UPDATE can move an older
+    judgement to the top, so "latest" is a fact about insertion order rather than a clock reading.
+    """
+    sql = ('SELECT j.* FROM knowledge_judgement j WHERE j.rowid = (SELECT MAX(k.rowid)'
+           ' FROM knowledge_judgement k WHERE k.entry_id=j.entry_id AND k.kind=j.kind)')
+    args = ()
+    if entry_id is not None:
+        sql += ' AND j.entry_id=?'
+        args = (entry_id,)
+    latest = {}
+    for row in conn.execute(sql, args):
+        latest.setdefault(row['kind'], {})[row['entry_id']] = _judgement_view(row)
+    return latest
+
+
+def _judgement_view(row):
+    """One judgement row in the shape the readback carries: no rowid, no duplicate entry id."""
+    return {
+        'judgement_id': row['judgement_id'],
+        'kind': row['kind'],
+        'revision': row['revision'],
+        'value': row['value'],
+        'replaced_by': row['replaced_by'],
+        'reason': row['reason'],
+        'recorded_by': row['recorded_by'],
+        'recorded_at': row['recorded_at'],
+    }
+
+
+def _judgement_history(conn, entry_id):
+    """Every judgement recorded about one entry, oldest first -- the audit trail D5 asks for."""
+    return [_judgement_view(row) for row in conn.execute(
+        'SELECT * FROM knowledge_judgement WHERE entry_id=? ORDER BY rowid', (entry_id,))]
 
 
 def _index_state(conn):
@@ -647,6 +700,8 @@ class KnowledgeLibrary:
                 ' created_by, document_json FROM knowledge_entry_revision WHERE entry_id=?'
                 ' ORDER BY revision', (entry_id,)).fetchall()
             superseded_by, _recommended = _statuses(conn)
+            recorded = _latest_judgements(conn, entry_id)
+            history = _judgement_history(conn, entry_id)
             index = _index_state(conn)
         documents, unreadable = {}, 0
         revisions = []
@@ -670,6 +725,14 @@ class KnowledgeLibrary:
             })
         latest = rows[-1]['revision'] if rows else None
         recommended = max((row['revision'] for row in rows if row['recommended']), default=None)
+        # A recorded judgement outranks the flag written with the revision, and it is the only way
+        # the recommendation can move BACK: the revision rows are append-only by trigger, so their
+        # flags never change. Every other revision stays exactly as stored, which is what keeps a
+        # plan that pinned an older one reading the same bytes.
+        recommendation = recorded.get('RECOMMENDATION', {}).get(entry_id)
+        if recommendation is not None:
+            recommended = recommendation['revision']
+        source_state = recorded.get('SOURCE_STATE', {}).get(entry_id)
         current = documents.get(latest)
         recommended_document = documents.get(recommended) if recommended is not None else None
         return _check({
@@ -684,11 +747,126 @@ class KnowledgeLibrary:
             'recommended': (None if recommended_document is None or recommended == latest
                             else recommended_document),
             'superseded_by': superseded_by.get(entry_id),
+            # Which of the two possible owners decided `recommended_revision`, said plainly: a
+            # reader must be able to tell "recommended when the bytes were written" from "a person
+            # moved it here later", and neither is a computed ranking.
+            'recommendation_basis': ('recorded-judgement' if recommendation is not None
+                                     else ('written-flag' if recommended is not None else None)),
+            'recommendation_judgement': recommendation,
+            # null means nobody has ever said -- not "the source is fine".
+            'source_state': source_state,
+            'judgements': history,
             'revisions': revisions,
             'unreadable_count': unreadable,
             'index': index,
             'does_not_say': list(DOES_NOT_SAY),
         }, _READBACK_SCHEMA_PATH, 'knowledge entry readback', registry=_ref_registry())
+
+    def record_judgement(self, entry_id, value) -> dict:
+        """Record a later human judgement about an entry (DL-KB-05 D5), then read it back.
+
+        Two kinds share this one writer because they are the same act: RECOMMENDATION moves the
+        recommended revision (including back to an older one), SOURCE_STATE marks the source
+        INVALID and names what replaces it. Neither writes a revision, so no stored document,
+        digest or timestamp moves -- an entry pinned to revision 2 by an older plan keeps reading
+        exactly those bytes. `recorded_at` is stamped here rather than accepted from the caller:
+        a judgement about who decided what is not something the client gets to date.
+        """
+        kind = value.get('kind')
+        if kind not in JUDGEMENT_KINDS:
+            raise KnowledgeLibraryError(
+                400, 'KNOWLEDGE_JUDGEMENT_KIND_INVALID',
+                f'kind must be one of {list(JUDGEMENT_KINDS)} (got {kind!r})')
+        if value.get('recorded_by_kind') != 'HUMAN':
+            raise KnowledgeLibraryError(
+                400, 'KNOWLEDGE_HUMAN_JUDGEMENT_REQUIRED',
+                'an agent may not move a recommendation or declare a source dead: '
+                "recorded_by_kind must be 'HUMAN' with a named person in recorded_by "
+                f"(got {value.get('recorded_by_kind')!r})")
+        recorded_by = value.get('recorded_by')
+        if not isinstance(recorded_by, str) or not recorded_by.strip():
+            raise KnowledgeLibraryError(
+                400, 'RECORDED_BY_REQUIRED',
+                'recorded_by must name the person who made the judgement')
+        reason = value.get('reason')
+        if not isinstance(reason, str) or not reason.strip():
+            raise KnowledgeLibraryError(
+                400, 'REASON_REQUIRED',
+                'a judgement without a stated reason is a ranking wearing a costume; put the '
+                'why in reason')
+        revision = value.get('revision')
+        state_value = value.get('value')
+        replaced_by = value.get('replaced_by')
+        if kind == 'RECOMMENDATION':
+            if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+                raise KnowledgeLibraryError(
+                    400, 'KNOWLEDGE_JUDGEMENT_REVISION_REQUIRED',
+                    f'a RECOMMENDATION judgement names the revision it recommends, got {revision!r}')
+            if state_value not in (None, RECOMMENDATION_VALUE):
+                raise KnowledgeLibraryError(
+                    400, 'KNOWLEDGE_JUDGEMENT_VALUE_INVALID',
+                    f'a RECOMMENDATION judgement carries value={RECOMMENDATION_VALUE!r} or null, '
+                    f'got {state_value!r}')
+            state_value = RECOMMENDATION_VALUE
+            if replaced_by is not None:
+                raise KnowledgeLibraryError(
+                    400, 'KNOWLEDGE_JUDGEMENT_FIELD_NOT_APPLICABLE',
+                    'replaced_by belongs to a SOURCE_STATE judgement, not a recommendation')
+        else:
+            if state_value not in SOURCE_STATES:
+                raise KnowledgeLibraryError(
+                    400, 'KNOWLEDGE_JUDGEMENT_VALUE_INVALID',
+                    f'a SOURCE_STATE judgement carries value in {list(SOURCE_STATES)}, '
+                    f'got {state_value!r}')
+            if revision is not None:
+                raise KnowledgeLibraryError(
+                    400, 'KNOWLEDGE_JUDGEMENT_FIELD_NOT_APPLICABLE',
+                    'revision belongs to a RECOMMENDATION judgement; a source judgement is about '
+                    'where the content came from, not which revision is current')
+            if state_value == 'INVALID':
+                if not isinstance(replaced_by, str) or _ID.match(replaced_by) is None:
+                    raise KnowledgeLibraryError(
+                        400, 'KNOWLEDGE_SOURCE_REPLACEMENT_REQUIRED',
+                        'marking a source INVALID must name a knowledge entry id in replaced_by, '
+                        f'or the entry has to be re-sourced instead (got {replaced_by!r})')
+                if replaced_by == entry_id:
+                    raise KnowledgeLibraryError(
+                        400, 'KNOWLEDGE_SOURCE_REPLACEMENT_SELF',
+                        'an entry cannot replace itself: the source is either re-sourced from '
+                        'outside or replaced by another entry')
+        with closing(self._connect()) as conn:
+            if conn.execute('SELECT 1 FROM knowledge_entry WHERE entry_id=?',
+                            (entry_id,)).fetchone() is None:
+                raise KnowledgeLibraryError(404, 'KNOWLEDGE_ENTRY_NOT_FOUND')
+            if kind == 'RECOMMENDATION' and conn.execute(
+                    'SELECT 1 FROM knowledge_entry_revision WHERE entry_id=? AND revision=?',
+                    (entry_id, revision)).fetchone() is None:
+                raise KnowledgeLibraryError(
+                    404, 'KNOWLEDGE_REVISION_NOT_FOUND',
+                    f'entry {entry_id!r} has no revision {revision}; a judgement cannot recommend '
+                    'bytes that were never stored')
+            if (kind == 'SOURCE_STATE' and state_value == 'INVALID' and conn.execute(
+                    'SELECT 1 FROM knowledge_entry WHERE entry_id=?', (replaced_by,)).fetchone()
+                    is None):
+                raise KnowledgeLibraryError(
+                    404, 'KNOWLEDGE_SOURCE_REPLACEMENT_UNKNOWN',
+                    f'replaced_by {replaced_by!r} is not an entry this library holds; naming a '
+                    'replacement the reader cannot open is not a replacement')
+            current = _latest_judgements(conn, entry_id).get(kind, {}).get(entry_id)
+            if current and (current['value'] == state_value and current['revision'] == revision
+                            and (current['replaced_by'] or '') == (replaced_by or '')
+                            and current['recorded_by'] == recorded_by.strip()
+                            and current['reason'] == reason.strip()):
+                # The same judgement sent twice is one judgement. Replaying it must not stack a
+                # second row, or a double click would read as a re-decision.
+                return self.detail(entry_id)
+            conn.execute(
+                'INSERT INTO knowledge_judgement (judgement_id, entry_id, kind, revision, value,'
+                ' replaced_by, reason, recorded_by, recorded_at) VALUES (?,?,?,?,?,?,?,?,?)',
+                ('kjudge-' + uuid.uuid4().hex, entry_id, kind, revision, state_value,
+                 replaced_by, reason.strip(), recorded_by.strip(), _now()))
+            conn.commit()
+        return self.detail(entry_id)
 
     def search(self, *, query=None, entry_type=None, domain=None, task=None, target=None,
                offset=0, limit=DEFAULT_LIMIT) -> dict:

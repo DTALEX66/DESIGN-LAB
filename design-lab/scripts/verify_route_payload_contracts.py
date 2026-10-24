@@ -556,6 +556,34 @@ class Harness:
             'import-replay': ('POST .../import replays the same source version', imported_twice),
             'rebuild': ('POST .../index-rebuild', rebuilt),
         }
+        # DL-KB-05 D5 (2026-10-24). A judgement is a LATER act, so these two readbacks are taken
+        # after the written flags exist: `recommendation_basis` flips from written-flag to
+        # recorded-judgement and the recommended number moves BACK, and `source_state` goes from
+        # null ("nobody has said") to a named replacement entry. The 'detail' case above stays the
+        # pre-judgement shape, so the null branch of both fields is compared too.
+        status, successor = self.call('POST', '/api/knowledge-entries', dict(
+            self.KNOWLEDGE_FIELDS, title='分镜拆解（替代来源）', recommended=False))
+        if status != 201:
+            raise RuntimeError(f'KNOWLEDGE_SUCCESSOR_REFUSED {status} {successor}')
+        status, moved_back = self.call(
+            'POST', f'/api/knowledge-entries/{entry_id}/judgements',
+            {'kind': 'RECOMMENDATION', 'revision': 1, 'value': None, 'replaced_by': None,
+             'reason': '第二步的景别在实际项目里更常用，把推荐退回 r1。',
+             'recorded_by': 'dtalex66', 'recorded_by_kind': 'HUMAN'})
+        if status != 201:
+            raise RuntimeError(f'KNOWLEDGE_RECOMMENDATION_JUDGEMENT_REFUSED {status} {moved_back}')
+        status, dead_source = self.call(
+            'POST', f'/api/knowledge-entries/{entry_id}/judgements',
+            {'kind': 'SOURCE_STATE', 'revision': None, 'value': 'INVALID',
+             'replaced_by': successor['entry']['knowledge_entry_id'],
+             'reason': '原来源下架，替代条目已入库。',
+             'recorded_by': 'dtalex66', 'recorded_by_kind': 'HUMAN'})
+        if status != 201:
+            raise RuntimeError(f'KNOWLEDGE_SOURCE_JUDGEMENT_REFUSED {status} {dead_source}')
+        self.knowledge['judgement'] = (
+            'POST .../judgements moves the recommendation back to revision 1', moved_back)
+        self.knowledge['judgement-source'] = (
+            'POST .../judgements marks the source INVALID with a stored replacement', dead_source)
 
     def knowledge_cases(self, *names):
         return [self.knowledge[name] for name in names]
@@ -1532,6 +1560,17 @@ def build_bindings():
             'emitter': 'src/design_lab/knowledge_library.py',
             'version': 'design-lab/knowledge-entry-readback/v1',
             'cases': lambda h: h.knowledge_cases('detail'),
+        },
+        {
+            'name': 'knowledge-entry-judgement',
+            'route': '/api/knowledge-entries/(kentry-[0-9a-f]{32})/judgements',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/knowledge-entry-readback-v1.schema.json',
+            'emitter': 'src/design_lab/knowledge_library.py',
+            'version': 'design-lab/knowledge-entry-readback/v1',
+            # The same readback the GET serves, reached through the write that moved it: one case
+            # with a recorded recommendation, one with a dead source and its replacement.
+            'cases': lambda h: h.knowledge_cases('judgement', 'judgement-source'),
         },
         {
             'name': 'knowledge-index-rebuild',
