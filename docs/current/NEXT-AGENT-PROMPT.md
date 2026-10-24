@@ -107,6 +107,32 @@ checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run 
 以账本 `artifact_sha256` 为准。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
 
+**台账读数（2026-10-24 第五轮收口时现数，取代上面第四轮那一段的"当下"身份）**：`currentExecution` 仍是
+50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；16 项派工里 **`DONE 11`**（新增 `DL-KB-09/10/11/12/14`）、
+**`PARTIAL 4`**（`DL-KB-02/05` 旧账，加 `DL-KB-13` 体积超标与真人无指导任务、`DL-KB-16` 的
+`human_review` 只认具名真人）、**`NOT_STARTED 1`**（`DL-KB-15`，前置是 owner 本机可用的推理服务与硬件余量）。
+`currentExecution.evidence` 从 249 涨到 **270** 条、全部 PASS，本轮回执 21 条落在
+`design-lab/evidence/current-execution/task-artifacts/kb-20261024/`（合计 279,212 字节，单文件最大
+117,639 字节，未触发 `large-assets.json` 的 256 KiB 线），逐条绑 `36addfd5` 的现测字节。路由面
+**87 条**（48 GET + 39 POST），写侧扫描 `rows=39 walked=38 written=38 read_backs=47 refused=0 excluded=1`，
+对比度闸两档主题各 50 个面、`checked=14002 belowAA=0 collapsedOpened=6228 unparsable=0 colourBad=0`，
+几何闸扫 `1440,1280,1536,1920`（1536＝1920 在 Windows 125% 下），本机 `VERIFY_DESIGN_LAB=OK total=76
+failed=0`。性能基线里有一条**真实超标**：交付方案 §14 定"首屏 JS gzip ≤ 150KB"，实测
+`build/main.js` 593,796 字节 / gzip **155,787** 字节——不能靠压缩构建解决（`vite.config.ts` 顶上写明
+这个包故意不压缩，原生 UI 契约测试要读函数名与界面文字），也不该删必要内容凑数，所以 `DL-KB-13` 停在
+PARTIAL 并把取舍交给 owner（见 §7）。搜索侧达标：1,000 条按真实结构生成的样本、`search p95=28.89ms`
+（阈值 300ms）。
+
+**下一刀切哪里（按价值排序，不是按编号）**：
+① `DL-KB-13` 的两件人账——owner 对 150KB 上限的裁定（提预算并写明理由，或批准一次按面板拆包的加载
+模型改动，后者会动 `vite.config.ts` 那份"单文件不压缩"合同，必须 owner 点头），以及 §14 要求的
+3 位目标用户无指导任务；
+② 把这一轮在对比度闸里立的"先展开 `<details>` 再量"的同一把尺子带到几何闸与 UI 审计闸——它们现在
+量的是布局盒，不是人眼此刻看得到的像素，改前要先把宽度、行数与既有断言重测；
+③ `DL-KB-02` 的 A5 直接断言、`DL-KB-05` 的 D5 重测（回退要事件表，本轮没加）；
+④ `DL-KB-16` 的 `human_review` 与 `DESIGN.md` 的批准状态，都等 owner 真实测试后由具名真人签。
+
+
 **四个空白是实测出来的，不是听来的**（同一批字节上）：`capability_library.py` 是只读投影、没有写入面；
 `prompt_intelligence.py` 不调用任何模型；`prompt_results.py` 的存储层仍要求 `executed=false`；
 `model_selection.py` 只记录选择。路由合同账本 80 行里 BOUND_SCHEMA 66、SCHEMA_LESS 14，
