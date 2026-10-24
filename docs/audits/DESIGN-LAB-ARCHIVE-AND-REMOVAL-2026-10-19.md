@@ -1319,3 +1319,20 @@ failed=0`，UI 审计闸与截图采集（带合成方案种子）都是 0 退�
 UNUSED；三方素材与字库在范围外；E 盘不动；旧 34 项仍 `FROZEN_DEFERRED`；release、装机分发、真实宿主
 E3、真人 E4、ComfyUI、MiniMax H3 与外部软件自动操作继续冻结。
 
+**CI 把本机量不到的四件事顶了出来（逐提交读数）。** 收口提交 `d33b8e1c`/`64ad6f9b` 的首轮矩阵红了三个
+作业，逐个查因，没有一条靠改断言糊过去：
+① `test_gate_reachability` 报 `measure_workbench_weight.py` 声明了 `--check` 却没有任何表、链条或测试
+调用它——这正是"闸门可达性"家规该抓的东西，已把它作为一步接进 Workbench 作业（`7a6ab695`）：它现在
+守的是"不许有远程引用"这半条已经成立的规则，体积那半条只发布读数不判分；
+② 21 条新回执绑进账本之后 `AUTHORITY_CHAIN=DRIFT`，因为那份记录钉的就是账本自己的字节，重生成
+`reports/current/DEEPSEEK-AUTHORITY-CHAIN.json` 才是对的（同一提交内付清）；
+③ 登记册第 5 行钉的审计件字节因 §5.36 而变，按 `git cat-file` 重钉，不手抄；
+④ 几何闸在 CI 上判 `1440:capabilities`"这一屏一个标题都没有"，本地怎么都复现不出来——真相是它按固定
+1 秒 sleep 量路由，把"还在读回"当成了"没有标题"。现在先等 `#route-view` 的占位消失再量，等不到就进
+`OV_INTERACTION_UNMEASURED` 红（`9cba9f11`）。同一类问题在方案对照用例里又抓到一次：等待条件只看
+"选用"徽章，而被比较的修订数与反馈数来自两次独立读回，CI 读到 `feedback: 0` 就误判"复制动了源"——
+修订数没变恰恰说明产品是对的，错的是等待（`7925efca`）。
+**最终 `7925efca` 的 PR 矩阵 `completed success`**：11 个作业里 Branch light 与 CI artifact proof 按规则
+跳过（前者只在非 main 的 push 上跑，后者只在 main 上跑），其余全绿。这一串的价值不在"最后绿了"，
+在于这四条只有换一台机器才会暴露——本机此前全绿了整整一天。
+
