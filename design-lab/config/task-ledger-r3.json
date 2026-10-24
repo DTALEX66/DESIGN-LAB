@@ -8851,6 +8851,7 @@
           "kb-13-browser-overflow-report-20261024",
           "kb-13-browser-overflow-zoom-20261024",
           "kb-13-css-single-definition-20261024",
+          "kb-13-implementation-module-share-20261024",
           "kb-13-implementation-search-latency-20261024",
           "kb-13-implementation-weight-20261024"
         ]
@@ -12119,6 +12120,18 @@
         "command": "contrast gate over the material panel and the plan detail: every measured run meets AA, and the collapsed-detail control proves the reading is painted text :: ",
         "exit_code": 0,
         "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-implementation-module-share-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "8e2b3c4913dcd47d1607b295146fba8d3b167095",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-implementation-module-share-20261024.log",
+        "artifact_sha256": "964f116093aa19ff52bfb430c10cff04ff8b034e713424daafc7733443f3a427",
+        "command": ".venv/Scripts/python.exe scripts/measure_workbench_weight.py --check :: the plan asks for the module and resource share to be measured before anyone tries to get lighter, so the bundle is now attributed by top-level declaration: WEIGHT module renderDesignAssistant              bytes=  59963 share=11.61% | WEIGHT module renderTargetProfiles               bytes=  28744 share= 5.56% | WEIGHT modules declarations=365 coverage=100.0% of the bundle | WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=155787 -- the two screens this round added are the largest single shares, which is the number the owner needs to weigh against the 150 KB ceiling and the un-minified single-file build contract; the 80% coverage floor is proven by an indented fixture the reader cannot parse (coverage 0.0)",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T18:42:17Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

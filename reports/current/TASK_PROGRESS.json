@@ -14,7 +14,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-24T16:35:58+00:00",
+  "generatedAt": "2026-10-24T18:42:40+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -29,7 +29,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+  "subjectSha": "8e2b3c4913dcd47d1607b295146fba8d3b167095",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
@@ -1088,6 +1088,7 @@
         "kb-13-browser-overflow-report-20261024",
         "kb-13-browser-overflow-zoom-20261024",
         "kb-13-css-single-definition-20261024",
+        "kb-13-implementation-module-share-20261024",
         "kb-13-implementation-search-latency-20261024",
         "kb-13-implementation-weight-20261024"
       ],
@@ -1151,5 +1152,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:63320cb1f3471422b23cdcb6313dd2e72ce8a4b23d114df3b45bf77bb5f5cf13"
+  "worktreeDigest": "sha256:c51477baa8fb2b58d7138bc55e4d7c90b8e9877500f45cf29349dd8bd7380042"
 }
