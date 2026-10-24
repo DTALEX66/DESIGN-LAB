@@ -57,6 +57,10 @@ def remote_refs(text: str) -> list[str]:
 DATA_URI = re.compile(r'data:[a-z0-9.+-]+/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]*')
 EL_CALL = re.compile(r"\bel\('")
 ROUTE_VIEWS = re.compile(r"hash:\s*'[^']*'")
+# The delivered plan asks for 模块与资源占比 before anyone tries to get lighter, so the bundle is
+# attributed rather than guessed at. The build contract keeps this file un-minified precisely so a
+# top-level declaration still starts at column 0 -- that is what makes a byte span measurable here.
+TOP_LEVEL = re.compile(r'^(?:async function|function|class|const|let|var)\s+([A-Za-z0-9_$]+)')
 
 
 def read(path: Path) -> bytes:
@@ -75,16 +79,48 @@ def limits() -> dict[str, int]:
     return out
 
 
+def modules(bundle_text: str) -> dict:
+    """Byte share per top-level declaration of the shipped bundle, largest first.
+
+    A span runs from one column-0 declaration to the next, so the numbers add up to what the
+    browser actually downloads. `coverage` is the share of the file this accounts for at all: if
+    the shape of the bundle ever changes so that attribution stops seeing it, that number falls and
+    the reading says so instead of reporting a confident empty table.
+    """
+    starts = []
+    offset = 0
+    for line in bundle_text.splitlines(keepends=True):
+        match = TOP_LEVEL.match(line)
+        if match:
+            starts.append((offset, match.group(1)))
+        offset += len(line)
+    spans = []
+    for index, (start, name) in enumerate(starts):
+        end = starts[index + 1][0] if index + 1 < len(starts) else offset
+        spans.append({'name': name, 'bytes': end - start})
+    total = len(bundle_text)
+    for span in spans:
+        span['sharePercent'] = round(100.0 * span['bytes'] / total, 2) if total else 0.0
+    spans.sort(key=lambda s: -s['bytes'])
+    attributed = sum(s['bytes'] for s in spans)
+    return {'declarations': len(spans),
+            'coveragePercent': round(100.0 * attributed / total, 1) if total else 0.0,
+            'largest': spans[:12]}
+
+
 def measure() -> dict:
     files = {}
     remote_hits = []
     inline_bytes = 0
     inline_count = 0
+    bundle_text = ''
     for label, path in SHIPPED:
         raw = read(path)
         files[label] = {'bytes': len(raw), 'gzip': len(gzip.compress(raw, 9)),
                         'sha256': __import__('hashlib').sha256(raw).hexdigest()[:16]}
         text = raw.decode('utf-8', errors='replace')
+        if label == 'bundle':
+            bundle_text = text
         remote_hits += [f'{label}: {hit}' for hit in remote_refs(text)]
         for uri in DATA_URI.finditer(text):
             inline_count += 1
@@ -100,6 +136,7 @@ def measure() -> dict:
                 shell[shell.index('export const ROUTE_VIEWS'):shell.index('\n];',
                                                                           shell.index('export const ROUTE_VIEWS'))])),
             'pageSizes': limits(),
+            'modules': modules(bundle_text),
             'budgetDeclared': budget}
 
 
@@ -121,6 +158,11 @@ def main() -> int:
         print(f'WEIGHT mountPoints={data["mountPoints"]} routedViews={data["routedViews"]}')
         for label, value in data['pageSizes'].items():
             print(f'WEIGHT page {label} = {value}')
+        for span in data['modules']['largest']:
+            print(f'WEIGHT module {span["name"]:34} bytes={span["bytes"]:>7} '
+                  f'share={span["sharePercent"]:>5}%')
+        print(f'WEIGHT modules declarations={data["modules"]["declarations"]} '
+              f'coverage={data["modules"]["coveragePercent"]}% of the bundle')
         print(f'WEIGHT remoteReferences={len(data["remoteReferences"])} '
               f'budgetDeclared={data["budgetDeclared"]}')
         for hit in data['remoteReferences']:
@@ -129,6 +171,13 @@ def main() -> int:
         print('WEIGHT NOTE design.qa.yaml declares no performance budget; a ceiling is an owner '
               'decision, so these are baseline readings, not a pass/fail judgement on size.')
     if args.check:
+        # An empty or blind attribution would let this script keep printing a confident table of
+        # nothing, so the share it actually accounts for is part of the verdict.
+        if data['modules']['coveragePercent'] < 80.0:
+            print(f"WORKBENCH_WEIGHT_GATE=FAIL module attribution covers only "
+                  f"{data['modules']['coveragePercent']}% of the bundle -- the bundle is no longer"
+                  f" shaped like this reader assumes")
+            return 1
         if data['remoteReferences']:
             print('WORKBENCH_WEIGHT_GATE=FAIL remote references in shipped bytes: '
                   f'{len(data["remoteReferences"])}')
