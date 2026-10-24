@@ -92,16 +92,17 @@ owner 原话（逐字）：**「读取分析，按照这个执行（前端UI是�
 `.project/governance/authority-index.json` 的 `desktopKbAdoption`。唯一当前包是
 `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`（`DL-TP-20261023-DESKTOP-KB-R1`）。
 
-**台账读数（2026-10-24 收尾时现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
+**台账读数（2026-10-24 第四轮收尾时现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
 仍冻结 **34 项**（`DL-FINAL-T01…T22` 与 `DL-UI-U01…U12`，一行都没被解冻），当前可派工 **16 项**
-（`DL-KB-01…DL-KB-16`）。第三轮收口后的状态是 `DONE 4`（`DL-KB-01/03/04/06`——这是账本的 DONE，
-证据等级仍是 E1/E2，真人验收未发生）、`PARTIAL 2`（`DL-KB-02/05`）、`NOT_STARTED 10`（`DL-KB-07…16`）。
-`currentExecution.evidence` 236 条全部 PASS：216 条历史 + 19 条绑 `967d3eed` 的回执 +
-1 条 `delivery` 回执（`kb-01-delivery-ci-clean-checkout-20261024`，绑 `3c6ca491` 的干净检出 CI）。
+（`DL-KB-01…DL-KB-16`）。第四轮收口后的状态是 `DONE 6`（`DL-KB-01/03/04/06/07/08`——这是账本的 DONE，
+证据等级仍是 E1/E2，真人验收未发生）、`PARTIAL 2`（`DL-KB-02/05`）、`NOT_STARTED 8`（`DL-KB-09…16`）。
+`currentExecution.evidence` 249 条全部 PASS：236 条前三轮 + 13 条本轮回执（KB-07 两条、KB-08 十一条），
+逐条 `artifact_sha256` 绑定受跟踪工件；其中 1 条 `delivery` 回执
+（`kb-01-delivery-ci-clean-checkout-20261024`，绑 `3c6ca491` 的干净检出 CI）。
 `DL-KB-01` 的干净克隆条款已由 CI 兑现：main run `40036696250` 在 `3c6ca491` 上 success（11 个作业
 success、Branch light 按规则跳过），`RECORD_REGISTER_GATE=PASS checks=5 problems=0` 在全新 Linux
 checkout 上复算登记册摘要，EOL 未被规范化；同 SHA 的分支 run `40036704582` 也 success。
-本机九门在收口树（`236` 条证据、`DONE 4`）上全部 exit 0。证据包 `kb-20261023/` 现有 70 个受跟踪文件；
+本机九门在收口树（`249` 条证据、`DONE 6`）上全部 exit 0。证据包 `kb-20261023/` 现有 86 个受跟踪文件；
 `evidence-index.json` 仍是第一刀在 `7f5e68d7` 的 47 份索引，**不是全量清单**——第二轮起的回执
 以账本 `artifact_sha256` 为准。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
@@ -141,14 +142,27 @@ matched=61 / backend_only=11 / dynamic=3 / special=1，`ROUTE_VIEWS` 21 → **22
 逐作业全绿，收尾提交后的 run `40013185833`（main）与 `40013198844`（分支）在 `d9a8412b` 同样全绿
 （细节见审计 §5.32、§5.33）。下一会话自读 `git rev-parse HEAD`，不要抄这两个 SHA。
 
-**DL-KB-05 已经量到它能到的边界，下一刀是 K3。** 修订链的追加与冲突前置条件已有真实 HTTP 探针
+**第四刀（K3 两项）已收口，下一刀是 K4。** `DL-KB-07`（中立方案对象 + 一份创意意图）与
+`DL-KB-08`（设计辅助初始态 + 方案详情四态）在 `2d9372fb` 实现、`103a6680` 收口：6 条新路由
+（输出类型、列表、详情、创建、修订、选用）把 ROUTES 从 72 带到 78（42 GET + 36 POST），合同账本
+74 → 80 行（BOUND_SCHEMA 66 / SCHEMA_LESS 14），live 载荷绑定 41 → 47，ROUTE_VIEWS 22 → 23，
+`DESIGN.md` 导航 22 → 23；新增五份 plan schema 与一张 state 表。`test_assistance_plan` 18 项、
+路由/账本/打包 77 项、工作台 node 30 项（含 `㉔ B10_NAV` 派生断言）与 Python 44 项全绿；浏览器实跑
+四态可分、复制与选用互不代劳、空目标被拒并聚焦、手工补创意可行、重载读回一致、无聊天面，
+consoleErrors 0；81 张截图绑 `2d9372fb` 的 bundle `ffabee75`，UI audit 0 violations、对比度双 palette、
+溢出 1100/900/750/620 四档、a11y 27 屏 0 findings（自动扫描，不是认证），设计债 713 条与助手屏出现前
+逐条一致——新界面没有新增字面 px 或硬编码颜色。该 E2E 自己的 `subjectSha` 写的是 `local`，工件身份
+由 `routeInventory.bundleSha256` 与截图 manifest 的 commit 绑定，账本回执里照实记录了这一点。
+
+**DL-KB-05 的 D5 现在可以重新量。** 修订链本身已有真实 HTTP 探针
 （`design-lab/scripts/knowledge_revision_probe.py`）：r1 是推荐版本，修订后 r2 成为最新且父摘要不变，
 带 `expected_revision=1` 的过期写返回 `409 KNOWLEDGE_ENTRY_REVISION_CONFLICT` 并点名 revision 2，
-重启后链一致（`KB_REVISION_OK`）。停在 PARTIAL 的是 D5：**推荐版本回退没有路由、失效来源没有字段**，
-它依赖尚未开工的 `DL-KB-07`。所以下一刀是 `DL-KB-07`（中立方案对象 + 一份创意意图）与
-`DL-KB-08`（设计辅助初始态 + 方案详情四态）。**先量现状再动手**：上一轮的教训是"卡片说缺的"
-经常已经存在一半；`DL-KB-02` 的 A5（模型服务关闭时仍可写入、检索、编辑与复制）也还没有直接断言，
-不要因为五条写路由都在就把它读成已证。
+重启后链一致（`KB_REVISION_OK`）。它停住时写的是"推荐版本回退没有路由、失效来源没有字段，
+依赖尚未开工的 `DL-KB-07`"；`DL-KB-07` 现已 DONE，下一轮要先按现行字测量 D5 是否真的被那 6 条
+方案路由解锁，再决定 KB-05 能否从 PARTIAL 收口——不要因为依赖项 DONE 就把它读成已证。
+K4 是 `DL-KB-09`（目标档案：软件×模型×入口）与 `DL-KB-10`（目标组合选择面板屏）。
+**先量现状再动手**：上一轮的教训是"卡片说缺的"经常已经存在一半；`DL-KB-02` 的 A5
+（模型服务关闭时仍可写入、检索、编辑与复制）仍然没有直接断言，不要因为五条写路由都在就把它读成已证。
 
 **本轮留下的账**（下一轮同批付或明确记录）：真实中文知识语料仍只有探针合成的那批，不含 owner 的条目；
 写入路径的逐屏截图只覆盖新增；1280 宽档侧栏仍要滚动才能看全分组（这是密度事实，不是缺陷；当前项在

@@ -1196,3 +1196,50 @@ adapter 数、两跳链、冻结/派工两个分母——都不受本轮改动�
 第一刀之后的 20 份新件（第二轮 19 份 + 第三轮 1 份 delivery 回执）由账本 `artifact_sha256`
 逐条绑定，不并入那个索引。读证据时以账本为准，
 不要把索引当成"证据包全量清单"。
+
+### 5.35 第四刀 K3：方案对象与设计辅助（`2d9372fb` 实现 → `103a6680` 收口）
+
+**落地形状。** 实现提交 `2d9372fb` 新增六条路由：`GET /api/assistance-plan-output-types`、
+`GET /api/projects/(id)/assistance-plans`、`GET /api/projects/(id)/assistance-plans/(aplan-…)`、
+`POST /api/projects/(id)/assistance-plans`、`POST …/assistance-plans/(aplan-…)/revisions`、
+`POST …/assistance-plans/(aplan-…)/choose`。实测 ROUTES 72 → **78**（42 GET + 36 POST）；合同账本
+74 → **80 行**（BOUND_SCHEMA 66 / SCHEMA_LESS 14；方法分布 44 GET + 35 POST + 1 GET+POST）；live
+载荷绑定 41 → **47**（`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=47 failures=0`）；`ROUTE_VIEWS`
+22 → **23**，`DESIGN.md` 导航 22 → 23。新增五份 plan schema（plan / write / readback / list /
+output-types）与一张 94 行的 state 表。
+
+**`DL-KB-07`（中立方案对象 + 一份创意意图）收口。** `test_assistance_plan` 18 项：
+"已保存／方案已提供／用户选用／外部未验证"是四条独立读回路径，复制不写任何一条；修订追加、
+不改旧链；带过期 `expected_revision` 的写被拒并点名实际版本；只有具名真人能做选用；未接回执的
+选用保持 `LINKED_ONLY`，直到存储里出现反转；缺号一律 `UNUSED` 字面量。路由注册、合同行与 wheel
+打包由 77 项（`test_route_payload_contracts`、`test_ledger_schema`、
+`test_packaged_contract_resources`）复核。
+
+**`DL-KB-08`（设计辅助初始态 + 方案详情屏）收口。** 浏览器实跑 `result PASS`、`consoleErrors 0`：
+保存后 `saved=true` 而 `providedAfterSave`／`chosenAfterSave`／`externalVerified` 全为 `false`；
+复制成功且 `copyCarriedHonesty`、`copyWroteNothing`、`copyChoseNothing` 均为 `true`——复制既不改状态、
+也不代替选用；空目标被拒（`emptyObjectiveRefused`）；手工补创意可行（`suppliedCreative`）；
+`providerPrimary` 是 `as-choose`，选用后 `chosen=true` 且 `chosenActorShown=true`；`revisionRows=2`；
+重载读回一致（`reloadReadback`）；无聊天面（`noChatSurface`）。工作台 node 30 项（含
+`㉔ B10_NAV` 从 `ROUTE_VIEWS` 派生）与 Python 44 项同绿。
+
+**视觉与闸门。** 截图 manifest 绑 `2d9372fb`：81 张（assistant 在 1280/1440/1920），
+视觉复核另存四张（`detail@1440-saved` 378,639 B、`detail@1440-chosen` 455,730 B、
+`detail@1280-chosen` 437,580 B、`list@1280` 214,538 B），逐张 sha256 在收据里。UI audit
+`ok=true`、`violations=[]`；溢出量 1100/900/750/620 四档；对比度 3 项双 palette；设计审查插件
+第一次覆盖 `#/assistant`：27 屏 axe 扫描 0 findings（自动扫描，不是 WCAG 认证），设计债
+713 条（630 minor / 52 major / 31 debt）与助手屏出现前**逐条一致**——新界面没有新增字面 px
+或硬编码颜色。收口树九门 `VERIFY_DESIGN_LAB=OK total=76 failed=0`，并带
+`VERIFY_RESULT 549` / `VERIFY_PRODUCT_MANIFEST_V3 493` / `VERIFY_RUNTIME_CONTRACTS_V3 239` /
+`VERIFY_VISUAL_SCORING_V3 10`；投影新鲜度 0 findings；authority gates 7 项 PASS。账本追加 13 条
+回执（KB-07 两条、KB-08 十一条）后共 **249** 条全部 PASS，直方图
+`FROZEN_DEFERRED 34 / DONE 6 / PARTIAL 2 / NOT_STARTED 8`。本目录现有 86 个受跟踪文件：
+索引仍只覆盖第一刀 47 份，其余 39 份（本轮新增 15 份）由账本 `artifact_sha256` 逐条绑定。
+
+**未证与未修。** `1440×900` 与 `1280×800` 下详情屏的主操作落在首屏折叠线以下
+（`1920×1080` 可见）；它不违反任何验收句，但属体验缺陷，留给版式轮次，本轮不为此重排布局——
+重排会让整条刚量好的证据链失效。收据里的选用人写作「示例审阅人」，是**示例**不是真人验收；
+E2E 自己的 `subjectSha` 写的是 `local`，工件身份靠 bundle sha 与截图 manifest 的 commit 绑定，
+账本回执里照实写明。a11y 的 0 是自动扫描。`DL-KB-02` 的 A5 仍无直接断言；`DL-KB-05` 的 D5
+在 KB-07 收口后需要重新量，不能因依赖项 DONE 就写成已证。下一刀是 K4：
+`DL-KB-09`（目标档案：软件×模型×入口）与 `DL-KB-10`（目标组合选择面板屏）。
