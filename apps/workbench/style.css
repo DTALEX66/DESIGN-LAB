@@ -18,7 +18,6 @@
   --color-success:#2FC58D;
   --color-warning:#F4B942;
   --color-error:#F05252;
-  --color-info:#4BAFFF;
 
   /* 品牌渐变两端：primary-btn / toolbar .seg button.active / .seg button.active 三处同一对端点 */
   --brand-gradient-from:#1D4FC4;
@@ -32,7 +31,6 @@
   --motion-fast:120ms;
   --motion-base:180ms;
   --motion-slow:280ms;
-  --motion-emphasis:420ms;
 
   /* 层级（此前 12 处字面 z-index、无表）：值逐条从本文件量得，登记在
      design-lab/config/ui-layering.json；新增层层必须先进那张表再用。 */
@@ -69,35 +67,16 @@
      --------------------------------------------------------------------- */
 
   /* 间距标度（B07 base-tokens.css，8 级） */
-  --space-1:4px;
-  --space-2:8px;
-  --space-3:12px;
   --space-4:16px;
-  --space-6:24px;
-  --space-8:32px;
-  --space-12:48px;
-  --space-16:64px;
 
   /* 字号标度（B07 base-tokens.css；body/caption 见 X-1/X-2） */
-  --font-display:48px;
-  --font-h1:36px;
-  --font-h2:28px;
-  --font-h3:22px;
-  --font-body:16px;
   --font-caption:13px;
 
   /* 断点（B07 base-tokens.css） */
-  --bp-mobile:767px;
-  --bp-tablet:1024px;
-  --bp-desktop:1440px;
 
   /* 密度（B04 design_tokens.json density；B07 治理层未承载） */
-  --density-comfortable:68;
-  --density-default:56;
-  --density-compact:44;
 
   /* 圆角补全（B04 radius.xl=20；--radius-sm 见 X-7，不重定义） */
-  --radius-xl:20px;
 
   /* Workbench 内部语义别名（旧变量名保留，值重指到权威色） */
   --ink:var(--color-text);
@@ -608,12 +587,8 @@ body > footer{
   --muted:var(--color-muted);
   --success:var(--color-success);
   --warning:var(--color-warning);
-  --error:var(--color-error);
-  --info:var(--color-info);
   --grid:rgba(255,255,255,.05);
   --radius:18px;
-  --radius-sm:12px;
-  --blur:18px;
   --shadow:0 20px 80px rgba(0,0,0,.35);
   --shadow-soft:0 12px 48px rgba(0,0,0,.22);
 }
@@ -1762,7 +1737,6 @@ body[data-local-session="auto"] #connect-form details { display: none; }
      light.accent 就是浅色一侧的对应字色，所以这里重指它，而不是让浅色主题带着
      读不清的小标签上线。仍不动的地板值：--accent-hover、--border-strong、品牌渐变。 */
   --color-secondary:var(--uif-light-accent);
-  --color-info:var(--uif-light-accent);
   --avatar-ink:var(--uif-light-text);
   /* info 药丸的填充端点：浅色主题的墨色是深色，所以填充取包自己声明的 accent
      （#87dcff），两端同值即平涂，不引入第三种蓝。 */
@@ -1793,7 +1767,6 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   --accent:#356B92;
   --color-secondary:#356B92;
   --secondary:#356B92;
-  --color-info:#356B92;
   /* info 药丸的填充不能跟着强调色走深：这套基线的 warn/success/error 填充都是淡底，
      药丸墨色必须统一取深色正文，否则白字压淡底实测只有 1.83:1（对比度闸门逐条报红，
      这条红是它自己量出来的，不是照抄 ui2026 那一段的结论）。 */
