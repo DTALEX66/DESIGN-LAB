@@ -8,26 +8,26 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-25T01:33:34+00:00",
+  "generatedAt": "2026-10-25T01:53:32+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "ee654faf45748353b7e760c6186debe0d21606f9",
+    "sha": "0cdcbd11bc175e8d7fbdc954b97fa3c724a69af2",
     "source_worktree_clean": false,
-    "tracked_files": 3961,
+    "tracked_files": 3962,
     "worktree_changes": [
       {
-        "content": "sha256:4dfbfbb5265cae0b9e6b0b3da700d4e548a22dc170572ad5614df42c3b5d642a",
+        "content": "sha256:8474711e33cc9bf7c37f291d7e482c94da15c2dfb9fec3d6bcda28a1ddeaa54d",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:f56d0cf3af3b424c099b61b36cc620a85ee439bd0fa8aaf215c8cb53c82cfd70",
+        "content": "sha256:b576412ff9fd01c1cd94727531f56961be0e5076b9180122da43e2a9fe0c38c8",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
       {
-        "content": "sha256:f080f84dd4cfa614f7ff960293a534e75bd95667a26b84bdaca4413f2645a0af",
+        "content": "sha256:09c4664f417269b5cfaf62fb410a5dbb81e5b9811138540ea6faf699e78a31ef",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
@@ -42,12 +42,12 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       },
       {
-        "content": "sha256:aba4b7ac13a6ffbf5138628f00a4beed247df2bfb3a706ddea161ea1ecdd9a17",
+        "content": "sha256:2667cf568049fdbaf4fbbd443c21cdeb4576de13f42e1f951669421ad7097d5e",
         "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-12-browser-two-revision-comparison-20261025.json"
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-16-browser-recorded-feedback-state-20261025.json"
       }
     ],
-    "worktree_digest": "sha256:f4030916daba8e6ba9b99080b608b90b2d87bc07ce527bf30359eb275856e05c"
+    "worktree_digest": "sha256:64c0e7cffb7d4939bbabd608fa662398a895e19578ce09fc141c8c0f4cd06f6e"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -63,7 +63,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ee654faf45748353b7e760c6186debe0d21606f9",
+  "subjectSha": "0cdcbd11bc175e8d7fbdc954b97fa3c724a69af2",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -83,5 +83,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:f4030916daba8e6ba9b99080b608b90b2d87bc07ce527bf30359eb275856e05c"
+  "worktreeDigest": "sha256:64c0e7cffb7d4939bbabd608fa662398a895e19578ce09fc141c8c0f4cd06f6e"
 }

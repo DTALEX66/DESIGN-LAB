@@ -8890,7 +8890,8 @@
         "evidence": [
           "kb-16-browser-feedback-20261024",
           "kb-16-implementation-write-surface-20261024",
-          "kb-16-unit-plan-feedback-20261024"
+          "kb-16-unit-plan-feedback-20261024",
+          "kb-16-browser-recorded-feedback-state-20261025"
         ]
       }
     ],
@@ -12314,6 +12315,18 @@
         "command": "Both rulers now reach the two-revision comparison: a second revision is written through the same /revisions route the screen uses, #as-compare is opened, r1 and r2 selected and 对照 clicked, and the run waits on >=12 painted rows with a status line that stopped saying 正在读回. Contrast 54→56 route-runs / 15270 text runs (belowAA=0), geometry 124→128 route-runs with clipped/stray/tiny/occluded/docOverflowX all zero and every comparison row settling on state=read; the rows are graded through the shared sink and required at every width.",
         "exit_code": 0,
         "observed_at": "2026-10-25T01:33:09Z"
+      },
+      {
+        "id": "kb-16-browser-recorded-feedback-state-20261025",
+        "task_id": "DL-KB-16",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "0cdcbd11bc175e8d7fbdc954b97fa3c724a69af2",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-16-browser-recorded-feedback-state-20261025.json",
+        "artifact_sha256": "2667cf568049fdbaf4fbbd443c21cdeb4576de13f42e1f951669421ad7097d5e",
+        "command": "Both rulers now record one synthetic piece of external feedback inside the plan detail and measure the state that only exists afterwards. Contrast 56→58 route-runs / 15772 text runs with belowAA=0; geometry 128→132 route-runs with clipped/stray/tiny/occluded/docOverflowX all zero and four feedback rows reporting state=read. The recorder name says it is scaffolding, the state field is read off the panel's own status line, and a missing plan row is now quoted instead of crashing the run (the crash is recorded in the receipt; its cause is not established). DL-KB-16 still needs a named human for human_review.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T01:53:02Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
