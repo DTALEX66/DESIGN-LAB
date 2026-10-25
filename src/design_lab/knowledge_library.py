@@ -885,6 +885,15 @@ class KnowledgeLibrary:
         if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= MAX_LIMIT:
             raise KnowledgeLibraryError(400, 'KNOWLEDGE_LIMIT_INVALID',
                                         f'limit must be between 1 and {MAX_LIMIT}')
+        if query is not None and len(query) > MAX_QUERY:
+            # MAX_QUERY was declared at module scope and read by nothing, so the bound existed
+            # only in the source text: a caller could paste a document as a query and this
+            # method would `_TERM.findall` it and contains-scan every field of every stored
+            # revision for it. Refusing is the honest way to make the declared number true;
+            # silently truncating the query would answer a question the caller did not ask.
+            raise KnowledgeLibraryError(400, 'KNOWLEDGE_QUERY_TOO_LONG',
+                                        f'query must be at most {MAX_QUERY} characters, '
+                                        f'got {len(query)}')
         terms = _TERM.findall(query or '')[:8]
         with closing(self._connect()) as conn:
             documents, _unreadable = _readings(conn)

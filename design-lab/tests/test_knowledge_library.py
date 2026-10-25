@@ -264,6 +264,34 @@ class KnowledgeLibraryTests(unittest.TestCase):
             self.library.search(entry_type='NOPE')
         self.assertEqual('KNOWLEDGE_TYPE_INVALID', caught.exception.code)
 
+    def test_the_promised_search_refusals_are_the_words_the_contract_names(self):
+        """`contract-bindings.json` promises five 400 codes on the search route. Three of them
+        (KNOWLEDGE_OFFSET_INVALID, KNOWLEDGE_LIMIT_INVALID, KNOWLEDGE_QUERY_TOO_LONG) had no
+        test anywhere in the repository, so the row was advertising refusals nothing proved --
+        the same class of gap as a bound declared and never read. A word a client cannot rely
+        on is not a contract: this asserts each code, and asserts the declared maximum itself
+        still answers, because a bound that also refuses its own limit is a wall, not a bound.
+        """
+        from design_lab.knowledge_library import MAX_LIMIT, MAX_QUERY
+
+        for offset in (-1, '0', True):
+            with self.assertRaises(KnowledgeLibraryError) as caught:
+                self.library.search(offset=offset)
+            self.assertEqual('KNOWLEDGE_OFFSET_INVALID', caught.exception.code,
+                             f'offset {offset!r} must be refused with the promised word')
+        for limit in (0, MAX_LIMIT + 1, True):
+            with self.assertRaises(KnowledgeLibraryError) as caught:
+                self.library.search(limit=limit)
+            self.assertEqual('KNOWLEDGE_LIMIT_INVALID', caught.exception.code,
+                             f'limit {limit!r} must be refused with the promised word')
+        with self.assertRaises(KnowledgeLibraryError) as caught:
+            self.library.search(query='品' * (MAX_QUERY + 1))
+        self.assertEqual('KNOWLEDGE_QUERY_TOO_LONG', caught.exception.code)
+        self.assertIn(str(MAX_QUERY), caught.exception.detail,
+                      'the refusal must name the bound it applied, not just say too long')
+        self.assertEqual(0, self.library.search(query='品' * MAX_QUERY)['total'],
+                         'a query of exactly the declared maximum is legal and answers')
+
     # -- the index is derived ------------------------------------------------------------
     def test_a_rebuild_restores_a_corrupted_index(self):
         self.library.create(entry())

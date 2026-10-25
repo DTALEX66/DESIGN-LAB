@@ -971,8 +971,8 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-library-readback-v1.schema.json",
       "version": "design-lab/knowledge-library/v1",
-      "emitter": "src/design_lab/knowledge_library.py:956",
-      "reason": "DL-KB-02/04. The list is a search answer, not a table dump: a term of three characters or more is gated by the FTS5 trigram index, a shorter term or one the index answers with nothing runs the substring fallback, and `strategy` names the mechanisms that actually ran (BROWSE / TRIGRAM / SHORT_FALLBACK / MIXED). The canonical bytes still decide each row, so an index row left over from a superseded revision cannot resurrect a term the current revision dropped. Every row carries the fields and terms it matched computed from that row's own stored bytes, and an empty result carries `explanation` that says why it is empty instead of offering near-matches the search never made. Search lives on its own path so the collection path carries exactly one answer (POST creates); browsing is this route with no `q`. The route declares path_only so a present `?q=` reaches the handler rather than turning into a 404 -- the same declaration /api/task-preflight uses. `index` reports rows/indexed/rebuilt_at from the derived table, so a stale index is visible in the answer rather than assumed healthy. Refusals keep their codes: 400 KNOWLEDGE_TYPE_INVALID, KNOWLEDGE_FILTER_MALFORMED, KNOWLEDGE_OFFSET_INVALID, KNOWLEDGE_LIMIT_INVALID."
+      "emitter": "src/design_lab/knowledge_library.py:965",
+      "reason": "DL-KB-02/04. The list is a search answer, not a table dump: a term of three characters or more is gated by the FTS5 trigram index, a shorter term or one the index answers with nothing runs the substring fallback, and `strategy` names the mechanisms that actually ran (BROWSE / TRIGRAM / SHORT_FALLBACK / MIXED). The canonical bytes still decide each row, so an index row left over from a superseded revision cannot resurrect a term the current revision dropped. Every row carries the fields and terms it matched computed from that row's own stored bytes, and an empty result carries `explanation` that says why it is empty instead of offering near-matches the search never made. Search lives on its own path so the collection path carries exactly one answer (POST creates); browsing is this route with no `q`. The route declares path_only so a present `?q=` reaches the handler rather than turning into a 404 -- the same declaration /api/task-preflight uses. `index` reports rows/indexed/rebuilt_at from the derived table, so a stale index is visible in the answer rather than assumed healthy. Refusals keep their codes: 400 KNOWLEDGE_TYPE_INVALID, KNOWLEDGE_FILTER_MALFORMED, KNOWLEDGE_OFFSET_INVALID, KNOWLEDGE_LIMIT_INVALID, KNOWLEDGE_QUERY_TOO_LONG (the declared MAX_QUERY bound is enforced rather than merely written down, so a pasted document cannot become an unbounded contains-scan over every stored revision)."
     },
     {
       "route": "/api/knowledge-entries",
@@ -1034,7 +1034,7 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-index-rebuild-v1.schema.json",
       "version": "design-lab/knowledge-index-rebuild/v1",
-      "emitter": "src/design_lab/knowledge_library.py:1057",
+      "emitter": "src/design_lab/knowledge_library.py:1066",
       "reason": "DL-KB-04. The rebuild is the index's proof of derivability: it deletes every FTS5 row and reconstructs them from knowledge_entry_revision, then answers with `indexed` (rows written during this rebuild) and `index` (the state the read routes will report from now on) as separate numbers, so a rebuild that indexed nothing is visible instead of reading as healthy. It never writes a canonical row -- an index that could change the entries would be a second truth source. The request body is an exact empty object: the route takes no parameter it would only pretend to honour."
     },
     {
