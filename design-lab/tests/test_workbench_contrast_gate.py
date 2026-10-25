@@ -368,10 +368,12 @@ class WorkbenchContrastGateTests(unittest.TestCase):
                         'backdrop-filter is used outside 顶栏／导航／临时面板: %s' % spec)
         self.assertEqual(spec.get('formRadiusOver10'), '0',
                         '圆角输入／按钮 6–10px is not satisfied under the pack theme: %s' % spec)
+        self.assertEqual(spec.get('bigOver25pct'), '0',
+                        '避免大面积渐变 is not satisfied under the pack theme: %s' % spec)
         # The receipt carries the same numbers the log printed, so a reader holding the JSON can
         # check which pack rules this run graded without re-running the browser.
         recorded_spec = recorded.get('spec') or {}
-        for key in ('below12', 'veilHosts', 'formRadiusOver10'):
+        for key in ('below12', 'veilHosts', 'formRadiusOver10', 'bigGradients'):
             self.assertEqual(recorded_spec.get(key), 0,
                              'the report does not carry %s=0 from this run: %s'
                              % (key, sorted(recorded_spec)))
@@ -397,6 +399,9 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         violations = [l for l in out.splitlines() if l.strip().startswith('SPEC-VIOLATION')]
         self.assertTrue(any('实底' in v for v in violations),
                         'the run failed, but not for the translucent-surface rule: %s' % violations)
+        self.assertTrue(any('大面积渐变' in v for v in violations),
+                        'the default theme was expected to keep its panel wash and grid, so the '
+                        'gradient rule should be what goes red here too: %s' % violations)
         self.assertNotIn('CT_OK', out,
                         'a red pack-number run still printed the AA verdict, so the two are not'
                         ' separated in the log')

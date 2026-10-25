@@ -1789,6 +1789,23 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
   border-radius:10px;
 }
+/* 「避免大面积渐变」与「长文字与列表实底」在珍珠白下是同一条要求，而包的参照 HTML 自己就是这么
+   写的：`section{background:#fff;border:1px solid var(--line)}`——平涂白卡压 `#f3f5f7` 画布，
+   卡内没有渐变也没有高光层。所以这里把三件装饰性大面域的东西按包落地：
+   · `.panel` 的底是 `linear-gradient(180deg, surface 82%, surface 94%)`，实测可见面积到视口
+     40–75%（一次 1440 扫描里 42 个面板级渐变过阈值），改成平涂；
+   · `.panel::before` 是覆盖整张卡的高光层（`rgba(255,255,255,.03)`→transparent），关掉；
+   · `.grid-bg` 是 `inset:0` 的 32px 装饰网格（opacity .22 + 径向 mask），整块不画。
+   默认炭黑一字节不动：这三处是可选主题内的减法，不是对既有配色的改写。 */
+:root[data-palette="stitch"][data-scheme="light"] .panel{
+  background:var(--surface);
+}
+:root[data-palette="stitch"][data-scheme="light"] .panel::before{
+  background:none;
+}
+:root[data-palette="stitch"][data-scheme="light"] .grid-bg{
+  display:none;
+}
 
 /* ---- 可选主题的几何（2026-10-11 追补）--------------------------------------
    上面那组 --uif-sidebar/--uif-gutter-* 此前被登记却没有任何规则读它，所以"20261009

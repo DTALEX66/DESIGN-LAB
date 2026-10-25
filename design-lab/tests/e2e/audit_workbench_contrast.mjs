@@ -613,11 +613,38 @@ const MEASURE_SPEC = () => {
     }
   }
 
+  // 避免大面积渐变. "Large area" has to be a number or the rule grades nothing, so it is stated
+  // as a share of the screen the gradient is actually visible on: a gradient whose VISIBLE box
+  // covers more than a quarter of the viewport is a wash behind content, a gradient on a button
+  // or a pill is not. Visible area, not layout area, is the honest denominator -- a long list
+  // panel measures 90x the viewport in layout terms and would otherwise convict a 24px-tall
+  // sheen that is 95% scrolled away. Measured per element and per width.
+  const gradientRuns = [];
+  let bigGradients = 0;
+  for (const el of all) {
+    const cs = getComputedStyle(el);
+    if (!painted(el, cs)) continue;
+    const image = cs.backgroundImage;
+    if (!image || image === 'none') continue;
+    const hits = image.match(/(?:repeating-)?(?:linear|radial|conic)-gradient\(/g);
+    if (!hits) continue;
+    const box = el.getBoundingClientRect();
+    const w = Math.max(0, Math.min(box.right, innerWidth) - Math.max(box.left, 0));
+    const h = Math.max(0, Math.min(box.bottom, innerHeight) - Math.max(box.top, 0));
+    const share = Math.round((w * h) / (innerWidth * innerHeight) * 100) / 100;
+    gradientRuns.push(`${nodeTag(el)} x${hits.length} ${(share * 100).toFixed(0)}%`);
+    if (share > 0.25) bigGradients += 1;
+  }
+  const biggestGradients = gradientRuns.slice()
+    .sort((a, b) => parseFloat(b.split(' ').pop()) - parseFloat(a.split(' ').pop()))
+    .slice(0, 8);
+
   return { runs: runs.length, sizes, minPx: Number.isFinite(minPx) ? minPx : null,
            below12, below12Examples, inBodyBand,
            controlCount: controls.length, heights, radii,
            formCount, formBelow36, formSmallExamples,
            formRadiusOver10, formRadiusExamples, glass,
+           gradientCount: gradientRuns.length, bigGradients, biggestGradients,
            veilHosts, veilExamples, unknownColour };
 };
 
@@ -892,11 +919,13 @@ report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.e
 // One sink for both the route sweep and the plan detail. Duplicating the accumulation would give
 // the same counters two owners, and the second screen is exactly the one that would drift.
 const specTotals = { runs: 0, below12: 0, formCount: 0, formBelow36: 0, formRadiusOver10: 0,
-                     veilHosts: 0, unknownColour: 0, controls: 0, inBodyBand: 0, minPx: null };
+                     veilHosts: 0, unknownColour: 0, controls: 0, inBodyBand: 0, minPx: null,
+                     gradients: 0, bigGradients: 0 };
 const specSizes = {};
 const specHeights = {};
 const specRadii = {};
 const specGlass = [];
+const specBigGradientExamples = [];
 const specBelow12Examples = [];
 const specVeilExamples = [];
 const specFormSmallExamples = [];
@@ -953,6 +982,12 @@ const absorb = (key, m) => {
     }
     for (const e of s.formRadiusExamples) {
       if (specFormRadiusExamples.length < 12) specFormRadiusExamples.push(`${key} ${e}`);
+    }
+    specTotals.gradients += s.gradientCount;
+    specTotals.bigGradients += s.bigGradients;
+    for (const e of s.biggestGradients) {
+      if (parseFloat(e.split(' ').pop()) > 25 && !specBigGradientExamples.includes(e)
+          && specBigGradientExamples.length < 10) specBigGradientExamples.push(e);
     }
   }
   console.log(`w=${key.padEnd(24)} checked=${String(m.checked).padStart(4)} `
@@ -1035,6 +1070,7 @@ report.spec = { ...specTotals, sizes: specSizes, heights: specHeights, radii: sp
   glass: specGlass, glassAllowed: GLASS_ALLOWED, glassOffAllowlist: glassOffList(),
   below12Examples: specBelow12Examples, veilExamples: specVeilExamples,
   formSmallExamples: specFormSmallExamples, formRadiusExamples: specFormRadiusExamples,
+  bigGradientExamples: specBigGradientExamples,
   note: '20261023 包的数字规则（正文14–16px／元数据≥12px、控件约36–40px、圆角6–10px、'
     + '玻璃只给顶栏导航与临时面板、长文字与列表实底）在同一个已渲染文档上的实测' };
 if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 2));
@@ -1078,13 +1114,15 @@ console.log(`CT_SPEC controls=${specTotals.controls} formControls=${specTotals.f
   + ` formBelow36px=${specTotals.formBelow36} formRadiusOver10=${specTotals.formRadiusOver10}`
   + ` hHist=[${sortedHist(specHeights)}] rHist=[${sortedHist(specRadii)}]`);
 console.log(`CT_SPEC glass=${specGlass.length} glassOffAllowlist=${glassOffList().length}`
-  + ` translucentTextHosts=${specTotals.veilHosts} unparsableAlpha=${specTotals.unknownColour}`);
+  + ` translucentTextHosts=${specTotals.veilHosts} unparsableAlpha=${specTotals.unknownColour}`
+  + ` gradients=${specTotals.gradients} bigOver25pct=${specTotals.bigGradients}`);
 for (const g of specGlass) console.log(`  GLASS ${g}`);
 for (const g of glassOffList()) console.log(`  GLASS-OFF-LIST ${g}`);
 for (const e of specBelow12Examples) console.log(`  SMALLTEXT ${e}`);
 for (const e of specVeilExamples) console.log(`  NOTSOLID ${e}`);
 for (const e of specFormSmallExamples) console.log(`  FORM-BELOW36 ${e}`);
 for (const e of specFormRadiusExamples) console.log(`  FORM-RADIUS ${e}`);
+for (const e of specBigGradientExamples) console.log(`  BIGGRADIENT ${e}`);
 if (failTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
     for (const f of v.fails) {
@@ -1137,13 +1175,17 @@ if (process.env.CT_SPEC_ENFORCE === '1') {
   if (specTotals.formRadiusOver10 > 0) {
     specBad.push(`圆角输入／按钮 6–10px -- ${specTotals.formRadiusOver10} 个表单控件圆角超过 10px`);
   }
+  if (specTotals.bigGradients > 0) {
+    specBad.push(`避免大面积渐变 -- ${specTotals.bigGradients} 个 painted 元素的渐变底覆盖超过视口 25%`
+      + `（${specBigGradientExamples.slice(0, 4).join(' | ')}）`);
+  }
   if (specBad.length > 0) {
     for (const b of specBad) console.error(`  SPEC-VIOLATION ${b}`);
     console.error(`CT_FAIL: ${specBad.length} 项 20261023 包的视觉数字未满足`);
     process.exit(1);
   }
   console.log(`CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0`
-    + ` glassOffAllowlist=0 formRadiusOver10=0`
+    + ` glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0`
     + ` formControls=${specTotals.formCount} formBelow36px=${specTotals.formBelow36}`
     + `（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，`
     + '比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）');
