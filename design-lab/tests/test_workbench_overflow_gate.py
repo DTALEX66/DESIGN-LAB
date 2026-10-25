@@ -25,6 +25,7 @@ browser, not an E3 host run, not an E4 human visual jury, and no claim that the
 UI looks good.
 """
 import json
+import re
 import os
 import secrets
 import shutil
@@ -269,14 +270,25 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         # every width is well-formed UI over a readback nobody ever saw.
         interactions = {key: value for key, value in report['routes'].items() if '+' in key}
         self.assertTrue(interactions, 'the gate measured no button-gated panel at all')
-        # The entry detail is one of those panels, and it must be measured at EVERY width the gate
-        # walks: a panel checked at 1440 only is not a geometry claim about 1280 or 1920.
+        # Both click-opened panels must be measured at EVERY width the gate walks: a panel checked
+        # at 1440 only is not a geometry claim about 1280 or 1920.
         measured_widths = [w.strip() for w in WIDTHS.split(',') if w.strip()]
-        absent = ['%s:knowledge+entry-detail' % w for w in measured_widths
-                  if '%s:knowledge+entry-detail' % w not in report['routes']]
+        absent = ['%s:%s' % (w, panel) for w in measured_widths
+                  for panel in ('knowledge+entry-detail', 'assistant+plan-detail')
+                  if '%s:%s' % (w, panel) not in report['routes']]
         self.assertEqual(absent, [],
-                         'the knowledge entry detail was never geometry-checked at these widths, '
-                         'so its layout is unclaimed rather than good: %s' % absent)
+                         'these panel states were never geometry-checked, so their layout is '
+                         'unclaimed rather than good: %s' % absent)
+        # A row in the report is not the same fact as a row the gate graded. The first version of
+        # this extension recorded both panels into the report without feeding the counters, so
+        # clipped/stray/occluded on an opened panel would have been printed and ignored -- a
+        # coverage claim with nothing behind it. The summary's own count must equal the rows.
+        panel_rows = [k for k in report['routes'] if '+' in k]
+        graded = int(re.search(r'interactions=(\d+)', out).group(1))
+        self.assertEqual(graded, len(panel_rows),
+                         'the gate reported %d button-gated panels but graded %s, so a defect in '
+                         'the ungraded ones would print and pass: %s'
+                         % (len(panel_rows), graded, sorted(panel_rows)))
         for key, value in sorted(interactions.items()):
             self.assertIn(value.get('state'), ('read', 'refused'),
                           f'{key} settled on {value.get("state")!r}, which is neither a read-back '

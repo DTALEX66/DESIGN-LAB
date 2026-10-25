@@ -226,6 +226,11 @@ const MEASURE = () => {
   const CRITICAL = [['#openSettings', '顶栏设置'], ['#openDrawer', '顶栏工作区'],
     ['#openPalette', '顶栏搜索入口']];
   out.occluded = [];
+  // A centre point that is not inside the viewport is not "covered by something": the file's own
+  // rule says the two claims differ. Scrolling a long detail out of the header's reach shows up
+  // here, so it gets its own bucket with the numbers, instead of being reported as an occlusion
+  // the reader would go looking a z-index bug for.
+  out.notInView = [];
   // A modal overlay is *supposed* to cover the page behind it -- that is not the defect this
   // check guards. When one is open the hit-test is skipped, and the report says so instead of
   // going silently quiet.
@@ -238,8 +243,13 @@ const MEASURE = () => {
     if (!e) continue;
     const r = e.getBoundingClientRect();
     if (!r.width || !r.height) continue;
-    const hit = document.elementFromPoint(Math.round(r.left + r.width / 2),
-      Math.round(r.top + r.height / 2));
+    const cx = Math.round(r.left + r.width / 2), cy = Math.round(r.top + r.height / 2);
+    if (cx < 0 || cy < 0 || cx > innerWidth || cy > innerHeight) {
+      out.notInView.push({ sel, label, centre: [cx, cy], viewport: [innerWidth, innerHeight],
+                           top: Math.round(r.top), bottom: Math.round(r.bottom) });
+      continue;
+    }
+    const hit = document.elementFromPoint(cx, cy);
     if (!hit) { out.occluded.push({ sel, label, by: 'elementFromPoint returned null' }); continue; }
     if (hit !== e && !e.contains(hit)) {
       out.occluded.push({ sel, label,
@@ -378,10 +388,72 @@ async function seedKnowledgeEntryForAudit(prefix) {
   return { entry: json.entry.knowledge_entry_id };
 }
 
+// The mirror image of the knowledge gap: the contrast ruler has opened a plan detail for a while,
+// the geometry ruler never has. So the shot table, the export panel and the feedback block inside a
+// plan have had no claim about 1280, 1536 or 1920 -- which is exactly where a long Chinese
+// objective or a wide table would have gone sideways without anyone noticing.
+async function seedAssistancePlanForAudit(prefix) {
+  const base = serviceUrl.replace(/\/$/, '');
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const post = async (path, body) => {
+    const res = await fetch(base + path, { method: 'POST', headers,
+      body: JSON.stringify(body) });
+    return { status: res.status, json: await res.json().catch(() => ({})) };
+  };
+  const project = await post('/api/projects', { name: `${prefix}-audit` });
+  if (project.status !== 201) {
+    fail(`OV_SEED_PROJECT_REFUSED ${JSON.stringify(project.json).slice(0, 200)}`);
+  }
+  const pid = project.json.project.id;
+  const plan = {
+    objective: '为秋季新品做一条 15 秒主视觉动效，标题落在大面积留白里，副标题带上说明文字',
+    output_type: 'MOTION',
+    neutral_creative: '两束交叉光缓慢推移，标题以一次落定收束。',
+    brand_constraints: ['只用两种油墨', '标题不使用描边'],
+    role_constraints: [],
+    lens: '俯拍整张桌面', sound: '低频垫底，无对白', references: [],
+    shots: [
+      { index: 1, duration_s: 4, purpose: '开场：侧光落在纸纤维上', camera: '缓推',
+        sound: null, reference_role: '主参考' },
+      { index: 2, duration_s: null, purpose: '收束：标题落定，副标题带"引号"、逗号, 与一段较长的说明',
+        camera: '固定', sound: '低频收干', reference_role: null },
+    ],
+    external_steps: [{ step: '在宿主里手动导出 MP4', tool: 'After Effects',
+                       job_id: null, operation_id: null }],
+    known_gaps: ['目标平台码率未定'],
+    limits: ['不含多语言字幕', '不产出可编辑源文件'],
+    created_by: `${prefix} 脚手架（合成，不是真人）`,
+  };
+  const created = await post(`/api/projects/${pid}/assistance-plans`, plan);
+  if (created.status !== 201) {
+    fail(`OV_SEED_PLAN_REFUSED ${JSON.stringify(created.json).slice(0, 200)}`);
+  }
+  return { project: pid, plan: created.json.plan.plan_id };
+}
+
+const planSeed = await seedAssistancePlanForAudit('几何审计');
+report.auditSeed = { kind: 'synthetic-assistance-plan', project: planSeed.project,
+  plan: planSeed.plan, product_data: false,
+  note: '只为让方案详情能被几何测量而写进本次临时状态；创建人标明是合成的，随状态目录一起丢弃' };
 const kbSeed = await seedKnowledgeEntryForAudit('几何审计');
 report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.entry,
   product_data: false,
   note: '只为让知识条目详情能被几何测量而写进本次临时状态，随状态目录一起丢弃' };
+
+// One sink for every panel this sweep opens by clicking. Accumulating in two places would give the
+// same counters two owners, and the route loop's own accumulation cannot see a row added out here:
+// without this, an opened panel is reported but never graded, which is a coverage claim that
+// protects nothing.
+function absorbPanel(key, m) {
+  report.routes[key] = m;
+  interactionStates.push(`${key}=${m.state}`);
+  clippedTotal += m.clipped.length;
+  strayTotal += m.stray.length;
+  tinyTotal += m.tiny.length;
+  for (const o of m.occluded) {
+    specProblems.push(`${key} ${o.label} (${o.sel}) covered by ${o.by}`);
+  }
+}
 
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: mainHeight } });
@@ -426,13 +498,36 @@ for (const w of widths) {
         interactionMissing.push(`${w}:knowledge+entry-detail 的详情面板在 20s 内没有装配完，`
           + '它的几何无人认领');
       } else {
-        report.routes[`${w}:knowledge+entry-detail`] = await page.evaluate(MEASURE);
+        const panel = await page.evaluate(MEASURE);
         // The panel's own verdict, read off what is painted: a detail that came back with the
         // served body is a read, one that says 未读回 is a named refusal. The wrapper asserts every
         // button-gated panel settled on one or the other, so this cannot be left unset.
-        report.routes[`${w}:knowledge+entry-detail`].state = await page.evaluate(() => (
+        panel.state = await page.evaluate(() => (
           /未读回/.test((document.getElementById('kb-detail')?.textContent ?? ''))
             ? 'refused' : 'read'));
+        absorbPanel(`${w}:knowledge+entry-detail`, panel);
+      }
+    }
+    if (name === 'assistant') {
+      // Same rule for the plan detail: open it, wait for the reads that only land once the panel is
+      // assembled (the shot rows and the served material formats -- not "every status line has
+      // text", which an honest empty note would fail forever), then measure it as its own state.
+      await page.locator('#as-list .as-plan-open').first().click();
+      const planSettled = await page.waitForFunction(() => {
+        const host = document.getElementById('as-plan');
+        if (!host || host.querySelector('.view-loading')) return false;
+        if (host.querySelectorAll('#as-shots li').length < 1) return false;
+        return host.querySelectorAll('#as-material option').length >= 4;
+      }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+      if (!planSettled) {
+        interactionMissing.push(`${w}:assistant+plan-detail 的方案详情在 20s 内没有把镜头表与`
+          + '材料格式读回来，它的几何无人认领');
+      } else {
+        const panel = await page.evaluate(MEASURE);
+        panel.state = await page.evaluate(() => (
+          /未读回/.test((document.getElementById('as-plan')?.textContent ?? ''))
+            ? 'refused' : 'read'));
+        absorbPanel(`${w}:assistant+plan-detail`, panel);
       }
     }
     if (m.navEdge && m.navEdge.overflow > 0) {
