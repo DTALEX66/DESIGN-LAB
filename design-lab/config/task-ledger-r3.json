@@ -8854,7 +8854,8 @@
         "state": "DONE",
         "evidence": [
           "kb-12-browser-e2e-summary-20261024",
-          "kb-12-implementation-workbench-node-20261024"
+          "kb-12-implementation-workbench-node-20261024",
+          "kb-12-browser-two-revision-comparison-20261025"
         ]
       },
       {
@@ -12301,6 +12302,18 @@
         "command": "Both rulers now select a target on #/target-profiles and measure the state where the truth columns actually fill, settling on the screen's own data-mode flag (target) rather than on text appearing. Contrast went 52→54 route-runs / 14764 text runs with belowAA=0; geometry 120→124 route-runs with docOverflowX=0 clipped=0 stray=0 tiny=0 occluded=0, four widths each reporting state=read. Each new row is graded, not merely reported (one sink, plus the assertion that the summary's interaction count equals the panel rows).",
         "exit_code": 0,
         "observed_at": "2026-10-25T01:18:04Z"
+      },
+      {
+        "id": "kb-12-browser-two-revision-comparison-20261025",
+        "task_id": "DL-KB-12",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "ee654faf45748353b7e760c6186debe0d21606f9",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-12-browser-two-revision-comparison-20261025.json",
+        "artifact_sha256": "aba4b7ac13a6ffbf5138628f00a4beed247df2bfb3a706ddea161ea1ecdd9a17",
+        "command": "Both rulers now reach the two-revision comparison: a second revision is written through the same /revisions route the screen uses, #as-compare is opened, r1 and r2 selected and 对照 clicked, and the run waits on >=12 painted rows with a status line that stopped saying 正在读回. Contrast 54→56 route-runs / 15270 text runs (belowAA=0), geometry 124→128 route-runs with clipped/stray/tiny/occluded/docOverflowX all zero and every comparison row settling on state=read; the rows are graded through the shared sink and required at every width.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T01:33:09Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

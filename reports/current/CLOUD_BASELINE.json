@@ -9,27 +9,27 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-25T01:18:51+00:00",
+  "generatedAt": "2026-10-25T01:33:34+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "b4a807fb68c3ea4ae68538fc16fd915d4c1ffcb5",
+    "sha": "ee654faf45748353b7e760c6186debe0d21606f9",
     "source_worktree_clean": false,
-    "tracked_files": 3960,
+    "tracked_files": 3961,
     "worktree_changes": [
       {
-        "content": "sha256:def2d74b8269cbe34a1e57175e62538c9efa11099e362ef9146a8086fc541272",
+        "content": "sha256:4dfbfbb5265cae0b9e6b0b3da700d4e548a22dc170572ad5614df42c3b5d642a",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:afb99996a81ddee3967e654bdc504758532f56b0f4694a6f1b61223abaa4ac5a",
+        "content": "sha256:f56d0cf3af3b424c099b61b36cc620a85ee439bd0fa8aaf215c8cb53c82cfd70",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
       {
-        "content": "sha256:3bc108526c40f89f17a5b9974ed4d65fb0e060a26409972bd9592c76294f9dbe",
+        "content": "sha256:f080f84dd4cfa614f7ff960293a534e75bd95667a26b84bdaca4413f2645a0af",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
@@ -44,18 +44,18 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       },
       {
-        "content": "sha256:1495e4da6cc6f1c62a06737849e909586af3b4b0fc8741e18005eeaa03aae9e8",
+        "content": "sha256:aba4b7ac13a6ffbf5138628f00a4beed247df2bfb3a706ddea161ea1ecdd9a17",
         "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-10-browser-target-combination-state-20261025.json"
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-12-browser-two-revision-comparison-20261025.json"
       }
     ],
-    "worktree_digest": "sha256:2c238b5030218a97d13cf54e865faa2e28075923992b5da8581c35ff97389d4b"
+    "worktree_digest": "sha256:f4030916daba8e6ba9b99080b608b90b2d87bc07ce527bf30359eb275856e05c"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "b4a807fb68c3ea4ae68538fc16fd915d4c1ffcb5",
+  "subjectSha": "ee654faf45748353b7e760c6186debe0d21606f9",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -70,5 +70,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:2c238b5030218a97d13cf54e865faa2e28075923992b5da8581c35ff97389d4b"
+  "worktreeDigest": "sha256:f4030916daba8e6ba9b99080b608b90b2d87bc07ce527bf30359eb275856e05c"
 }
