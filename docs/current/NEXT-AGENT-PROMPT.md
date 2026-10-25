@@ -130,6 +130,67 @@ ui2026/light 各一遍）、几何 112 个面（1440/1280/1536/1920）`docOverfl
 （`ASSET`、`KNOWLEDGE`），`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到，
 而 `/api/projects/<id>/briefs`、`/directions`、`/prompt-results` 三条读路由都已存在且各有合同行。
 
+**台账读数（2026-10-26 第二十六轮收口时现数**：直方图仍 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**，
+`evidence` 303→**306**（三条：`kb-13-theme-geometry-palette-table-derived-20261026`、
+`kb-13-single-accent-graded-as-paint-20261026`、
+`kb-06-field-refusal-adjacency-graded-on-its-referent-20261026`），旧 34 项一项未解冻。
+**推送后按字节读到的 CI（head_sha `1a7ddd52`，PR #277）**：`VERIFY_DESIGN_LAB=OK total=76 failed=0`、
+`PYTHON_TESTS_UNION=OK expected=3380 distinct=3380 ran=3380 duplicates=0 missing=0 unexpected=0`、
+`BROWSER_E2E ran=41 skipped=0 failed=0`，作业级 rollup 是 `11 pass / 13 skipping / 0 fail`。
+上一轮欠的红都在这一轮结清：`AUTHORITY_CHAIN=DRIFT`（账本加行后重生成链）与
+`RECORD_REGISTER_GATE=FAIL row 5`（登记件钉的是**已提交** blob，所以卷宗追加必须等一次跟随提交才能重绑）
+都各自用一次"代码提交→记录提交→重绑提交"结清；`BROWSER_E2E_NO_SKIP_VIOLATION: skipped
+test_the_refusal_state_is_named_in_the_receipt` 是这一轮新造的，根因见下面第④条。
+
+**本轮四件，每件都有改前/改后实测。** ① **几何那把尺的色板表不再是手抄的**：`PALETTES` 从
+`apps/workbench/shell.ts` 现读（mjs 与 python 各自独立解析同一份声明），断言"渲染出的集合＝声明的集合"，
+解析不出 4 项直接红；珍珠白因此第一次被这道门量到，判据是**与默认面逐位等值**而不是我发明的数
+（`09_DESIGN.md:9` 只给六个颜色值，没给导航轨宽度），实测 `1440/1920/960/768/700` 全等、`findings=[]`。
+植入第一版是错的（只把表名改掉、条目还在，什么都没证明），改成遮 `schemes:` 才真的让拒绝响。
+② **包里那支单一强调色第一次有"代价"**：样式表里消费 `var(--accent*)` 的属性是
+background/border-color/border-left/box-shadow/outline/stroke/fill/border-right/border-bottom，
+`color:` 是 **0 处**——所以 WCAG 1.4.3 只在"墨压在强调色底上"这一层咬它。同一把算式下
+纸白墨压 `#356B92`=**5.72:1**、压 hover `#2558DB`=**6.00:1**、强调色当字墨压珍珠白=**5.08:1**，
+而**深墨 `#17212B` 压 `#356B92` 只有 2.85:1**：§5.52 摆给 owner 的两个方向不是"都有代价"，
+是一个达标、一个直接造出 AA 违规。shipped 的三条强调色底规则本来就写 `color:#fff`，现在这条被钉住
+（换成深墨、或新写 `color:var(--accent)`，各有植入用例定罪）。`brandBluePaints` 珍珠白下 **106**
+（分母＝182 个 宽度×路由 对，与 §5.52 那个 21 不可互换），包给的值一字未改、enforce 阈值一字未动。
+③ **「错误紧邻字段」量错了对象**：审计取 `host.querySelector(...)`＝宿主里第一个控件，于是表单末尾
+的提示被拿去跟开头的「需求」文本域比，`dy=1199px`、`errorAdjacent=0/8`。这一句同时是尺子的错和产品的错，
+两边都改：产品用 `showFieldRefusal(control, message)` 写 `data-for` 并把同一个节点移到该字段所在行之后
+（清空时移回原槽，静态版面一字节未动），闸门按 `data-for` 认对象、无主的消息另记 `errorUnowned`
+（不混进被断言的数，防止靠重新分类把人口缩小），并逐个造出该表单自己的拒绝。现读
+`errors=8 errorAdjacent=8 errorNamed=8 errorUnowned=0`，三条被点名的拒绝各 **24px**（那正是这一行自己的下边距）。
+④ **一条"读上一次跑的件"的测试，在 no-skip 作业里必然红**：`_run_gate` 每个方法各跑一次浏览器，
+而写默认面工件的类按字母序排在后面，所以干净检出上那份文件根本不存在→`skipTest`→CI 判违规。
+改成自己调用生产者并按环境记忆化（一个进程一次测量），既去掉 skip 也去掉重复的整轮浏览器。
+
+**我自己这轮的四次仪器/流程失误（它们是下一轮的陷阱）。** a) 第一条回执的 `subject_sha` 绑在**上一个**提交上，
+即不含被它测量的代码——做法是先提交代码、再出回执；b) 提交信息里手抄 `5.94:1`（hover 那支），
+脚本派生是 `6.00:1`，是我算错——在下一条提交信息里更正，不 amend 已存在的历史；c) record 脚本先读工件
+后跑闸门，于是把**上一次跑**的读数当成本轮结论——改成先跑后读，并因此暴露人口本身在两次连续跑里不等
+（8 与 4；差别在后面的面板态里那条提示还在不在屏上），**被断言的是等式与逐条造出的案例，不是计数**；
+d) 一次插入没重出锚点，把 `console.error(` 的前半行吃掉，靠回读文件才发现——锚点式插入必须重出锚点。
+
+**下一刀按此顺序，第一件是先定性不是先写码。** ① `knowledge+refusal` 这一族**仍造不出来**：
+实测点 `#kb-new` 之后 `#knowledge-title`／`#knowledge-create-submit`／`#knowledge-outcome` **三个都不存在**、
+`panels=11`、且 `pageerrors=[]`——不是抛异常、也不是选择器写错，是这道揭示动作在走查环境里没有渲染出表单。
+先判定它属于走查入口选错还是产品缺陷，才有资格谈「错误紧邻字段」在知识页；
+② 让人口稳定：每个面板态自己造一次拒绝，而不是依赖前一个态遗留的消息；
+③ 提示词读回的**界面翻页线索**（服务端默认 100，包里写 50，这个分歧要么按包取 50 要么请 owner 裁），
+④ 剩下 7 条无界列表路由，⑤ 五份 CSS 花括号扫描器收敛（逐个证明输出集不丢），
+⑥ 附件 `width/height/media_type` 写入时物化（单独一刀，带迁移＋precheck＋合同行；成本实测 59% 在 path+stat、
+30.5% 在两次图像解码，分页一毫秒都不会少）。**还有一件本轮量出来但没修的债**：卷宗里的 `<file>:<N>`
+行号指针已腐到不能用一次性重写来救（toast 节点被引在 `shell.ts:5794`，现读 `id: 'toast'` 在 **9857** 行，
+差 4063；另有相当一部分写成裸基名，按仓库相对路径根本解析不到），而 `scripts/` 下**没有任何行号指针闸门**——
+要做就先做"指针→判据片段"的显式表，别上一把会误报的通用尺。
+**owner 未裁照旧，都不代做**：150 KB 上限、顶栏是否吸顶、标题阶梯、勾选框标签算不算违反「标签放输入上方」、
+hover 墨色，以及强调色最终收敛到哪一支（现在两支的 AA 代价都有了数）。
+**边界不动（逐字）**：桌面端 only（手机是排除项）、不部署模型、不宣称推理已验证、导出是读回不是发送、
+签字只认具名真人、编号用 UNUSED 或用户自填、E 盘不动、旧 34 项仍 `FROZEN_DEFERRED`、
+release／安装态分发／真实宿主 E3／真人 E4／ComfyUI／MiniMax H3／外部软件自动化／AAOS 联调继续冻结、
+不得靠改断言或删接口或把失败改成演示成功来通过、`.codebuddy/` 与 `.cursor/` 永不暂存。
+
 **台账读数（2026-10-26 第二十五轮收口时现数，取代上面第二十四轮那一段的"当下"身份）**：本轮把上一轮欠的三件事全部落到"有实测读数"而不是"已实现"。① **精确 SHA 的 CI 矩阵读通了**：run 40211581088（PR，head `f9683930`）`conclusion=success`，10 个非 skipped 作业全绿，逐字 `PYTHON_TESTS_UNION=OK expected=3363 distinct=3363 ran=3363 duplicates=0 missing=0 unexpected=0`、`BROWSER_E2E ran=27 skipped=0 failed=0`。§5.59 那句"CI 已绿"曾被 §5.61 追正——它引的是换 logo **之前**的 SHA，教训写进记忆：**结清一轮的 CI 账必须点名叫到承载该变更的那个 SHA**。② **增强面对量过**：把 `.ambient` 的动画冻在关键帧每一档（0/3000/6000/9000/12000ms）后用同一个 `MEASURE` 谓词逐档量，`CT_MOTION_PASS poses=5 routes=24 checked=34170 belowAA=0 distinctTransforms=4`；四个不同变换（不是五个）恰因 0% 与 100% 同声明停靠点，这一条同时是"尺子在动"的反证。③ **`errors=0` 原来是空集**，且有两个不同成因：`.error[role=alert]` 那族（`#as-form-error`）选择器一直覆盖，缺的是**没人让界面拒绝一次**；`p.view-hint` 那族（知识/评审/权利/研究的 outcome 行）连 `role` 都没有，既是尺子盲区也是**读屏盲区**。现在闸门**自己点一次**空表单造出真失败（`CT_REFUSAL_PROVED … role=alert`），词表从 `shell.ts` 现数 6 个前缀经 `CT_REFUSAL_WORDS` 传入，**空词表时闸门拒绝开跑**；`RefusalPopulationIsGraded` 三条断言里有一条在它该红的时候红过（旧回执没有 `+refusal` 行）。
 
 **造出拒绝态的下一步就抓到一支不达标的红字**：珍珠白的 `--color-error` 继承 `:root` 为炭黑面选的 `#F05252`，压白 3.48:1、压 `#F4F6F8` 3.21:1，8 条 run 报红。修法是**重指到同仓已有的实测值** `--uif-light-danger #ab384d`（6.17 / 5.69 / 5.20），不新造红（包只逐字给了六个值，不含错误色），默认炭黑一字节不动。教训：**一个永不出现的状态永远不会失败**，所以"绿"必须先问"这一项被画出来过吗"。
