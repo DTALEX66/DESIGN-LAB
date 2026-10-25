@@ -959,5 +959,132 @@ class RefusalPopulationIsGraded(unittest.TestCase):
                                 'still invisible' % spec.get('errors'))
 
 
+class TheSingleAccentIsGradedWhereItIsPainted(unittest.TestCase):
+    """Section 5.52 left the pack's 「单一低饱和强调色 #356B92」 with two candidate fixes and one
+    unmeasured risk: "use a deeper step of the same hue as the fill, but then white ink has to be
+    re-graded". This class grades it, so the owner's ruling is a design choice and not a bet.
+
+    Two facts decide what WCAG even has to say here. First, no shipped rule paints the accent as
+    glyph ink -- the token is consumed by backgrounds, borders, outlines, shadows and SVG fill or
+    stroke -- so 1.4.3 never attaches to the accent as text colour, and the number that matters is
+    the ink sitting *on top of* an accent backdrop. Second, of the two directions 5.52 put on the
+    table, only one clears AA: paper ink on the accent measures 5.72:1, the dark body ink on the
+    same accent measures 2.85:1. The shipped rules already chose the safe one; this guard is what
+    stops a later edit from quietly picking the other.
+    """
+
+    ACCENT = '#356B92'          # style.css:1805, the stitch (pearl-white) palette's accent
+    ACCENT_HOVER = '#2558DB'    # style.css:92, the hover step the same rules reach for
+    PAPER = '#EEF2F5'           # 09_DESIGN.md:9, the pack's pearl-white paper
+    INK = '#17212B'             # the pack's dark ink, also the body text token value
+    WHITE = '#FFFFFF'
+    AA = 4.5
+    # The literals the shipped rules actually write beside an accent backdrop.
+    PAPER_INK = ('#fff', '#ffffff', 'white', 'var(--brand-mark-paper)', 'var(--color-paper)')
+
+    @staticmethod
+    def _channel(byte):
+        value = byte / 255.0
+        return value / 12.92 if value <= 0.03928 else ((value + 0.055) / 1.055) ** 2.4
+
+    @classmethod
+    def _luminance(cls, hex_colour):
+        digits = hex_colour.lstrip('#')
+        red, green, blue = (int(digits[i:i + 2], 16) for i in (0, 2, 4))
+        return (0.2126 * cls._channel(red) + 0.7152 * cls._channel(green)
+                + 0.0722 * cls._channel(blue))
+
+    @classmethod
+    def _ratio(cls, foreground, background):
+        hi = max(cls._luminance(foreground), cls._luminance(background))
+        lo = min(cls._luminance(foreground), cls._luminance(background))
+        return round((hi + 0.05) / (lo + 0.05), 2)
+
+    @staticmethod
+    def _css():
+        return (ROOT / 'apps' / 'workbench' / 'style.css').read_text(encoding='utf-8')
+
+    @staticmethod
+    def _enclosing_block(css, position):
+        """The flat declaration list a match sits in; nearest braces outward are the rule's own."""
+        start = css.rfind('{', 0, position)
+        end = css.find('}', position)
+        return '' if start < 0 or end < 0 else css[start + 1:end]
+
+    def _accent_backdrops(self, css):
+        return list(re.finditer(
+            r'\bbackground(?:-color)?\s*:\s*[^;{}]*var\(--accent[a-z-]*\)', css))
+
+    def _ink_on_accent(self, css):
+        """[(where, colour)] for every `color:` declared beside an accent backdrop that is not paper."""
+        offenders = []
+        for match in self._accent_backdrops(css):
+            where = css[max(0, match.start() - 90):match.start()].replace('\n', ' ')[-70:]
+            for colour_match in re.finditer(r'(?:^|[;{\s])color\s*:\s*([^;{}]+)',
+                                            self._enclosing_block(css, match.start())):
+                colour = colour_match.group(1).strip().lower()
+                if not any(colour == paper or colour.startswith(paper + ' ')
+                           for paper in self.PAPER_INK):
+                    offenders.append((where, colour))
+        return offenders
+
+    def test_the_directions_5_52_left_unmeasured_now_have_numbers(self):
+        self.assertGreaterEqual(self._ratio(self.WHITE, self.ACCENT), self.AA,
+                                'white ink on the pack accent reads %s:1, so the "same hue as a '
+                                'fill" direction 5.52 could not price is not AA-safe after all'
+                                % self._ratio(self.WHITE, self.ACCENT))
+        self.assertGreaterEqual(self._ratio(self.WHITE, self.ACCENT_HOVER), self.AA,
+                                'the hover step reads %s:1 under white ink'
+                                % self._ratio(self.WHITE, self.ACCENT_HOVER))
+        self.assertLess(self._ratio(self.INK, self.ACCENT), self.AA,
+                        'dark ink on the accent now reads %s:1 -- the other direction 5.52 offered '
+                        'has stopped costing AA, so this class has to be re-read, not re-tuned'
+                        % self._ratio(self.INK, self.ACCENT))
+        self.assertGreaterEqual(self._ratio(self.ACCENT, self.PAPER), self.AA,
+                                'the accent as glyph ink on pearl reads %s:1; it is not shipped that '
+                                'way (see the next test) and must not become a red if someone ships '
+                                'it that way' % self._ratio(self.ACCENT, self.PAPER))
+
+    def test_the_accent_is_never_declared_as_glyph_ink(self):
+        css = self._css()
+        consumed = len(re.findall(r'var\(--accent[a-z-]*\)', css))
+        self.assertGreaterEqual(consumed, 8,
+                                'only %s accent consumption(s) were read, so the population this '
+                                'test describes is nearly gone' % consumed)
+        as_ink = re.findall(r'(?:^|[;{\s])color\s*:\s*[^;{}]*var\(--accent[a-z-]*\)', css)
+        self.assertEqual(as_ink, [],
+                         'the accent is now painted as text ink %s time(s); 1.4.3 begins to apply '
+                         'to it and the number above is the grade it has to clear' % len(as_ink))
+
+    def test_every_accent_backdrop_carries_paper_ink(self):
+        css = self._css()
+        self.assertGreaterEqual(len(self._accent_backdrops(css)), 1,
+                                'no rule paints an accent backdrop any more, so this guard would '
+                                'pass on an empty set')
+        offenders = self._ink_on_accent(css)
+        self.assertEqual(offenders, [],
+                         'these rules put a non-paper ink on an accent backdrop, where the dark '
+                         'body colour reads %s:1: %s' % (self._ratio(self.INK, self.ACCENT),
+                                                         offenders))
+
+    def test_the_reader_convicts_a_planted_swap_to_dark_ink(self):
+        """A guard that cannot fail guards nothing, so both halves of it get a planted fault."""
+        css = self._css()
+        needle = 'background:var(--accent-hover);color:#fff;'
+        self.assertIn(needle, css, 'the planted fault has nowhere to land; the shipped rule that '
+                                   'writes the paper ink beside an accent backdrop was renamed')
+        dark = 'background:var(--accent-hover);color:%s;' % self.INK.lower()
+        convicted = self._ink_on_accent(css.replace(needle, dark))
+        self.assertTrue(convicted, 'swapping paper ink for the dark body ink on an accent backdrop '
+                                   'did not convict, so %s:1 would ship unseen'
+                        % self._ratio(self.INK, self.ACCENT))
+        self.assertTrue(any(offender[1] == self.INK.lower() for offender in convicted),
+                        'the plant was convicted for the wrong reason: %s' % (convicted,))
+        ink_plant = css + '\n#planted-accent-ink{color:var(--accent)}\n'
+        as_ink = re.findall(r'(?:^|[;{\s])color\s*:\s*[^;{}]*var\(--accent[a-z-]*\)', ink_plant)
+        self.assertEqual(len(as_ink), 1,
+                         'a planted `color:var(--accent)` was not read as glyph ink (%s)' % (as_ink,))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
