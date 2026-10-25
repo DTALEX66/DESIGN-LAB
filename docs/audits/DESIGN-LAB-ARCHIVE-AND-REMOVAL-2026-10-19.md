@@ -2287,3 +2287,108 @@ run `40191207017`（head `bdaf4883`）`conclusion=success`，逐字
 `DESIGN.md` 债句更新；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；node 三套与 42 条 CSS 相关
 python 全过；`LICENSE_COVERAGE=OK`、`BRAND_ASSET=OK paths=2 encodings=2 light_flips=2`。
 `currentExecution` 直方图不变（34/13/2/1）。
+
+### 5.60 包内那句动效第一次成了尺子：全站 20 条补间量出 16 条越界，动效层则默认关着。
+
+**这一段做两件事，方向相反。** 一是**收**：把 `apps/workbench/style.css` 里每一条补间都放进包自己写的那条带；
+二是**放**：按 owner 的新裁定叠一层增强动效，但它默认不生效。新裁定逐字是：
+「界面去找动效交互 STITCH 更多是静态页面 一比一复刻完成后 找牛逼的组件库 加入更多动画动效粒子等UI组件库」。
+归属先说清：这条**新增**一个动效层，**不放松任何既有边界**——包内静态面的规则
+（`docs/taskpacks/20261023-ui-kb/source/09_DESIGN.md:5`「动效强度约 1/10」、`:21`
+「仅必要的120–180ms opacity/transform 过渡；减少动态效果时移除」）对静态复刻面继续成立，
+动效层是叠加的、默认关闭的。
+
+**先量，再改（2026-10-25 本机实测）。** `apps/workbench/style.css` 共 **20** 条 `transition` 声明、
+**16 条越界**。越界构成：**10 条没有属性表**（简写不带属性表就等于 `transition-property:all`）；
+被补间的非允许属性有 `background`、`border-color`、`box-shadow`、`filter` 和 SVG 几何属性 `r`；
+越时长读数是 220ms×4、200ms×2、280ms×2、550ms×1。带那三个数不是抄规范，是从样式表自身定义读出来的：
+`--motion-fast=120ms`、`--motion-base=180ms`、`--motion-slow=280ms`——尺子解析 token 之后判数字，
+不判字符串。
+
+**为什么这条与 §5.55 同源。** `transition:all` 会连墨色一起补间；那次 CI-only 的 AA 红
+（`1920:target-profiles+combination button#tp-validate.primary-btn 1.06:1(stitch)/2.6:1(ui2026)`）
+量的就是一帧任何规则里都不存在的中间态灰。§5.55 只修了那四类动作按钮，本轮把这条缺陷类
+**放到整个样式表范围内**关掉——只要还留着越界声明，下一次动端点颜色时就还可能再红一次。
+
+**改的是补间属性表与时长，不是内容。** 14 条改为只补间 `transform`（其中 toast 是 `opacity,transform`，
+drawer 保留 `visibility 0s linear` 作为无障碍树离场的离散伴侣），时长统一落到带内 token；
+5 处颜色/几何补间被删除：`button` 的底色、`.stage-nav-btn` 的边框底色、`.version-ring-node` 的 `r`、
+`.seg button` 的 `all`、`.graph-stage circle.node-dot` 的 `all`（后者保留 transform 180ms）。
+drawer 由 .28s、`.review-inner` 由 .55s 收到 `--motion-base`（180ms）。这一刀的边界要说清：
+包内「不能为了轻量化删除必要内容」那条**不受影响**——动的是补间哪些属性、补多久，不是删界面；
+动效强度由 owner 的新裁定重新解释，它不再是砍内容的理由。
+
+**三条例外是具名登记，不是跳过。** `.ui-motion-fast` / `.ui-motion-base` / `.ui-motion-slow`
+（都是 `all`，其中 slow=280ms 越带）留在原子的理由是两条：① 它们是 B07 UIKIT 的对外导出件，
+其 `0.28s` 被
+`docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/evidence/W02-UTILITY-VERIFY.json`
+钉住（原文读数 `"ui-motion-slow = 0.28s (--motion-slow)"`）；② 实测在本产品里**零消费者**——
+`apps/workbench/build/main.js`、全部 8 个 `apps/workbench/*.ts` 源文件、`apps/workbench/index.html`
+各自 grep `ui-motion` 均为 0 命中。所以改它们等于替 UIKIT 改合同，不在本产品的动效范围内。
+登记是双向的：第四条越界声明会被判红，登记项若在 CSS 里消失也会被判红。
+
+**新尺的位置，和它自己的反证。** `design-lab/tests/test_workbench_contrast_gate.py` 新增类
+`MotionBandFollowsThePack`，3 个用例：带内断言 / 三枚植入缺陷 / `all` 与墨色属性全站禁用。
+植入的三枚是 `background-color 400ms ease`、`.5s ease`（裸简写）、`transform 90ms ease`（低于带下界），
+全部被同一把尺抓到，所以"零违规"不是空输入。它与既有 `SRC-T07-MOTION-COMPOSITED`
+（`design-lab/tests/test_workbench_motion_gate.py` + `design-lab/tests/e2e/audit_workbench_motion.mjs`）
+是两把不同的尺：那把只禁会重排的补间，并且**主动发布 `transitionAllCount` 而拒绝判红**，谁也不顶谁。
+
+**增强动效层落地，而且是委托实现的。** 新增源文件 `apps/workbench/motion.ts`，由 `main.ts` 引入，
+Vite 打进同一个 `build/main.js`——因此不新增任何被服务的路径，也不动 CSP 白名单。四个原语全部只写
+`transform`（磁吸 ≤3px、双轴倾斜 ≤4deg、入场只位移**不用 opacity**、数字滚动最终逐字落回页面已发布的原值）。
+一个 `pointermove` + 一个 `pointerleave` 的**委托**实现：shell 会重渲染路由视图，boot 时逐元素绑监听
+会在下一次导航静默失效。默认 **static**：只有 URL `?motion=enhanced` 才启用，且
+`prefers-reduced-motion: reduce` 一律退回 static（与 `style.css` 里那条 `transition:none!important` 同向）。
+粒子层本轮**未引入**，等库调研结论。
+
+**构建与读数。** `vite build` 成功，`build/main.js` **610,364 → 615,430 字节**；同一 gzip 档（level 9）
+**160,246 → 161,916 字节**（+1,670）。vite 自己打印的是 **164.50 kB**——那是另一个刻度（kB=1000 且它
+用的压缩设置不同），本段的每一个 delta 都用 level 9 同档前后对照，不混用。`tsc --noEmit` 干净；三个
+node 侧套件 `tests/unit.mjs`（含"bundle 在 vm 下可执行、零顶层 import/export"）、`tests/appshell.mjs`、
+`tests/shape-notice-coverage.mjs`（61 个 seam 读数）全绿；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+
+**`animation:` 是这轮第二把新尺，因为它原本是盲区。** 收完补间之后复查发现：`style.css` 还有 **4 条
+`animation` 声明，全部 `infinite`**，而两把动效尺都只看 `transition:`——`SRC-T07-MOTION-COMPOSITED` 看
+CSSOM 里的布局属性，新带尺看补间属性表，**谁都不读 `animation` 的时长与循环次数**。按"能不能画出来"分
+（选择器的每个 class 都要在 bundle 里作为整词出现才算有消费者；只用子串会把散文里的
+"DESIGN-LAB design **core**" 当成 `.core` 的消费者，第一版就是这么误判的）：
+**live=1** —— `.ambient` 的 `floatGlow 12s infinite`，而 `.ambient` 是每条路由都挂的（shell.ts 里
+`el('div', {class: 'ambient'})`），也就是说包里「无持续循环、自动播放和浮动装饰」在默认界面上一直被违反，
+只是没有任何尺能看见；现在它只在 `:root[data-motion="enhanced"]` 下运行。
+**dead=3** —— `dashMove`（`.flow-svg path`）、`pulse`（`.graph-stage .core`）、`scanSweep`
+（`.scan-line::after`）：宿主选择器在产品里零消费者，所以它们是死 CSS 而不是违规，登记在
+`DEAD_LOOPS` 里双向钉住——某天真被挂载，它就从"死"变成"live 无限循环"，必须作用域化或具名登记。
+
+**渲染证据（不是构建绿代替验收）。** 真服务 + 真 Chromium，`#/assistant`，1440×900，两面对照：
+默认面 `html[data-motion]=null`、`.ambient` computed `animation-name: none`、`animation-iteration-count: 1`；
+`?motion=enhanced` 面 `data-motion=enhanced`、`animation-name: floatGlow`、`iteration-count: infinite`。
+指针探针落在可见控件「设计辅助」上（`page.$` 第一次抓到的是折叠面板里的零尺寸元素，指针落不到东西上，
+所以按 rect 挑了一个真的）：静止 `transform: none`；默认面 hover 得到 `matrix(1,0,0,1,2.99,0)`——那是
+既有的 CSS `translateX(3px)` hover 规则，不是 JS；增强面 hover 得到 `matrix(1,0,0,1,0.96,0.82)`——那是
+委托磁吸写出来的按指针位置的小数值。两面的墨色都是 `rgb(245,247,252)`，**hover 不改字色**。
+该路由上磁吸宿主 **34** 个、倾斜宿主 **10** 个。截图在 `.project-local/task-runtime/motion-probe/shots/`
+（gitignored 证据根）。**仍未取的**：真人视觉验收——测量与截图不等于 owner 说一句"像样"。
+
+**一条自己造出来的新风险，写在交付的同一段里。** 增强面那个 12s 浮动是把 `blur(80px)`、`opacity:.45`
+的光斑在文字底下移动，而列表卡片的底是半透明的（`color-mix(...surface2 74%...)`），所以光斑位置会改变
+文字底下的合成背色——这正是 §5.55 那一族"任何规则里都不存在的一帧"。默认面已经干净（`animation-name:
+none`），但**增强面的对比度至今没有量过**：要把 `?motion=enhanced` 灌进对比度闸门并做逐帧采样，才能把
+这句从"风险"改成"已证"。在那之前，粒子/氛围层不得算 E2 交付。
+
+**挂起项如实写。** ① 粒子/氛围层**未选型未接入**（两份调研回来了：GSAP 3.13 全插件免费但许可是
+GreenSock License 非 MIT、gzip 27.2KB；canvas-confetti ISC 4.3KB；@tsparticles/slim MIT 30.5KB；
+pixi.js 226KB 与 lottie-web 76.8KB 因体积/维护不引入；react-bits 与 magicui 是 React+Tailwind，
+按 owner 既有的"参考它的结构源代码进行复制"裁法抄源码而不是装库）——本轮没有新增依赖，理由写在这里：
+在 JS 单口径已经超包内 150KB 的情况下再加 30KB 级 gzip，等于用别的界面少东西来换这里的动效；
+② `150KB` 上限的裁定仍在 owner 手上——`scripts/measure_workbench_weight.py` 自述不发明预算，实测
+`budgetDeclared=False`，本轮 gzip +1,670 字节使 JS 单口径离那句 150KB 更远，关键路径合计 gzip
+（bundle+stylesheet+document，level 9）实测 **206,956 字节 = 202.1 KiB**；行业那句是
+「critical file size budget < 170Kb gzipped」且覆盖的是**整条关键路径**，包里 150KB 只管 JS、且没有写
+设备/网络画像与目标指标。真人验收、模型推理、release、真实宿主 E3 全部仍冻结不变。
+
+**这条断言会咬在哪里。** 它咬的是此后**任何人**在 `style.css` 里新写的一条 `transition`：简写不带属性表、
+补间 `background`/`border-color`/`box-shadow`/`filter`/`r`、时长落在 120–180ms 带外，
+三把用例里的任意一把都会在 `test_workbench_contrast_gate` 上直接红；UIKIT 那三枚被"登记项消失即红"咬住，
+`motion.ts` 被默认 static 与 reduced-motion 退回咬住——谁把它改成默认开启、或让入场原语用上 `opacity`，
+重蹈的就是 §5.55 那帧谁都没写过的中间态灰。

@@ -12436,6 +12436,30 @@
         "command": "owner 点名 D:/All projects/矢量LOGO 要求把项目 logo 换上去。查下来的真实缺口不是\"图不对\"，而是**品牌件流水线没有消费者**：design-lab-mark.png 只被自己的生成脚本和二进制清单引用，AppShell 导航头是纯文字，CSS 里 48px 的 .brand-mark 挂在被注释掉的旧版侧栏（实测 rect 0x0），唯一在画的是旧版页头 52px 的 .mark。入库两枚派生矢量：design-mark.svg（只含图形带）与 design-lockup.svg（完整 17 路径含字标）。切带不手解路径——两次失败都在此：正则把 17 条抓成 18 条（含一条空路径，于是\"单标\"只剩空的），按坐标奇偶配 x/y 在 Illustrator 混合绝对/相对命令下无意义，产出 4x4 viewBox 的不可见图形；改由 Chromium 解析源文件逐条读 getBBox()，在 20.97px 间隙切成单标 2 条 / 文字带 15 条，单标框 160.22x155.97；viewBox 平移符号写反也是靠渲染暴露的。接线：导航头文字左侧加 22px 单标（文字仍是可访问名，图形 aria-hidden）；--brand-mark 改为同一矢量的两枚编码（paper 给炭黑默认、ink 给 ui2026/light 与 stitch/light），因为 background-image 不吃 currentColor，而 CSP img-src data: 加 workbench.py 三条固定路径意味着开资源路由要同时放宽两者——那是 owner 的安全决定，不是便利。同轮把 render_brand_asset.py --check 从校验位图亮度阈值管线改为校验矢量真值（digest/两枚 fill/路径条数/默认变体/浅色是否都 opt-in），否则留一把永远守废弃管线的死闸；它第一次运行冤枉了一份正确的样式表——light_flips 多减 1，是检查器算错，读回 CSS 后修检查器而非改 CSS。验证：三套配色下 .app-nav-mark present、box=[22,22]、svg data URI 生效、可访问名仍是 DESIGN-LAB；强制 stitch/light 后 nav 底 rgb(255,255,255)、字色 rgb(53,107,146)、logo 深墨压白。同时如实记下未验证项：应用自身主题控制器会在启动后重写 data-palette，且落地视图未找到可点主题控件（clicked=null），所以\"翻转渲染正确\"已证、\"用户一步切到珍珠白\"未证。verify_projection_freshness 又抓到我一次：新规则带来 4 个字面 px，DESIGN.md §4 的债句 517→521 需随之更新（字面色值那栏工具明写 agent 不得填，未动）。node 三套全过、42 条 CSS 相关 python OK、LICENSE_COVERAGE=OK、BRAND_ASSET=OK paths=2 encodings=2 light_flips=2、聚合 VERIFY_DESIGN_LAB=OK total=76 failed=0。LOGO.ai 只按哈希登记不入库（仓库已过体积警戒线，且从 .ai 导出需驱动 Illustrator＝冻结项）。另结清上一轮欠账：run 40191207017（bdaf4883）conclusion=success，BROWSER_E2E ran=17 skipped=0 failed=0、三分片 0 FAIL、PYTHON_TESTS_UNION=OK ran=3352 duplicates=0 missing=0，strict-TS 与 Python gate 均 success。E2，不含宿主运行与真人验收。",
         "exit_code": 0,
         "observed_at": "2026-10-25T12:58:00Z"
+      },
+      {
+        "id": "kb-13-motion-band-graded-to-pack-sentence-20261025",
+        "task_id": "DL-KB-13",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "ada3ddd9d5f1836d45d3d530b290dcd192d06770",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-motion-band-graded-to-pack-sentence-20261025.json",
+        "artifact_sha256": "a384529027ea6398e7919ce3c50f4e241024e7f23a746135a8dc3f8d911273d3",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T15:42:00Z",
+        "command": "MEASURED motion band + budget research —— see the artifact; the row records measurement of bytes, not a human or model acceptance."
+      },
+      {
+        "id": "kb-06-enhanced-motion-layer-opt-in-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "ada3ddd9d5f1836d45d3d530b290dcd192d06770",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-enhanced-motion-layer-opt-in-20261025.json",
+        "artifact_sha256": "e30eb35af03077870848d18ec06ca88b08b174e55f99abdbf827e63b64d2bcbc",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T15:42:00Z",
+        "command": "SHIPPED opt-in motion layer —— see the artifact; the row records measurement of bytes, not a human or model acceptance."
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
