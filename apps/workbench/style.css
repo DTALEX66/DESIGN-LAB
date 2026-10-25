@@ -1732,6 +1732,38 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   --tag-ink:var(--uif-dark-accent-text);
 }
 
+/* 20261023 包 `08_STITCH完整提示词.txt` 逐字给的六个值，做成第三套可选色板：
+   强调 #356B92、正文 #17212B、次级 #566472、背景 #F4F6F8、内容 #FFFFFF、边界 #D8DFE5。
+   默认配色一字节不动（owner 裁定：新任务包配色不覆盖既有配色，新值做成可选主题），
+   这套只声明了珍珠白一侧，所以 schemes 里只有 light——暗色不自造，
+   那会把"一比一复刻"变成"照着猜一份"。地板值同样不动：--accent-hover、--border-strong。
+   六个值由 design-lab/tests/test_workbench_stitch_palette.py 逐条钉在这段文本上，
+   并由对比度闸门按每条路由量一遍：改了数字测试红，量出 AA 不过闸门红。 */
+:root[data-palette="stitch"][data-scheme="light"]{
+  color-scheme:light;
+  --color-bg:#F4F6F8;
+  --color-surface:#FFFFFF;
+  --color-surface-2:#FFFFFF;
+  --color-border:#D8DFE5;
+  --color-text:#17212B;
+  --color-muted:#566472;
+  /* 单一低饱和强调色同时担任 action / focus / selection / info，
+     因为这一版基线写的就是"单一"强调色，不引入第二种蓝。 */
+  --color-primary:#356B92;
+  --accent:#356B92;
+  --color-secondary:#356B92;
+  --secondary:#356B92;
+  --color-info:#356B92;
+  /* info 药丸的填充不能跟着强调色走深：这套基线的 warn/success/error 填充都是淡底，
+     药丸墨色必须统一取深色正文，否则白字压淡底实测只有 1.83:1（对比度闸门逐条报红，
+     这条红是它自己量出来的，不是照抄 ui2026 那一段的结论）。 */
+  --tag-info-from:var(--color-bg);
+  --tag-info-to:var(--color-bg);
+  --tag-ink:#17212B;
+  --avatar-ink:#17212B;
+  --glow:0 0 14px rgba(53,107,146,.16);
+}
+
 /* ---- 可选主题的几何（2026-10-11 追补）--------------------------------------
    上面那组 --uif-sidebar/--uif-gutter-* 此前被登记却没有任何规则读它，所以"20261009
    取值做成可选主题"只对颜色成立，尺度是空的。这里补上消费端：默认配色一字节不变

@@ -353,5 +353,40 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
                                  f'ui2026/light @{width}: the tile is {seen["size"]}, not 48x48')
 
 
+    def test_the_stitch_pearl_theme_is_graded_by_the_same_geometry_gate(self):
+        """Same rule the 20261009 baseline established, applied to the 20261023 pack's palette:
+        an unmeasured theme is an unshipped theme.
+
+        The stitch palette re-points the neutral family (background, surface, border, text, muted)
+        and the accent, so it can change what fits as well as what is readable -- and it ships as an
+        additive third choice, which is exactly the case a geometry gate must not skip.
+        """
+        if not GATE_SCRIPT.is_file():
+            self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
+        code, out, report_path = self._run_gate(
+            'workbench-overflow-gate-stitch-light.json',
+            {'UI_PALETTE': 'stitch', 'UI_SCHEME': 'light'})
+        report = self._fail_open(code, out, report_path)
+        self._assert_utility_geometry(report, 'stitch/light:')
+        self.assertEqual('stitch', report['uiPalette'])
+        self.assertEqual('light', report['uiScheme'])
+        for width, edge in sorted(report['navEdge'].items()):
+            self.assertGreaterEqual(
+                edge['gap'], 6,
+                f'stitch/light @{width}: footer hairline {edge["gap"]}px under the nav cut '
+                f'line{" with a group label half-cut on it" if edge["labelStraddling"] else ""}')
+        # The panels this round started opening must be graded under the new palette too, not only
+        # under the two themes that were already measured: a panel checked in one palette only is
+        # an untested surface in the others.
+        measured_widths = [w.strip() for w in WIDTHS.split(',') if w.strip()]
+        absent = ['%s:%s' % (w, panel) for w in measured_widths
+                  for panel in ('knowledge+entry-detail', 'assistant+plan-detail',
+                                'assistant+plan-compare', 'assistant+plan-feedback')
+                  if '%s:%s' % (w, panel) not in report['routes']]
+        self.assertEqual(absent, [],
+                         'these panels were never geometry-checked under the stitch theme: %s'
+                         % absent)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

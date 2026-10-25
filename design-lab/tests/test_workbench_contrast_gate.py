@@ -264,6 +264,54 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         self.assertEqual(summary.get('unparsable'), '0',
                          'a colour the new theme computes could not be parsed: %s' % summary)
 
+    def test_stitch_pearl_theme_is_graded_by_the_same_aa_gate(self):
+        """DL-KB-06 follow-on (2026-10-25): the 20261023 pack's STITCH prompt names six exact
+        colours and ships them as a third optional palette. Same rule as the 20261009 baseline --
+        an unmeasured theme is an unshipped theme, and the pack's own numbers are no proof that
+        its text is readable on its own background.
+
+        The default palette is untouched by this theme (owner ruling: a new pack's colours become
+        a selectable theme, never an override), and the measured floor values stay where the
+        contrast gate put them, so what this case measures is exactly the six values.
+        """
+        report = _evidence_dir() / 'workbench-contrast-gate-stitch-light.json'
+        code, out, _ = _run_gate({
+            'UI_PALETTE': 'stitch',
+            'UI_SCHEME': 'light',
+            'CT_OUT': str(report),
+        })
+        if code != 0:
+            low = [l for l in out.splitlines() if l.strip().startswith('LOWCONTRAST')]
+            self.fail('CONTRAST_GATE_FAILED under stitch/light (exit %d)\n'
+                      '--- first 25 offenders ---\n%s\n--- tail ---\n%s'
+                      % (code, '\n'.join(low[:25]), out[-1200:]))
+        self.assertIn('CT_OK', out, 'gate exited 0 without CT_OK:\n%s' % out[-2000:])
+        self.assertTrue(report.is_file(), 'themed run produced no report at %s' % report)
+        import json
+        recorded = json.loads(report.read_text(encoding='utf-8'))
+        self.assertEqual(recorded.get('uiPalette'), 'stitch',
+                         'the report does not say which palette it measured')
+        self.assertEqual(recorded.get('uiScheme'), 'light',
+                         'the report does not say which scheme it measured')
+        summary = _summary(out)
+        self.assertGreaterEqual(int(summary.get('checked', '0')), 500,
+                                'themed probe measured only %s text runs; coverage is suspect'
+                                % summary.get('checked'))
+        self.assertEqual(summary.get('controlMisses'), '0',
+                         'the parser control was not caught under the stitch theme: %s' % summary)
+        self.assertEqual(summary.get('unparsable'), '0',
+                         'a colour the stitch theme computes could not be parsed: %s' % summary)
+        # Same panels as the default run: a theme that is only checked on the closed screens
+        # has not been checked on the panels where this round added content.
+        wanted = ['%s:assistant+plan-detail' % w for w in WIDTHS.split(',')]
+        wanted += ['%s:assistant+plan-compare' % w for w in WIDTHS.split(',')]
+        wanted += ['%s:assistant+plan-feedback' % w for w in WIDTHS.split(',')]
+        wanted += ['%s:knowledge+entry-detail' % w for w in WIDTHS.split(',')]
+        wanted += ['%s:target-profiles+combination' % w for w in WIDTHS.split(',')]
+        missing = [k for k in wanted if k not in recorded.get('routes', {})]
+        self.assertEqual(missing, [],
+                         'the stitch theme was never measured for these panels: %s' % missing)
+
     def test_contrast_maths_reference_table_is_satisfied(self):
         """The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio()
         it applies to real text. If that table were skipped, the verdict above would

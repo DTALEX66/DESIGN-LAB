@@ -10140,7 +10140,7 @@ function wireB10Topbar(openPalette: () => void, openDrawer: () => void): void {
 // 而不是留一个按下去什么都不发生的开关（那正是本任务包禁的假动作）。
 // ============================================================================
 
-export type PaletteId = 'design-lab' | 'ui2026';
+export type PaletteId = 'design-lab' | 'ui2026' | 'stitch';
 export type SchemeId = 'dark' | 'light';
 
 interface PaletteSpec {
@@ -10155,6 +10155,11 @@ const PALETTES: readonly PaletteSpec[] = [
   { id: 'design-lab', label: 'DESIGN-LAB 色板', schemes: ['dark'],
     missingScheme: '这套色板没有声明过浅色值，不自造一套。' },
   { id: 'ui2026', label: 'UI-20261009 基线', schemes: ['dark', 'light'], missingScheme: '' },
+  // 20261023 包的 STITCH 提示词逐字给了六个值（强调 #356B92、正文 #17212B、次级 #566472、
+  // 背景 #F4F6F8、内容 #FFFFFF、边界 #D8DFE5）。它只声明了珍珠白这一侧，
+  // 所以这套色板只有一档：暗色值不在包里，不自造一套冒充"一比一"。
+  { id: 'stitch', label: 'STITCH 珍珠白（20261023 包）', schemes: ['light'],
+    missingScheme: '这份基线只声明了浅色一侧的值，暗色不自造。' },
 ];
 
 function paletteSpec(id: PaletteId): PaletteSpec {
@@ -10190,9 +10195,13 @@ export function readThemeChoice(): { palette: PaletteId; scheme: SchemeId } {
         scheme: document.documentElement.getAttribute('data-scheme'),
       }
     : { palette: null, scheme: null };
-  const fromUrl: PaletteId = urlParam('palette') === 'ui2026' ? 'ui2026' : 'design-lab';
-  const palette: PaletteId = applied.palette === 'ui2026' || applied.palette === 'design-lab'
-    ? applied.palette : fromUrl;
+  // The list of palettes has one owner (PALETTES). It used to be re-enumerated here as a pair of
+  // string comparisons, so a palette added to the table stayed unreachable from the URL and the
+  // attribute -- the switch would silently fall back to the default instead of saying so.
+  const knownPalette = (value: string | null): PaletteId | null =>
+    (PALETTES.some((entry) => entry.id === value) ? value as PaletteId : null);
+  const palette: PaletteId = knownPalette(applied.palette) ?? knownPalette(urlParam('palette'))
+    ?? PALETTES[0].id;
   const spec = paletteSpec(palette);
   const fromUrlScheme = urlParam('scheme');
   const wanted = spec.schemes.includes(applied.scheme as SchemeId)
