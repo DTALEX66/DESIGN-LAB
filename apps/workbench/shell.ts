@@ -4708,6 +4708,32 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   const formError = el('p', { class: 'error', id: 'as-form-error', role: 'alert' });
   const formStatus = el('p', { class: 'view-hint', id: 'as-form-status', role: 'status' });
 
+  /**
+   * 「错误紧邻字段」 (09_DESIGN.md:13): a refusal is written on the field it names.
+   *
+   * The node moves rather than clones, so exactly one alert is live and screen readers still get
+   * one `role=alert`. `data-for` is what makes the rule checkable: the audit cannot infer the
+   * referent from the Chinese sentence without re-writing the product's own strings, and the
+   * previous reading (`errorAdjacent=0` of 8) was the metric grading a twenty-field form's
+   * refusal against the first control it contains. Fields inside a shared `.as-row` get the error
+   * after the whole row, because a `<p>` dropped between two labels breaks that row's grid.
+   */
+  function showFieldRefusal(control: HTMLElement, message: string): void {
+    formError.textContent = message;
+    if (control.id) formError.setAttribute('data-for', control.id);
+    const row = control.closest('.field-row') ?? control;
+    const slot = row.closest('.as-row') ?? row;
+    slot.parentNode?.insertBefore(formError, slot.nextSibling);
+    control.focus();
+  }
+
+  /** Emptying the alert also puts the node back, so the untouched form keeps its measured layout. */
+  function clearFieldRefusal(): void {
+    formError.replaceChildren();
+    formError.removeAttribute('data-for');
+    formStatus.parentNode?.insertBefore(formError, formStatus);
+  }
+
   const creative = el('textarea', { id: 'as-creative', class: 'input', rows: '4',
     placeholder: '一段中性的创意说明；留空则方案只有目标（保存成功，但未提供创意）。' });
   const brand = el('input', { id: 'as-brand', class: 'input',
@@ -6004,7 +6030,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     cancelEdit.classList.remove('as-hidden');
     more.open = true;
     formStatus.textContent = statusLine;
-    formError.replaceChildren();
+    clearFieldRefusal();
     // The draft comes last: it is the work this person did after opening this revision, so it goes
     // on top of the stored document, and its own sentence replaces the status line when it exists.
     offerDraft();
@@ -6060,28 +6086,27 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
 
   async function submitPlan(): Promise<void> {
     if (busy) return;
-    formError.replaceChildren();
+    clearFieldRefusal();
     formStatus.replaceChildren();
     const text = objective.value.trim();
     if (!text) {
-      formError.textContent = '请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。';
-      objective.focus();
+      showFieldRefusal(objective,
+        '请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。');
       return;
     }
     if (!author.value.trim()) {
-      formError.textContent = '记录人不能为空：方案要写明是谁写的。';
-      author.focus();
+      showFieldRefusal(author, '记录人不能为空：方案要写明是谁写的。');
       return;
     }
     if (!outputType.value) {
-      formError.textContent = '输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。';
-      outputType.focus();
+      showFieldRefusal(outputType,
+        '输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。');
       return;
     }
     const stepRows = assistanceSteps(stepText.value);
     if (stepRows === null) {
-      formError.textContent = '外部步骤每行都要有步骤名称：格式是「步骤 | 工具 | 作业编号 | 操作编号」，后三项可留空。';
-      stepText.focus();
+      showFieldRefusal(stepText,
+        '外部步骤每行都要有步骤名称：格式是「步骤 | 工具 | 作业编号 | 操作编号」，后三项可留空。');
       return;
     }
     const shots = shotTable();
@@ -6089,7 +6114,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
       // The shot table lives inside 更多设置, so the panel is opened before the sentence is said --
       // an error about a row the designer cannot see is an error that cannot be fixed.
       more.open = true;
-      formError.textContent = shots.problem;
+      showFieldRefusal(shotHost, shots.problem);
       return;
     }
     busy = true;
@@ -6161,6 +6186,9 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
       const envelope = (error as { serviceEnvelope?: Record<string, unknown> } | null)
         ?.serviceEnvelope;
       if (editing && envelope?.error === 'ASSISTANCE_PLAN_REVISION_CONFLICT') {
+        // A conflict is about the write, not about one field, so the alert goes back to its
+        // default slot above the actions instead of landing beside a field that is not at fault.
+        clearFieldRefusal();
         formError.replaceChildren(
           el('span', {}, `保存失败：${assistanceRefusal(error)}。`
             + `这次写入按 r${editing.expectedRevision} 准备，服务里的方案已经前进；`
@@ -6179,6 +6207,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
         // a rejected write touched the store is the service's answer to say, not this sentence's.
         // The service's own detail ends with a full stop, so joining without checking doubled it.
         const refusal = assistanceRefusal(error);
+        clearFieldRefusal();
         formError.textContent = `保存失败：${refusal}${refusal.endsWith('。') ? '' : '。'}`
           + '你的输入还在这个表单里，改动没有离开它。';
       }
@@ -6201,7 +6230,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     formStatus.textContent = copiedFrom
       ? `已取消复制：${copiedFrom} 与它的内容都没有任何变化，也没有新方案被写入。`
       : `已取消修订${planBeingRevised ? '：' + planBeingRevised : ''}；服务里的方案没有变化。`;
-    formError.replaceChildren();
+    clearFieldRefusal();
   };
   addReference.onclick = () => {
     const chosen = assetSelect.value;
@@ -6222,7 +6251,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
         await refreshReferenceSources();
         await refreshPlans();
       } catch (error) {
-        formError.textContent = `工作区读数失败：${assistanceRefusal(error)}`;
+        showFieldRefusal(workspace, `工作区读数失败：${assistanceRefusal(error)}`);
       }
     })();
   };

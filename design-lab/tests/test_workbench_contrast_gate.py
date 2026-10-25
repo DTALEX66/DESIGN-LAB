@@ -81,12 +81,27 @@ def _evidence_dir():
     return ROOT / '.project-local' / 'task-artifacts' / 'browser-e2e'
 
 
-def _run_gate(env_extra):
-    """Boot the real service on a synthetic root and run the probe once.
+_GATE_RUNS = {}
 
-    Returns (exit_code, stdout, report_path) so every assertion shares one
-    measurement rather than re-running the browser.
+
+def _run_gate(env_extra):
+    """Boot the real service on a synthetic root and run the probe once per distinct environment.
+
+    Returns (exit_code, stdout, report_path) so every assertion shares one measurement rather than
+    re-running the browser. The memo is not a speed convenience only: a test that reads the receipt
+    back used to find no file at all, because the class that writes it runs later in alphabetical
+    order -- and it papered over that with `skipTest`, which the no-skip policy correctly turns
+    into a failure. Sharing one run inside the process makes the receipt always there.
     """
+    key = json.dumps(env_extra, sort_keys=True)
+    if key in _GATE_RUNS:
+        return _GATE_RUNS[key]
+    result = _run_gate_once(env_extra)
+    _GATE_RUNS[key] = result
+    return result
+
+
+def _run_gate_once(env_extra):
     node = shutil.which('node')
     node_modules_dir = _find_node_modules_dir()
     browser = _find_browser()
@@ -944,11 +959,16 @@ class RefusalPopulationIsGraded(unittest.TestCase):
                       'product writes refusals')
 
     def test_the_refusal_state_is_named_in_the_receipt(self):
-        """Reported from the last default-theme run, if one exists in this worktree."""
-        path = _evidence_dir() / 'workbench-contrast-gate.json'
-        if not path.is_file():
-            self.skipTest('no contrast receipt on disk yet; the themed runs assert the same '
-                          'fields on their own reports')
+        """Measure here rather than reading whatever an earlier test happened to leave behind.
+
+        This method used to `skipTest` when the receipt was missing, and the receipt was missing on
+        every fresh checkout because the class that writes it runs later in alphabetical order --
+        which the no-skip policy is right to refuse.
+        """
+        code, out, path = _run_gate({})
+        self.assertEqual(code, 0,
+                         'the gate did not complete, so there is no receipt to read: %s'
+                         % out[-1200:])
         report = json.loads(path.read_text(encoding='utf-8'))
         rows = [k for k in report.get('routes', {}) if k.endswith('+refusal')]
         self.assertTrue(rows, 'the receipt has no knowledge+refusal row, so the provoked state '
@@ -1084,6 +1104,110 @@ class TheSingleAccentIsGradedWhereItIsPainted(unittest.TestCase):
         as_ink = re.findall(r'(?:^|[;{\s])color\s*:\s*[^;{}]*var\(--accent[a-z-]*\)', ink_plant)
         self.assertEqual(len(as_ink), 1,
                          'a planted `color:var(--accent)` was not read as glyph ink (%s)' % (as_ink,))
+
+
+def adjacency_offenders(rows, limit=24):
+    """Which provoked refusals did not land on the field they name.
+
+    Kept out of the test method so a planted row can be pushed through the same rule that reads
+    the real artefact: an assertion that only ever sees measured bytes cannot be shown to bite.
+    """
+    bad = []
+    for row in rows:
+        if not row.get('shown', True):
+            bad.append('%s: no refusal appeared' % row.get('key'))
+        elif not row.get('dataFor'):
+            bad.append('%s: the refusal names no field' % row.get('key'))
+        elif not row.get('referentExists'):
+            bad.append('%s: data-for points at #%s, which is not in the document'
+                       % (row.get('key'), row.get('dataFor')))
+        elif not row.get('painted'):
+            bad.append('%s: the refusal of #%s is not painted' % (row.get('key'),
+                                                                  row.get('dataFor')))
+        elif (row.get('dy') or 0) > limit:
+            bad.append('%s: %spx from #%s' % (row.get('key'), row.get('dy'),
+                                              row.get('dataFor')))
+    return bad
+
+
+class FieldRefusalsLandOnTheFieldTheyName(unittest.TestCase):
+    """「错误紧邻字段」 was being graded against the wrong element, and the product was passing.
+
+    The audit picked `host.querySelector(...)`: the FIRST control inside the panel. On the intake
+    form that is the 需求 textarea at the top, while the alert is written at the foot of a form with
+    twenty fields, so the only refusal this gate ever provoked measured dy=1199px and the pack's
+    adjacency number read 0 of 8. Both halves were wrong: the metric could not know which field a
+    message was about, and the message really was 1199px from the field it named.
+
+    The product now names its referent through `data-for` and moves the alert next to that field;
+    the metric grades exactly that pair. The number below is the same rule, re-measured.
+    """
+
+    def test_every_graded_refusal_is_adjacent_to_the_field_it_names(self):
+        code, out, path = _run_gate({})
+        self.assertEqual(code, 0,
+                         'the gate did not complete, so the adjacency rule has no measurement to '
+                         'grade: %s' % out[-1200:])
+        report = json.loads(path.read_text(encoding='utf-8'))
+        spec = report.get('spec') or {}
+        seen = (report.get('refusalAdjacency') or {}).get('seen') or []
+        self.assertGreaterEqual(spec.get('errorNamed', 0), 1,
+                                'no graded message carried a data-for referent, so the adjacency '
+                                'rule is back to guessing which field a sentence is about')
+        self.assertEqual(spec.get('errors'), spec.get('errorAdjacent'),
+                         'errors=%s but errorAdjacent=%s: the receipt itself says some refusals '
+                         'are not on their field' % (spec.get('errors'),
+                                                     spec.get('errorAdjacent')))
+        self.assertGreaterEqual(len(seen), 3,
+                                'only %s field refusal(s) were provoked, which is how the old '
+                                'reading came to describe one element instead of the family'
+                                % len(seen))
+        self.assertEqual(adjacency_offenders(seen), [],
+                         'these provoked refusals did not land on the field they name')
+
+    def test_the_product_writes_each_field_refusal_through_one_door(self):
+        source = (ROOT / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
+        self.assertEqual(source.count('const formError = el('), 1,
+                         'the intake form has more than one alert node, so `data-for` on one of '
+                         'them would be read as the whole story')
+        self.assertGreaterEqual(source.count('showFieldRefusal('), 5,
+                                'only %s field-named refusals go through the door that sets '
+                                'data-for; the rest are ungradeable' % source.count(
+                                    'showFieldRefusal('))
+        self.assertIn("formError.setAttribute('data-for', control.id)", source,
+                      'the helper no longer records which field the message is about, so the '
+                      'audit falls back to guessing and the 1199px reading can come back')
+        stray = re.findall(r"formError\.textContent\s*=\s*'[^']*[\u4e00-\u9fff]", source)
+        self.assertEqual(stray, [],
+                         'these refusals are written straight into the alert without naming a '
+                         'field: %s' % [s[:48] for s in stray])
+
+    def test_the_metric_reads_the_referent_instead_of_the_first_control(self):
+        script = GATE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("el.getAttribute('data-for')", script,
+                      'the audit no longer resolves the field a refusal names')
+        self.assertIn('adjacencyBad', script,
+                      'nothing fails the run when a refusal is far from its field, so the number '
+                      'is printed advice again')
+        self.assertIn('walkFieldRefusals', script,
+                      'a single provoked state cannot grade a rule that is about one field per '
+                      'message')
+
+    def test_the_rule_convicts_a_row_that_is_far_from_its_field(self):
+        near = {'key': 'x#case1', 'shown': True, 'dataFor': 'as-author',
+                'referentExists': True, 'painted': True, 'dy': 6}
+        self.assertEqual(adjacency_offenders([near]), [])
+        far = dict(near, dy=1199)
+        self.assertEqual(adjacency_offenders([far]),
+                        ['x#case1: 1199px from #as-author'],
+                        'the row that reproduces the recorded defect is not convicted')
+        anonymous = dict(near, dataFor='')
+        self.assertTrue(adjacency_offenders([anonymous]),
+                        'a refusal that names no field passes, so the population could be emptied '
+                        'by dropping data-for')
+        orphan = dict(near, referentExists=False)
+        self.assertTrue(adjacency_offenders([orphan]),
+                        'a data-for pointing at a missing id is not convicted')
 
 
 if __name__ == '__main__':

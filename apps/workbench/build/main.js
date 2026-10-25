@@ -6051,6 +6051,19 @@ async function renderDesignAssistant(target) {
   }, "取消修订");
   const formError = el("p", { class: "error", id: "as-form-error", role: "alert" });
   const formStatus = el("p", { class: "view-hint", id: "as-form-status", role: "status" });
+  function showFieldRefusal(control, message) {
+    formError.textContent = message;
+    if (control.id) formError.setAttribute("data-for", control.id);
+    const row = control.closest(".field-row") ?? control;
+    const slot = row.closest(".as-row") ?? row;
+    slot.parentNode?.insertBefore(formError, slot.nextSibling);
+    control.focus();
+  }
+  function clearFieldRefusal() {
+    formError.replaceChildren();
+    formError.removeAttribute("data-for");
+    formStatus.parentNode?.insertBefore(formError, formStatus);
+  }
   const creative = el("textarea", {
     id: "as-creative",
     class: "input",
@@ -7623,7 +7636,7 @@ async function renderDesignAssistant(target) {
     cancelEdit.classList.remove("as-hidden");
     more.open = true;
     formStatus.textContent = statusLine;
-    formError.replaceChildren();
+    clearFieldRefusal();
     offerDraft();
     form.scrollIntoView({ block: "start" });
     focusTarget.focus();
@@ -7681,34 +7694,39 @@ async function renderDesignAssistant(target) {
   }
   async function submitPlan() {
     if (busy2) return;
-    formError.replaceChildren();
+    clearFieldRefusal();
     formStatus.replaceChildren();
     const text = objective.value.trim();
     if (!text) {
-      formError.textContent = "请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。";
-      objective.focus();
+      showFieldRefusal(
+        objective,
+        "请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。"
+      );
       return;
     }
     if (!author.value.trim()) {
-      formError.textContent = "记录人不能为空：方案要写明是谁写的。";
-      author.focus();
+      showFieldRefusal(author, "记录人不能为空：方案要写明是谁写的。");
       return;
     }
     if (!outputType.value) {
-      formError.textContent = "输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。";
-      outputType.focus();
+      showFieldRefusal(
+        outputType,
+        "输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。"
+      );
       return;
     }
     const stepRows = assistanceSteps(stepText.value);
     if (stepRows === null) {
-      formError.textContent = "外部步骤每行都要有步骤名称：格式是「步骤 | 工具 | 作业编号 | 操作编号」，后三项可留空。";
-      stepText.focus();
+      showFieldRefusal(
+        stepText,
+        "外部步骤每行都要有步骤名称：格式是「步骤 | 工具 | 作业编号 | 操作编号」，后三项可留空。"
+      );
       return;
     }
     const shots = shotTable();
     if (shots.problem) {
       more.open = true;
-      formError.textContent = shots.problem;
+      showFieldRefusal(shotHost, shots.problem);
       return;
     }
     busy2 = true;
@@ -7778,6 +7796,7 @@ async function renderDesignAssistant(target) {
     } catch (error) {
       const envelope = error?.serviceEnvelope;
       if (editing && envelope?.error === "ASSISTANCE_PLAN_REVISION_CONFLICT") {
+        clearFieldRefusal();
         formError.replaceChildren(
           el("span", {}, `保存失败：${assistanceRefusal(error)}。这次写入按 r${editing.expectedRevision} 准备，服务里的方案已经前进；你的输入还在，读回最新后可以再保存。`),
           el("button", {
@@ -7799,6 +7818,7 @@ async function renderDesignAssistant(target) {
         );
       } else {
         const refusal = assistanceRefusal(error);
+        clearFieldRefusal();
         formError.textContent = `保存失败：${refusal}${refusal.endsWith("。") ? "" : "。"}你的输入还在这个表单里，改动没有离开它。`;
       }
     } finally {
@@ -7815,7 +7835,7 @@ async function renderDesignAssistant(target) {
     const planBeingRevised = editing?.planId ?? "";
     endEditing();
     formStatus.textContent = copiedFrom ? `已取消复制：${copiedFrom} 与它的内容都没有任何变化，也没有新方案被写入。` : `已取消修订${planBeingRevised ? "：" + planBeingRevised : ""}；服务里的方案没有变化。`;
-    formError.replaceChildren();
+    clearFieldRefusal();
   };
   addReference.onclick = () => {
     const chosen = assetSelect.value;
@@ -7836,7 +7856,7 @@ async function renderDesignAssistant(target) {
         await refreshReferenceSources();
         await refreshPlans();
       } catch (error) {
-        formError.textContent = `工作区读数失败：${assistanceRefusal(error)}`;
+        showFieldRefusal(workspace, `工作区读数失败：${assistanceRefusal(error)}`);
       }
     })();
   };

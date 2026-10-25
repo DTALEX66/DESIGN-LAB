@@ -738,8 +738,11 @@ const MEASURE_SPEC = () => {
 
   let errorNodes = 0;
   let errorAdjacent = 0;
+  let errorNamed = 0;
+  let errorUnowned = 0;
   const errorFar = [];
   const refusalWords = window.__ctRefusalWords || [];
+  const gapTo = (a, b) => Math.min(Math.abs(a.top - b.bottom), Math.abs(b.top - a.bottom));
   // The pack writes 「错误紧邻字段」, and until 2026-10-26 this loop only looked at
   // `.error/[role=alert]/.field-note/.refusal` -- which matched nothing on any route, so the
   // reading was `errors=0` over an EMPTY population. The product actually writes its local
@@ -759,14 +762,40 @@ const MEASURE_SPEC = () => {
     if (!painted(el, cs)) continue;
     const host = el.closest('.field-row, label, .panel, form');
     if (!host) continue;
-    const control = host.querySelector('input:not([type=hidden]), select, textarea');
-    if (!control || !painted(control, getComputedStyle(control))) continue;
+    // The referent is the field the refusal is about, and the product names it through `data-for`.
+    // Grading against the first control in the host is what made the old reading meaningless: an
+    // alert at the foot of a twenty-field form was measured against the textarea at its head and
+    // reported dy=1199px (section 5.69). A message that names no field is still counted, but
+    // against the control nearest to it, and it is reported under its own key so the enforced
+    // number can never quietly shrink by reclassifying the population.
+    const named = el.getAttribute('data-for') || '';
+    let control = null;
+    if (named) {
+      control = document.getElementById(named);
+      errorNamed += 1;
+    } else {
+      const eb0 = el.getBoundingClientRect();
+      const candidates = [...host.querySelectorAll('input:not([type=hidden]), select, textarea')]
+        .filter((c) => painted(c, getComputedStyle(c)));
+      control = candidates.reduce((best, c) => (gapTo(eb0, c.getBoundingClientRect())
+        < gapTo(eb0, best.getBoundingClientRect()) ? c : best), null);
+      errorUnowned += 1;
+    }
+    if (!control || !painted(control, getComputedStyle(control))) {
+      if (named && !control && errorFar.length < 8) {
+        errorFar.push(nodeTag(el) + ' names #' + named + ', which is not in the document');
+      }
+      continue;
+    }
     const cb = control.getBoundingClientRect();
     const eb = el.getBoundingClientRect();
     errorNodes += 1;
-    const dy = Math.min(Math.abs(eb.top - cb.bottom), Math.abs(cb.top - eb.bottom));
+    const dy = gapTo(eb, cb);
     if (dy <= 24) { errorAdjacent += 1; continue; }
-    if (errorFar.length < 8) errorFar.push(nodeTag(el) + ' dy=' + Math.round(dy) + 'px');
+    if (errorFar.length < 8) {
+      errorFar.push(nodeTag(el) + (named ? ' -> #' + named : ' -> nearest') + ' dy='
+        + Math.round(dy) + 'px');
+    }
   }
 
   return { runs: runs.length, sizes, minPx: Number.isFinite(minPx) ? minPx : null,
@@ -778,7 +807,7 @@ const MEASURE_SPEC = () => {
            brandBluePaints: brandBlues.length, brandBlueExamples: unique,
            veilHosts, veilExamples, unknownColour,
            headingLadder, labelled, labelAbove, labelSideBySide,
-           errorNodes, errorAdjacent, errorFar };
+           errorNodes, errorAdjacent, errorNamed, errorUnowned, errorFar };
 };
 
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
@@ -827,6 +856,10 @@ const mathChecks = [];
 const colourChecks = [];
 const unknownSamples = [];
 const controlBad = [];
+// 「错误紧邻字段」 gets its own two lists for the same reason: a refusal that names no field is a
+// product finding, not a colour-parser finding, and the message the run prints has to say which.
+const adjacencyBad = [];
+const adjacencySeen = [];
 // Refusal-provocation outcomes get their own list. Pushing them into `controlBad` made the
 // colour-parser assertion fire ("the white-on-color(srgb) control was not reported") when what
 // actually happened was that a form was not on the walked state -- one list serving two meanings
@@ -1029,6 +1062,91 @@ async function openRefusalState(page, key, lineId, fieldId, triggerId) {
   refusalProved.push({key, role, text: text.slice(0, 60)});
   console.log(`CT_REFUSAL_PROVED ${key} role=${role} text="${text.slice(0, 44)}"`);
   return true;
+}
+
+async function walkFieldRefusals(page, key, problems, sink) {
+  // 「错误紧邻字段」 names ONE field, so a single provoked state cannot grade it: the assistant's
+  // local validations each complain about a different control, and the product now says which one
+  // through `data-for`. Which guard fires depends on the served vocabulary, so the probe does not
+  // dictate the sentence -- it requires that whichever field a refusal names, the refusal is
+  // painted within the pack's adjacency distance of that field, and that it names one at all.
+  const cases = [
+    { fill: {}, expectId: 'as-objective' },
+    { fill: { 'as-objective': '一条只为测量而写的目标文字。' }, expectId: 'as-author' },
+    { fill: { 'as-objective': '一条只为测量而写的目标文字。', 'as-author': 'DESIGN-LAB 审计' },
+      steps: '| 只在工具列写字，步骤名留空' },
+  ];
+  for (const [index, spec] of cases.entries()) {
+    await page.evaluate((values) => {
+      const details = document.getElementById('as-advanced');
+      if (details) details.open = false;
+      for (const id of ['as-objective', 'as-author', 'as-steps']) {
+        const node = document.getElementById(id);
+        if (node) node.value = '';
+      }
+      for (const [id, value] of Object.entries(values)) {
+        const node = document.getElementById(id);
+        if (node) node.value = value;
+      }
+    }, spec.fill);
+    if (spec.steps) {
+      await page.evaluate((text) => {
+        const details = document.getElementById('as-advanced');
+        if (details) details.open = true;
+        const node = document.getElementById('as-steps');
+        if (node) node.value = text;
+      }, spec.steps);
+    }
+    await page.click('#as-submit');
+    const seen = await page.evaluate(() => {
+      const err = document.getElementById('as-form-error');
+      if (!err || !(err.textContent || '').trim()) return { shown: false };
+      const cs = getComputedStyle(err);
+      const eb = err.getBoundingClientRect();
+      const named = err.getAttribute('data-for') || '';
+      const field = named ? document.getElementById(named) : null;
+      let dy = null;
+      let row = null;
+      if (field) {
+        const fb = field.getBoundingClientRect();
+        dy = Math.round(Math.min(Math.abs(eb.top - fb.bottom), Math.abs(fb.top - eb.bottom)));
+        row = field.closest('.field-row');
+      }
+      return {
+        shown: true,
+        painted: cs.display !== 'none' && cs.visibility !== 'hidden'
+          && eb.width > 0 && eb.height > 0,
+        dataFor: named,
+        referentExists: !!field,
+        dy,
+        besideRow: !!(row && row.nextElementSibling && row.nextElementSibling.id === 'as-form-error'),
+        text: (err.textContent || '').trim().slice(0, 36),
+      };
+    });
+    const label = `${key}#case${index + 1}`;
+    if (!seen.shown) {
+      problems.push(`${label}: no refusal appeared, so the form's local validation did not run`);
+      continue;
+    }
+    sink.push({ key: label, ...seen });
+    if (!seen.dataFor) {
+      problems.push(`${label}: "${seen.text}" names no field (no data-for), so the pack's `
+        + '「错误紧邻字段」 cannot be graded on it');
+      continue;
+    }
+    if (!seen.referentExists) {
+      problems.push(`${label}: data-for points at #${seen.dataFor}, which is not in the document`);
+      continue;
+    }
+    if (!seen.painted) {
+      problems.push(`${label}: the refusal of #${seen.dataFor} is not painted, so it cannot be read`);
+      continue;
+    }
+    if (seen.dy > 24) {
+      problems.push(`${label}: the refusal sits ${seen.dy}px from #${seen.dataFor}, and the pack `
+        + 'asks for the message next to the field (<=24px)');
+    }
+  }
 }
 
 async function openPlanCompare(page, key, problems) {
@@ -1239,7 +1357,8 @@ report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.e
 const specTotals = { runs: 0, below12: 0, formCount: 0, formBelow36: 0, formRadiusOver10: 0,
                      veilHosts: 0, unknownColour: 0, controls: 0, inBodyBand: 0, minPx: null,
                      gradients: 0, bigGradients: 0, brandBlues: 0,
-                     labelled: 0, labelAbove: 0, errors: 0, errorAdjacent: 0 };
+                     labelled: 0, labelAbove: 0, errors: 0, errorAdjacent: 0,
+                     errorNamed: 0, errorUnowned: 0 };
 const specHeadingLadder = [];
 const specLabelExamples = [];
 const specErrorExamples = [];
@@ -1316,6 +1435,8 @@ const absorb = (key, m) => {
     specTotals.labelAbove += s.labelAbove;
     specTotals.errors += s.errorNodes;
     specTotals.errorAdjacent += s.errorAdjacent;
+    specTotals.errorNamed += s.errorNamed;
+    specTotals.errorUnowned += s.errorUnowned;
     for (const h of s.headingLadder) if (!specHeadingLadder.includes(h)) specHeadingLadder.push(h);
     for (const e of s.labelSideBySide) {
       if (specLabelExamples.length < 10) specLabelExamples.push(`${key} ${e}`);
@@ -1368,6 +1489,13 @@ for (const w of widths) {
       if (compared) absorb(`${w}:assistant+plan-compare`, await measureBoth(page));
       const fed = await openFeedbackState(page, `${w}:assistant+plan-feedback`, controlBad);
       if (fed) absorb(`${w}:assistant+plan-feedback`, await measureBoth(page));
+      // Last, because it rewrites the intake form's own values. One provoked state cannot grade
+      // 「错误紧邻字段」 -- the sentence differs per field and each has to be measured against the
+      // field it names. Reference width only: the reading is a distance inside one form, and a
+      // wider viewport moves the whole block without changing the gap being asserted.
+      if (String(w) === '1440') {
+        await walkFieldRefusals(page, `${w}:assistant`, adjacencyBad, adjacencySeen);
+      }
     }
     if (name === 'knowledge') {
       // The refusal state is provoked first and measured as its own named row: 「错误紧邻字段」 is
@@ -1529,6 +1657,9 @@ await browser.close();
 // to be able to see which pack numbers this run measured. Assigned before the write, so the file
 // and the printed CT_SPEC lines come from one accumulation.
 report.refusals = {proved: refusalProved, absent: refusalAbsent};
+report.refusalAdjacency = {seen: adjacencySeen, bad: adjacencyBad,
+  note: 'each case is one of the assistant form\'s own local validations: the refusal it printed, '
+    + 'the field it named through data-for, and the measured gap between the two'};
 report.spec = { ...specTotals, sizes: specSizes, heights: specHeights, radii: specRadii,
   glass: specGlass, glassAllowed: GLASS_ALLOWED, glassOffAllowlist: glassOffList(),
   below12Examples: specBelow12Examples, veilExamples: specVeilExamples,
@@ -1587,7 +1718,8 @@ console.log(`CT_SPEC glass=${specGlass.length} glassOffAllowlist=${glassOffList(
 for (const g of specGlass) console.log(`  GLASS ${g}`);
 console.log(`CT_SPEC headings=[${specHeadingLadder.join(' | ')}] labelled=${specTotals.labelled}`
   + ` labelAbove=${specTotals.labelAbove} errorNodes=${specTotals.errors}`
-  + ` errorAdjacent=${specTotals.errorAdjacent}`);
+  + ` errorAdjacent=${specTotals.errorAdjacent} errorNamed=${specTotals.errorNamed}`
+  + ` errorUnowned=${specTotals.errorUnowned}`);
 for (const e of specLabelExamples) console.log(`  LABEL-SIDEBY ${e}`);
 for (const e of specErrorExamples) console.log(`  ERROR-FAR ${e}`);
 for (const g of glassOffList()) console.log(`  GLASS-OFF-LIST ${g}`);
@@ -1634,6 +1766,20 @@ const assistantProved = refusalProved.some((r) => r.key.endsWith(':assistant+ref
 if (!assistantProved) {
   console.error('CT_FAIL: the assistant intake form never showed its refusal line after an empty '
     + 'objective, so 错误紧邻字段 was not provoked and the population is an empty set again');
+  process.exit(1);
+}
+console.log(`CT_ADJACENCY cases=${adjacencySeen.length} bad=${adjacencyBad.length} `
+  + `named=${JSON.stringify(adjacencySeen.map((s) => s.dataFor))} `
+  + `dy=${JSON.stringify(adjacencySeen.map((s) => s.dy))}`);
+for (const bad of adjacencyBad) console.log(`  ADJACENCY-MISSED ${bad}`);
+if (adjacencySeen.length < 3) {
+  console.error(`CT_FAIL: only ${adjacencySeen.length} field refusal(s) were provoked, so `
+    + '「错误紧邻字段」 is being graded on nearly nothing');
+  process.exit(1);
+}
+if (adjacencyBad.length > 0) {
+  console.error(`CT_FAIL: ${adjacencyBad.length} refusal(s) did not land on the field they name `
+    + '-- see the ADJACENCY-MISSED lines above for which field and how far');
   process.exit(1);
 }
 if (controlBad.length > 0) {
