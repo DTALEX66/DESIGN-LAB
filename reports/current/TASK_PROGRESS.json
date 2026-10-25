@@ -14,7 +14,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-24T23:26:31+00:00",
+  "generatedAt": "2026-10-25T00:19:07+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -29,7 +29,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "e172e33e964bfd60ba7daffaff7332038f82ac68",
+  "subjectSha": "a7c438913d598283fec8a7446d72bb5915be5496",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
@@ -905,7 +905,8 @@
         "kb-03-implementation-ui-audit-r2-20261024",
         "kb-03-browser-e2e-r2-20261024",
         "kb-03-browser-visual-r2-20261024",
-        "kb-03-visual-review-r2-20261024"
+        "kb-03-visual-review-r2-20261024",
+        "kb-03-browser-entry-detail-rulers-20261025"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-03",
@@ -1150,5 +1151,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:b8cc058b6f4e5b7c9f7bde791e437826a66483c13da2819fa034b839e8d812f1"
+  "worktreeDigest": "sha256:2cff73f734f66c57c1d05ec2278c15ba26fc720a770f9f34e3a3bb750ac2ad6f"
 }

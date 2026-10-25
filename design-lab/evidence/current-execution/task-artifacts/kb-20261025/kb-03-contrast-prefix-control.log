@@ -1,0 +1,8 @@
+# Contrast gate run on the PRE-FIX stylesheet, same bundle and same seed.
+# This is the control: the widened sweep goes red on the bytes before the
+# token change and green after it. Lines kept: the entry-detail failures,
+# the gate summary, and the verdict.
+CT_SUMMARY checked=14278 belowAA=2 pseudoLayers=10870 coveredForeign=0 obscured=4 unparsable=0 collapsedOpened=6230 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+  LOWCONTRAST 1440:knowledge+entry-detail 4.08:1 need>=4.5:1 16px bold opacity=1 fg=rgb(49, 108, 255) :: strong :: 镜头拆解三步法（合成）
+  LOWCONTRAST 1920:knowledge+entry-detail 4.08:1 need>=4.5:1 16px bold opacity=1 fg=rgb(49, 108, 255) :: strong :: 镜头拆解三步法（合成）
+CT_FAIL: 2 text run(s) below WCAG 2.1 AA contrast

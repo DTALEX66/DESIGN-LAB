@@ -130,6 +130,26 @@ ui2026/light 各一遍）、几何 112 个面（1440/1280/1536/1920）`docOverfl
 （`ASSET`、`KNOWLEDGE`），`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到，
 而 `/api/projects/<id>/briefs`、`/directions`、`/prompt-results` 三条读路由都已存在且各有合同行。
 
+**台账读数（2026-10-25 第十轮收口时现数，取代上面第九轮那一段的"当下"身份）**：`currentExecution`
+仍 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图不变 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**；
+`evidence` 281→**282**（`DL-KB-03` 10→11 条，状态仍 DONE）。这一轮做的是 §5.40／§5.41 连着两轮
+自己写下的覆盖盲区：**两把静态尺从不点开知识条目详情**。做法照方案详情的先例——服务写一条合成条目
+（`created_by` 写明"合成，不是真人"，随临时状态目录丢弃），点开，等 `kb-copy-body`／判断表单／正文
+都画上才量，量成具名状态 `knowledge+entry-detail`，两个宽度和四个宽度各一份；
+两份闸门测试现在**要求这个状态在每个宽度都出现在报告里**，"少量一块面板"从此是一次红而不是一次安静的绿。
+**它第一次跑就量出一个真缺陷**：点开详情时指针还压在刚点开那行的标题上，量到的是 `.kb-open:hover`
+的墨色 `--accent`（品牌蓝 `#316CFF`）——在这块表面上 **4.08:1**，16px 粗体按 AA 要 4.5:1，
+深浅两套主题各红一次（控制跑逐字读数在回执 `kb-03-contrast-prefix-control.log`）。
+改的是字色选择不是品牌：三条 hover 墨色改走 `--secondary`（本项目为"小号有色文字"准备的按主题那支），
+`--accent` 一个字没动——**闸门量出缺陷不等于拿到改品牌的许可**，那仍是要 owner 裁的账。
+量的面确实变大：对比度 50→**52** 面、`checked` 14,002→**14,278** run，`belowAA=0`；
+几何 112→**116** 面，`docOverflowX=0 clipped=0 stray=0 tiny=0`，四个宽度的详情都报 `state=read`。
+本机 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；`DL-KB-13`／`DL-KB-16`／`DL-KB-15` 三格账没变，
+分别是 owner 的体积裁定＋3 位真人、具名真人签字、本机推理前置。
+**下一刀仍是打磨与审计**：把同一套"点开才量"的做法推向剩下的面板
+（我的方案详情已有，目标组合与反馈面板的展开态还没被静态尺量过），并按 owner 本轮指令
+把渲染屏与 `docs/taskpacks/20261023-ui-kb/source/` 归档的 Stitch 参考屏逐屏对照量偏差。
+
 **台账读数（2026-10-24 第九轮收口时现数，取代上面第八轮那一段的"当下"身份）**：`currentExecution`
 仍 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图不变——**`DONE 13`／`PARTIAL 2`／
 `NOT_STARTED 1`**，本轮没有可升的行（剩下两格要 owner 与真人，见审计件 §5.40）。本轮把**闭环第一环**
@@ -645,6 +665,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 ## 9. 工具事实（省得再踩）
 
 - **登记册的重钉必须是"文档定稿之后的另一个提交"**（2026-10-24 自己踩过一次）。`scripts/generate_archive_record_register.py` 钉的是 **HEAD 里那份 blob**，不是工作区那一份；把 §5.42 的追加和重钉塞进同一个提交，本地 `RECORD_REGISTER_GATE=PASS`（两边都读旧 blob，自洽），CI 却按新 blob 复算，判 `blob SHA-1 claim … vs …`、`bytes claim 238,875 vs 241,745` 五条 PROBLEM。正确顺序永远是：提交文档 → 重跑生成器 → 另一个提交只带登记册。本地绿的那句"PASS"在当时也是真的，只是它说的是上一个提交——这也是为什么 CI 的逐作业读数不能被本地并集替掉。
+- **回执里的 `artifact_path` 一律仓库相对 POSIX 斜杠**（2026-10-25 一晚踩两次）。`str(Path(...))` 在 Windows 上给的是 `design-lab\evidence\…`，`scripts/generate_current_reports.py` 与 `verify_current_execution.py` 都以 `expected a public repository-relative POSIX path` 拒它。写账本前把 `str(path)` 换成 `path.resolve().relative_to(REPO).as_posix()`，并在提交前跑一次投影生成器当探测——它比"aggregate 也红、两条红我还得分别归因"便宜得多。
+
 
 - **本机 `.venv` 里没有 pytest，但装得上**：
   `uv run --python .venv/Scripts/python.exe --with pytest --no-sync -m pytest <files> -q`。
