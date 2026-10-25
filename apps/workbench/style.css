@@ -1407,6 +1407,16 @@ html,body{margin:0}
    现在只撤掉 opacity：`button:disabled` 已经给了平涂次级底、虚线边、无投影这三条非文字线索，
    "不能点"仍然看得出来，字也读得清——WCAG 对非活动控件的豁免不该变成界面写不清字。 */
 .seg button:disabled{cursor:not-allowed;transform:none}
+/* 这条 CTA 的两种状态各有各的底，所以两行的字色都必须钉住，不能只钉一条。
+   CI 在 stitch/light 与 ui2026/light 各报过一次同一个元素：`target-profiles+combination
+   button#tp-validate.primary-btn`，16px，比值 2.11:1 与 1.77:1，而 `opacity=1`——也就是说
+   淡出的不是 alpha，是"字色与它此刻真正的底不配对"：`.primary-btn` 的 brand 两停渐变需要白字
+   （7.08:1／5.42:1 是本文件里已实测过的一对），而禁用态换成平涂次级底之后需要深色字。
+   两条都用 id 级声明钉住，谁都不靠猜：
+   · 可用态＝白字压 brand 渐变；
+   · 禁用态＝--text 压平涂 --surface-2，非文字线索（虚线边、无投影）照旧。 */
+#tp-validate{color:#fff}
+#tp-validate:disabled{color:var(--text);background:var(--surface-2)}
 
 /* Restoration: `.seg button`(0,1,1) also matches `.toolbar .seg button`(0,2,1) for
    the `transition` property, which B10's toolbar rule does not declare -- so the
