@@ -9,34 +9,19 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-25T17:22:23+00:00",
+  "generatedAt": "2026-10-25T17:23:15+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+    "sha": "1f1931d87b3fa22830845ee78485886849d59531",
     "source_worktree_clean": false,
-    "tracked_files": 3988,
+    "tracked_files": 3993,
     "worktree_changes": [
       {
-        "content": "sha256:4c2de6e045e4570d294efd42e30e8f66dc2ea8b755790461d8384d812d1f0cea",
-        "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:3126497da3d548f6aba4d5045f5135e6bf6830bd5a2805f9084c8b8f2123343a",
+        "content": "sha256:244a5fc7c2bacaf94670d427a144afb63be75d25010989f65f50a85dea9ca4db",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
-      },
-      {
-        "content": "sha256:f2d6d1a2b35f5de08ba24f13b3f5aedba4ac69b3a71e2d331e60e45d5b9f87d3",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
-      },
-      {
-        "content": "sha256:3df114b6146806e3982b496a48ab466ba39e91521b00e3d1008e936feaa96ff0",
-        "kind": "M",
-        "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
@@ -47,40 +32,15 @@
         "content": "sha256:13c275506e946cc3df2e2a30250454ec64a88046c5b04ad2ffaeca601b692efe",
         "kind": "U",
         "path": ".cursor/rules/universal-agent-core.mdc"
-      },
-      {
-        "content": "sha256:0080bff1ef571afb3df4464514b03dbf16d30d80c22709a1f354866f2fe86b91",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-particle-layer-copied-structure-20261026.json"
-      },
-      {
-        "content": "sha256:925c4ffdc0a646b48e90cb0d060e206953d9e0cdb69b35b74db21d5d14fc3337",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-theme-click-path-scheme-fix-20261026.json"
-      },
-      {
-        "content": "sha256:394bd349f70e958efc118301528f5eba069dd736820c05808cb7983228dfff8b",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-enhanced-face-pose-measured-and-ci-closed-20261026.json"
-      },
-      {
-        "content": "sha256:c52f65567cb562bfeac3f1d183ff595d28e00d0b426cf3870bf174fdcba31089",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-prompt-results-list-bounded-20261026.json"
-      },
-      {
-        "content": "sha256:97265d24d495b2ff93f2a79b47d3e2b18d7b63bedf4618efab5fff57dcd5a967",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-refusal-state-exposes-light-error-ink-20261026.json"
       }
     ],
-    "worktree_digest": "sha256:8730af8217a6884cbac8d0de85a11e144f384f17d0316fa7a1c3306b8f5501f2"
+    "worktree_digest": "sha256:2d0d6adc7c802ec806a9c4941b5167f6dd92ec9efe0f4a3560380d0d7fa6acd4"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+  "subjectSha": "1f1931d87b3fa22830845ee78485886849d59531",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -95,5 +55,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:8730af8217a6884cbac8d0de85a11e144f384f17d0316fa7a1c3306b8f5501f2"
+  "worktreeDigest": "sha256:2d0d6adc7c802ec806a9c4941b5167f6dd92ec9efe0f4a3560380d0d7fa6acd4"
 }
