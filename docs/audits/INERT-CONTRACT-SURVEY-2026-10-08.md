@@ -27,7 +27,7 @@
 {
   "contracts": 32,
   "inertRows": 30,
-  "productFiles": 225,
+  "productFiles": 226,
   "rows": [
     {
       "best_table": "assistance_plan",

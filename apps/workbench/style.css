@@ -266,7 +266,10 @@ button{
    moves one step deeper so the affordance survives the swap. */
   background:var(--accent-hover);color:#fff;
   border:1px solid transparent;cursor:pointer;font-weight:650;
-  transition:background var(--motion-base),box-shadow var(--motion-base);
+  /* No `transition` here. The pack band is 「仅必要的120–180ms opacity/transform」
+     (docs/taskpacks/20261023-ui-kb/source/09_DESIGN.md:21), and this rule changes only
+     paint on hover, so a ramp here would be the interpolated-ink defect class already
+     root-caused in section 5.55 -- the two hover ends each stay a measured pair. */
 }
 /* Legacy page buttons only. This rule predates the B10 shell and sets a solid
    --accent-hover background. Inside `.app` it LEAKED onto B10's buttons: B10's
@@ -634,6 +637,15 @@ html,body{margin:0}
   filter:blur(80px);
   z-index:var(--layer-canvas-ambient);
   opacity:.45;
+}
+/* The float is opt-in. `09_DESIGN.md:21` forbids 「无持续循环、自动播放和浮动装饰」 on the
+   static screens, and this glow is mounted on every route (shell.ts renderAppShell), so an
+   unconditional 12s loop here was a pack violation that neither motion ruler could see: both
+   read `transition:`, and this is an `animation:`. motion.ts puts data-motion="enhanced" on
+   <html> only for `?motion=enhanced`, and the OS reduced-motion block below still wins. */
+:root[data-motion="enhanced"] .ambient,
+:root[data-motion="enhanced"] .ambient::before,
+:root[data-motion="enhanced"] .ambient::after{
   animation:floatGlow 12s ease-in-out infinite;
 }
 .ambient{
@@ -725,7 +737,7 @@ html,body{margin:0}
   background:transparent;
   border:1px solid transparent;
   text-align:left;
-  transition:.22s ease;
+  transition:transform var(--motion-base);
 }
 .nav button:hover{
   background:color-mix(in srgb,var(--surface2) 78%, transparent);
@@ -797,12 +809,14 @@ html,body{margin:0}
    `document.styleSheets` 后匹配该元素的三条 `color` 声明全部只写白字——也就是说那条红量的不是
    任何规则里的颜色，是一帧本来不该被画出来的中间态。Windows 本地每次落在斜坡走完之后，
    Linux runner 落在里面，这就是「同一提交只有远端红」的全部原因。
-   现在只把补间限定到这三类按钮真正会在 hover 改动的属性上：时长与缓动一字节未动（仍是 .2s ease），
-   墨色与底色的启用/禁用切换变成瞬时——两端各自是本文件里已实测过的一对（白字压 brand 渐变 7.08:1，
+   现在补间只剩 `transform`：`border-color` 与 `box-shadow` 也在 2026-10-25 一并移出，因为包里那条
+   运动规则写的是「仅必要的120–180ms opacity/transform 过渡」，而这两项补的是颜色与阴影，不在允许
+   的属性名单里；时长从 .2s 收到 `--motion-base`（实测定义 =180ms，正好落在带上限）。墨色与底色的
+   启用/禁用切换因此变成瞬时——两端各自是本文件里已实测过的一对（白字压 brand 渐变 7.08:1，
    --text 压平涂 --surface-2），中间不再存在任何一档不达标的字色。 */
 .ghost-btn,.soft-btn,.primary-btn,.danger-btn{
   border-radius:12px;padding:10px 14px;
-  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+  transition:transform var(--motion-base);
 }
 .ghost-btn,.soft-btn{
   border:1px solid color-mix(in srgb,var(--border) 72%, transparent);
@@ -921,7 +935,7 @@ html,body{margin:0}
   padding:13px 14px;border-radius:14px;
   background:color-mix(in srgb,var(--surface2) 74%, transparent);
   border:1px solid color-mix(in srgb,var(--border) 68%, transparent);
-  transition:.18s ease;
+  transition:transform var(--motion-base);
 }
 /* A row that carries an action has three children, and `space-between` then parks the
    middle one at whatever x the text width leaves behind -- so on #/domains the
@@ -1068,7 +1082,7 @@ html,body{margin:0}
   border:1px solid color-mix(in srgb,var(--primary) 42%, white 3%);
   box-shadow:0 16px 34px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.03);
   user-select:none;cursor:grab;
-  transition:.18s ease;
+  transition:transform var(--motion-base);
 }
 .node:hover{transform:translateY(-2px)}
 .node:active{cursor:grabbing}
@@ -1107,11 +1121,11 @@ html,body{margin:0}
      translateX(540px) reproduces the old right:-540px rect exactly: same 540px,
      same width min(520px,95vw), so every geometry gate reads the same box. */
   visibility:hidden;
-  transition:transform .28s cubic-bezier(.2,0,0,1),visibility 0s linear .28s;
+  transition:transform var(--motion-base) cubic-bezier(.2,0,0,1),visibility 0s linear var(--motion-base);
 }
 .drawer.open{
   visibility:visible;
-  transition:transform .28s cubic-bezier(.2,0,0,1),visibility 0s linear 0s;
+  transition:transform var(--motion-base) cubic-bezier(.2,0,0,1),visibility 0s linear 0s;
 }
 .drawer.open{transform:none}
 .palette{
@@ -1172,7 +1186,7 @@ html,body{margin:0}
   background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 88%, white 1%),color-mix(in srgb,var(--surface) 98%, black 1%));
   box-shadow:var(--shadow-soft);
   opacity:0;transform:translateY(12px) scale(.98);pointer-events:none;
-  transition:.22s ease;
+  transition:opacity var(--motion-base) ease,transform var(--motion-base) ease;
 }
 .toast.show{opacity:1;transform:translateY(0) scale(1)}
 .review-card{
@@ -1181,7 +1195,7 @@ html,body{margin:0}
 }
 .review-inner{
   position:relative;width:100%;height:100%;transform-style:preserve-3d;
-  transition:transform .55s cubic-bezier(.2,.6,.1,1);
+  transition:transform var(--motion-base) cubic-bezier(.2,.6,.1,1);
 }
 .review-card.flipped .review-inner{transform:rotateY(180deg)}
 .review-face{
@@ -1215,7 +1229,7 @@ html,body{margin:0}
   stroke:color-mix(in srgb,var(--secondary) 65%, white 2%);
   stroke-width:2;
   cursor:pointer;
-  transition:.2s ease;
+  transition:transform var(--motion-base) ease;
   filter:drop-shadow(0 0 8px color-mix(in srgb,var(--primary) 18%, transparent));
 }
 .graph-stage circle.node-dot:hover,
@@ -1391,7 +1405,7 @@ html,body{margin:0}
   border:1px solid color-mix(in srgb,var(--border) 70%, transparent);
   background:color-mix(in srgb,var(--surface2) 68%, transparent);
   color:var(--text);padding:10px 12px;border-radius:12px;
-  transition:all var(--motion-fast) cubic-bezier(.2,0,0,1);
+  transition:transform var(--motion-fast) cubic-bezier(.2,0,0,1);
 }
 .seg button:hover{
   border-color:color-mix(in srgb,var(--primary) 38%, white 3%);
@@ -1467,7 +1481,6 @@ html,body{margin:0}
   padding:7px 14px;border-radius:var(--radius-md);
   border:1px solid var(--border);background:var(--surface-2);
   color:var(--text);font:var(--font-caption)/1.4 inherit;cursor:pointer;
-  transition:border-color var(--motion-fast),background var(--motion-fast);
 }
 .stage-nav-btn:hover{border-color:var(--accent)}
 .stage-nav-btn.is-current{
@@ -1510,7 +1523,6 @@ html,body{margin:0}
 }
 .version-ring-node{
   fill:var(--surface);stroke:var(--accent);stroke-width:2;
-  transition:r var(--motion-fast);
 }
 .version-ring-node.is-chosen{fill:var(--accent)}
 .version-ring-node:hover{fill:var(--secondary)}

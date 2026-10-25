@@ -518,5 +518,335 @@ class ActionButtonInkIsNotInterpolated(unittest.TestCase):
             'Full animated property list: %s' % (', '.join(convicted), names))
 
 
+class MotionBandFollowsThePack(unittest.TestCase):
+    """The pack's own motion sentence, graded over every transition in the stylesheet.
+
+    `docs/taskpacks/20261023-ui-kb/source/09_DESIGN.md:21` says 「仅必要的120–180ms
+    opacity/transform 过渡；减少动态效果时移除」. Before this ruler existed the shipped
+    stylesheet had 20 `transition` declarations and 16 of them were outside that sentence:
+    ten of them had no property list at all, which is `transition-property:all` -- the exact
+    defect class that produced the CI-only AA red recorded in section 5.55, because `all`
+    interpolates the ink and the backdrop as well as the movement. Measured then: 220ms at
+    four sites, 200ms at two, 280ms at two, 550ms at one, and `background`, `border-color`,
+    `box-shadow`, `filter` and the SVG geometry attribute `r` each animated somewhere.
+
+    Durations are read after resolving `--motion-fast/-base/-slow` from the stylesheet's own
+    definitions, so the ruler judges the number Chromium sees (120ms / 180ms / 280ms) rather
+    than the token name, and a rule may move a token without this test noticing a string.
+
+    This is a different ruler from `SRC-T07-MOTION-COMPOSITED`: that rule bans animating
+    properties that re-lay-out, and it explicitly declines to convict `transition: all`
+    (audit_workbench_motion.mjs publishes `transitionAllCount` instead). Paint properties and
+    the pack's duration band are outside it, so silence there is not compliance here.
+    """
+
+    LOW = 120.0
+    HIGH = 180.0
+    ALLOWED = ('opacity', 'transform')
+    # A step in `visibility` moves a panel into and out of the a11y tree; it interpolates no
+    # painted value. Its own duration is 0s and only its delay rides along with the slide.
+    COMPANION = ('visibility',)
+    KILLS_MOTION = ('none',)
+    TIMING_WORDS = ('ease', 'ease-in', 'ease-out', 'ease-in-out', 'linear', 'cubic-bezier',
+                    'steps', 'step-start', 'step-end')
+    #: Out-of-band declarations, by exact text, each with the reason it is not this product's
+    #: motion. Pinned in both directions: a fourth entry, or one that stops existing, is red.
+    EXCEPTIONS = {
+        'all var(--motion-fast) cubic-bezier(.2,0,0,1)':
+            '.ui-motion-fast is a B07 UIKIT export, not a workbench surface: zero consumers in '
+            'build/main.js, in all eight apps/workbench/*.ts sources and in index.html',
+        'all var(--motion-base) cubic-bezier(.2,0,0,1)':
+            '.ui-motion-base, same B07 export and the same measured zero consumers',
+        'all var(--motion-slow) cubic-bezier(.2,0,0,1)':
+            '.ui-motion-slow is out of the pack band by 100ms, and its 0.28s is a value pinned '
+            'by docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/evidence/'
+            'W02-UTILITY-VERIFY.json ("ui-motion-slow = 0.28s (--motion-slow)"), so changing it '
+            'here would rewrite a delivered UIKIT contract instead of this product',
+    }
+
+    def _declarations(self, css_text=None):
+        """Every (line, raw value, properties, durations-in-ms) transition in the stylesheet."""
+        text = css_text if css_text is not None else \
+            (ROOT / 'apps' / 'workbench' / 'style.css').read_text(encoding='utf-8')
+        # Blank comment bodies but keep their newlines: the prose in them explains durations,
+        # and reading it as a declaration would convict a sentence instead of a rule.
+        blanked = re.sub(r'/\*.*?\*/', lambda m: re.sub(r'[^\n]', ' ', m.group(0)),
+                         text, flags=re.S)
+        tokens = dict(re.findall(r'(?<![-\w])(--motion-[a-z]+)\s*:\s*([^;]+);', blanked))
+
+        def resolve(value):
+            return re.sub(r'var\(\s*(--motion-[a-z]+)\s*\)',
+                          lambda m: tokens.get(m.group(1).strip(), '0s'), value)
+
+        rows = []
+        for match in re.finditer(r'(?<![-\w])transition\s*:\s*([^;{}]+)', blanked):
+            value = match.group(1).strip()
+            line = blanked[:match.start()].count('\n') + 1
+            props, durations, depth, current, entries = [], [], 0, '', []
+            for ch in value:
+                depth += ch == '('
+                depth -= ch == ')'
+                if ch == ',' and depth == 0:
+                    entries.append(current)
+                    current = ''
+                else:
+                    current += ch
+            entries.append(current)
+            for entry in entries:
+                body = resolve(entry)
+                head = re.match(r'\s*([a-zA-Z][-\w]*)', body)
+                if head and head.group(1) not in self.TIMING_WORDS:
+                    props.append(head.group(1))
+                for number, unit in re.findall(r'(?<![\w.-])(\d*\.\d+|\d+)(ms|s)\b', body):
+                    durations.append(float(number) * (1000.0 if unit == 's' else 1.0))
+            rows.append((line, value, props, durations))
+        return rows
+
+    def _grade(self, rows):
+        out_of_band = []
+        for line, raw, props, durations in rows:
+            if any(p in self.KILLS_MOTION for p in props):
+                continue
+            bad = []
+            if not props:
+                bad.append('no property list, i.e. transition-property:all')
+            for prop in props:
+                if prop in self.ALLOWED or prop in self.COMPANION:
+                    continue
+                bad.append('animates %s' % prop)
+            for duration in durations:
+                if duration and not (self.LOW <= duration <= self.HIGH):
+                    bad.append('%gms is outside 120-180ms' % duration)
+            if bad:
+                out_of_band.append((line, raw, '; '.join(bad)))
+        return out_of_band
+
+    def test_every_shipped_transition_is_inside_the_pack_band(self):
+        offenders = self._grade(self._declarations())
+        unexpected = [o for o in offenders if o[1] not in self.EXCEPTIONS]
+        self.assertEqual(
+            unexpected, [],
+            'these transitions violate 「仅必要的120–180ms opacity/transform 过渡」: %s'
+            % '; '.join('style.css:%d %s (%s)' % o for o in unexpected))
+        stale = [key for key in self.EXCEPTIONS
+                 if key not in {row[1] for row in offenders}]
+        self.assertEqual(
+            stale, [],
+            'the exception register still lists %s, which no longer appears as an out-of-band '
+            'transition -- register entries may not outlive the rule they excuse' % stale)
+
+    def test_the_ruler_convicts_a_planted_out_of_band_transition(self):
+        """An assertion that cannot fail guards nothing, so plant three faults and re-read."""
+        css = (ROOT / 'apps' / 'workbench' / 'style.css').read_text(encoding='utf-8')
+        planted = css + ('\n.dl-motion-plant-a{transition:background-color 400ms ease}\n'
+                         '.dl-motion-plant-b{transition:.5s ease}\n'
+                         '.dl-motion-plant-c{transition:transform 90ms ease}\n')
+        offenders = {(line, raw, why) for line, raw, why in self._grade(
+            self._declarations(css_text=planted))}
+        convicted = [o for o in offenders if 'dl-motion' not in o[1] and o[1] not in
+                     self.EXCEPTIONS]
+        by_raw = {raw: why for _, raw, why in offenders}
+        self.assertIn('background-color 400ms ease', by_raw,
+                      'the planted paint transition was not read at all')
+        self.assertIn('animates background-color', by_raw['background-color 400ms ease'])
+        self.assertIn('400ms is outside 120-180ms', by_raw['background-color 400ms ease'])
+        self.assertIn('.5s ease', by_raw,
+                      'a bare shorthand has no property list, so the plant was invisible')
+        self.assertIn('no property list, i.e. transition-property:all', by_raw['.5s ease'])
+        self.assertIn('transform 90ms ease', by_raw,
+                      'a transform under the band floor was not convicted')
+        self.assertEqual(len(convicted), 3,
+                         'the three planted faults should all be new offenders, got %d'
+                         % len(convicted))
+
+    def test_no_shipped_transition_animates_the_ink_it_would_have_to_ramp(self):
+        """Section 5.55 in one sentence: `all` anywhere in the product is the red's root cause.
+
+        The action-button class checks its own rule; this one checks that nobody reintroduces
+        the same shape on a different selector, because the failure only shows up when the
+        runner samples mid-frame.
+        """
+        rows = self._declarations()
+        painted = {'all', 'color', 'background', 'background-color', 'fill', 'stroke'}
+        offenders = [(line, raw, p) for line, raw, props, _ in rows
+                     for p in props if p in painted and raw not in self.EXCEPTIONS]
+        self.assertEqual(
+            offenders, [],
+            'these declarations interpolate a colour, so a frame between the two endpoints '
+            'paints an ink that no rule declares: %s' % offenders)
+
+
+class EnhancedMotionLayerStaysComposited(unittest.TestCase):
+    """The owner's enhanced-motion layer may only move things, never recolour them.
+
+    Owner 2026-10-25 asked for more animation on top of the static reproduction
+    (「STITCH 更多是静态页面 一比一复刻完成后 找牛逼的组件库 加入更多动画动效粒子等UI组件库」).
+    Section 5.55 already proved what happens when this is done with colour: an interpolated
+    ink is painted in a frame that exists in no stylesheet, and the AA gate can only catch it
+    on the machine that happens to sample mid-ramp -- which is why that red was cloud-only.
+    So the new layer ships transform-only, opt-in, and inert under prefers-reduced-motion.
+
+    This reads the shipped source, not a screenshot: `apps/workbench/motion.ts` is inlined by
+    Vite into `build/main.js`, so these writes are exactly what runs. It is a different
+    instrument from `MotionBandFollowsThePack` above -- that one grades `transition:` in the
+    stylesheet, and a JS `style.transform =` assignment appears in no CSS rule at all.
+    """
+
+    MOTION_TS = 'apps/workbench/motion.ts'
+    #: Writing these via `el.style.X =` from the app layer is what put an undeclared grey on
+    #: screen before. `willChange` is a hint and paints nothing.
+    FORBIDDEN_STYLE_WRITES = ('color', 'background', 'backgroundcolor', 'fill', 'stroke',
+                              'opacity', 'filter', 'boxshadow', 'bordercolor')
+
+    def _source(self, override=None):
+        if override is not None:
+            return override
+        return (ROOT / self.MOTION_TS).read_text(encoding='utf-8')
+
+    def _style_writes(self, source):
+        return re.findall(r'\.style\.([A-Za-z-]+)\s*=', source)
+
+    def test_the_layer_only_writes_composited_style_channels(self):
+        writes = self._style_writes(self._source())
+        self.assertTrue(writes, 'no style writes found at all -- the reader broke, so this '
+                                'assertion would be vacuously green')
+        offenders = sorted({w for w in writes if w.lower() in self.FORBIDDEN_STYLE_WRITES})
+        self.assertEqual(
+            offenders, [],
+            'motion.ts writes %s; any interpolated ink or backdrop paints frames no rule '
+            'declares (section 5.55). Allowed set is transform/willChange/transition, got %s'
+            % (offenders, sorted(set(writes))))
+
+    def test_any_transition_this_layer_sets_is_transform_only_and_in_band(self):
+        source = self._source()
+        declared = re.findall(r'style\.transition\s*=\s*[`\'"]([^`\'"]+)[`\'"]', source)
+        for value in declared:
+            resolved = re.sub(r'\$\{[A-Za-z_]+\}', '150', value)
+            for name in re.findall(r'(?<![-\w])([a-z-]+)(?=\s)', resolved):
+                if name in ('cubic-bezier', 'ease', 'linear'):
+                    continue
+                self.assertIn(name, ('transform', 'opacity'),
+                              'the layer transitions %r, which interpolates a paint value: %s'
+                              % (name, value))
+            for number, unit in re.findall(r'(\d+(?:\.\d+)?)(ms|s)', resolved):
+                ms = float(number) * (1000.0 if unit == 's' else 1.0)
+                self.assertTrue(120 <= ms <= 180,
+                                'the layer sets %gms, outside the pack band 120-180ms: %s'
+                                % (ms, value))
+
+    def test_the_layer_is_off_until_asked_and_stops_for_reduced_motion(self):
+        source = self._source()
+        self.assertIn("get('motion') === 'enhanced'", source,
+                      'the enhanced layer is no longer opt-in, so it would change the static '
+                      'screens every geometry and contrast gate was measured against')
+        self.assertIn('(prefers-reduced-motion: reduce)', source,
+                      'the layer stopped consulting the OS signal the stylesheet also obeys')
+        mount = source[source.index('export function mountEnhancedMotion'):]
+        self.assertRegex(
+            mount, r"if \(mode !== 'enhanced' \|\| reducedMotion\(\)\)",
+            'mountEnhancedMotion no longer returns before wiring anything when the layer is '
+            'off -- a guard that wires first and checks later is not a guard')
+
+    def test_the_mount_wires_by_delegation_because_route_views_rerender(self):
+        source = self._source()
+        mount = source[source.index('export function mountEnhancedMotion'):]
+        self.assertNotIn('addEventListener(', mount.replace('delegate(', ''),
+                         'the mount path attaches listeners per element again; the shell '
+                         're-renders route views on navigation and those listeners would '
+                         'detach silently, leaving a screen that looks motionless but is '
+                         'still paying for the wiring')
+        self.assertRegex(source, r"root\.addEventListener\('pointermove'",
+                         'delegation was removed from `delegate`, so the behaviours above '
+                         'have no owner')
+
+    def test_the_reader_convicts_a_planted_colour_write_and_a_bare_shorthand(self):
+        source = self._source()
+        planted = source + ('\nexport function dlMotionPlant(el: HTMLElement): void {\n'
+                            '  el.style.color = \'#fff\';\n'
+                            '  el.style.transition = \'background 400ms ease\';\n}\n')
+        writes = self._style_writes(planted)
+        self.assertIn('color', writes, 'the planted colour write was not even read')
+        offenders = {w for w in writes if w.lower() in self.FORBIDDEN_STYLE_WRITES}
+        self.assertEqual(offenders, {'color'},
+                         'the reader let a planted ink write through: %s' % offenders)
+        declared = re.findall(r'style\.transition\s*=\s*[`\'"]([^`\'"]+)[`\'"]', planted)
+        self.assertIn('background 400ms ease', declared,
+                      'the planted transition was not found, so the band check cannot fail')
+
+
+    #: Infinite loops whose selector the shipped bundle never renders. Published, not judged:
+    #: a loop that cannot paint is dead weight, not a violation of 「无持续循环」. The list is
+    #: pinned in both directions -- one leaving it (a dead screen gets mounted) turns into a
+    #: live loop that has to be scoped or registered, and one joining it must be named here.
+    DEAD_LOOPS = ('dashMove', 'pulse', 'scanSweep')
+
+    def _animations(self, css_text=None, bundle_text=None):
+        """(line, selector, name, durations-ms, infinite, live?) per `animation:` declaration."""
+        css = css_text if css_text is not None else \
+            (ROOT / 'apps' / 'workbench' / 'style.css').read_text(encoding='utf-8')
+        bundle = bundle_text if bundle_text is not None else \
+            (ROOT / 'apps' / 'workbench' / 'build' / 'main.js').read_text(
+                encoding='utf-8', errors='replace')
+        blanked = re.sub(r'/\*.*?\*/', lambda m: re.sub(r'[^\n]', ' ', m.group(0)),
+                         css, flags=re.S)
+        rows = []
+        for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', blanked):
+            selector = match.group(1).strip().replace('\n', ' ')
+            for decl in re.finditer(r'(?<![-\w])animation\s*:\s*([^;]+)', match.group(2)):
+                value = decl.group(1).strip()
+                parts = value.split()
+                durations = [float(n) * (1000.0 if u == 's' else 1.0)
+                             for n, u in re.findall(r'(?<![\w.-])(\d*\.\d+|\d+)(ms|s)\b', value)]
+                wanted = re.findall(r'\.([A-Za-z][-\w]*)', selector)
+                # Every class in the selector has to appear as a whole token in the bundle.
+                # `.graph-stage .core` looks live if the word `core` appears anywhere, and it
+                # does -- inside the prose "DESIGN-LAB design core". All-token matching is what
+                # makes `dead` mean dead here.
+                found = [t for t in wanted
+                         if re.search(r'(?<![-\w])%s(?![-\w])' % re.escape(t), bundle)]
+                rows.append((blanked[:match.start(2)].count('\n') + 1, selector,
+                             parts[0] if parts else '?', durations, 'infinite' in value,
+                             bool(wanted) and len(found) == len(wanted)))
+        return rows
+
+    def test_the_static_face_carries_no_live_infinite_loop(self):
+        """`09_DESIGN.md:21` forbids 「无持续循环、自动播放和浮动装饰」 on what actually paints.
+
+        Measured before this rule existed: 4 `animation:` declarations, all `infinite`, and the
+        only one with a renderer was `.ambient` -- a blurred glow mounted on every route
+        (shell.ts builds `el('div', {class: 'ambient'})`), looping for 12s forever. Neither
+        motion ruler could see it: both read `transition:`, and this is `animation:`. It now
+        only runs under `:root[data-motion="enhanced"]`, which motion.ts sets from
+        `?motion=enhanced` and never under prefers-reduced-motion.
+        """
+        rows = self._animations()
+        self.assertTrue(rows, 'no animation read at all, so this assertion would be vacuous')
+        live_loops = [r for r in rows if r[4] and r[5]]
+        unscoped = [r for r in live_loops if 'data-motion="enhanced"' not in r[1]]
+        self.assertEqual(
+            unscoped, [],
+            'these live loops run on the default face: %s' % [(r[0], r[1], r[2]) for r in unscoped])
+        dead = sorted({r[2] for r in rows if r[4] and not r[5]})
+        self.assertEqual(
+            dead, sorted(self.DEAD_LOOPS),
+            'the dead-loop register moved: %s are unrendered infinite animations today, and a '
+            'dead one that gets mounted becomes a live loop that must be scoped or named' % dead)
+        published = [(r[0], r[1], r[2], r[4], r[5]) for r in rows]
+        self.assertGreaterEqual(len(published), 4,
+                                'the animation census shrank, so the ruler lost population')
+
+    def test_the_animation_reader_convicts_a_planted_live_loop(self):
+        css = (ROOT / 'apps' / 'workbench' / 'style.css').read_text(encoding='utf-8')
+        planted = css + '\n.ambient{animation:dlMotionPlantLoop 9s linear infinite}\n'
+        rows = self._animations(css_text=planted,
+                                bundle_text='class: "ambient"')
+        live = [r for r in rows if r[5] and r[2] == 'dlMotionPlantLoop']
+        self.assertEqual(len(live), 1,
+                         'a planted infinite loop on a rendered class was not read as live: %s'
+                         % [r for r in rows if r[2] == 'dlMotionPlantLoop'])
+        self.assertNotIn('data-motion="enhanced"', live[0][1],
+                         'the plant was scoped, so the unscoped test would not have fired')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

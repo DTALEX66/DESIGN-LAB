@@ -15155,6 +15155,159 @@ async function renderModelSelection(target) {
     ...shapeNoticeRows(catalog, caps, env, projects2)
   );
 }
+const BAND_MS = 150;
+const MAGNET_PX = 3;
+const TILT_DEG = 4;
+const COUNT_MS = 700;
+function motionMode() {
+  if (typeof window === "undefined" || typeof document === "undefined") return "static";
+  let requested = false;
+  try {
+    requested = new URLSearchParams(window.location.search).get("motion") === "enhanced";
+  } catch {
+    requested = false;
+  }
+  if (!requested) return "static";
+  try {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return "static";
+    }
+  } catch {
+    return "static";
+  }
+  return "enhanced";
+}
+function reducedMotion() {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return true;
+  }
+}
+function move(el2, x, y, extra) {
+  el2.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0)${extra}`;
+}
+function slideReveal(el2) {
+  el2.style.transform = "translate3d(0,10px,0)";
+  requestAnimationFrame(() => {
+    el2.style.transition = `transform ${BAND_MS}ms cubic-bezier(.2,0,0,1)`;
+    el2.style.transform = "";
+    setTimeout(() => {
+      el2.style.transition = "";
+    }, BAND_MS + 40);
+  });
+}
+function countUp(el2) {
+  const written = (el2.textContent || "").trim();
+  const match = /^([^\d-]*)(-?\d+(?:[.,]\d+)?)(.*)$/.exec(written);
+  if (!match) return;
+  const [, prefix, digits, suffix] = match;
+  const target = Number(digits.replace(",", "."));
+  if (!Number.isFinite(target)) return;
+  const decimals = digits.includes(".") || digits.includes(",") ? digits.split(/[.,]/)[1].length : 0;
+  const separator = digits.includes(",") ? "," : ".";
+  const startedAt = performance.now();
+  const step = (now) => {
+    const t = Math.min(1, (now - startedAt) / COUNT_MS);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const shown = (target * eased).toFixed(decimals).replace(".", separator);
+    el2.textContent = prefix + shown + suffix;
+    if (t < 1) {
+      requestAnimationFrame(step);
+    } else {
+      el2.textContent = written;
+    }
+  };
+  requestAnimationFrame(step);
+}
+const MAGNETIC_SELECTOR = ".ghost-btn,.soft-btn,.primary-btn,.danger-btn,.seg button,.stage-nav-btn,.nav button";
+const TILT_SELECTOR = ".row-card,.review-card,.capability-card,.panel";
+const REVEAL_SELECTOR = "#tp-verdicts>*,.list-item,.row-card,.grid-stack>*";
+const COUNT_SELECTOR = '[data-motion="count"]';
+function delegate(root, selector, onTarget, onLeave) {
+  let current = null;
+  let queued = false;
+  let pending = null;
+  const paint = () => {
+    queued = false;
+    if (!pending) return;
+    onTarget(pending[0], pending[1], pending[2]);
+  };
+  root.addEventListener("pointermove", (event) => {
+    const target = event.target && event.target.closest ? event.target.closest(selector) : null;
+    const host = target;
+    if (!host) {
+      if (current && onLeave) onLeave(current);
+      current = null;
+      pending = null;
+      return;
+    }
+    if (current !== host) {
+      if (current && onLeave) onLeave(current);
+      current = host;
+      host.style.willChange = "transform";
+    }
+    const box = host.getBoundingClientRect();
+    if (!box.width || !box.height) return;
+    pending = [host, event, box];
+    if (!queued) {
+      queued = true;
+      requestAnimationFrame(paint);
+    }
+  }, { passive: true });
+  root.addEventListener("pointerleave", () => {
+    if (current && onLeave) onLeave(current);
+    current = null;
+    pending = null;
+  }, { passive: true });
+}
+function mountEnhancedMotion(root) {
+  const scope = root.body ? root : root;
+  const count = (selector) => {
+    try {
+      return scope.querySelectorAll(selector).length;
+    } catch {
+      return 0;
+    }
+  };
+  const mode = motionMode();
+  if (mode !== "enhanced" || reducedMotion()) {
+    return { mode: "static", magnetic: 0, tilt: 0, revealed: 0, counted: 0 };
+  }
+  const doc = scope;
+  try {
+    doc.documentElement.dataset.motion = "enhanced";
+  } catch {
+  }
+  delegate(doc, MAGNETIC_SELECTOR, (el2, event, box) => {
+    move(
+      el2,
+      (event.clientX - box.left - box.width / 2) / box.width * MAGNET_PX,
+      (event.clientY - box.top - box.height / 2) / box.height * MAGNET_PX,
+      ""
+    );
+  }, (el2) => {
+    move(el2, 0, 0, "");
+    el2.style.willChange = "";
+  });
+  delegate(doc, TILT_SELECTOR, (el2, event, box) => {
+    el2.style.transform = `perspective(900px) rotateX(${(-(event.clientY - box.top - box.height / 2) / box.height * TILT_DEG).toFixed(2)}deg) rotateY(${((event.clientX - box.left - box.width / 2) / box.width * TILT_DEG).toFixed(2)}deg)`;
+  }, (el2) => {
+    el2.style.transform = "";
+    el2.style.willChange = "";
+  });
+  const revealed = count(REVEAL_SELECTOR);
+  Array.from(scope.querySelectorAll(REVEAL_SELECTOR)).forEach(slideReveal);
+  const counted = Array.from(scope.querySelectorAll(COUNT_SELECTOR));
+  counted.forEach(countUp);
+  return {
+    mode,
+    magnetic: count(MAGNETIC_SELECTOR),
+    tilt: count(TILT_SELECTOR),
+    revealed,
+    counted: counted.length
+  };
+}
 byId("design-brief-form").onsubmit = (event) => {
   event.preventDefault();
   void submitBrief().catch((e) => setStatus(errMsg(e), true));
@@ -15202,3 +15355,6 @@ if (typeof document !== "undefined" && document.body !== void 0 && devBypassEnab
   if (connEl) connEl.textContent = "未连接 · 本地浏览模式";
 }
 if (typeof window !== "undefined" && document.body?.dataset.localSession === "auto" && !devBypassEnabled()) void connectLocalService();
+if (typeof document !== "undefined" && document.body !== void 0) {
+  mountEnhancedMotion(document);
+}
