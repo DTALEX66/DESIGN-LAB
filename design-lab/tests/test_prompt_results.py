@@ -132,6 +132,70 @@ class PromptResultsStoreTests(unittest.TestCase):
         self.assertEqual([1, 2], [row['revision'] for row in listed['results']],
                          'revisions must be the append order, not a shuffled id list')
 
+    # --- the list is bounded, and the bound may not hide anything ------------------
+
+    def _second_result(self):
+        revised = self._call('POST',
+                             f'/api/projects/{self.project_id}/briefs/{self.brief_id}/revisions',
+                             {'title': 'archive poster, print first',
+                              'goals': ['restrained', 'no stock shapes'],
+                              'constraints': 'must survive single-colour',
+                              'reference_asset_ids': [],
+                              'idempotency_key': 'brief-page-2'})
+        self.assertEqual(201, revised[0], revised[1])
+        return self._compose(brief_id=revised[1]['brief']['brief_id'])
+
+    def test_the_answer_names_its_page_and_the_whole_it_belongs_to(self):
+        self._compose()
+        status, listed = self._call('GET', f'/api/projects/{self.project_id}/prompt-results')
+        self.assertEqual(200, status)
+        self.assertEqual(100, listed['limit'],
+                         'the published default page is the bound; a silent change here would '
+                         'move the contract without a word')
+        self.assertEqual(0, listed['offset'])
+        self.assertEqual(1, listed['returned'])
+        self.assertEqual(1, listed['total_readable'])
+        self.assertFalse(listed['truncated'])
+        self.assertIsNone(listed['next_offset'])
+        self.assertEqual(1, listed['result_count'],
+                         'result_count is the row count and must not become the page size')
+
+    def test_a_page_cannot_make_a_long_list_look_short(self):
+        self._compose()
+        self._second_result()
+        base = f'/api/projects/{self.project_id}/prompt-results'
+        full = self._call('GET', base)[1]
+        first = self._call('GET', base + '?limit=1')[1]
+        self.assertEqual(2, first['total_readable'],
+                         'a first page of two must still say there are two')
+        self.assertEqual(1, first['returned'])
+        self.assertEqual([1], [row['revision'] for row in first['results']])
+        self.assertTrue(first['truncated'])
+        self.assertEqual(1, first['next_offset'])
+        self.assertEqual(full['state'], first['state'])
+        self.assertEqual(full['newest'], first['newest'])
+        self.assertEqual(full['reviews'], first['reviews'],
+                         'the acceptance history is never paginated: cutting signatures would '
+                         'hide decisions, the one thing this readback may not do')
+        second = self._call('GET', base + '?limit=1&offset=1')[1]
+        self.assertEqual([2], [row['revision'] for row in second['results']])
+        self.assertFalse(second['truncated'])
+        self.assertIsNone(second['next_offset'],
+                         'the last page claiming a next one exists would send a reader nowhere')
+
+    def test_a_malformed_or_out_of_range_bound_refuses_by_name_not_by_404(self):
+        base = f'/api/projects/{self.project_id}/prompt-results'
+        for query, code in (('?limit=0', 'PROMPT_RESULT_LIMIT_INVALID'),
+                            ('?limit=201', 'PROMPT_RESULT_LIMIT_INVALID'),
+                            ('?limit=ten', 'PROMPT_RESULT_FILTER_MALFORMED'),
+                            ('?offset=-1', 'PROMPT_RESULT_OFFSET_INVALID')):
+            status, body = self._call('GET', base + query)
+            self.assertEqual(400, status, f'{query} answered {status}: {body}')
+            self.assertEqual(code, body.get('error'),
+                             f'{query} answered {body.get("error")!r} instead of naming the '
+                             'bound it refuses -- an unnamed 400 is how a parameter becomes a mystery')
+
+
     # --- refusals that keep the record honest -------------------------------------
 
     def test_a_document_claiming_inference_cannot_be_stored(self):

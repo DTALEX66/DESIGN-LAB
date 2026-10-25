@@ -12,7 +12,6 @@ export type MotionMode = 'static' | 'enhanced';
 const BAND_MS = 150;
 const MAGNET_PX = 3;
 const TILT_DEG = 4;
-const COUNT_MS = 700;
 
 export function motionMode(): MotionMode {
   if (typeof window === 'undefined' || typeof document === 'undefined') return 'static';
@@ -25,14 +24,7 @@ export function motionMode(): MotionMode {
   if (!requested) return 'static';
   // The OS signal wins over the URL: `enhanced` may ask for motion, it may not override a
   // request for none. style.css does the same job for CSS transitions and @keyframes.
-  try {
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return 'static';
-    }
-  } catch {
-    return 'static';
-  }
-  return 'enhanced';
+  return reducedMotion() ? 'static' : 'enhanced';
 }
 
 function reducedMotion(): boolean {
@@ -45,91 +37,6 @@ function reducedMotion(): boolean {
 
 function move(el: HTMLElement, x: number, y: number, extra: string): void {
   el.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0)${extra}`;
-}
-
-/** Pointer-following offset on a control. Coalesced to one write per frame. */
-export function magnetic(el: HTMLElement): () => void {
-  let wanted: [number, number] | null = null;
-  let queued = false;
-  let idle = true;
-  const paint = () => {
-    queued = false;
-    if (!wanted) return;
-    move(el, wanted[0], wanted[1], '');
-  };
-  const onEnter = () => {
-    idle = false;
-    el.style.willChange = 'transform';
-  };
-  const onMove = (event: Event) => {
-    const pointer = event as PointerEvent;
-    if (typeof pointer.clientX !== 'number') return;
-    const box = el.getBoundingClientRect();
-    if (!box.width || !box.height) return;
-    wanted = [(pointer.clientX - box.left - box.width / 2) / box.width * MAGNET_PX,
-      (pointer.clientY - box.top - box.height / 2) / box.height * MAGNET_PX];
-    if (!queued) {
-      queued = true;
-      requestAnimationFrame(paint);
-    }
-  };
-  const onLeave = () => {
-    wanted = null;
-    move(el, 0, 0, '');
-    idle = true;
-    el.style.willChange = '';
-  };
-  el.addEventListener('pointerenter', onEnter);
-  el.addEventListener('pointermove', onMove);
-  el.addEventListener('pointerleave', onLeave);
-  el.addEventListener('blur', () => {
-    if (!idle) onLeave();
-  });
-  return () => {
-    el.removeEventListener('pointerenter', onEnter);
-    el.removeEventListener('pointermove', onMove);
-    el.removeEventListener('pointerleave', onLeave);
-  };
-}
-
-/** Two-axis tilt on a card. Same rule as magnetic: the card and its text tilt together. */
-export function tilt(el: HTMLElement): () => void {
-  let queued = false;
-  let wanted: [number, number] | null = null;
-  const paint = () => {
-    queued = false;
-    if (!wanted) return;
-    el.style.transform = `perspective(900px) rotateX(${wanted[0].toFixed(2)}deg) `
-      + `rotateY(${wanted[1].toFixed(2)}deg)`;
-  };
-  const onMove = (event: Event) => {
-    const pointer = event as PointerEvent;
-    if (typeof pointer.clientX !== 'number') return;
-    const box = el.getBoundingClientRect();
-    if (!box.width || !box.height) return;
-    wanted = [-(pointer.clientY - box.top - box.height / 2) / box.height * TILT_DEG,
-      (pointer.clientX - box.left - box.width / 2) / box.width * TILT_DEG];
-    if (!queued) {
-      queued = true;
-      requestAnimationFrame(paint);
-    }
-  };
-  const onEnter = () => {
-    el.style.willChange = 'transform';
-  };
-  const onLeave = () => {
-    wanted = null;
-    el.style.transform = '';
-    el.style.willChange = '';
-  };
-  el.addEventListener('pointerenter', onEnter);
-  el.addEventListener('pointermove', onMove);
-  el.addEventListener('pointerleave', onLeave);
-  return () => {
-    el.removeEventListener('pointerenter', onEnter);
-    el.removeEventListener('pointermove', onMove);
-    el.removeEventListener('pointerleave', onLeave);
-  };
 }
 
 /** Entrance slide. transform only -- fading a text-bearing node with opacity walks the glyph
@@ -148,45 +55,102 @@ export function slideReveal(el: HTMLElement): void {
   });
 }
 
-/** Digits roll up to the value the element already carries. It never rewrites a number the
- *  page did not publish, and it lands on the published value byte-for-byte. */
-export function countUp(el: HTMLElement): void {
-  const written = (el.textContent || '').trim();
-  const match = /^([^\d-]*)(-?\d+(?:[.,]\d+)?)(.*)$/.exec(written);
-  if (!match) return;
-  const [, prefix, digits, suffix] = match;
-  const target = Number(digits.replace(',', '.'));
-  if (!Number.isFinite(target)) return;
-  const decimals = digits.includes('.') || digits.includes(',') ? digits.split(/[.,]/)[1].length : 0;
-  const separator = digits.includes(',') ? ',' : '.';
-  const startedAt = performance.now();
-  const step = (now: number) => {
-    const t = Math.min(1, (now - startedAt) / COUNT_MS);
-    const eased = 1 - Math.pow(1 - t, 3);
-    const shown = (target * eased).toFixed(decimals).replace('.', separator);
-    el.textContent = prefix + shown + suffix;
-    if (t < 1) {
-      requestAnimationFrame(step);
-    } else {
-      el.textContent = written;
-    }
-  };
-  requestAnimationFrame(step);
-}
+// No count-up lives here. The shell already animates `strong[data-count]` on mount
+// (shell.ts animateKpiCount, called for the dashboard grid), so a second animator on the same
+// elements would double-run, and inventing a `[data-motion="count"]` marker nobody renders would
+// be a decoration the product cannot show.
 
 export interface MotionWiring {
   mode: MotionMode;
   magnetic: number;
   tilt: number;
   revealed: number;
-  counted: number;
+  particles: string;
 }
 
-const MAGNETIC_SELECTOR = '.ghost-btn,.soft-btn,.primary-btn,.danger-btn,.seg button,'
-  + '.stage-nav-btn,.nav button';
-const TILT_SELECTOR = '.row-card,.review-card,.capability-card,.panel';
+/** Ambient particle field, drawn on the canvas layer that already sits below the content.
+ *
+ *  `?motion=enhanced&particles=static` paints ONE deterministic frame and stops; `particles=live`
+ *  animates it. The static pose exists for two reasons that are not convenience: it is the
+ *  low-performance fallback the pack asks for (「低性能或系统关闭透明时回退实底」), and it is the
+ *  state the contrast gate can measure -- an animation cannot be certified frame-by-frame, but a
+ *  fixed frame can, and the frame is drawn from the same seeded positions the live mode starts
+ *  from, so measuring it is not measuring a different picture.
+ *
+ *  Nothing here touches text: the canvas sits at --layer-canvas-ambient, below every panel, and
+ *  the only colours are the two brand inks at low alpha. Interpolating ink is section 5.55's
+ *  defect class and a canvas that paints over glyphs would be worse -- this one paints under them.
+ */
+const PARTICLE_COUNT = 24;
+const PARTICLE_INKS = ['#EEF2F5', '#17212B'];
+
+function seeded(i: number): number {
+  // A cheap deterministic scatter: same field on every machine, so the static pose the gate
+  // measures is the pose a person sees.
+  const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+export function mountAmbientParticles(doc: Document, live: boolean): string {
+  const app = doc.querySelector('.app');
+  if (!app) return 'no-app-host';
+  const existing = doc.querySelector('canvas.motion-particles');
+  const canvas = (existing || doc.createElement('canvas')) as HTMLCanvasElement;
+  if (!existing) {
+    canvas.className = 'motion-particles';
+    canvas.setAttribute('aria-hidden', 'true');
+    app.insertBefore(canvas, app.firstChild);
+  }
+  const box = (canvas.parentElement as HTMLElement).getBoundingClientRect();
+  const dpr = Math.min(2, (window.devicePixelRatio || 1));
+  canvas.width = Math.max(1, Math.round(box.width * dpr));
+  canvas.height = Math.max(1, Math.round(box.height * dpr));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return 'no-2d-context';
+  const draw = (phase: number): void => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < PARTICLE_COUNT; i += 1) {
+      const x = (seeded(i) + phase * (0.02 + seeded(i + 99) * 0.05)) % 1;
+      const y = (seeded(i + 7) + phase * 0.01) % 1;
+      const r = (2 + seeded(i + 31) * 5) * dpr;
+      ctx.globalAlpha = 0.10 + seeded(i + 53) * 0.12;
+      ctx.fillStyle = PARTICLE_INKS[i % PARTICLE_INKS.length];
+      ctx.beginPath();
+      ctx.arc(x * canvas.width, y * canvas.height, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+  draw(0);
+  if (!live) return 'static';
+  const step = (now: number): void => {
+    draw(now / 12000);
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  return 'live';
+}
+
+function particleMode(): 'off' | 'static' | 'live' {
+  try {
+    const wanted = new URLSearchParams(window.location.search).get('particles');
+    if (wanted === 'live' || wanted === 'static') return wanted;
+  } catch {
+    /* vm harness */
+  }
+  return 'off';
+}
+
+// Every name below has to be a surface the shipped product actually builds -- the guard in
+// design-lab/tests/test_workbench_contrast_gate.py reads every apps/workbench/*.ts source and
+// index.html for each class token and fails on one nobody builds. `.seg button`, `.review-card`,
+// a `[data-motion="count"]` marker and `.soft-btn` were listed here until that check showed zero
+// renderers (`.soft-btn` is styled in style.css and produced by nothing, which is a finding in its
+// own right, not a host to wire). There is also no count-up in this layer: the shell already
+// animates `strong[data-count]` (shell.ts animateKpiCount, called for the dashboard grid), so a
+// second animator would double-run the same numbers.
+const MAGNETIC_SELECTOR = '.ghost-btn,.primary-btn,.danger-btn,.stage-nav-btn,.nav button';
+const TILT_SELECTOR = '.row-card,.capability-card,.panel';
 const REVEAL_SELECTOR = '#tp-verdicts>*,.list-item,.row-card,.grid-stack>*';
-const COUNT_SELECTOR = '[data-motion="count"]';
 
 /** One delegated handler per behaviour. The shell re-renders route views, so per-element
  *  listeners wired at boot would silently detach on the next navigation; delegation survives
@@ -234,16 +198,16 @@ function delegate(root: Document, selector: string,
 
 export function mountEnhancedMotion(root: Document | HTMLElement): MotionWiring {
   const scope = (root as Document).body ? (root as Document) : (root as HTMLElement);
-  const count = (selector: string): number => {
+  const hostsOf = (selector: string): HTMLElement[] => {
     try {
-      return (scope as ParentNode).querySelectorAll(selector).length;
+      return Array.from((scope as ParentNode).querySelectorAll<HTMLElement>(selector));
     } catch {
-      return 0;
+      return [];
     }
   };
   const mode = motionMode();
-  if (mode !== 'enhanced' || reducedMotion()) {
-    return {mode: 'static', magnetic: 0, tilt: 0, revealed: 0, counted: 0};
+  if (mode !== 'enhanced') {
+    return {mode: 'static', magnetic: 0, tilt: 0, revealed: 0, particles: 'off'};
   }
   const doc = scope as Document;
   // style.css keys the opt-in ambient loop off this attribute, so the static screens keep the
@@ -269,16 +233,16 @@ export function mountEnhancedMotion(root: Document | HTMLElement): MotionWiring 
     el.style.transform = '';
     el.style.willChange = '';
   });
-  const revealed = count(REVEAL_SELECTOR);
-  Array.from((scope as ParentNode).querySelectorAll<HTMLElement>(REVEAL_SELECTOR))
-    .forEach(slideReveal);
-  const counted = Array.from((scope as ParentNode).querySelectorAll<HTMLElement>(COUNT_SELECTOR));
-  counted.forEach(countUp);
+  const revealed = hostsOf(REVEAL_SELECTOR);
+  revealed.forEach(slideReveal);
+  const wanted = particleMode();
+  const particles = wanted === 'off'
+    ? 'off' : mountAmbientParticles(doc, wanted === 'live');
   return {
     mode,
-    magnetic: count(MAGNETIC_SELECTOR),
-    tilt: count(TILT_SELECTOR),
-    revealed,
-    counted: counted.length,
+    magnetic: hostsOf(MAGNETIC_SELECTOR).length,
+    tilt: hostsOf(TILT_SELECTOR).length,
+    revealed: revealed.length,
+    particles,
   };
 }

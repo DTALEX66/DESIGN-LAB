@@ -662,6 +662,14 @@ html,body{margin:0}
   background:color-mix(in srgb,var(--primary) 22%, transparent);
   animation-delay:-7s;
 }
+/* The particle canvas mounts inside `.app` on the same layer the ambient glow already owns, so
+   it sits under every panel and cannot paint over a glyph. Opt-in only: motion.ts creates the
+   element for `?motion=enhanced&particles=static|live` and never under prefers-reduced-motion.
+   No px here, so the literal-px debt count in DESIGN.md does not move. */
+.motion-particles{
+  position:fixed;inset:0;width:100%;height:100%;
+  z-index:var(--layer-canvas-ambient);pointer-events:none;
+}
 .grid-bg{
   position:absolute;inset:0;z-index:var(--layer-canvas-grid);opacity:.22;
   background-image:
@@ -1802,6 +1810,14 @@ body[data-local-session="auto"] #connect-form details { display: none; }
      这条红是它自己量出来的，不是照抄 ui2026 那一段的结论）。 */
   --tag-info-from:var(--color-bg);
   --tag-info-to:var(--color-bg);
+  /* 错误字色在珍珠白上必须重指：默认的 --color-error #F05252 压白底实测 3.48:1、
+     压 #F4F6F8 只有 3.21:1，13px 的 `p.error` 被对比度闸门按每条路由报红。这条红是
+     2026-10-26 闸门第一次真的造出拒绝态（清空目标后点 #as-submit）之后才看得见的——
+     在此之前界面上从不显示它，`errors=0` 说的是"没测到"不是"没问题"。
+     取既有已实测值 --uif-light-danger #AB384D（压白 6.17:1、压珍珠白 5.69:1、
+     压浅色 elevate 5.2:1），不新造一支红：包里只给了六个值，没给错误色。
+     默认炭黑一字节不动。 */
+  --color-error:var(--uif-light-danger);
   --tag-ink:#17212B;
   --avatar-ink:#17212B;
   --glow:0 0 14px rgba(53,107,146,.16);

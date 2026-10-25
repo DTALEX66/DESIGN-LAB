@@ -11974,9 +11974,14 @@ function themeControlNodes() {
       dataset: { themeAction: "palette" },
       "aria-label": "配色主题",
       onclick: () => {
-        const next = { ...readThemeChoice(), palette: cyclePalette(readThemeChoice().palette) };
+        const now = readThemeChoice();
+        const palette = cyclePalette(now.palette);
+        const spec2 = paletteSpec(palette);
+        const scheme = spec2.schemes.includes(now.scheme) ? now.scheme : spec2.schemes[0];
+        const next = { palette, scheme };
         applyTheme(next);
         writeUrlParam("palette", next.palette);
+        writeUrlParam("scheme", next.scheme);
         refreshThemeControls();
       }
     }, spec.label)
@@ -15158,7 +15163,6 @@ async function renderModelSelection(target) {
 const BAND_MS = 150;
 const MAGNET_PX = 3;
 const TILT_DEG = 4;
-const COUNT_MS = 700;
 function motionMode() {
   if (typeof window === "undefined" || typeof document === "undefined") return "static";
   let requested = false;
@@ -15168,14 +15172,7 @@ function motionMode() {
     requested = false;
   }
   if (!requested) return "static";
-  try {
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return "static";
-    }
-  } catch {
-    return "static";
-  }
-  return "enhanced";
+  return reducedMotion() ? "static" : "enhanced";
 }
 function reducedMotion() {
   try {
@@ -15197,33 +15194,61 @@ function slideReveal(el2) {
     }, BAND_MS + 40);
   });
 }
-function countUp(el2) {
-  const written = (el2.textContent || "").trim();
-  const match = /^([^\d-]*)(-?\d+(?:[.,]\d+)?)(.*)$/.exec(written);
-  if (!match) return;
-  const [, prefix, digits, suffix] = match;
-  const target = Number(digits.replace(",", "."));
-  if (!Number.isFinite(target)) return;
-  const decimals = digits.includes(".") || digits.includes(",") ? digits.split(/[.,]/)[1].length : 0;
-  const separator = digits.includes(",") ? "," : ".";
-  const startedAt = performance.now();
-  const step = (now) => {
-    const t = Math.min(1, (now - startedAt) / COUNT_MS);
-    const eased = 1 - Math.pow(1 - t, 3);
-    const shown = (target * eased).toFixed(decimals).replace(".", separator);
-    el2.textContent = prefix + shown + suffix;
-    if (t < 1) {
-      requestAnimationFrame(step);
-    } else {
-      el2.textContent = written;
+const PARTICLE_COUNT = 24;
+const PARTICLE_INKS = ["#EEF2F5", "#17212B"];
+function seeded(i) {
+  const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
+function mountAmbientParticles(doc, live) {
+  const app = doc.querySelector(".app");
+  if (!app) return "no-app-host";
+  const existing = doc.querySelector("canvas.motion-particles");
+  const canvas = existing || doc.createElement("canvas");
+  if (!existing) {
+    canvas.className = "motion-particles";
+    canvas.setAttribute("aria-hidden", "true");
+    app.insertBefore(canvas, app.firstChild);
+  }
+  const box = canvas.parentElement.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = Math.max(1, Math.round(box.width * dpr));
+  canvas.height = Math.max(1, Math.round(box.height * dpr));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "no-2d-context";
+  const draw = (phase) => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < PARTICLE_COUNT; i += 1) {
+      const x = (seeded(i) + phase * (0.02 + seeded(i + 99) * 0.05)) % 1;
+      const y = (seeded(i + 7) + phase * 0.01) % 1;
+      const r = (2 + seeded(i + 31) * 5) * dpr;
+      ctx.globalAlpha = 0.1 + seeded(i + 53) * 0.12;
+      ctx.fillStyle = PARTICLE_INKS[i % PARTICLE_INKS.length];
+      ctx.beginPath();
+      ctx.arc(x * canvas.width, y * canvas.height, r, 0, Math.PI * 2);
+      ctx.fill();
     }
   };
+  draw(0);
+  if (!live) return "static";
+  const step = (now) => {
+    draw(now / 12e3);
+    requestAnimationFrame(step);
+  };
   requestAnimationFrame(step);
+  return "live";
 }
-const MAGNETIC_SELECTOR = ".ghost-btn,.soft-btn,.primary-btn,.danger-btn,.seg button,.stage-nav-btn,.nav button";
-const TILT_SELECTOR = ".row-card,.review-card,.capability-card,.panel";
+function particleMode() {
+  try {
+    const wanted = new URLSearchParams(window.location.search).get("particles");
+    if (wanted === "live" || wanted === "static") return wanted;
+  } catch {
+  }
+  return "off";
+}
+const MAGNETIC_SELECTOR = ".ghost-btn,.primary-btn,.danger-btn,.stage-nav-btn,.nav button";
+const TILT_SELECTOR = ".row-card,.capability-card,.panel";
 const REVEAL_SELECTOR = "#tp-verdicts>*,.list-item,.row-card,.grid-stack>*";
-const COUNT_SELECTOR = '[data-motion="count"]';
 function delegate(root, selector, onTarget, onLeave) {
   let current = null;
   let queued = false;
@@ -15263,16 +15288,16 @@ function delegate(root, selector, onTarget, onLeave) {
 }
 function mountEnhancedMotion(root) {
   const scope = root.body ? root : root;
-  const count = (selector) => {
+  const hostsOf = (selector) => {
     try {
-      return scope.querySelectorAll(selector).length;
+      return Array.from(scope.querySelectorAll(selector));
     } catch {
-      return 0;
+      return [];
     }
   };
   const mode = motionMode();
-  if (mode !== "enhanced" || reducedMotion()) {
-    return { mode: "static", magnetic: 0, tilt: 0, revealed: 0, counted: 0 };
+  if (mode !== "enhanced") {
+    return { mode: "static", magnetic: 0, tilt: 0, revealed: 0, particles: "off" };
   }
   const doc = scope;
   try {
@@ -15296,16 +15321,16 @@ function mountEnhancedMotion(root) {
     el2.style.transform = "";
     el2.style.willChange = "";
   });
-  const revealed = count(REVEAL_SELECTOR);
-  Array.from(scope.querySelectorAll(REVEAL_SELECTOR)).forEach(slideReveal);
-  const counted = Array.from(scope.querySelectorAll(COUNT_SELECTOR));
-  counted.forEach(countUp);
+  const revealed = hostsOf(REVEAL_SELECTOR);
+  revealed.forEach(slideReveal);
+  const wanted = particleMode();
+  const particles = wanted === "off" ? "off" : mountAmbientParticles(doc, wanted === "live");
   return {
     mode,
-    magnetic: count(MAGNETIC_SELECTOR),
-    tilt: count(TILT_SELECTOR),
-    revealed,
-    counted: counted.length
+    magnetic: hostsOf(MAGNETIC_SELECTOR).length,
+    tilt: hostsOf(TILT_SELECTOR).length,
+    revealed: revealed.length,
+    particles
   };
 }
 byId("design-brief-form").onsubmit = (event) => {

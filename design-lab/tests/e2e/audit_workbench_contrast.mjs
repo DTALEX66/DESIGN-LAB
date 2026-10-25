@@ -739,7 +739,22 @@ const MEASURE_SPEC = () => {
   let errorNodes = 0;
   let errorAdjacent = 0;
   const errorFar = [];
-  for (const el of document.querySelectorAll('.error, [role=alert], .field-note, .refusal')) {
+  const refusalWords = window.__ctRefusalWords || [];
+  // The pack writes 「错误紧邻字段」, and until 2026-10-26 this loop only looked at
+  // `.error/[role=alert]/.field-note/.refusal` -- which matched nothing on any route, so the
+  // reading was `errors=0` over an EMPTY population. The product actually writes its local
+  // refusals into `p.view-hint` nodes (#knowledge-outcome, #jury-outcome,
+  // #rights-review-outcome, #research-review-outcome), and a view-hint is also used for plain
+  // explanation, so the class alone cannot decide. The refusal prefixes are handed in from
+  // shell.ts by the wrapper (CT_REFUSAL_WORDS) rather than copied here: the product's own words
+  // are the only source of truth, the same rule the status-vocabulary contract follows.
+  const errorish = [...document.querySelectorAll(
+    '.error, [role=alert], .field-note, .refusal, .view-hint')].filter((el) => {
+    if (!el.matches('.view-hint')) return true;
+    const text = (el.textContent || '').trim();
+    return refusalWords.some((word) => text.startsWith(word));
+  });
+  for (const el of errorish) {
     const cs = getComputedStyle(el);
     if (!painted(el, cs)) continue;
     const host = el.closest('.field-row, label, .panel, form');
@@ -775,21 +790,35 @@ const browser = await chromium.launch({ executablePath: browserPath, args: ['--n
 // here we drive the same two attributes that path ends up writing.
 const uiPalette = process.env.UI_PALETTE || 'design-lab';
 const uiScheme = process.env.UI_SCHEME || 'dark';
+// Refusal prefixes handed in by the wrapper, read out of shell.ts. Empty is a configuration
+// failure, not a zero: without the words the view-hint half of the error population is invisible.
+const refusalWordsJson = process.env.CT_REFUSAL_WORDS || '[]';
+let refusalWords = [];
+try {
+  refusalWords = JSON.parse(refusalWordsJson);
+} catch {
+  fail('CT_REFUSAL_WORDS is not valid JSON, so 错误紧邻字段 cannot be graded');
+}
+if (!Array.isArray(refusalWords) || refusalWords.length === 0) {
+  fail('CT_REFUSAL_WORDS is empty -- the refusal population would be measured as zero by '
+    + 'construction rather than by observation');
+}
 const report = { serviceUrl, widths, routes: {}, uiPalette, uiScheme };
 // The Workbench reads which theme is applied at mount, so the two <html> attributes
 // have to exist before any page script runs. `addInitScript`, not an evaluate after
 // `load` -- otherwise this gate measures one palette while the page's own theme
 // controls describe another, and the two disagree inside the same PNG.
 async function paintTheme(p) {
-  await p.addInitScript(([palette, scheme]) => {
+  await p.addInitScript(([palette, scheme, words]) => {
     const apply = () => {
       document.documentElement.setAttribute('data-palette', palette);
       if (scheme === 'light') document.documentElement.setAttribute('data-scheme', 'light');
       else document.documentElement.removeAttribute('data-scheme');
+      window.__ctRefusalWords = words;
     };
     if (document.documentElement) apply();
     else document.addEventListener('DOMContentLoaded', apply);
-  }, [uiPalette, uiScheme]);
+  }, [uiPalette, uiScheme, refusalWords]);
 }
 let failTotal = 0, checkedTotal = 0, unknownTotal = 0, pseudoTotal = 0;
 let coveredTotal = 0, obscuredTotal = 0, collapsedTotal = 0;
@@ -798,6 +827,12 @@ const mathChecks = [];
 const colourChecks = [];
 const unknownSamples = [];
 const controlBad = [];
+// Refusal-provocation outcomes get their own list. Pushing them into `controlBad` made the
+// colour-parser assertion fire ("the white-on-color(srgb) control was not reported") when what
+// actually happened was that a form was not on the walked state -- one list serving two meanings
+// produced a failure message that named the wrong instrument.
+const refusalProved = [];
+const refusalAbsent = [];
 
 // A route sweep cannot open a plan that does not exist, and this round's controls -- the shot
 // table, the four material formats, the voluntary-feedback history and the revision comparison --
@@ -954,6 +989,48 @@ async function openKnowledgeDetail(page, key, problems) {
 // twelve fields lined up with a 相同/不同 pill each. Settle on the panel's own words -- the rows
 // landed and the status line is no longer 正在读回 nor a failure -- because the honest empty and
 // the loaded state both have text.
+// 「错误紧邻字段」 cannot be graded from a screen that has never refused anything. Two refusal
+// families exist in the product and each needed a different fix, so both are provoked:
+//   * `p.error#as-form-error[role=alert]` -- the assistant form writes 请先写下要完成的设计目标
+//     when the objective is empty (shell.ts submitPlan). The selector already covered this class;
+//     what was missing was a state, because every route the walk visits reads successfully and so
+//     never shows one.
+//   * `p.view-hint#knowledge-outcome` and friends -- local refusals written into a *hint* class
+//     with no role=alert, invisible to the old selector and to assistive tech. Graded here by the
+//     product's own refusal prefixes, handed in as CT_REFUSAL_WORDS.
+async function openRefusalState(page, key, lineId, fieldId, triggerId) {
+  const trigger = await page.$('#' + triggerId);
+  const line = await page.$('#' + lineId);
+  if (!trigger || !line) {
+    refusalAbsent.push(`${key}: #${triggerId}/#${lineId} is not on this state, so this refusal `
+      + 'family was not provoked here');
+    return false;
+  }
+  await page.evaluate((id) => {
+    const field = document.getElementById(id);
+    if (field) field.value = '';
+  }, fieldId);
+  await trigger.click();
+  let text = null;
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    text = await page.evaluate((id) => {
+      const node = document.getElementById(id);
+      return node && (node.textContent || '').trim() ? node.textContent.trim() : null;
+    }, lineId);
+    if (text) break;
+    await page.waitForTimeout(100);
+  }
+  if (!text) {
+    refusalAbsent.push(`${key}: #${lineId} stayed empty after the empty submit, so the local `
+      + 'validation did not run on this state');
+    return false;
+  }
+  const role = await line.evaluate((node) => node.getAttribute('role') || 'none');
+  refusalProved.push({key, role, text: text.slice(0, 60)});
+  console.log(`CT_REFUSAL_PROVED ${key} role=${role} text="${text.slice(0, 44)}"`);
+  return true;
+}
+
 async function openPlanCompare(page, key, problems) {
   await page.evaluate(() => {
     const details = document.getElementById('as-compare');
@@ -1277,6 +1354,11 @@ for (const w of widths) {
     // parser and the overlap branch work, never as product violations.
     absorb(`${w}:${name}`, m);
     if (name === 'assistant') {
+      // The mandatory provocation: the intake form's own error line is `p.error[role=alert]`, so
+      // this is the case where the selector was never the problem and only the missing state was.
+      const refused = await openRefusalState(page, `${w}:assistant+refusal`, 'as-form-error',
+        'as-objective', 'as-submit');
+      if (refused) absorb(`${w}:assistant+refusal`, await measureBoth(page));
       // The plan detail is measured as its own named state. A screen that never settled is pushed
       // into the same miss list the wrapper asserts to zero, so an unmeasured panel cannot be read
       // as a clean one.
@@ -1288,6 +1370,12 @@ for (const w of widths) {
       if (fed) absorb(`${w}:assistant+plan-feedback`, await measureBoth(page));
     }
     if (name === 'knowledge') {
+      // The refusal state is provoked first and measured as its own named row: 「错误紧邻字段」 is
+      // a claim about a message's distance from its field, and no route the walk visits otherwise
+      // ever shows one.
+      const refused = await openRefusalState(page, `${w}:knowledge+refusal`, 'knowledge-outcome',
+        'knowledge-title', 'knowledge-create-submit');
+      if (refused) absorb(`${w}:knowledge+refusal`, await measureBoth(page));
       // Same rule for the entry detail: it is a named state of its own, and a panel that never
       // settled lands in the miss list the wrapper asserts to zero rather than being skipped.
       const opened = await openKnowledgeDetail(page, `${w}:knowledge+entry-detail`, controlBad);
@@ -1310,6 +1398,109 @@ for (const w of widths) {
   }
   await page.close();
 }
+// ---- the enhanced face, measured at every pose the ambient loop can reach -------------------
+// Section 5.60 shipped the `.ambient` float behind ?motion=enhanced and recorded its own risk:
+// the glow is a blurred, translucent blob that TRAVELS, and where a card's fill is translucent
+// the blob is part of the composited backdrop under the text. That is section 5.55's defect class
+// (a reading that exists only in some frames) reached by a different mechanism, so claiming the
+// enhanced face is AA-clean needs the frames measured, not reasoned about.
+//
+// The keyframes are three stops -- 0%/100% identity and 50% translate(12px,20px) scale(1.06) --
+// so the loop has exactly two extremes and one interior midpoint. Freezing the animation at those
+// times is deterministic: no rAF race, no runner-speed dependence, which is what made the
+// transition-frame red impossible to reproduce locally.
+//
+// Anti-vacuity is inside the pass itself: the ambient element's own computed transform is read at
+// each pose, and if the poses do not actually differ the pass reports moved=no, which strict mode
+// treats as a failure. A pass that froze nothing would otherwise read as a clean sweep.
+async function freezeAmbient(page, poseMs) {
+  return page.evaluate((t) => {
+    const host = document.querySelector('.ambient');
+    if (!host) return { found: false };
+    for (const pseudo of [null, '::before', '::after']) {
+      const list = pseudo ? host.getAnimations({ pseudoElement: pseudo })
+        : host.getAnimations();
+      for (const a of list) {
+        try { a.pause(); a.currentTime = t; } catch { /* finished or not seekable */ }
+      }
+    }
+    return { found: true, transform: getComputedStyle(host).transform };
+  }, poseMs);
+}
+
+const motionPoses = [0, 3000, 6000, 9000, 12000];
+const motionPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+// The enhanced face is reached the way a person reaches it -- a URL the product itself parses --
+// not by injecting the attribute this time. `data-motion` must therefore appear because
+// motion.ts wrote it, and the particle canvas must exist because the product mounted it; an
+// injected attribute would have measured the stylesheet while letting the wiring untested.
+await motionPage.addInitScript(([palette, scheme, words]) => {
+  const apply = () => {
+    document.documentElement.setAttribute('data-palette', palette);
+    if (scheme === 'light') document.documentElement.setAttribute('data-scheme', 'light');
+    else document.documentElement.removeAttribute('data-scheme');
+    window.__ctRefusalWords = words;
+  };
+  if (document.documentElement) apply();
+  else document.addEventListener('DOMContentLoaded', apply);
+}, [uiPalette, uiScheme, refusalWords]);
+await motionPage.goto(serviceUrl.replace(/\/$/, '')
+  + '/workbench?motion=enhanced&particles=static', { waitUntil: 'load' });
+await motionPage.fill('#token', token);
+await motionPage.click('#connect-form button');
+await motionPage.waitForTimeout(1500);
+const motionWired = await motionPage.evaluate(() => ({
+  dataMotion: document.documentElement.dataset.motion || null,
+  canvas: !!document.querySelector('canvas.motion-particles'),
+  canvasAriaHidden: (document.querySelector('canvas.motion-particles')
+    || {getAttribute: () => null}).getAttribute('aria-hidden'),
+  canvasZ: (() => {
+    const c = document.querySelector('canvas.motion-particles');
+    return c ? getComputedStyle(c).zIndex : null;
+  })(),
+}));
+console.log('CT_MOTION_WIRED ' + JSON.stringify(motionWired));
+report.motionWired = motionWired;
+if (motionWired.dataMotion !== 'enhanced') {
+  fail('the product did not put data-motion="enhanced" on <html> for ?motion=enhanced, so the '
+    + 'enhanced face measured here is one nobody can reach');
+}
+if (!motionWired.canvas || motionWired.canvasAriaHidden !== 'true') {
+  fail('?motion=enhanced&particles=static did not mount an aria-hidden particle canvas');
+}
+const motionPosesSeen = [];
+let motionChecked = 0, motionBelow = 0, motionTransforms = new Set();
+for (const [name, hash] of ROUTES) {
+  await motionPage.evaluate((h) => { window.location.hash = h; }, hash);
+  await motionPage.waitForTimeout(600);
+  for (const pose of motionPoses) {
+    const frozen = await freezeAmbient(motionPage, pose);
+    motionTransforms.add(JSON.stringify(frozen.transform || null));
+    const m = await measureBoth(motionPage);
+    absorb(`1440:motion:${name}@${pose}ms`, m);
+    motionChecked += m.checked;
+    motionBelow += m.failCount - m.controlRows;
+  }
+  motionPosesSeen.push(name);
+}
+await motionPage.close();
+report.motion = { poses: motionPoses, routes: motionPosesSeen.length, checked: motionChecked,
+  belowAA: motionBelow, distinctTransforms: motionTransforms.size,
+  note: 'enhanced face (?motion=enhanced) frozen at each keyframe pose, measured by the same '
+    + 'MEASURE predicate as every other face' };
+const motionMoved = motionTransforms.size > 1;
+console.log(`CT_MOTION_PASS poses=${motionPoses.length} routes=${motionPosesSeen.length} `
+  + `checked=${motionChecked} belowAA=${motionBelow} distinctTransforms=${motionTransforms.size} `
+  + `moved=${motionMoved ? 'yes' : 'NO'}`);
+if (!motionMoved) {
+  console.error('CT_FAIL: the ambient animation produced the same computed transform at every '
+    + 'pose, so the enhanced-face sweep measured a stationary backdrop and proves nothing');
+  if (strict) {
+    await browser.close();
+    process.exit(1);
+  }
+}
+
 // The veil control needs its own document: a fixture has to be inside the viewport for a
 // hit test to see it, and dropping a near-white box over the real UI would contaminate the
 // very measurement it is supposed to validate.
@@ -1337,6 +1528,7 @@ await browser.close();
 // The merged spec numbers belong in the receipt, not only in the log: whoever holds the JSON has
 // to be able to see which pack numbers this run measured. Assigned before the write, so the file
 // and the printed CT_SPEC lines come from one accumulation.
+report.refusals = {proved: refusalProved, absent: refusalAbsent};
 report.spec = { ...specTotals, sizes: specSizes, heights: specHeights, radii: specRadii,
   glass: specGlass, glassAllowed: GLASS_ALLOWED, glassOffAllowlist: glassOffList(),
   below12Examples: specBelow12Examples, veilExamples: specVeilExamples,
@@ -1432,6 +1624,16 @@ if (failTotal > 0) {
 if (!veilCaught) {
   console.error('CT_FAIL: the translucent-veil control was not reported, so text seen through'
     + ' a scrim is being graded against the backdrop behind the scrim');
+  process.exit(1);
+}
+console.log(`CT_REFUSAL_PROVED count=${refusalProved.length} `
+  + `roles=${JSON.stringify(refusalProved.map((r) => r.role))} `
+  + `absent=${refusalAbsent.length}`);
+for (const a of refusalAbsent) console.log(`  CT_REFUSAL_ABSENT ${a}`);
+const assistantProved = refusalProved.some((r) => r.key.endsWith(':assistant+refusal'));
+if (!assistantProved) {
+  console.error('CT_FAIL: the assistant intake form never showed its refusal line after an empty '
+    + 'objective, so 错误紧邻字段 was not provoked and the population is an empty set again');
   process.exit(1);
 }
 if (controlBad.length > 0) {

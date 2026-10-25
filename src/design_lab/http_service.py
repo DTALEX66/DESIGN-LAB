@@ -12,7 +12,7 @@ from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
 from .asset_analysis import AssetAnalysis, AssetAnalysisError
 from .prompt_intelligence import PromptIntelligence, PromptIntelligenceError
-from .prompt_results import PromptResults, PromptResultError
+from .prompt_results import (PROMPT_RESULT_LIMIT, PromptResults, PromptResultError)
 # DL-KB-02 (2026-10-23): the knowledge library is a global surface like /api/capabilities -- it
 # belongs to the operator, not to a project, and nothing on it is scoped by a project id.
 from .knowledge_library import DEFAULT_LIMIT, KnowledgeLibrary, KnowledgeLibraryError
@@ -300,9 +300,12 @@ ROUTES = (
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/prompt-reversal',
           '_reverse_asset_prompt'),
+    # The list names its own query the way the knowledge search and the assistance-plan list do:
+    # `path_only` lets a present query reach the handler, which parses it and answers a NAMED
+    # refusal for a malformed number instead of the 404 a pattern-only route would give.
     Route('GET',
           r'/api/projects/([0-9a-f]{32})/prompt-results',
-          '_list_prompt_results'),
+          '_list_prompt_results', path_only=True),
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/prompt-results'
             r'/((?:prompt|reversal)-[0-9a-f]{32})/review',
@@ -1087,8 +1090,26 @@ def make_server(service, token, port=0, *, local_session=False):
             return self.send_json(201, PromptIntelligence.readback(document))
 
         def _list_prompt_results(self, match):
+            # offset/limit travel on the query and are parsed here, the way the knowledge search
+            # parses its own; the route declares path_only so a query cannot become a 404, and a
+            # value that is not a number answers a named refusal the ledger can cite.
+            params = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+
+            def number(name, default):
+                raw = params.get(name)
+                if raw is None or raw == '':
+                    return default
+                try:
+                    return int(raw)
+                except ValueError:
+                    raise PromptResultError(
+                        400, 'PROMPT_RESULT_FILTER_MALFORMED',
+                        f'{name} must be an integer, got {raw!r}') from None
+
             try:
-                envelope = PromptResults(service).readback(match[1])
+                envelope = PromptResults(service).readback(
+                    match[1], offset=number('offset', 0),
+                    limit=number('limit', PROMPT_RESULT_LIMIT))
             except PromptResultError as exc:
                 return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
                                                    'detail': exc.detail})

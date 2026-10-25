@@ -10279,9 +10279,20 @@ function themeControlNodes(): HTMLElement[] {
         // old order -- write the URL, then re-read the choice -- read back the value
         // it had not written yet and re-applied the palette already on screen.
         // Both toggles were no-ops in a real browser (DOT audit D13).
-        const next = { ...readThemeChoice(), palette: cyclePalette(readThemeChoice().palette) };
+        const now = readThemeChoice();
+        const palette = cyclePalette(now.palette);
+        // The scheme has to be resolved against the palette being SWITCHED TO, not carried over.
+        // STITCH declares only ['light'] (the pack gives pearl-white values and no dark side), so
+        // inheriting 'dark' made applyTheme() REMOVE data-scheme, the rule
+        // :root[data-palette="stitch"][data-scheme="light"] never matched, and the click path
+        // painted the default charcoal face while the URL claimed stitch -- measured 2026-10-26:
+        // hop 2 ink stayed rgb(154,163,184) over rgb(6,10,20), identical to the previous hop.
+        const spec = paletteSpec(palette);
+        const scheme: SchemeId = spec.schemes.includes(now.scheme) ? now.scheme : spec.schemes[0];
+        const next = { palette, scheme };
         applyTheme(next);
         writeUrlParam('palette', next.palette);
+        writeUrlParam('scheme', next.scheme);
         refreshThemeControls();
       },
     }, spec.label),

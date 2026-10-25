@@ -50,6 +50,7 @@ It claims E2 controlled-runtime evidence only: contrast computed from what a rea
 browser painted, not an E3 host run and not an E4 human judgement about whether
 the UI looks good.
 """
+import json
 import os
 import re
 import secrets
@@ -129,6 +130,7 @@ def _run_gate(env_extra):
                 'CT_WIDTHS': WIDTHS,
                 'CT_STRICT': '1',
                 'CT_OUT': str(report_path),
+                'CT_REFUSAL_WORDS': json.dumps(refusal_prefixes(), ensure_ascii=False),
                 **env_extra,
             }
             # One log per report, named after the report this run actually writes. Sharing one
@@ -153,6 +155,20 @@ def _run_gate(env_extra):
             server.server_close()
             tmp.cleanup()
     return code, out, report_path
+
+
+def refusal_prefixes():
+    """The product's own refusal words, read out of shell.ts -- never hand-copied.
+
+    `09_DESIGN.md:13` says 「错误紧邻字段」. The audit can only grade that over a population, and
+    the local refusals are written into `p.view-hint` lines whose text opens with `未提交：`,
+    `未签署：`, `未记录：` and friends. A second copy of that vocabulary in the test would drift
+    from the product the same way the status-word list was warned about, so the set is derived
+    here and passed to the gate as CT_REFUSAL_WORDS; an empty set is refused by the gate itself.
+    """
+    source = (ROOT / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
+    found = set(re.findall(r"textContent = [`'\"](未[一-鿿]{1,6})：", source))
+    return sorted(found)
 
 
 def _summary(out):
@@ -741,11 +757,59 @@ class EnhancedMotionLayerStaysComposited(unittest.TestCase):
                       'screens every geometry and contrast gate was measured against')
         self.assertIn('(prefers-reduced-motion: reduce)', source,
                       'the layer stopped consulting the OS signal the stylesheet also obeys')
+        mode = source[source.index('export function motionMode'):
+                      source.index('function reducedMotion')]
+        self.assertRegex(mode, r"return reducedMotion\(\) \? 'static' : 'enhanced'",
+                         'motionMode() no longer lets the OS signal win over the URL, so '
+                         '`?motion=enhanced` would override a request for no motion')
         mount = source[source.index('export function mountEnhancedMotion'):]
-        self.assertRegex(
-            mount, r"if \(mode !== 'enhanced' \|\| reducedMotion\(\)\)",
-            'mountEnhancedMotion no longer returns before wiring anything when the layer is '
-            'off -- a guard that wires first and checks later is not a guard')
+        self.assertRegex(mount, r"if \(mode !== 'enhanced'\)",
+                         'mountEnhancedMotion no longer returns before wiring anything when the '
+                         'layer is off -- a guard that wires first and checks later is not a guard')
+
+    def test_every_wired_surface_is_actually_rendered(self):
+        """A motion host that no screen builds is a decoration the product cannot show.
+
+        This case exists because the first cut listed `.seg button`, `.review-card`, a
+        `[data-motion="count"]` marker and `.soft-btn`: each of those class names occurs in
+        `build/main.js` exactly once, and the only occurrence is the selector string this layer
+        itself wrote. shell.ts alone would be too narrow a population -- a class can be built in
+        workbench.ts, design.ts, ui-primitives.ts or straight into index.html -- so every source
+        that can construct DOM is read. And because a name can be assembled from a fragment
+        (`class: <code>-btn`), any such template in the sources marks that family as built
+        rather than convicting it: a probe that reports a false negative is worse than no probe.
+        """
+        source = self._source()
+        built = '\n'.join(
+            (ROOT / 'apps' / 'workbench' / name).read_text(encoding='utf-8')
+            for name in sorted(p.name for p in (ROOT / 'apps' / 'workbench').glob('*.ts'))
+            if name != 'vite.config.ts') + \
+            (ROOT / 'apps' / 'workbench' / 'index.html').read_text(encoding='utf-8')
+        fragments = set(re.findall(r'`[^`]*\$\{[^}`]*\}(-[a-z]+(?:-btn|card|item|stack|group))',
+                                   built))
+        listed = re.findall(r"^const (?:MAGNETIC|TILT|REVEAL)_SELECTOR = (.*?);\s*$",
+                            source, re.M | re.S)
+        self.assertEqual(len(listed), 3,
+                         'the three host lists are no longer all present, so this sweep would '
+                         'silently check less than it claims')
+        raw = ' '.join(re.findall(r"'([^']+)'", ' '.join(listed)))
+        selectors = sorted({s.strip() for s in raw.split(',') if s.strip()})
+        self.assertGreaterEqual(len(selectors), 7, 'the host sweep lost population: %s' % selectors)
+        missing = []
+        for selector in selectors:
+            classes = re.findall(r'\.([A-Za-z][-\w]*)', selector)
+            if not classes:
+                continue
+            covered = any(re.search(r'(?<![-\w])%s(?![-\w])' % re.escape(c), built)
+                          for c in classes)
+            if not covered and any(c.endswith(tuple(fragments)) for c in classes):
+                covered = True  # assembled from a fragment, so the literal is not expected
+            if not covered:
+                missing.append(selector)
+        self.assertEqual(
+            missing, [],
+            'these motion hosts name a class the shipped product never builds, so they would wire '
+            'nothing and still report a host count: %s' % missing)
 
     def test_the_mount_wires_by_delegation_because_route_views_rerender(self):
         source = self._source()
@@ -846,6 +910,53 @@ class EnhancedMotionLayerStaysComposited(unittest.TestCase):
                          % [r for r in rows if r[2] == 'dlMotionPlantLoop'])
         self.assertNotIn('data-motion="enhanced"', live[0][1],
                          'the plant was scoped, so the unscoped test would not have fired')
+
+
+class RefusalPopulationIsGraded(unittest.TestCase):
+    """「错误紧邻字段」 was being read over an empty set, and the zero looked like a pass.
+
+    The audit's error loop selected `.error, [role=alert], .field-note, .refusal`. Nothing on any
+    route the walk visits carries those classes: the product writes its local refusals into
+    `p.view-hint` lines (`#knowledge-outcome`, `#jury-outcome`, `#rights-review-outcome`,
+    `#research-review-outcome`), so `errors=0` described the selector, not the interface. Two
+    things had to change together -- the population has to include the class the product actually
+    uses, and a state with no refusal in it has to be provoked, because a walk that only visits
+    successful reads can never show one.
+    """
+
+    def test_the_product_refusal_vocabulary_is_read_from_the_source(self):
+        words = refusal_prefixes()
+        self.assertGreaterEqual(len(words), 3,
+                                'only %s refusal prefix(es) were derived, so the population would '
+                                'be nearly empty: %s' % (len(words), words))
+        for expected in ('未提交', '未签署', '未记录'):
+            self.assertIn(expected, words,
+                          '%s is written by shell.ts today; losing it from the derived set would '
+                          'shrink the measured population silently' % expected)
+
+    def test_the_gate_refuses_an_empty_word_list_and_selects_the_class_the_product_uses(self):
+        script = GATE_SCRIPT.read_text(encoding='utf-8')
+        self.assertIn("CT_REFUSAL_WORDS is empty", script,
+                      'the audit no longer refuses to grade with no refusal words, so an empty '
+                      'list would read as errors=0 again')
+        self.assertIn('.view-hint', script,
+                      'the error population no longer includes .view-hint, which is where the '
+                      'product writes refusals')
+
+    def test_the_refusal_state_is_named_in_the_receipt(self):
+        """Reported from the last default-theme run, if one exists in this worktree."""
+        path = _evidence_dir() / 'workbench-contrast-gate.json'
+        if not path.is_file():
+            self.skipTest('no contrast receipt on disk yet; the themed runs assert the same '
+                          'fields on their own reports')
+        report = json.loads(path.read_text(encoding='utf-8'))
+        rows = [k for k in report.get('routes', {}) if k.endswith('+refusal')]
+        self.assertTrue(rows, 'the receipt has no knowledge+refusal row, so the provoked state '
+                              'was never measured')
+        spec = report.get('spec') or {}
+        self.assertGreaterEqual(int(spec.get('errors', '0')), 1,
+                                'errors=%s over a provoked refusal state -- the population is '
+                                'still invisible' % spec.get('errors'))
 
 
 if __name__ == '__main__':

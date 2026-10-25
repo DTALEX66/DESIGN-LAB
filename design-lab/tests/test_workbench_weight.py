@@ -307,12 +307,6 @@ UNBOUNDED_REGISTER = {
         'cost': 'NOT MEASURED',
         'why_not_bounded_now': 'no bound and no measurement yet; the workbench column reads this '
                 'list form and an empty answer is deliberately a list, not a 404'},
-    '_list_prompt_results': {
-        'cost': 'NOT MEASURED; the readback path returns every result plus its reviews '
-                '(prompt_results.py:361-428), and task_queries.py:27 already shows the '
-                'envelope this repository uses elsewhere',
-        'why_not_bounded_now': 'closest to a real fix: PAGE_LIMIT=100 exists in this codebase '
-                'and this route does not use it'},
 }
 
 
@@ -350,8 +344,13 @@ class UnboundedListRoutesAreRegistered(unittest.TestCase):
         self.assertNotEqual(grown, sorted(UNBOUNDED_REGISTER))
         self.assertNotIn('_list_planted', UNBOUNDED_REGISTER,
                          'the plant must not exist in the register, or this proves nothing')
-        retired = [a for a in UNBOUNDED_REGISTER if a != '_list_prompt_results']
-        self.assertEqual(len(retired), len(UNBOUNDED_REGISTER) - 1)
+        # _list_prompt_results was bounded on 2026-10-26 (prompt_results.py readback now pages
+        # with a default limit and an envelope). Delisting it is only honest if the instrument
+        # agrees, so the entry may not come back and the route may not reappear as unbounded.
+        self.assertNotIn('_list_prompt_results', UNBOUNDED_REGISTER,
+                         'this route is bounded now; keeping it registered would hide the bound')
+        self.assertNotIn('_list_prompt_results', self.reading['withoutLimit'],
+                         'the register says bounded but the live route reading says otherwise')
         # And the register may not drift from reality in the other direction either.
         for action in UNBOUNDED_REGISTER:
             self.assertIn(action, self.reading['withoutLimit'],
