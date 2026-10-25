@@ -1843,3 +1843,51 @@ bundle 字节不动。下一刀的对象已经指名：包还要「单一低饱�
 `.primary-btn` 现在是两停 brand 渐变，`--brand-gradient-*` 在珍珠白下仍是那对更深的蓝，不是平涂的
 #356B92；这条要连 AA 一起重测之后才好说，本轮不拿算出来的比值当通过。仍未裁的两件照旧记账不代做：
 `DL-KB-13` 的 150 KB 上限，与长屏上顶栏是否吸顶。
+
+### 5.50 包的「避免大面积渐变」变成一条面积读数：42 个面板级渐变面被压平。
+
+**这一条为什么能量。** 上一段把包的数字规则接进对比度尺之后，还剩一句没有对象：
+`08_STITCH完整提示词.txt` 的「避免大面积渐变」。「大面积」不写清就是空话，所以这条尺把对象定为
+**同一屏上看得见的渐变面积**：一个 painted 元素的 `background-image` 含渐变，且它与视口的可见交集
+超过 25% 就计入。用可见面积而不是布局面积，是因为长列表卡片的布局高度可以量到视口的 90 倍，
+照布局算会把一条 24px 高、95% 已经滚出屏幕的高光判成违规——那是把尺子指向自己造出来的错误。
+阈值取 25%：一个按钮、药丸或细进度条不可能到，一整块内容底或整屏装饰一定到。
+
+**第一次量的债**（stitch／light，width 1440，单宽度）：渐变 painted run **656** 条，其中可见面积过阈值
+**42** 处，来源是三类：`.panel` 的底（`linear-gradient(180deg, surface 82%, surface 94%)`，单卡实测可见
+占比 28–75%）、`.panel::before` 的整卡高光、`.grid-bg` 的 `inset:0` 装饰网格（opacity .22 加径向 mask，
+整屏 100%）。
+
+**改法是包自己的参照物给的**，不是我挑的：包里那份 `DESIGN-LAB_今日完整需求与可行性方案_20261023.html`
+的卡片写成 `section{background:#fff;border:1px solid var(--line)}`——平涂白卡压 `#f3f5f7` 画布，卡内没有
+渐变也没有高光层。于是在 `[data-palette="stitch"][data-scheme="light"]` 作用域里把 `.panel` 改平涂、
+`.panel::before` 的高光关掉、`.grid-bg` 不画；默认炭黑一字节不动（owner 裁定：新包的值做成可选主题，
+不覆盖既有配色）。这一处顺带把上一段那条「长文字与列表实底」做得更彻底——面板底与卡内高光本来就是
+正文底下的两层可变底。
+
+**改完的读数**（同一条尺，stitch／light）：
+
+```
+CT_SUMMARY checked=15772 belowAA=0 pseudoLayers=0 coveredForeign=0 obscured=4 unparsable=0 collapsedOpened=6248 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0 glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0 formControls=1002 formBelow36px=14（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）
+```
+
+渐变 painted run 在同一条单宽度扫描上 656→**489**，可见面积过阈值 42→**0**；那份单宽度复测的原文留在
+`design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-gradient-single-width-remeasure-20261025.log`，
+这样 656→489 的比较是同一分母上的比较。上面那条 `CT_SUMMARY/CT_SPEC_ENFORCED` 来自回执所绑的
+1440+1920 双宽度那次，分母不同（渐变 run 978、过阈值 0），两个数各记各的，不互换。AA 仍是 `belowAA=0`
+（这不是"应该没影响"的推测，是这条尺重跑之后的读数）。几何尺量同一份 CSS：
+
+```
+OV_SUMMARY clipped=0 stray=0 tiny=0 interactions=28 [1440:evidence+projection-read=read,1440:capabilities+global-search=read,1440:knowledge+entry-detail=read,1440:assistant+plan-detail=read,1440:assistant+plan-compare=read,1440:assistant+plan-feedback=read,1440:target-profiles+combination=read,1280:evidence+projection-read=read,1280:capabilities+global-search=read,1280:knowledge+entry-detail=read,1280:assistant+plan-detail=read,1280:assistant+plan-compare=read,1280:assistant+plan-feedback=read,1280:target-profiles+combination=read,1536:evidence+projection-read=read,1536:capabilities+global-search=read,1536:knowledge+entry-detail=read,1536:assistant+plan-detail=read,1536:assistant+plan-compare=read,1536:assistant+plan-feedback=read,1536:target-profiles+combination=read,1920:evidence+projection-read=read,1920:capabilities+global-search=read,1920:knowledge+entry-detail=read,1920:assistant+plan-detail=read,1920:assistant+plan-compare=read,1920:assistant+plan-feedback=read,1920:target-profiles+combination=read] brand=4 navEdge=4 spec=0 theme=stitch/light
+```
+
+**这条也会咬。** 默认炭黑配色在同一条 enforce 下现在报两条红：`长文字与列表实底` 与 `避免大面积渐变`。
+`test_the_pack_number_assertion_refuses_a_theme_it_was_not_applied_to` 断言这两句同时出现在红里，
+所以"珍珠白下为 0"不是靠把默认配色一起改掉换来的。
+
+**账与边界。** `DL-KB-06` 加第 15 条 `visual_review` 回执（带 `-r2` 的新文件，上一份一字不动），
+`evidence` 288→**289**。包里剩下的句子按能量化的顺序排队：「单一低饱和强调色」与「避免霓虹」——
+主按钮现在仍是两停 brand 渐变，珍珠白下不是平涂的 `#356B92`，这条必须连 AA 一起重测才好说；
+「字段密度」与「标题层级」要先定分母（按哪一列算密度）才好写成数。owner 未裁的两件继续记账不代做：
+`DL-KB-13` 的 150 KB 上限，与长屏上顶栏是否吸顶。

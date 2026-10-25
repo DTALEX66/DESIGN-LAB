@@ -1,0 +1,22 @@
+# CT_SPEC single-width re-measure, subject bytes = apps/workbench/style.css at commit 8d910465
+# Produced with CT_WIDTHS=1440, UI_PALETTE=stitch, UI_SCHEME=light, CT_SPEC_ENFORCE=1 by the real
+# gate harness (design-lab/tests/test_workbench_contrast_gate._run_gate), kept here so the 656->489
+# comparison in section 5.50 is bound to bytes instead of to a chat log. The receipt itself
+# (kb-06-browser-pack-number-rules-r2-20261025.json) binds the 1440+1920 run, whose gradient
+# denominator is therefore different -- both readings are below, and neither is swapped for the other.
+
+CT_SUMMARY checked=7886 belowAA=0 pseudoLayers=0 coveredForeign=0 obscured=1 unparsable=0 collapsedOpened=3124 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+CT_SPEC palette=stitch/light textRuns=7800 minPx=12 below12=0 in14to16=1597/7800 pxHist=[12=3238 13=2637 13.3=232 14=61 15=96 16=1440 17=28 19=11 21=8 24=3 26=1 32=26 35=19]
+CT_SPEC controls=1410 formControls=501 formBelow36px=7 formRadiusOver10=0 hHist=[13=33 21=2 29=8 30=2 32=7 38=4 39=144 40=100 41=142 42=73 43=109 44=1 45=74 47=651 56=8 58=28 60=1 72=4 79=1 83=4 88=10 122=1 141=1 184=1 256=1] rHist=[0=33 7=39 8=196 10=498 14=644]
+CT_SPEC glass=2 glassOffAllowlist=0 translucentTextHosts=0 unparsableAlpha=0 gradients=489 bigOver25pct=0
+  GLASS aside#app-sidebar.sidebar blur(18px)
+  GLASS header.topbar blur(18px)
+  FORM-BELOW36 1440:tools 32px select#创作工具-project.project-select
+  FORM-BELOW36 1440:deliverables 32px select#交付中心-project.project-select
+  FORM-BELOW36 1440:evidence 32px select#证据系统-project.project-select
+  FORM-BELOW36 1440:intake 32px select#输入与目标-project.project-select
+  FORM-BELOW36 1440:prompt-intelligence 32px select#提示词工程-project.project-select
+  FORM-BELOW36 1440:plan 32px select#目标生成包-project.project-select
+  FORM-BELOW36 1440:analysis 32px select#分析与方案-project.project-select
+CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0 glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0 formControls=501 formBelow36px=7（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）
+CT_OK: every measured text run meets WCAG 2.1 AA for its painted background, and every colour the page computes was parsed

@@ -8,26 +8,26 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-25T02:56:57+00:00",
+  "generatedAt": "2026-10-25T03:18:08+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "a3e82b136d5325d6b33e6f07c2713afe1d35b4c6",
+    "sha": "8d9104659b57ca959fff460a2aee80bf768556d4",
     "source_worktree_clean": false,
-    "tracked_files": 3966,
+    "tracked_files": 3967,
     "worktree_changes": [
       {
-        "content": "sha256:232c4290a5ec159ff47139c66acf0640ec39a8d164334ed631cd1e4c20a5906d",
+        "content": "sha256:6d96890ef6a1f8bf6d4de444c4bf796652dd1d0981e23dbfe17bc37dd2aeb759",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:a83db4980ccd331ad2962fdf0b2b0f5850c447fdf5594618086b0afbfffdd6b8",
+        "content": "sha256:71e8826323ea87e7a9fc1e499a83fa55539ed5bbf30ae0933b765b65c6b2b33e",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
       {
-        "content": "sha256:8ad2bcc13676cd4229379428e11805fbd81ecb309bf5f78433db93a42109da17",
+        "content": "sha256:fdfc83540ee5beecb5213e0a2230683fec12d64bfb43de388b7c9bb811ed5863",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
@@ -42,12 +42,17 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       },
       {
-        "content": "sha256:654f820133132546a2c1f127aa1378e5b504f3241ff405132005c976b639bd26",
+        "content": "sha256:086d44e2362e7471aaa0cd59a042a2b7b064ac3c43d803078f6936552cc53296",
         "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-pack-number-rules-20261025.json"
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-pack-number-rules-r2-20261025.json"
+      },
+      {
+        "content": "sha256:7a7545f72e275bdc4d225579b19ee7883fa6cbeecd28def289a2160348e79dba",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-gradient-single-width-remeasure-20261025.log"
       }
     ],
-    "worktree_digest": "sha256:bd4709e525255b5c60aacf51b55b2ade5136f93c2d71fdc0d68889c94d569267"
+    "worktree_digest": "sha256:ca67367109cfab92b4c3bc747ae7bdb600e47e7f44029c7e5a015feee8057aeb"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -63,7 +68,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "a3e82b136d5325d6b33e6f07c2713afe1d35b4c6",
+  "subjectSha": "8d9104659b57ca959fff460a2aee80bf768556d4",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -83,5 +88,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:bd4709e525255b5c60aacf51b55b2ade5136f93c2d71fdc0d68889c94d569267"
+  "worktreeDigest": "sha256:ca67367109cfab92b4c3bc747ae7bdb600e47e7f44029c7e5a015feee8057aeb"
 }
