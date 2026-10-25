@@ -1,25 +1,25 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-25T17:43:13+00:00",
+  "generatedAt": "2026-10-25T18:10:21+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "a3ff2db1baf7fb24fd1d155c7ffb25e0c97a6dec",
+    "sha": "c176ad6081ce55c4b0134c19cff42ec2db8ebc9a",
     "source_worktree_clean": false,
-    "tracked_files": 3993,
+    "tracked_files": 3995,
     "worktree_changes": [
       {
-        "content": "sha256:fde45c41bb1993079648180a94e5d2219c1c1cc8bd15184fdd95af63dcd07948",
+        "content": "sha256:ccbc69a6ebe3f93e778772b6e52140ec76cd769bee65ae69b114a69d932ead9e",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:3b0be302173b0fc73c825e1be7075b73d684ff9e0e0504d9af298dfe9204f5b1",
+        "content": "sha256:b84807f267c37702e635a872e9dc5a039f362d71fe06b6691ddd40add3127ee4",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
       {
-        "content": "sha256:eb24ba968c9e3c11c592f3a3ab8f6114122b4d4b276b403091b049eafd141bd2",
+        "content": "sha256:ffd1f3c8e60d9c4505c9fe8974d5f10bf16fdc3e97b3f380c6c5e1948095ece4",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
@@ -34,19 +34,14 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       },
       {
-        "content": "sha256:675ad33f810d4a054697364aff5ae7d64dd989441b4bb3150fa977df420d66cc",
+        "content": "sha256:39ed73effc52b7783edb89f29c1c927b13845622c86388c53c76eec684b064d3",
         "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-single-accent-graded-as-paint-20261026.json"
-      },
-      {
-        "content": "sha256:97c4198807d58f82eca506209b25acba8df2d0b42238ca186b9c33b15f434aa3",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-theme-geometry-palette-table-derived-20261026.json"
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-field-refusal-adjacency-graded-on-its-referent-20261026.json"
       }
     ],
-    "worktree_digest": "sha256:eab705c4f3137479cea3b210aef9dd8f26a613f28bbdda7b2950f10ca7b98f9d"
+    "worktree_digest": "sha256:f7eccf7d0e9057223608813c9433fbc6707c14d50d7719626a97bd907bf89fc2"
   },
-  "inputDigest": "sha256:c4a9852193578414e1e4627afb97027f59073a93d485e4bbc73d84bcbdaa16de",
+  "inputDigest": "sha256:85b159ed049450928aa9c8929c6fb239c7f14da1979f410e0aa59bf867388688",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "b2980260bcd04278a53a1426f2df5999129a367df59074779317692cbcf2b393",
@@ -58,11 +53,11 @@
     ".project/governance/data-ownership.yaml": "7202baea30612c9acbc722be331913193dec505547bc8e8d73a82642735199c4",
     ".project/manifest.yaml": "04867fada13ddc0c4ec06e2ba84c5665de4a4db49aa492427371bccc51f929ce",
     ".project/paths.json": "8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
-    "apps/workbench/build/main.js": "d9c6eeef0e8fe771d1af93fc0356a98f56a97e5e5765f7de6c44bc74a84fe1e1",
+    "apps/workbench/build/main.js": "8d117ab0a048e0af630cdbf4e36f377be4e37b3a62ab0d81dc143550ab9988ec",
     "apps/workbench/contracts.ts": "91340d934d8cc0c27029dd3c1a51d342dde030693e57e32dce9bdceafb3beea7",
     "apps/workbench/index.html": "6a67bc1ade21e6f5e8854da42af4e807b44fa6267ca2cf7ce98460568dc5e281",
     "apps/workbench/package.json": "cfc6862df005466d202bded173fd3a7a826b3bafb7db122c078934ff2cbd0a77",
-    "apps/workbench/shell.ts": "bbf21aa0d4047908db61e71e3f39d3d6c9bf675f92a6efe0c73161ae2070b266",
+    "apps/workbench/shell.ts": "ce0c79d87bfbf8641efe95d0da5eb1ee743e77a411f9c8e232223a20d0bca4b6",
     "apps/workbench/tests/appshell.mjs": "b36a028a6495c6e56f4d1d08ce53a2847243f71b5b24e4892b14f71b934ff51b",
     "apps/workbench/tests/unit.mjs": "07ff42d2b84097d2ef9dfb60445ef273eb800089d564aa31782c7aa68a001431",
     "apps/workbench/tsconfig.json": "256454be6a2fc1bc9b520dd3c39f2336f92f757a79e10b1c2dd8cfade8b254e8",
@@ -73,7 +68,7 @@
     "design-lab/config/object-model.json": "1ec285aa9a003b067830354bdc010feae63feb5fc3d90103e4e229e161c0f404",
     "design-lab/config/product-manifest.json": "309e1133a84cd0c8ec2b7120038d5e5a0bbf68f97bcf4342249794a8b2856789",
     "design-lab/config/state-vocabularies.json": "d13d55431358171770384f5fcb211089e398766df281f1d4ea3c6438a16746a6",
-    "design-lab/config/task-ledger-r3.json": "fde45c41bb1993079648180a94e5d2219c1c1cc8bd15184fdd95af63dcd07948",
+    "design-lab/config/task-ledger-r3.json": "ccbc69a6ebe3f93e778772b6e52140ec76cd769bee65ae69b114a69d932ead9e",
     "design-lab/domain-packs/audio-design/handoff-contract.json": "95d62def98e8eb71f36c06496edce4705c6bf22d17eda762acf846642ea6ba6c",
     "design-lab/domain-packs/audio-design/manifest.json": "5460b5287c74237cb8780b5eb5ff47e02b37b655ea453c03f1e99230cd70c171",
     "design-lab/domain-packs/audio-design/preflight.json": "a423b34d800c239cdab47df245f72e15f2ecca0402a10158fa06a6d2f187d0e8",
@@ -234,6 +229,7 @@
     "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-single-accent-20261025.json": "610e63b37dafe6eb6a0b2694db82b02b2c9c2374fb813c43936cac99a2ef051a",
     "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-stitch-palette-theme-20261025.json": "d908d6b97623a4fee1357d894c62856c89e73753e7286655d64614b5b0ac8d20",
     "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-enhanced-motion-layer-opt-in-20261025.json": "e30eb35af03077870848d18ec06ca88b08b174e55f99abdbf827e63b64d2bcbc",
+    "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-field-refusal-adjacency-graded-on-its-referent-20261026.json": "39ed73effc52b7783edb89f29c1c927b13845622c86388c53c76eec684b064d3",
     "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-particle-layer-copied-structure-20261026.json": "0080bff1ef571afb3df4464514b03dbf16d30d80c22709a1f354866f2fe86b91",
     "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-theme-click-path-scheme-fix-20261026.json": "925c4ffdc0a646b48e90cb0d060e206953d9e0cdb69b35b74db21d5d14fc3337",
     "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-08-browser-plan-detail-geometry-20261025.json": "511b45fa2ae5b242afeae9ff919f4888e42e8df85ba37ebe056e0e2f290bc74f",
@@ -672,7 +668,7 @@
     "design-lab/tests/test_verifier_internals.py": "4afa2afaee8d7bd905c726e649e54f163c5138eb8db28142a813099267e4e350",
     "design-lab/tests/test_visual_quality_scan_boundary.py": "adb5f2d392dd262b1d0aac751a2f86c738a6c05b4a48a4c47e165eb669fa62cb",
     "design-lab/tests/test_workbench_brand_asset.py": "3a39b1af0361ff6d18607178298043812db9f31c6ea70bf5138fe20b32ef2952",
-    "design-lab/tests/test_workbench_contrast_gate.py": "c315cf1af7304dc793cc21571e95f1cf71fcde92d522f28d58dae9762e98b5b0",
+    "design-lab/tests/test_workbench_contrast_gate.py": "a13b7c51b3b98ccd4215a84fb81ecfb4c30b5722ff8f4ea4e53f9bc197979612",
     "design-lab/tests/test_workbench_css_single_definition.py": "44b95fc52a15063c6731290a785dd1108893693e2853d04e9bb73e17ecced261",
     "design-lab/tests/test_workbench_design_layer_e2e.py": "9ffffdedb3d4de1bfdd386f9b6d72864257942b07e2a784585f90792df8f2b7e",
     "design-lab/tests/test_workbench_launch.py": "39aac489d747e5db81813200ba95b393d4eb12f8b906a7ffd7e39c376f3f670d",
@@ -829,15 +825,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "b990ab445f65155121cf51aaf954df955b814bad104fb869969029b22a3fd390",
-    "CLOUD_BASELINE.json": "822dc8ad93537588bf8f76498ece268d016959d72c1708d68f95f793d6c3d9ca",
-    "CLOUD_BASELINE.md": "269b807de78ac75f48ac1628b5d2a29b3efc3c2d71e70c6f0533064fb2579ddf",
-    "DOMAIN_PACK_READINESS.json": "04e838dcf21568e76bb2e8f08f4d59188c97c689273e6ae010612dcb4849dc1d",
-    "KNOWLEDGE_INVENTORY.json": "0fd691c3d135543bb509a1fe00d397c4988136b159b3f30793ccaa50ad122129",
-    "PROJECT_STATUS.json": "a22642f1da435e38d24ebd17aea60ce799d22fd8f1862b317317c7074b272b47",
-    "PROJECT_STATUS.md": "5bb81f774d8f3655d33c72a42e1906ba20ebc31921ee0e24246a01dbb4f34180",
-    "RELEASE_READINESS.json": "69a5653ea7ba1edb5b4184ab379606e08ecb18fe2ba97187acee2fba14119f63",
-    "TASK_PROGRESS.json": "ce6f72c5dcb7ed22725cc3d05284c6e150ea736a7b333696ef570afe643d0b95"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "2a7bb9eed2fa9037391a0296d1ca17e80159d316edb3aa508e2c9f2661f5b2a2",
+    "CLOUD_BASELINE.json": "177ef4fc846b0dc2699725ca9d049179005f88c1ddaa83e8c33a05fb2a33cc99",
+    "CLOUD_BASELINE.md": "98ac0b7c265579d4ab8ebbd2d6b0e9a44504168b820d6da4d7f3bd6768b985b1",
+    "DOMAIN_PACK_READINESS.json": "5f3a9f5384d2f7660ca46bb33f2a19c9b6105df95878d3539caebbd971bfc7cf",
+    "KNOWLEDGE_INVENTORY.json": "a5f748037790af96f63ac44dcfa694253d364a6d4bd696a9dfc5cc47116abf05",
+    "PROJECT_STATUS.json": "cd7733a561ceaa889da0204f8f1cfc70134552b9b52b29d41a705f81ceec0341",
+    "PROJECT_STATUS.md": "86f4313a1e478c7b2b6078af668ac7d6253e4301f2b2cd862612e572f9b856e5",
+    "RELEASE_READINESS.json": "65d244ae794d382202ce7bf0ce7491f5d948e2c7529a22b79fc33f70e436dd3f",
+    "TASK_PROGRESS.json": "9f460373d691456ee4857889405efba30f4ee7915e9476a37f364dc761e14d26"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -853,5 +849,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "a3ff2db1baf7fb24fd1d155c7ffb25e0c97a6dec"
+  "subjectSha": "c176ad6081ce55c4b0134c19cff42ec2db8ebc9a"
 }

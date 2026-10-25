@@ -12556,6 +12556,18 @@
         "artifact_sha256": "675ad33f810d4a054697364aff5ae7d64dd989441b4bb3150fa977df420d66cc",
         "exit_code": 0,
         "command": "把包里那支单一强调色按\"它被画成什么\"实测：结构上从不作字墨，两方向的 AA 代价分别量化 —— 读数见工件。"
+      },
+      {
+        "id": "kb-06-field-refusal-adjacency-graded-on-its-referent-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T18:08:00Z",
+        "subject_sha": "c176ad6081ce55c4b0134c19cff42ec2db8ebc9a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-field-refusal-adjacency-graded-on-its-referent-20261026.json",
+        "artifact_sha256": "39ed73effc52b7783edb89f29c1c927b13845622c86388c53c76eec684b064d3",
+        "exit_code": 0,
+        "command": "把「错误紧邻字段」按它点名的字段来量：尺子改认 referent、产品把提示移到字段旁，并逐个造出各条字段拒绝 —— 读数见工件。"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
