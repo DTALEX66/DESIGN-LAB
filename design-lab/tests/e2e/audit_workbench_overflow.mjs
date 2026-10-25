@@ -348,6 +348,41 @@ const brandProblems = [];
 // width below, because the nav is global chrome and repeats on every route.
 const navEdges = [];
 
+// The entry detail is measured as its own named state (see the knowledge step in the sweep), and
+// a state needs something in it: one synthetic entry, written through the same service the page
+// reads and discarded with the temp state root. Marked synthetic in created_by so nobody can read
+// it as design work.
+async function seedKnowledgeEntryForAudit(prefix) {
+  const body = {
+    entry_type: 'METHOD', title: '镜头拆解三步法（合成）',
+    summary: '把一段脚本拆成镜头表：先定节拍，再定景别，最后只标必要的转场。',
+    domain_tags: ['film'], task_tags: ['storyboard'], target_tools: ['storyboarder'],
+    body: '第一步按段落切节拍。第二步给每个节拍选景别。第三步只标必要的转场，'
+      + '并留下"引号"、逗号, 与一段较长的说明文字，用来量这块面板在窄一侧的换行与溢出。',
+    applicability: '适合 30-90 秒短片的分镜前置。', limits: '不适用于需要精确口型对位的动画。',
+    source: { sourceId: 'UNUSED', origin: 'UNKNOWN', author: 'UNKNOWN', license: 'UNKNOWN',
+              licenseStatus: 'unknown', allowedUsage: 'UNKNOWN', citationScope: 'UNKNOWN',
+              version: 'UNKNOWN', observedAt: 'UNKNOWN', contentHash: 'UNKNOWN',
+              verification: 'UNVERIFIED' },
+    related_capability_ids: [], recommended: true,
+    created_by: `${prefix} 脚手架（合成，不是真人）`, supersedes: null,
+  };
+  const res = await fetch(serviceUrl.replace(/\/$/, '') + '/api/knowledge-entries', {
+    method: 'POST', headers: { Authorization: `Bearer ${token}`,
+                               'Content-Type': 'application/json' },
+    body: JSON.stringify(body) });
+  const json = await res.json().catch(() => ({}));
+  if (res.status !== 201) {
+    fail(`OV_SEED_KNOWLEDGE_REFUSED ${JSON.stringify(json).slice(0, 200)}`);
+  }
+  return { entry: json.entry.knowledge_entry_id };
+}
+
+const kbSeed = await seedKnowledgeEntryForAudit('几何审计');
+report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.entry,
+  product_data: false,
+  note: '只为让知识条目详情能被几何测量而写进本次临时状态，随状态目录一起丢弃' };
+
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: mainHeight } });
   await paintTheme(page);
@@ -373,6 +408,33 @@ for (const w of widths) {
     }
     const m = await page.evaluate(MEASURE);
     report.routes[`${w}:${name}`] = m;
+    if (name === 'knowledge') {
+      // The entry detail is the panel this sweep used to stop short of, so the judgement trail's
+      // small print, both judgement forms and the refused-clipboard fallback box were never
+      // geometry-checked -- a fallback textarea wider than its panel is exactly the kind of thing
+      // no clip check on the list screen can see. Open it as a person does and measure it as its
+      // own named state; a detail that never assembled is recorded as unclaimed, not measured empty.
+      await page.locator('#kb-results .kb-open').first().click();
+      const detailSettled = await page.waitForFunction(() => {
+        const host = document.getElementById('kb-detail');
+        if (!host || host.querySelector('.view-loading')) return false;
+        if (!document.getElementById('kb-copy-body')) return false;
+        if (!document.getElementById('kb-judge-reason')) return false;
+        return (document.getElementById('kb-detail-content')?.textContent ?? '').trim().length >= 8;
+      }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+      if (!detailSettled) {
+        interactionMissing.push(`${w}:knowledge+entry-detail 的详情面板在 20s 内没有装配完，`
+          + '它的几何无人认领');
+      } else {
+        report.routes[`${w}:knowledge+entry-detail`] = await page.evaluate(MEASURE);
+        // The panel's own verdict, read off what is painted: a detail that came back with the
+        // served body is a read, one that says 未读回 is a named refusal. The wrapper asserts every
+        // button-gated panel settled on one or the other, so this cannot be left unset.
+        report.routes[`${w}:knowledge+entry-detail`].state = await page.evaluate(() => (
+          /未读回/.test((document.getElementById('kb-detail')?.textContent ?? ''))
+            ? 'refused' : 'read'));
+      }
+    }
     if (m.navEdge && m.navEdge.overflow > 0) {
       navEdges.push({ key: `${w}:${name}`, ...m.navEdge });
     }

@@ -1863,7 +1863,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .capability-chip-x{display:inline-grid;place-items:center;min-width:var(--uif-space-4);
   padding:0 var(--uif-space-1);background:transparent;border:0;color:var(--ink);
   font-size:var(--uif-font-body);line-height:1;cursor:pointer}
-.capability-chip-x:hover{color:var(--accent)}
+.capability-chip-x:hover{color:var(--secondary)}
 
 /* R2 §5 详情面板（DL-UI-U03）。地址决定它存不存在，不是隐藏着的浮层；背后列表仍可用，
    所以它是面板而不是 dialog，不改挂 role="dialog"（DESIGN.md §3 第 6 条）。 */
@@ -1969,7 +1969,12 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .kb-row-main small{overflow-wrap:anywhere}
 .kb-open{background:none;border:0;padding:0;color:var(--text);font:inherit;
   cursor:pointer;text-align:left;overflow-wrap:anywhere}
-.kb-open:hover{color:var(--accent)}
+/* Hover swaps the ink, so the hovered colour must clear AA on this surface too: --accent
+   (#316CFF) measures 4.08:1 on a row title, and the contrast gate now catches it because it
+   clicks into the entry detail and leaves the pointer on the row it opened. --secondary is the
+   scheme-aware accent this project already uses for small coloured text (see the ui2026/light
+   override, which re-points it rather than shipping unreadable labels in the light theme). */
+.kb-open:hover{color:var(--secondary)}
 .kb-body{margin:var(--uif-space-2) 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .kb-form-fields{margin-top:var(--uif-space-2)}
 .kb-form .field-row{margin-bottom:var(--uif-space-2)}
@@ -2003,7 +2008,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .as-plan-open{display:flex;flex-direction:column;gap:var(--uif-space-1);
   flex:1 1 24ch;min-width:0;background:none;border:0;padding:0;
   color:var(--text);font:inherit;text-align:left;cursor:pointer}
-.as-plan-open:hover{color:var(--accent)}
+.as-plan-open:hover{color:var(--secondary)}
 .as-plan-open small{overflow-wrap:anywhere}
 .as-states{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1);
   justify-content:flex-end}

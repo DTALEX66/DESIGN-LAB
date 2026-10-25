@@ -574,10 +574,74 @@ async function openPlanDetail(page, key, problems) {
   return false;
 }
 
+// The knowledge entry detail is the other panel this sweep stopped short of. Its meta lines, the
+// judgement trail's small print, and the sentence that appears when the browser declines the
+// clipboard are exactly the weak-colour text this gate exists for -- and until now none of it was
+// ever measured here, only walked (the walk asserts presence and wording, not AA ratios). One
+// synthetic entry, written through the same service the page reads, discarded with the state root.
+async function seedKnowledgeEntryForAudit(prefix) {
+  const base = serviceUrl.replace(/\/$/, '');
+  const body = {
+    entry_type: 'METHOD', title: '镜头拆解三步法（合成）',
+    summary: '把一段脚本拆成镜头表：先定节拍，再定景别，最后只标必要的转场。',
+    domain_tags: ['film'], task_tags: ['storyboard'], target_tools: ['storyboarder'],
+    body: '第一步按段落切节拍。第二步给每个节拍选景别。第三步只标必要的转场，'
+      + '并留下"引号"、逗号, 与一段较长的说明文字。',
+    applicability: '适合 30-90 秒短片的分镜前置。', limits: '不适用于需要精确口型对位的动画。',
+    source: { sourceId: 'UNUSED', origin: 'UNKNOWN', author: 'UNKNOWN', license: 'UNKNOWN',
+              licenseStatus: 'unknown', allowedUsage: 'UNKNOWN', citationScope: 'UNKNOWN',
+              version: 'UNKNOWN', observedAt: 'UNKNOWN', contentHash: 'UNKNOWN',
+              verification: 'UNVERIFIED' },
+    related_capability_ids: [], recommended: true,
+    created_by: `${prefix} 脚手架（合成，不是真人）`, supersedes: null,
+  };
+  const res = await fetch(base + '/api/knowledge-entries', {
+    method: 'POST', headers: { Authorization: `Bearer ${token}`,
+                               'Content-Type': 'application/json' },
+    body: JSON.stringify(body) });
+  const json = await res.json().catch(() => ({}));
+  if (res.status !== 201) {
+    fail(`${prefix.toUpperCase()}_SEED_KNOWLEDGE_REFUSED ${JSON.stringify(json).slice(0, 200)}`);
+  }
+  return { entry: json.entry.knowledge_entry_id };
+}
+
+// Same rule as the plan detail: wait on the things that only exist once the reads landed. A
+// predicate that could never be true (every status line must have text) would read as a broken
+// panel, and a panel measured while it still says 正在读回 would report the contrast of
+// placeholders -- so the copy control, the judgement form and the served body are the settled marks.
+async function openKnowledgeDetail(page, key, problems) {
+  await page.locator('#kb-results .kb-open').first().click();
+  const SETTLED = () => {
+    const host = document.getElementById('kb-detail');
+    if (!host) return ['no-detail-host'];
+    const unmet = [];
+    if (host.querySelector('.view-loading')) unmet.push('still-reading');
+    if (!document.getElementById('kb-copy-body')) unmet.push('no-copy-control');
+    if (!document.getElementById('kb-judge-revision')) unmet.push('no-judgement-form');
+    const text = (document.getElementById('kb-detail-content')?.textContent ?? '').trim();
+    if (text.length < 8) unmet.push('detail-text=' + text.length);
+    return unmet;
+  };
+  const deadline = Date.now() + 25000;
+  let unmet = ['never-polled'];
+  while (Date.now() < deadline) {
+    unmet = await page.evaluate(SETTLED);
+    if (unmet.length === 0) return true;
+    await page.waitForTimeout(400);
+  }
+  problems.push(`${key}: 知识条目详情在 25s 内没有把正文、复制控件与判断表单读回来（${unmet.join(' ')}）`);
+  return false;
+}
+
 const ctSeed = await seedAssistancePlanForAudit('对比度审计');
 report.auditSeed = { kind: 'synthetic-assistance-plan', project: ctSeed.project,
   plan: ctSeed.plan, product_data: false,
   note: '只为让方案详情能被测量而写进本次临时状态；记录人标明是合成的，随状态目录一起丢弃' };
+const kbSeed = await seedKnowledgeEntryForAudit('对比度审计');
+report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.entry,
+  product_data: false,
+  note: '只为让知识条目详情能被测量而写进本次临时状态；创建人标明是合成的，随状态目录一起丢弃' };
 
 // One sink for both the route sweep and the plan detail. Duplicating the accumulation would give
 // the same counters two owners, and the second screen is exactly the one that would drift.
@@ -627,6 +691,12 @@ for (const w of widths) {
       // as a clean one.
       const opened = await openPlanDetail(page, `${w}:assistant+plan-detail`, controlBad);
       if (opened) absorb(`${w}:assistant+plan-detail`, await page.evaluate(MEASURE));
+    }
+    if (name === 'knowledge') {
+      // Same rule for the entry detail: it is a named state of its own, and a panel that never
+      // settled lands in the miss list the wrapper asserts to zero rather than being skipped.
+      const opened = await openKnowledgeDetail(page, `${w}:knowledge+entry-detail`, controlBad);
+      if (opened) absorb(`${w}:knowledge+entry-detail`, await page.evaluate(MEASURE));
     }
   }
   await page.close();

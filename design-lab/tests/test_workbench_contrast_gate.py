@@ -202,17 +202,22 @@ class WorkbenchContrastGateTests(unittest.TestCase):
                                 'not one collapsed run was brought into the sweep, so this '
                                 'gate only measures whatever the page happened to leave open: %s'
                                 % summary)
-        # The plan detail is the screen this round added; a name in the log is not proof it was
-        # measured under every width, so the report itself is read back.
+        # The plan detail and the knowledge entry detail are the two panels this gate opens by
+        # clicking into; a name in the log is not proof either was measured under every width, so
+        # the report itself is read back. Both are asserted because the entry detail's row title
+        # is exactly where a real AA failure turned up the moment it started being measured.
         import json
         recorded = json.loads(report_path.read_text(encoding='utf-8'))
         wanted = ['%s:assistant+plan-detail' % w for w in WIDTHS.split(',')]
+        wanted += ['%s:knowledge+entry-detail' % w for w in WIDTHS.split(',')]
         missing = [k for k in wanted if k not in recorded.get('routes', {})]
         self.assertEqual(missing, [],
-                         'the plan detail was never measured for these widths, so its contrast '
-                         'is unclaimed rather than good: %s' % missing)
+                         'these panel states were never measured, so their contrast is unclaimed '
+                         'rather than good: %s' % missing)
         self.assertIs(recorded.get('auditSeed', {}).get('product_data'), False,
                       'the seeded plan must be recorded as synthetic scaffolding')
+        self.assertIs(recorded.get('auditKnowledgeSeed', {}).get('product_data'), False,
+                      'the seeded knowledge entry must be recorded as synthetic scaffolding')
 
     def test_ui2026_light_theme_is_graded_by_the_same_aa_gate(self):
         """DL-UI-U02 (2026-10-09): the 20261009 baseline ships as a *theme*, so it has

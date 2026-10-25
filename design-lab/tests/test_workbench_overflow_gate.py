@@ -269,6 +269,14 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         # every width is well-formed UI over a readback nobody ever saw.
         interactions = {key: value for key, value in report['routes'].items() if '+' in key}
         self.assertTrue(interactions, 'the gate measured no button-gated panel at all')
+        # The entry detail is one of those panels, and it must be measured at EVERY width the gate
+        # walks: a panel checked at 1440 only is not a geometry claim about 1280 or 1920.
+        measured_widths = [w.strip() for w in WIDTHS.split(',') if w.strip()]
+        absent = ['%s:knowledge+entry-detail' % w for w in measured_widths
+                  if '%s:knowledge+entry-detail' % w not in report['routes']]
+        self.assertEqual(absent, [],
+                         'the knowledge entry detail was never geometry-checked at these widths, '
+                         'so its layout is unclaimed rather than good: %s' % absent)
         for key, value in sorted(interactions.items()):
             self.assertIn(value.get('state'), ('read', 'refused'),
                           f'{key} settled on {value.get("state")!r}, which is neither a read-back '
