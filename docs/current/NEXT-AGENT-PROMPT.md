@@ -130,6 +130,26 @@ ui2026/light 各一遍）、几何 112 个面（1440/1280/1536/1920）`docOverfl
 （`ASSET`、`KNOWLEDGE`），`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到，
 而 `/api/projects/<id>/briefs`、`/directions`、`/prompt-results` 三条读路由都已存在且各有合同行。
 
+**台账读数（2026-10-25 第十一轮收口时现数，取代上面第十轮那一段的"当下"身份）**：`currentExecution`
+仍 50 行、34 项 `FROZEN_DEFERRED` 未解冻；直方图不变 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**；
+`evidence` 282→**283**（`DL-KB-08` 13→14 条 browser 回执，状态仍 DONE）。这一刀把第十轮自己列的
+清单往前推了两格：**几何尺现在也会点开方案详情**（`assistant+plan-detail`，四个宽度各一行，
+全部 `state=read`），116→**120** 个几何面，`docOverflowX=0 clipped=0 stray=0 tiny=0 occluded=0`。
+过程中先掉进自己的坑并补了牙齿，两条都值得下一轮记住：
+① **"报告里有这行"与"闸门算了这行"不是一件事**——第一版把面板行塞进 `report.routes` 就没管计数器，
+   clip／stray／occlusion 会打印出来然后被忽略；现在两个面板都过同一个 `absorbPanel` 入口，
+   闸门的测试另加一条硬断言：`OV_SUMMARY interactions=` 的数量必须等于报告里带 `+` 的行数。
+② **"不在屏上"不等于"被盖住"**——新行报的 `occluded=3` 其实是顶栏三个入口的中心点在视口上方
+   约 1.8k 像素处（`top≈-1814`，视口高 900），而探测块自己的注释早就写了这两句不是一回事。
+   现在分出 `notInView` 并带上中心点／视口／上下边，`occluded` 只留给真被别的元素盖住的情况，
+   仍然进 `specProblems` 判红。**要不要把顶栏吸顶不是工程决定**：采纳包里
+   `02_完整产品方案.md` 只在"玻璃用在哪儿"那句提到顶栏，没有任何一条要求常驻可见，
+   所以这条按实测现象记账，留给 owner，不擅自 `position:sticky` 去补规格里没有的要求。
+体积与上一轮同（这批字节没动 `shell.ts`／`style.css`）：609,452 B／gzip 159,775 B。
+**还没被尺子碰过的"点开才有"的面**：目标组合面板的展开态、我的方案里两案对照态、反馈块写入后的读回态；
+做法已经现成（种子 → 点开 → 等真实状态 → 量成具名行 → 进同一个计数入口 → 补"报了必须等于算了"）。
+`DL-KB-13`／`DL-KB-16`／`DL-KB-15` 三格账不变。
+
 **台账读数（2026-10-25 第十轮收口时现数，取代上面第九轮那一段的"当下"身份）**：`currentExecution`
 仍 50 行、34 项 `FROZEN_DEFERRED` 一行没解冻；直方图不变 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**；
 `evidence` 281→**282**（`DL-KB-03` 10→11 条，状态仍 DONE）。这一轮做的是 §5.40／§5.41 连着两轮
