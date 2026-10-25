@@ -795,9 +795,23 @@ html,body{margin:0}
 }
 .search:hover{border-color:color-mix(in srgb,var(--primary) 45%, white 3%)}
 .top-actions{display:flex;gap:10px}
+/* 这四类按钮的 `transition` 原先没有属性表，等价于 `transition-property:all`，于是启用/禁用
+   切换时连 `color` 与 `background-color` 一起补间。逐帧采样（1920/stitch-light，rAF 一帧一行）
+   量到墨色走过 rgb(23,33,43) → 74,82,90 → 187,190,193 → 226,227,228 → 251,251,252 → 255,255,255，
+   同时 `background-color` 从实白 `rgba(255,255,255,1)` 褪到透明；其中一帧是 `rgb(187,190,193)` 压在
+   `rgba(255,255,255,.294)` 覆盖的品牌蓝上，按闸门自己的合成算法算出 **1.97:1**。CI 点名的
+   `1920:target-profiles+combination button#tp-validate.primary-btn 1.06:1 fg=rgb(157,161,165)`
+   （stitch）与 `2.6:1 fg=rgb(209,213,217)`（ui2026）就落在这条斜坡上：两个灰值与「白字 ↔ 该主题
+   --text」的线性插值逐通道吻合（stitch #17212B 在 t=0.422，ui2026 #152b3d 在 t=0.198），而枚举
+   `document.styleSheets` 后匹配该元素的三条 `color` 声明全部只写白字——也就是说那条红量的不是
+   任何规则里的颜色，是一帧本来不该被画出来的中间态。Windows 本地每次落在斜坡走完之后，
+   Linux runner 落在里面，这就是「同一提交只有远端红」的全部原因。
+   现在只把补间限定到这三类按钮真正会在 hover 改动的属性上：时长与缓动一字节未动（仍是 .2s ease），
+   墨色与底色的启用/禁用切换变成瞬时——两端各自是本文件里已实测过的一对（白字压 brand 渐变 7.08:1，
+   --text 压平涂 --surface-2），中间不再存在任何一档不达标的字色。 */
 .ghost-btn,.soft-btn,.primary-btn,.danger-btn{
   border-radius:12px;padding:10px 14px;
-  transition:.2s ease;
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
 }
 .ghost-btn,.soft-btn{
   border:1px solid color-mix(in srgb,var(--border) 72%, transparent);

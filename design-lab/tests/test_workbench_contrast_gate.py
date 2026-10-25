@@ -51,6 +51,7 @@ browser painted, not an E3 host run and not an E4 human judgement about whether
 the UI looks good.
 """
 import os
+import re
 import secrets
 import shutil
 import subprocess
@@ -236,6 +237,9 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         wanted += ['%s:assistant+plan-feedback' % w for w in WIDTHS.split(',')]
         wanted += ['%s:knowledge+entry-detail' % w for w in WIDTHS.split(',')]
         wanted += ['%s:target-profiles+combination' % w for w in WIDTHS.split(',')]
+        # The dirty CTA is the state CI's Linux runner convicted and the local sweep kept
+        # walking past; if it is absent from the report, its contrast is unclaimed, not good.
+        wanted += ['%s:target-profiles+combination-after-change' % w for w in WIDTHS.split(',')]
         missing = [k for k in wanted if k not in recorded.get('routes', {})]
         self.assertEqual(missing, [],
                          'these panel states were never measured, so their contrast is unclaimed '
@@ -344,6 +348,9 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         wanted += ['%s:assistant+plan-feedback' % w for w in WIDTHS.split(',')]
         wanted += ['%s:knowledge+entry-detail' % w for w in WIDTHS.split(',')]
         wanted += ['%s:target-profiles+combination' % w for w in WIDTHS.split(',')]
+        # The dirty CTA is the state CI's Linux runner convicted and the local sweep kept
+        # walking past; if it is absent from the report, its contrast is unclaimed, not good.
+        wanted += ['%s:target-profiles+combination-after-change' % w for w in WIDTHS.split(',')]
         missing = [k for k in wanted if k not in recorded.get('routes', {})]
         self.assertEqual(missing, [],
                          'the stitch theme was never measured for these panels: %s' % missing)
@@ -442,6 +449,73 @@ class WorkbenchContrastGateTests(unittest.TestCase):
                          'reference table did not run: %s' % summary)
         self.assertEqual(summary.get('mathBad'), '0',
                          'contrast maths disagrees with WCAG reference ratios: %s' % summary)
+
+
+class ActionButtonInkIsNotInterpolated(unittest.TestCase):
+    """The AA gate convicted an ink that no stylesheet declares.
+
+    Measured 2026-10-25 on this machine at 1920/stitch-light with a requestAnimationFrame
+    sampler (one row per painted frame): #tp-validate's `color` ramped
+    rgb(23,33,43) -> 74,82,90 -> 187,190,193 -> 226,227,228 -> 251,251,252 -> rgb(255,255,255)
+    over ~230ms while its `background-color` faded from opaque white to transparent over the
+    brand gradient. One of those frames -- rgb(187,190,193) seen through a 29% white veil on
+    rgb(29,79,196) -- composes to 1.97:1. CI's Linux runner landed inside the same window and
+    named rgb(157,161,165) at 1.06:1 (stitch) and rgb(209,213,217) at 2.6:1 (ui2026). Those two
+    greys are exact linear blends of white with each theme's --text (#17212B at t=0.422 and
+    #152b3d at t=0.198, all three channels agreeing), and enumerating document.styleSheets found
+    only three `color` declarations matching the element -- all three white. That is why the
+    reading was never reproducible on Windows: the local sweep always arrived after the ramp
+    finished. The same commit, red only in the cloud, because the runner sampled a mid-frame.
+
+    The cause is one `transition` shorthand with no property list, i.e. `transition-property:
+    all`, on the four action-button classes. Both endpoints of the enabled/disabled swap clear
+    AA; only the frames between them fail, so the fix is to stop interpolating the ink and the
+    backdrop and keep the hover motion the rule was actually there for. The motion gate cannot
+    catch this: `color` and `background` are not layout properties, so it discloses the
+    `transition: all` count and declines to convict it -- contrast is a different ruler.
+    """
+
+    SELECTOR = r'\.ghost-btn,\.soft-btn,\.primary-btn,\.danger-btn'
+    #: Properties whose interpolation puts a colour on screen that no rule declares.
+    PAINTED = ('all', 'color', 'background', 'background-color')
+
+    def _button_block(self):
+        css = (ROOT / 'apps' / 'workbench' / 'style.css').read_text(encoding='utf-8')
+        bare = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
+        block = re.search(self.SELECTOR + r'\{([^}]*)\}', bare)
+        self.assertIsNotNone(block,
+                             'the four action-button classes lost their shared rule, so this '
+                             'guard is reading a stylesheet that no longer has one owner')
+        return block.group(1)
+
+    def _animated_properties(self):
+        block = self._button_block()
+        names = []
+        shorthand = re.search(r'(?<![-\w])transition:([^;]*)', block)
+        if shorthand:
+            for layer in shorthand.group(1).split(','):
+                tokens = [t.strip() for t in layer.split() if t.strip()]
+                # A layer may be `transition: 200ms` (no property -> all) or
+                # `transition: transform .2s ease`; the property is whichever token is not a
+                # time/easing/fraction.
+                named = [t for t in tokens
+                         if not re.match(r'^[\d.]+m?s$', t)
+                         and not t.startswith(('cubic-bezier', 'steps', 'ease', 'linear'))]
+                names.append(named[0] if named else 'all')
+        explicit = re.search(r'transition-property:([^;]*)', block)
+        if explicit:
+            names.extend(t.strip() for t in explicit.group(1).split(',') if t.strip())
+        return names
+
+    def test_the_action_buttons_do_not_animate_their_ink_or_their_backdrop(self):
+        names = self._animated_properties()
+        convicted = [n for n in names if n in self.PAINTED]
+        self.assertEqual(
+            convicted, [],
+            'the shared action-button rule animates %s, so switching between the enabled and '
+            'disabled ink paints every frame in between; the two endpoints clear AA and the '
+            'blend between them does not (see this class docstring for the measured ramp). '
+            'Full animated property list: %s' % (', '.join(convicted), names))
 
 
 if __name__ == '__main__':

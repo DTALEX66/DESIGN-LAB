@@ -1025,52 +1025,126 @@ async function measureBoth(page) {
   return m;
 }
 
-// The remote run convicted a row the local sweep never reached, so the sweep now walks one step
-// further than "a combination resolved": validate the target, then change the target, so the CTA
-// sits in its stale wording -- the exact state the CI runner measured. A state that only one
-// platform happens to reach is not a tested state; it is a gap with a green badge on it.
+// The remote run convicted a row the local sweep never reached, so the sweep walks one step
+// further than "a combination resolved": finish a real validation, then move to a DIFFERENT
+// profile, so the CTA sits in its dirty wording -- the exact state the CI runner measured.
+// A state only one platform happens to reach is not a tested state; it is a gap with a green
+// badge on it. The first version of this walk asked each picker for "at least three options",
+// which is not a move: with a combination already resolved, tp-agent holds only the empty
+// option and tp-entry / tp-model / tp-task-mode each hold exactly one usable value, so the
+// loop changed nothing and the local row kept printing the clean wording. The judge is now
+// the profile key the page itself publishes in 唯一对应档案 <key>, so "I changed the target"
+// means "the target is a different one", not "I selected something".
+const STALE_WORDING = '按新目标重新校验';
+
 async function openStaleValidationState(page, key, problems) {
   const btn = page.locator('#tp-validate');
   if (await btn.count() !== 1) {
     problems.push(`${key}: 页面上没有 #tp-validate，重校验态进不去`);
     return false;
   }
-  if (await btn.isEnabled()) {
-    await btn.click().catch(() => false);
-    await page.waitForFunction(() => {
+  // 先把一次真实校验走完。#tp-verdicts 出现子节点是「服务端 verdict 落地」的页面信号，
+  // 比读文案稳；没有这一步，脏文案可能只是从未校验过的初始句，而不是「校验过、又被换掉」
+  // 的那一态——远端点名的正是后者。
+  if (await btn.isEnabled()) await btn.click().catch(() => false);
+  const validated = await page.waitForFunction(() => {
+    const host = document.getElementById('tp-verdicts');
+    const b = document.getElementById('tp-validate');
+    return !!b && !b.disabled && !!host && host.children.length > 0;
+  }, null, { timeout: 25000 }).then(() => true).catch(() => false);
+  if (!validated) {
+    const why = await page.evaluate(() => {
+      const e = document.getElementById('tp-verify-error');
       const b = document.getElementById('tp-validate');
-      return !!b && b.textContent.trim() === '按这个目标重新校验';
-    }, null, { timeout: 20000 }).catch(() => false);
+      return `verify-error=${e ? e.textContent.trim() : '节点缺失'} `
+        + `text=${b ? b.textContent.trim() : '节点缺失'} disabled=${b ? (b.disabled ? 1 : 0) : 'n/a'}`;
+    });
+    problems.push(`${key}: 校验没有产出任何 verdict，「校验过再换目标」这一态进不去（${why}）`);
+    return false;
   }
-  for (const id of ['tp-task-mode', 'tp-model', 'tp-entry', 'tp-agent']) {
+
+  const readProfile = () => page.evaluate(() => {
+    const c = document.getElementById('tp-combination');
+    if (!c) return { mode: '节点缺失', profile: '' };
+    const hit = /唯一对应档案 (\S+?)（/.exec(c.textContent || '');
+    return { mode: c.dataset.mode || '', profile: hit ? hit[1] : '' };
+  });
+  const before = await readProfile();
+
+  let moved = null;
+  for (const id of ['tp-software', 'tp-model', 'tp-entry', 'tp-task-mode', 'tp-agent']) {
     const select = page.locator('#' + id);
     if (await select.count() !== 1) continue;
-    if (await select.locator('option').count() < 3) continue;
-    const current = await select.inputValue();
     const values = await select.locator('option').evaluateAll((os) => os.map((o) => o.value));
-    const other = values.find((v) => v && v !== current);
-    if (!other) continue;
-    await select.selectOption(other);
-    break;
+    for (const value of values.filter((v) => v)) {
+      if (value === (await select.inputValue())) continue;
+      await select.selectOption(value);
+      await page.waitForFunction(() => {
+        const b = document.getElementById('tp-validate');
+        return !!b && !b.disabled;
+      }, null, { timeout: 15000 }).catch(() => false);
+      const after = await readProfile();
+      if (after.mode === 'target' && after.profile && after.profile !== before.profile) {
+        moved = { id, value, from: before.profile, to: after.profile };
+        break;
+      }
+    }
+    if (moved) break;
   }
-  // Measure whatever state the change actually produced and name the key after it. Requiring one
-  // wording would turn "I could not reach that state" into a red the reader misreads as a
-  // regression in the UI; the wording and the disabled flag are printed instead, so the row says
-  // what it measured and the unreachable case stays visible as coverage, not as a false failure.
-  await page.waitForTimeout(1200);
+  if (!moved) {
+    problems.push(`${key}: 五个轴都试过了，档案号没有从「${before.profile || '未唯一'}」换到另一份，`
+      + '脏文案那一态没有被真正走到，这一行的配色无人认领');
+    return false;
+  }
+
+  const dirty = await page.waitForFunction((want) => {
+    const b = document.getElementById('tp-validate');
+    return !!b && b.textContent.trim() === want;
+  }, STALE_WORDING, { timeout: 15000 }).then(() => true).catch(() => false);
+
+  // The convicted reading was an ink that no rule declares, so the receipt has to name both the
+  // colour and the rules that could own it, plus the transition property that can put a frame of
+  // something else on screen between two AA-legal pairings.
   const seen = await page.evaluate(() => {
     const b = document.getElementById('tp-validate');
     if (!b) return null;
     const cs = getComputedStyle(b);
+    const owners = [];
+    for (const sheet of Array.from(document.styleSheets)) {
+      let rules;
+      try { rules = sheet.cssRules; } catch { continue; }
+      if (!rules) continue;
+      for (const rule of Array.from(rules)) {
+        if (rule.type !== 1) continue;
+        const decl = rule.style && rule.style.getPropertyValue('color');
+        if (!decl) continue;
+        let hits = false;
+        for (const part of String(rule.selectorText).split(',')) {
+          try { if (b.matches(part.trim())) { hits = true; break; } } catch { /* unmatchable */ }
+        }
+        if (hits) owners.push(`${rule.selectorText}{color:${decl}}`);
+      }
+    }
     return { text: b.textContent.trim(), disabled: b.disabled, color: cs.color,
-             bg: cs.backgroundImage === 'none' ? cs.backgroundColor : 'image' };
+             transition: cs.transitionProperty,
+             bg: cs.backgroundImage === 'none' ? cs.backgroundColor : cs.backgroundColor
+               + ' + ' + cs.backgroundImage.slice(0, 34),
+             owners };
   });
   if (!seen) {
     problems.push(`${key}: 换了目标之后 #tp-validate 不在页面里，这一态仍未被量到`);
     return false;
   }
-  console.log(`  STALEROW ${key} text=${seen.text} disabled=${seen.disabled ? 1 : 0} `
-    + `color=${seen.color} bg=${seen.bg}`);
+  console.log(`  STALEROW ${key} moved=${moved.id}->${moved.value} `
+    + `profile=${moved.from}=>${moved.to} text=${seen.text} disabled=${seen.disabled ? 1 : 0} `
+    + `color=${seen.color} transition-property=${seen.transition} bg=${seen.bg}`);
+  console.log(`  STALEOWNER ${key} rules=${seen.owners.length} `
+    + `[${seen.owners.join(' | ')}]`);
+  if (!dirty) {
+    problems.push(`${key}: 档案已经从 ${moved.from} 换成 ${moved.to}，`
+      + `但按钮没有停在「${STALE_WORDING}」，实测文案是「${seen.text}」`);
+    return false;
+  }
   return true;
 }
 
