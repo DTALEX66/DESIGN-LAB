@@ -674,6 +674,29 @@ async function openPlanCompare(page, key, problems) {
   return settled;
 }
 
+// The last "only exists after an action" panel on these screens: a recorded piece of external
+// feedback and its read-back row. Filled with the fewest fields the form accepts and a name that
+// says out loud it is scaffolding -- a gate row is not a human sign-off, and the panel must not be
+// able to read like one later.
+async function openFeedbackState(page, key, problems) {
+  const word = await page.locator('#as-fb-outcome option').nth(1).getAttribute('value');
+  await page.selectOption('#as-fb-outcome', word ?? '');
+  await page.fill('#as-fb-target', '闸门合成：秋季主视觉在客户会上放过一次');
+  await page.fill('#as-fb-actor', '审计脚手架（合成，不是真人签署）');
+  await page.click('#as-fb-save', { timeout: 20000 });
+  const settled = await page.waitForFunction(() => {
+    const history = document.getElementById('as-fb-history');
+    const status = document.getElementById('as-fb-status');
+    return !!history && history.querySelectorAll('li').length >= 1 && !!status
+      && !/正在|失败/.test(status.textContent || '');
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 记录一条合成外部反馈后没有读回历史行（按钮按不动、被拒或列表为空），`
+      + '这一态的配色无人认领');
+  }
+  return settled;
+}
+
 async function openCombinationState(page, key, problems) {  for (const id of ['tp-software', 'tp-agent', 'tp-entry', 'tp-model', 'tp-task-mode']) {
     const select = page.locator('#' + id);
     if (await select.count() !== 1) continue;
@@ -751,6 +774,8 @@ for (const w of widths) {
       if (opened) absorb(`${w}:assistant+plan-detail`, await page.evaluate(MEASURE));
       const compared = await openPlanCompare(page, `${w}:assistant+plan-compare`, controlBad);
       if (compared) absorb(`${w}:assistant+plan-compare`, await page.evaluate(MEASURE));
+      const fed = await openFeedbackState(page, `${w}:assistant+plan-feedback`, controlBad);
+      if (fed) absorb(`${w}:assistant+plan-feedback`, await page.evaluate(MEASURE));
     }
     if (name === 'knowledge') {
       // Same rule for the entry detail: it is a named state of its own, and a panel that never

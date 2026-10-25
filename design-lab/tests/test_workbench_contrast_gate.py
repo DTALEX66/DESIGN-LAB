@@ -210,6 +210,7 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         recorded = json.loads(report_path.read_text(encoding='utf-8'))
         wanted = ['%s:assistant+plan-detail' % w for w in WIDTHS.split(',')]
         wanted += ['%s:assistant+plan-compare' % w for w in WIDTHS.split(',')]
+        wanted += ['%s:assistant+plan-feedback' % w for w in WIDTHS.split(',')]
         wanted += ['%s:knowledge+entry-detail' % w for w in WIDTHS.split(',')]
         wanted += ['%s:target-profiles+combination' % w for w in WIDTHS.split(',')]
         missing = [k for k in wanted if k not in recorded.get('routes', {})]

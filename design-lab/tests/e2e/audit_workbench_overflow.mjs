@@ -466,6 +466,28 @@ async function openPlanCompare(page, key, problems) {
 // Choose a target the way the screen asks. The settled mark is the panel's own state flag
 // (#tp-combination's data-mode reaches 'target' only when a real profile resolves), not "some text
 // appeared" -- an honest empty answer also has text.
+// The last "only exists after an action" panel here: one recorded piece of external feedback and
+// its read-back row. Fewest fields the form accepts, and a name that says out loud it is
+// scaffolding -- a gate row is not a human sign-off and must not be able to read like one later.
+async function openFeedbackState(page, key, problems) {
+  const word = await page.locator('#as-fb-outcome option').nth(1).getAttribute('value');
+  await page.selectOption('#as-fb-outcome', word ?? '');
+  await page.fill('#as-fb-target', '闸门合成：秋季主视觉在客户会上放过一次');
+  await page.fill('#as-fb-actor', '审计脚手架（合成，不是真人签署）');
+  await page.click('#as-fb-save', { timeout: 20000 });
+  const settled = await page.waitForFunction(() => {
+    const history = document.getElementById('as-fb-history');
+    const status = document.getElementById('as-fb-status');
+    return !!history && history.querySelectorAll('li').length >= 1 && !!status
+      && !/正在|失败/.test(status.textContent || '');
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 记录一条合成外部反馈后没有读回历史行（按钮按不动、被拒或列表为空），`
+      + '这一态的几何无人认领');
+  }
+  return settled;
+}
+
 async function openCombinationState(page, key, problems) {
   for (const id of ['tp-software', 'tp-agent', 'tp-entry', 'tp-model', 'tp-task-mode']) {
     const select = page.locator('#' + id);
@@ -566,7 +588,15 @@ for (const w of widths) {
       // Same rule for the plan detail: open it, wait for the reads that only land once the panel is
       // assembled (the shot rows and the served material formats -- not "every status line has
       // text", which an honest empty note would fail forever), then measure it as its own state.
-      await page.locator('#as-list .as-plan-open').first().click();
+      // A missing row is a fact the report states, not a crash the run dies on: an uncaught
+      // timeout here hides what the screen said and makes the next reader re-instrument the gate.
+      const planRow = page.locator('#as-list .as-plan-open').first();
+      if (await planRow.count() !== 1) {
+        const said = await page.locator('#as-list-meta').innerText().catch(() => '(读不到 #as-list-meta)');
+        interactionMissing.push(`${w}:assistant+plan-detail 的方案清单里没有可点开的行，`
+          + `屏上写的是「${said}」`);
+      } else {
+      await planRow.click();
       const planSettled = await page.waitForFunction(() => {
         const host = document.getElementById('as-plan');
         if (!host || host.querySelector('.view-loading')) return false;
@@ -589,6 +619,14 @@ for (const w of widths) {
           /失败|没有可读的修订/.test(document.getElementById('as-compare-status')?.textContent ?? '')
             ? 'refused' : 'read'));
         absorbPanel(`${w}:assistant+plan-compare`, panel);
+      }
+      if (await openFeedbackState(page, `${w}:assistant+plan-feedback`, interactionMissing)) {
+        const panel = await page.evaluate(MEASURE);
+        panel.state = await page.evaluate(() => (
+          /失败|未读回/.test(document.getElementById('as-fb-status')?.textContent ?? '')
+            ? 'refused' : 'read'));
+        absorbPanel(`${w}:assistant+plan-feedback`, panel);
+      }
       }
     }
     if (name === 'target-profiles') {

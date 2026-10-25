@@ -275,7 +275,8 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         measured_widths = [w.strip() for w in WIDTHS.split(',') if w.strip()]
         absent = ['%s:%s' % (w, panel) for w in measured_widths
                   for panel in ('knowledge+entry-detail', 'assistant+plan-detail',
-                                'assistant+plan-compare', 'target-profiles+combination')
+                                'assistant+plan-compare', 'assistant+plan-feedback',
+                                'target-profiles+combination')
                   if '%s:%s' % (w, panel) not in report['routes']]
         self.assertEqual(absent, [],
                          'these panel states were never geometry-checked, so their layout is '
