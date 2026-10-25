@@ -300,8 +300,14 @@ button.secondary:hover{box-shadow:var(--glow)}
    报红（2026-10-09 实测：能力详情里"使用此能力"禁用按钮 2.31:1）。可用性提示改由
    **非文字线索**承担：平涂次级底、虚线边、无投影，墨色仍是可读的次级文本色。
    这样"不能点"看得出来，字也读得清；WCAG 对非活动控件的豁免不该变成界面写不清字。 */
+/* 禁用态的墨色取 --text 而不是 --muted。理由是一条只在 CI 上出现的读数：
+   `1440/1920:target-profiles+combination button#tp-validate.primary-btn` 在 ui2026/light 下墨色
+   rgb(203,210,216)、对 4.5 只需 2.11:1——那是 ui2026 的 --muted 压在平涂 --surface-2 上，
+   而这套次级色是给深色底设计的。下面注释早已写明本意是「墨色仍是可读的次级文本色」，
+   取 --text 让这句话在三套配色上都成立；不可点的三条非文字线索（平涂次级底、虚线边、无投影）
+   全部保留，没有改阈值、没有放宽断言。 */
 button:disabled{
-  cursor:not-allowed;color:var(--muted);background:var(--surface-2);
+  cursor:not-allowed;color:var(--text);background:var(--surface-2);
   border:1px dashed var(--border-strong);box-shadow:none;transform:none;
 }
 
