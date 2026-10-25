@@ -263,16 +263,30 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('src/design_lab/interop/dtcg.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-25, one new pair, and it is a record bound to a test module rather than to
+            # product code: r5-workbench-http-native-ui-reobserved-20261006 hashes
+            # design-lab/tests/test_design_layer_http.py as its artefact, and this round added
+            # `test_unknown_project_id_answers_404_with_the_established_word` to that module after
+            # proving the route previously answered a well-formed-but-absent project id with no
+            # status line at all (http.client.RemoteDisconnected). The older 2026-10-06 observation
+            # is not rewritten -- it stays what it saw -- and this line is what makes its age
+            # visible instead of letting the newer bytes silently absorb it. Re-measured at this
+            # HEAD against the 64 pinned before this line: observed 65 pairs, broken=0, and the
+            # only difference was this artefact; no pair vanished and no existing count moved.
+            ('design-lab/tests/test_design_layer_http.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 64,
+        self.assertEqual(sum(counts.values()), 65,
                          'the total drifted-record count is pinned, not derived '
                          '(59 -> 60 on 2026-10-19: the gate module aged its own binding record; '
                          '60 -> 64 on 2026-10-23: four records aged when their bound code moved to '
-                         'repo_resource so an installed wheel can open its own contracts)')
+                         'repo_resource so an installed wheel can open its own contracts; '
+                         '64 -> 65 on 2026-10-25: one record aged when a 404 test was added to the '
+                         'HTTP module it hashes)')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
         ledger = copy.deepcopy(_ledger())
