@@ -1,0 +1,6 @@
+BROWSER_E2E[test_workbench_theme_affordance_gate] ran=1 skipped=0 failed=0
+BROWSER_E2E[test_workbench_ui_audit_gate] ran=1 skipped=0 failed=0
+BROWSER_E2E[test_workbench_motion_gate] ran=1 skipped=0 failed=0
+BROWSER_E2E[test_workbench_preflight_handoff_e2e] ran=1 skipped=0 failed=0
+BROWSER_E2E ran=17 skipped=0 failed=0
+BROWSER_E2E: PASS (ran, no-skip, no-skip policy satisfied)

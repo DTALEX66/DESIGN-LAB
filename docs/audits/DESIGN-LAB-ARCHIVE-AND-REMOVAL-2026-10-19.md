@@ -2095,3 +2095,80 @@ label 是 wrapper。直接量 label 的盒子时，它的底边在控件之下�
 `currentExecution` 50 项直方图不变（34 `FROZEN_DEFERRED` / 13 `DONE` / 2 `PARTIAL` / 1 `NOT_STARTED`），
 `DL-KB-06` 状态未动，旧 34 项一项未解冻。owner 未裁项不变：150 KB 上限、顶栏吸顶、标题阶梯、
 勾选框标签是否纳入「标签在上方」、hover 墨色跟不跟着翻。
+
+### 5.56 「吸收未落地」按职责判定：落地六件、删 25 个死 token、把普查闸的人口补全
+
+**判据被 owner 纠正过一次，纠正本身改变了结论。** 我起初用「有没有引用」判有用没用，被指出
+**「有用没用的判定不是有没有引用，是对项目还有没有用」**。改成按职责判：去掉它，项目能证明的
+或能对外的承诺会不会变少。变少就是有用，哪怕零引用；既不证明也不承诺、且已有别的主人，才谈得上删。
+这条纠正不是修辞——按旧判据我会删掉 `model_radar.resolve()`，而它是 AGENTS.md 那句「零 checksum、
+许可冲突、模型不存在或硬件不足时 runtime resolver 必须 fail closed」的唯一承担者。
+
+**落地六件，每件都有改前/改后实测。**
+① `GET /api/projects/<32hex>` 未知 id 改前实测 `http.client.RemoteDisconnected`——连接无响应被关闭，
+在 `fetch` 眼里与"服务挂了"同形。原 handler 只有 `if project is not None` 一条分支。现在 404
+`PROJECT_NOT_FOUND`，与 7 个兄弟模块同词；两种 404 分开钉（畸形 id 由路由模式拒、合法但不存在由
+handler 拒），因为把它们混成一条期望会让"对一切返回 404 的 handler"也过关。
+② `drain_body` 注释承诺"任何失败在这里都被忽略"，代码里没有 `try`；读超时在 `except` 处理器内再次
+抛出，逃出到 `handle_one_request`——恰好重现这个 helper 存在的目的就是要消除的 10053。
+③ `MAX_QUERY = 200` 声明在模块作用域、没有任何代码读它，所以界只存在于源码文本里：调用方可以把
+一份文档当查询粘进来，而本方法会为它在每个字段的每个已存修订上做 contains 扫描。现真拒绝
+`KNOWLEDGE_QUERY_TOO_LONG`，且恰好 200 字符合法——界不是墙。
+④ `KNOWLEDGE_OFFSET_INVALID` 与 `KNOWLEDGE_LIMIT_INVALID` 被这个路由自己的合同行承诺，**全仓零测试**。
+承诺了却没被测的拒绝码不是合同。三条一起钉住，各按触发值类（负数／非整／bool／超上限）。
+⑤ `test_workbench_preflight_handoff_e2e` 存在、本地 2.039s 通过，却既不在 no-skip 注册表也不被任何
+workflow 步骤点名：**CI 从没执行过这把浏览器尺**，而该注册表的注释写的正是"未登记的浏览器套件会
+永远静默 skip 而没有 finding"。登记前先把它自带的 `_browser()`——只 glob `$HOME/AppData/Local/ms-playwright`
+的 `chrome-win*/chrome.exe`，Linux 上返回 None——换成其余七把尺共用的跨平台发现函数；登记之所以安全，
+是因为注册表自己会 `setdefault('E2E_NODE_MODULES', apps/workbench)`。复跑 `BROWSER_E2E ran=17 skipped=0 failed=0`。
+⑥ `test:unit` 直跑已提交的 `build/main.js`，所以改完 `shell.ts` 在本地跑测试，绿的是改前字节。现在
+脚本内先 `vite build`（pnpm 在本仓不跑 pre/post 钩子，写成 `pretest:unit` 等于没写）。重建后 bundle
+**零漂移**，node 三套测试全过。
+⑦ 另两处"说了没做"：`verify_fresh_clone.py` 刚问完 `shutil.which('uv')` 并把结果印在同一行，下一句
+就无条件写 `uv is absent`；聚合链用 `sys.executable` 派生子进程，所以同一提交在 `.venv` 下 `failed=0`、
+在裸解释器下 `failed=29`——29 条凭空捏造的产品回归。后者现在拒绝并点名解释器与不可导入的声明依赖，
+需要哪些依赖仍从 `pyproject.toml` 读，不在这里重复一份。
+
+**删与迁：先补机制，再删东西。** 清扫出 **25 个**无任何 `var()` 读、也无产品源码／闸门／测试／schema／
+包内按名断言的自定义属性（`--blur --bp-{desktop,tablet,mobile} --density-* --error --info --font-*
+--motion-emphasis --radius-{sm,xl} --space-* --color-info`），27 行声明、593 字节，
+`style.css` 121,964 → 121,371。它们残余的出现处只有两处：它来源的 B07 参考语料，和一份**记录它们
+没被用**的债清单——把这两类当消费者，是我只删到 14 个的原因。
+真正防复发的是把普查闸的**人口**补全：既有 CONSUMPTION 检查只看包点名的 `--uif-*` 字段，所以整族死
+声明一直在它视野外——**覆盖率闸永远只证明它自己携带的那张表**。新规则枚举全部声明属性，例外交给已有
+的 `SPEC_PROVENANCE` 判定，不手抄 allowlist（那等于给同一事实配第二个主人）。
+无界列表路由同样从"打印一个数"升级成"钉一张登记面"：18 条带列表的 GET 路由里 **9 条无界**，逐条写
+理由与代价；新增第十条即红，**绑好了却不摘牌也即红**（静默修好的洞，下一个人会原样继承）。
+
+**分页不是附件那条的修法，这条要写清楚以免被当成偷懒。** 实测 200 张 47,160 B 附件时服务端 199.59 ms，
+其中 **59.0% 是逐行 `checked_path`+`stat`、30.5% 是两次图像解码、只有 2.4% 是哈希**。成本来自每行重校验，
+不来自行数；而 `width/height/media_type` 没有落库，真正的修法是在写入时物化它们——那是带迁移、precheck
+与合同行的 state-schema 改动。用切片把列表截断看着像进步，毫秒数一毫秒不会少，还会让"附件多于 N 张"
+在界面上不可见。
+
+**保留但零引用、删了就丢承诺的，点名记账。** `model_radar.resolve()/radar_report()`（fail-closed 承诺的
+承担者；零生产消费者只说明本机没有加载模型的 runtime，而模型部署是冻结项）；`workflow_provider` /
+`remote_provider` / `audio_provider` / `comfy_*` / `packages/capabilities/reconstruction/*`（对外版本化公共
+合同面，且被 verify 链守着）；`vendor/` 39 件 manifest 与 `docs/history/**`（AGENTS.md 定为惰性资料，
+职责是出处与对标基线）；8 个未被 UI 读的 `--uif-*`（由 `SPEC_PROVENANCE` 承担包值出处职责）。
+**该并但本轮没并**：五份手写 CSS 花括号扫描器——功能重复，但每份的豁免清单与断言面不同，合并必须逐个
+证明输出集不丢，不是改名就能并。
+
+**我自己的仪器错误四条，如实入账。** ① 清扫第一遍把文档/证据里的名字当消费者，只删 14 个；
+② 普查闸初版复用 `declarations()`（正则只匹配 `--uif-*`），对任何其它名字恒返回空 = **恒真即假断言**，
+植一个 `--space-dead-99` 当场暴露；③ 404 测试连错两次 id 形状（64 位十六进制、`p-` 前缀都不匹配
+`([0-9a-f]{32})`），差点把"兄弟模块用词不一致"当成结论；④ 登记预检套件时锚点行没重出，等于把
+`test_workbench_motion_gate` 从元组里删掉，靠 `git diff` 只显示「+1 条、0 删除」才发现，并用 AST 复核
+元组=8 项、前 7 项俱在。另外：删掉 `--info` 会让它作为唯一读者的身份消失，`--color-info` 随之成孤儿，
+所以清扫必须**迭代到不动点**（第 2、3 遍各 0 删除）；而我为"理由必须实质"写的 40 字规则，逮到了我自己
+写的填充条目 `_list_research`（31 字）——规则能咬到作者，说明它不是装饰。
+
+**账。** `evidence` 291 → **292**（新行 `kb-13-loop-closure-and-css-token-register-20261025`，
+`subject_sha=b8ac53dc`，回执 8,593 字节、`sha256=d7f863ac…`，append 前已证明 JSON 往返逐字节相同）；
+`currentExecution` 50 项直方图不变（34 `FROZEN_DEFERRED` / 13 `DONE` / 2 `PARTIAL` / 1 `NOT_STARTED`）。
+**`DL-KB-13` 仍 `PARTIAL`，且两处都不是工程缺口**：150 KB 上限要 owner 裁定，无指导真人任务要真人。
+复测：聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`（清扫后与登记后各一次）；CSS 清扫后对比度复跑
+`checked=16258 belowAA=0 controlMisses=0 unparsable=0`；单元 44+110+21+19+21+9 OK，
+`TEST_SELF_SUFFICIENCY=OK modules=259 violations=0`；`KNOWLEDGE_SEARCH_P95_MS=34.7 budget=300`。
+owner 未裁项不变：150 KB 上限、顶栏吸顶、标题阶梯、勾选框标签、hover 墨色，新增一件：
+`_list_prompt_results` 是否套用仓内已有的 `PAGE_LIMIT=100` 信封（它是最接近能直接落地的一条）。
