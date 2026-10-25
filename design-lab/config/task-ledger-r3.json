@@ -12460,6 +12460,18 @@
         "exit_code": 0,
         "observed_at": "2026-10-25T15:42:00Z",
         "command": "SHIPPED opt-in motion layer —— see the artifact; the row records measurement of bytes, not a human or model acceptance."
+      },
+      {
+        "id": "kb-06-brand-guard-vector-truth-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T16:22:00Z",
+        "subject_sha": "14959a3df0fed6cedb99d97250b43b3bbf21331f",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-brand-guard-vector-truth-20261026.json",
+        "artifact_sha256": "dcd656bb0a07291db2708bf98449e86824350a26174ad8f87087bffcd2ac6486",
+        "exit_code": 0,
+        "command": "追正 §5.59 的过早绿 + 把三处品牌尺迁到矢量真值 —— 见工件；本行记录的是测量与断言修复，不是真人验收。"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

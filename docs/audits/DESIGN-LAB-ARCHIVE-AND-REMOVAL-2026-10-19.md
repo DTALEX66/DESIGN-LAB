@@ -2392,3 +2392,56 @@ pixi.js 226KB 与 lottie-web 76.8KB 因体积/维护不引入；react-bits 与 m
 三把用例里的任意一把都会在 `test_workbench_contrast_gate` 上直接红；UIKIT 那三枚被"登记项消失即红"咬住，
 `motion.ts` 被默认 static 与 reduced-motion 退回咬住——谁把它改成默认开启、或让入场原语用上 `opacity`，
 重蹈的就是 §5.55 那帧谁都没写过的中间态灰。
+### 5.61 我把上一轮的"绿"报早了：换 logo 的那次改动在精确 SHA 的 PR 跑里是红的，红在两处同源的工具债
+
+**先追正自己的一条断言。** §5.59 末尾我写了"run `40191207017`（head `bdaf4883`）`conclusion=success`"
+来结上一轮欠的 CI 账。那个 SHA 是**换 logo 之前**的提交。真正的 logo 提交是 `e297f967`，它落进
+`54931d74` 之后，`pull_request` 事件的那一趟跑的是 **两个作业红**：`Python gate`（分片 3/3，
+`outcomes={'ERROR': 1, 'FAIL': 3, 'PASS': 1118, 'SKIP': 3}`，点名 4 条
+`test_workbench_brand_asset.*`）与 `Workbench browser E2E`（逐字
+`OV_BRAND_BROKEN 1440/1280/1536/1920: the mark decoded as no-data-uri, not 144x144`）。
+拿前一个 SHA 的绿当后一个变更的结论，是断言错位，不是笔误——所以这一节先把它写死：**换 logo 那一轮
+当时没有 CI 证据。**
+
+**两条红的根因是同一次半途迁移。** 素材从 144×144 的 PNG 镂空件换成 owner 的矢量件之后，仍有三处
+尺子按位图真值断言：`design-lab/tests/test_workbench_brand_asset.py`（4 个用例：找
+`data:image/png;base64`、要 `naturalWidth×naturalHeight == 144x144`、要白字、要四边留白、要
+`var(--glow)` 的光晕）、`design-lab/tests/e2e/audit_workbench_overflow.mjs` 的品牌探针，以及
+`design-lab/tests/test_workbench_overflow_gate.py:315` 的 python 侧读者——**一条规则在两个 realm 各写
+了一份**，所以一次红变成两个作业红。本地没抓到的原因很具体：那个测试模块**不在 76 门聚合的名单里**，
+`VERIFY_DESIGN_LAB=OK` 从来不代表它跑过。
+
+**修法是把断言指向现在真在画的东西，而且是更严不是更松。** 位图那三条职责（是图形不是矩形、只有一种
+油墨、几何没被重新解释）由矢量这组承担：data URI 能在浏览器里解码成图、是 `<svg` 文档、`<path>` 条数
+恰好 **2**（单标 = D + 星芒；第三条意味着切分图形色带与文字色带的那一刀动了）、两枚编码各自只带
+**一种**品牌墨（默认 paper `#EEF2F5`，浅色翻 ink `#17212B`）且**除 fill 之外逐字节相同**、`viewBox`
+与被跟踪文件相同、`--brand-mark` 默认必须是 paper、图形旁边的字标仍是文本 `DESIGN-LAB`、图形自身
+`aria-hidden=true` 且不带文字、盒子是声明的 **22×22**（收起的轨道 0 尺寸合法，跳过）。
+
+**顺手抓到两处"为错误的原因而红/绿"的断言形状**，这两条比表面更值得记：
+① `render_brand_asset.py --check` 的素材路径是函数内硬编码的，测试 monkeypatch 的是模块常量
+`PNG_PATH`——也就是说 `test_a_missing_asset_is_a_failure_not_a_pass` 测的**根本不是"素材缺失"**，
+它把没人读的那个常量指向了不存在的文件，于是 `--check` 照旧读磁盘上的真件并 exit 0。现在
+`MARK_PATH` 提成模块级可注入常量，`_check` 把检查器实际读的三个路径一起换。
+② `test_a_stale_digest_claim_is_caught` 把**已退役的 PNG** 当被验对象喂进去——它也 exit 1，
+但理由是"css 声称的摘要不是这个 png 的"，而不是它名字说的"摘要声明过期"。为错误原因通过的断言
+比失败的断言更危险，因为它会一直绿到被验对象消失。
+③ 该模块不再 `import numpy / PIL`：矢量真值不需要位图解码，顺手把它的依赖面缩回标准库
+（§5.57 那条教训的反向应用——尺子的依赖面不能大于它所在作业的装机面）。
+
+**本轮实测读数。** 改前：`test_workbench_brand_asset` 15 条里 **4 条红**（本机复现，与 CI 同形，
+所以这次不需要等远端）。改后：**16 条 OK**（净增 1 条，即新增的"两枚编码除 fill 外相同"那把）。
+`test_workbench_overflow_gate` 本机全量 **4 条 OK**，耗时 389.7s，四宽度（1440/1280/1536/1920）的品牌
+读数是 `{'loads': True, 'svg': True, 'paths': 2, 'fills': ['#EEF2F5']}`，`uriChars` 与 22×22 盒同样过；
+`ConnectionAbortedError WinError 10053` 是那条**已知的**服务侧读中断（`drain_body` 那一族，§5.56 已处理）
+在 unittest 输出里的回显，不参与判定。聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+`expected_tests` 不是钉住的常数（`run_python_tests_all.py:126` 从发现的 id 集合现算），所以本轮用例
+净增一条不需要动任何计数钉。
+
+**这条断言会咬在哪里。** 三个 realm 现在各自读同一种真值：若有人再把素材换形状（svg→png、或
+`--brand-mark` 重新去吃 `currentColor`），node 探针与 python 读者会**同时**红，不再是一个绿一个红；
+若有人把 `MARK_PATH` 再改回函数内硬编码，缺失件那条会立刻从"能红"退回"恒绿"，而这次有名字可以查。
+
+**仍未结清的账（不写成已结）。** `54931d74` 那一趟 PR 跑的 3352 并集与 17 门浏览器清单，覆盖的是
+**换 logo 之后、本轮修复之前**的字节；本轮 `14959a3d` 推上去之后要按精确 SHA 重读一次矩阵，
+读到什么写什么，不拿本机绿代替云端绿。
