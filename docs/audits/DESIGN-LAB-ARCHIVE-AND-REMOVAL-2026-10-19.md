@@ -2237,3 +2237,53 @@ strict-TS 是 **node 作业，不装任何 Python 第三方包**（workflow 里�
 **账。** 代码 `9d4a17ca`；`evidence` 293 → **294**（`kb-13-drift-inventory-repin-20261025`，轴 `unit`，
 `subject_sha=9d4a17ca`，回执 2,577 字节、`sha256=8bc5e031…`）；直方图不变
 （34/13/2/1），`DL-KB-13` 仍 PARTIAL。远端仍以再次推送后的 exact-SHA 作业为准。
+
+### 5.59 品牌件流水线有、消费者没有：把 owner 的矢量标接上界面，并顺手结清一笔欠账
+
+**owner 的要求是一句话：把项目 LOGO 换上去（名称 DESIGN），来源 `D:/All projects/矢量LOGO`。**
+查下来的真实缺口不是"图不对"，而是**这条流水线没有消费者**：`design-lab-mark.png` 只被它自己的生成脚本
+和二进制清单引用；AppShell 导航头是纯文字 `DESIGN-LAB`；CSS 里给了 48px 的 `.brand-mark`，但它挂在
+`shell.ts:9606` 那段**被注释掉的旧版侧栏**里，实测 `rect` 是 0×0；唯一真在画的槽位是旧版页头那枚 52px
+`.mark`。所以"换 logo"必须同时做四件事：素材入库、导航槽位挂上、浅色主题翻墨色、**以及把守着位图
+管线的闸门一起改**——最后这件最容易漏，漏了就留下一把永远校验废弃资产的死闸。
+
+**切带不能手解路径，两次失败都在这。** ① 正则抓 `d="..."` 把 17 条抓成 **18** 条（多一条空路径），
+于是"单标"只剩那条空的；② 按坐标奇偶配对 x/y 在 Illustrator 混合绝对/相对命令、每条命令参数个数不同
+的前提下毫无意义，第一版因此产出 `viewBox` 4×4 的**不可见图形**——而数字看起来完全正常。改成让
+Chromium 解析源文件、逐条读 `getBBox()`：17 条非退化路径，在 **20.97px** 的垂直间隙处切开 → 单标 2 条
+（D + 星芒，框 `76.41,26.96 → 232.63,178.93`，160.22×155.97）、文字带 15 条。第三个错是 `viewBox`
+平移符号写反（把 `(left,top)` 移到原点的 min-x 应是 `left-pad`，我写成 `-left+pad`，内容被推到视口外）
+——**同样是靠渲染暴露的，不是靠读数字**。
+
+**接法与两处如实的未验证。** 导航头在文字左侧加 22px 单标，文字仍是可访问名、图形 `aria-hidden`。
+`--brand-mark` 改成同一矢量的两枚编码（`paper #EEF2F5` 给炭黑默认，`ink #17212B` 给 `ui2026/light`
+与 `stitch/light`），因为 `background-image` 不吃 `currentColor`，而 CSP 是 `img-src data:` 且
+`workbench.py` 只服务固定三条路径——开资源路由要同时放宽两者，那是 owner 的安全决定，不是便利。
+未验证的两件写清楚：应用自身的**主题控制器会在启动后重写 `data-palette`**（探针注入的值被改回
+`design-lab`），且落地视图上**没找到可点的主题控件**（`clicked=null`）。所以"浅色翻转渲染正确"已证
+（强制属性后 nav 底 `rgb(255,255,255)`、字色 `rgb(53,107,146)`、深墨标压白底），
+"**用户从当前视图一步切到珍珠白**"未证——那是 STITCH 施工单里主题入口的活，不由本条冒充完成。
+
+**闸门跟着素材走，并且它先冤枉了一次好人。** `render_brand_asset.py --check` 改为校验矢量真值
+（digest、两枚 fill、路径条数、默认变体、两个浅色是否都 opt-in）。它第一次运行报
+`only 1 light palette(s) opt into the ink glyph`——读回 CSS 才发现是**检查器多减了 1**，样式表是对的。
+修检查器，不修被它冤枉的 CSS。
+
+**又一次"我改的东西让别的记录变旧"。** `verify_projection_freshness` 抓到：新规则带来 4 个字面 px
+（`22/22/8/-4`），于是 `DESIGN.md` §4 那句债读数 517 → **521** 必须跟着改；字面色值那一栏工具明写
+「an agent must not fill this field」，未动。
+
+**结清一笔欠账。** 上一轮我说 `bdaf4883` 的全绿先不单独写档、并入这一轮，这就是结清：
+run `40191207017`（head `bdaf4883`）`conclusion=success`，逐字
+`BROWSER_E2E ran=17 skipped=0 failed=0`（含 `test_workbench_contrast_gate ran=6` 与
+`test_workbench_preflight_handoff_e2e ran=1`）、三分片 `exit=0` 且 `FAIL` 为 0、
+`PYTHON_TESTS_UNION=OK expected=3352 distinct=3352 ran=3352 duplicates=0 missing=0 unexpected=0`；
+`Workbench strict-TS product gate` 与 `Python gate` 均 success——前两轮那两条红（PIL 依赖、漂移清单）
+都确认消失。
+
+**账。** 代码 `e297f967`；`evidence` 294 → **295**（`kb-06-brand-mark-on-interface-20261025`，
+轴 `implementation`，`subject_sha=e297f967`，回执 6,001 字节、`sha256=86f58f50…`）；
+`LOGO.ai` 只按哈希登记不入库（仓库已过体积警戒线，且从 `.ai` 导出需驱动 Illustrator＝冻结项）；
+`DESIGN.md` 债句更新；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；node 三套与 42 条 CSS 相关
+python 全过；`LICENSE_COVERAGE=OK`、`BRAND_ASSET=OK paths=2 encodings=2 light_flips=2`。
+`currentExecution` 直方图不变（34/13/2/1）。
