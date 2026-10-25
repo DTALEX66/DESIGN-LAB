@@ -130,6 +130,11 @@ ui2026/light 各一遍）、几何 112 个面（1440/1280/1536/1920）`docOverfl
 （`ASSET`、`KNOWLEDGE`），`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到，
 而 `/api/projects/<id>/briefs`、`/directions`、`/prompt-results` 三条读路由都已存在且各有合同行。
 
+**台账读数（2026-10-25 第十六轮收口时现数，取代上面第十五轮那一段的"当下"身份）**：直方图仍 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**，`evidence` 287→**288**（`DL-KB-06` 13→**14** 条 `visual_review`，状态仍 DONE）。这一轮把 owner 那句"一比一复刻 STITCH 界面设计"从**颜色**推到**数字规则**：包 `09_DESIGN.md` 与 `08_STITCH完整提示词.txt` 写的元数据至少 12px、圆角输入/按钮 6–10px、玻璃只给顶栏/导航/临时面板、长文字与列表实底，现在由对比度闸门在**同一次渲染**上量（`CT_SPEC` 段），跟 AA 用同一批面。第一次量的债（修复前那次是 width 1440 **单宽度**扫描；下面改完的读数是 1440+1920 **双宽度**，两处分母不能互换）：小于 12px **119** 处、列表行与文字按钮压在半透明白上 **23** 处、表单控件圆角超过 10px **474** 个；玻璃这条一测就在名单内——全 UI 只有 `aside#app-sidebar.sidebar` + `header.topbar` 两处 `backdrop-filter`。
+  改法按裁定分两半：12px 地板**全局**抬（1 个 token 与 7 条规则，颜色一字节没动，`--accent-hover`／`--border-strong` 这些已实测的地板值也没动），实底与半径**只加在** `[data-palette="stitch"][data-scheme="light"]` 的作用域里。改完的读数：`below12=0 translucentTextHosts=0 formRadiusOver10=0 glassOffAllowlist=0 unparsableAlpha=0`；AA 仍 `belowAA=0`，几何四个主题 `clipped/stray/tiny/spec` 全 0。
+  **断言会咬，而且是被证明的**：同一条 enforce 在默认炭黑配色下必须红，`test_the_pack_number_assertion_refuses_a_theme_it_was_not_applied_to` 断言红里出现`SPEC-VIOLATION 长文字与列表实底`，同时断言该配色 `below12=0`——后半句证明 12px 是全局抬的，不是只在珍珠白里改。两条静态尺也被这次改动当场抓到，并按它们自己写好的补救路径同步：design-debt 扫描器把字面 px 从 516 读成 **517**（`DESIGN.md` §4 改的是扫描器读数，不是手点），single-definition 把 `.primary-btn`／`.soft-btn`／`select` 三条收进 SANCTIONED 并带理由。
+  **只登记不断言的三件，写清楚免得下轮当成已通过**：控件高度实测 14 处低于 36px、主动作在 41–47px，而包写的是「约 36–40px」；名单外还有 1818 个 painted 控件（双宽度合计）保持各自半径，因为同一句把面板写成 12–16px、包自己的 HTML 用 20px 的 `.status`；正文带宽读数 3196/15602。**下一刀已指名**：包里还要「单一低饱和强调色」与「避免大面积渐变」，而主按钮现在仍是两停 brand 渐变，珍珠白下不是平涂的 `#356B92`——这条必须连 AA 一起重测才好说，本轮不拿算出来的比值当通过。owner 未裁的两件继续记账不代做：`DL-KB-13` 的 150 KB 上限，与长屏上顶栏是否吸顶。
+
 **台账读数（2026-10-25 第十五轮收口时现数，取代上面第十四轮那一段的"当下"身份）**：直方图仍
 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**，`evidence` 286→**287**
 （`DL-KB-06` 12→13 条 `visual_review`，仍 DONE）。这一轮开始做 owner 那句

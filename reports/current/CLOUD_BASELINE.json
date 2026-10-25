@@ -9,27 +9,27 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-25T02:15:03+00:00",
+  "generatedAt": "2026-10-25T02:56:57+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "28603bb7b8e12580daa7fd9a2ead4439a7630b74",
+    "sha": "a3e82b136d5325d6b33e6f07c2713afe1d35b4c6",
     "source_worktree_clean": false,
-    "tracked_files": 3964,
+    "tracked_files": 3966,
     "worktree_changes": [
       {
-        "content": "sha256:e0fdcb5f4cacc5f630caee1ec533c5c98c44eae4d5a06f3d2d1e050625b68040",
+        "content": "sha256:232c4290a5ec159ff47139c66acf0640ec39a8d164334ed631cd1e4c20a5906d",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:eaa2ab66a1d4860dcd37eb4d88d2fb851b73895b4b4f6995b8095b96c4644825",
+        "content": "sha256:a83db4980ccd331ad2962fdf0b2b0f5850c447fdf5594618086b0afbfffdd6b8",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
       {
-        "content": "sha256:69623c79c965d029d2912f8ae1b16221a70807c89c33ce964a8bdcb5ab6e4548",
+        "content": "sha256:8ad2bcc13676cd4229379428e11805fbd81ecb309bf5f78433db93a42109da17",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
@@ -44,23 +44,18 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       },
       {
-        "content": "sha256:d908d6b97623a4fee1357d894c62856c89e73753e7286655d64614b5b0ac8d20",
+        "content": "sha256:654f820133132546a2c1f127aa1378e5b504f3241ff405132005c976b639bd26",
         "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-stitch-palette-theme-20261025.json"
-      },
-      {
-        "content": "sha256:5defd3b71b7a7fabab3050b007ebba131d4acdeb93dc6ddd8fd904cd13fd951c",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-stitch-pill-ink-control.log"
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-pack-number-rules-20261025.json"
       }
     ],
-    "worktree_digest": "sha256:a10a293aa942c99ca29dc30ebb4c25d3884942c4153da692809988bc8604605c"
+    "worktree_digest": "sha256:bd4709e525255b5c60aacf51b55b2ade5136f93c2d71fdc0d68889c94d569267"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "28603bb7b8e12580daa7fd9a2ead4439a7630b74",
+  "subjectSha": "a3e82b136d5325d6b33e6f07c2713afe1d35b4c6",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -75,5 +70,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:a10a293aa942c99ca29dc30ebb4c25d3884942c4153da692809988bc8604605c"
+  "worktreeDigest": "sha256:bd4709e525255b5c60aacf51b55b2ade5136f93c2d71fdc0d68889c94d569267"
 }

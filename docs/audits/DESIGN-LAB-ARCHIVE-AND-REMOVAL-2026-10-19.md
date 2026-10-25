@@ -1790,3 +1790,56 @@ controlMisses=0`；几何 **132** 个面，`clipped/stray/tiny/occluded/docOverf
 `DL-KB-13` 的 150 KB 上限裁定仍在 owner 手上，本轮不靠删内容凑数。
 这是**量**，不是**批**：设计批准仍等 owner 真机测试，`DESIGN.md` 不进已批准状态，
 也没有拿 VLM 或像素差当签字。
+
+### 5.49 包里的数字规则进入尺子：119 处 11px、23 处半透明列表底、474 个超带半径。
+
+**这一段做的是什么。** 20261023 包写视觉规则用的是数字：`09_DESIGN.md` 给正文 14–16px、元数据至少
+12px、控件高度约 36–40px、圆角输入/按钮 6–10px、临时面板 12–16px；`08_STITCH完整提示词.txt` 给
+玻璃只给顶栏／导航／临时面板、长文字与列表实底。上一轮把六枚颜色做成可选主题之后，"一比一复刻"
+剩下的部分就是这几句话，而它们能不能成为断言，取决于能不能在**已渲染的文档**上量出来。静态 grep
+答不了：`.eyebrow` 在前段写 10px、在后段抬回 12px，只有算完层叠才知道人读到的是几号字。所以这一刀
+把尺子加进对比度闸门（`CT_SPEC` 段），跟 AA 用同一次渲染、同一批面。
+
+**第一次量出来的债**（修复前那次扫描是 width 1440 **单宽度**；下面"改完之后"那一段是 1440+1920
+**双宽度**，两处分母不同，不能互换）：小于 12px 的文本 run
+**119** 处，最小 **11px**，来源是 `--uif-font-micro` 与五处硬写 11px（导航分组标签、页脚、连接状态行、
+KPI 注脚、badge）；列表行与文字按钮压在半透明白上 **23** 处（`li.list-item` 的 74／100 与
+`button.ghost-btn` 的 62／100）；表单控件圆角超过 10px **474** 个。玻璃这条一测就过：全 UI 只有
+`aside#app-sidebar.sidebar blur(18px) + header.topbar blur(18px)` 两处 `backdrop-filter`，正好是包允许的对象，所以这条不改样式，改成把名单钉住。
+
+**改的是哪些，以及为什么这样切。** 12px 地板全局抬（不动颜色，也不动 `--accent-hover`、
+`--border-strong` 这类已实测的地板值）；实底与半径按 owner 裁定只做加法——写在
+`[data-palette="stitch"][data-scheme="light"]` 的作用域里，默认炭黑一字节不动。半径取带内上限 10px，
+适用对象是这句话的字面对象（input／select／textarea 与四类动作按钮，实测 **1002** 个，1440+1920
+两个宽度合计，单宽度那次是 501 个）；另外
+**1818** 个 painted 控件（同一双宽度扫描）是列表行、导航项与药丸，同一句把面板写成 12–16px，而包自己的 HTML 用
+`border-radius:20px` 的 `.status`，所以它们保持各自半径、只在直方图里登记。控件高度写的是「约 36–40px」，
+主动作实测 **41–47px**（比包里的目标更高），同样只登记不断言。这几处取舍写在测试的 docstring 里，
+不靠尺子的沉默。
+
+**改完之后的同一条尺**（stitch／light，widths 1440+1920）：
+
+```
+CT_SUMMARY checked=15772 belowAA=0 pseudoLayers=5250 coveredForeign=0 obscured=4 unparsable=0 collapsedOpened=6248 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0 glassOffAllowlist=0 formRadiusOver10=0 formControls=1002 formBelow36px=14（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）
+```
+
+几何尺量同一份 CSS：
+
+```
+OV_SUMMARY clipped=0 stray=0 tiny=0 interactions=28 [1440:evidence+projection-read=read,1440:capabilities+global-search=read,1440:knowledge+entry-detail=read,1440:assistant+plan-detail=read,1440:assistant+plan-compare=read,1440:assistant+plan-feedback=read,1440:target-profiles+combination=read,1280:evidence+projection-read=read,1280:capabilities+global-search=read,1280:knowledge+entry-detail=read,1280:assistant+plan-detail=read,1280:assistant+plan-compare=read,1280:assistant+plan-feedback=read,1280:target-profiles+combination=read,1536:evidence+projection-read=read,1536:capabilities+global-search=read,1536:knowledge+entry-detail=read,1536:assistant+plan-detail=read,1536:assistant+plan-compare=read,1536:assistant+plan-feedback=read,1536:target-profiles+combination=read,1920:evidence+projection-read=read,1920:capabilities+global-search=read,1920:knowledge+entry-detail=read,1920:assistant+plan-detail=read,1920:assistant+plan-compare=read,1920:assistant+plan-feedback=read,1920:target-profiles+combination=read] brand=4 navEdge=4 spec=0 theme=stitch/light
+```
+
+字号直方图（各面合并）：12px x 6476 13px x 5274 13.3px x 464 14px x 122 15px x 192 16px x 2882 17px x 56 19px x 22 21px x 16 24px x 6 26px x 2 32px x 52 35px x 38。
+
+**这条断言会咬。** 同一条 enforce 在默认配色下必须红：
+`test_the_pack_number_assertion_refuses_a_theme_it_was_not_applied_to` 跑 design-lab／dark，断言出现
+`SPEC-VIOLATION 长文字与列表实底`，并断言该配色 `below12=0`——后半句证明 12px 是全局抬的、不是只在
+珍珠白里改，前半句证明这条尺不是摆设。
+
+**账与边界。** `DL-KB-06` 加 1 条 `visual_review` 回执（13→14 条，状态仍 DONE），
+`evidence` 287→**288**，直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变；本轮没改 TS，
+bundle 字节不动。下一刀的对象已经指名：包还要「单一低饱和强调色」与「避免大面积渐变」，而
+`.primary-btn` 现在是两停 brand 渐变，`--brand-gradient-*` 在珍珠白下仍是那对更深的蓝，不是平涂的
+#356B92；这条要连 AA 一起重测之后才好说，本轮不拿算出来的比值当通过。仍未裁的两件照旧记账不代做：
+`DL-KB-13` 的 150 KB 上限，与长屏上顶栏是否吸顶。
