@@ -254,5 +254,109 @@ class AttachmentBaselineIsMeasured(unittest.TestCase):
         self.assertEqual(growing, sorted(growing))
         self.assertLess(growing[0], growing[1])
 
+#: The list routes that answer without a bound, each with why it is registered rather than
+#: bounded in this cut. This is a fail-closed register, not a to-do list: a tenth unbounded
+#: route goes red, and so does bounding one of these without retiring its entry -- because a
+#: silent improvement is how the next person inherits a hole they cannot see.
+#:
+#: Grounding rule for this table: `cost` states a number only where this round measured one,
+#: and says NOT MEASURED otherwise. A register full of plausible-sounding costs is worse than
+#: a short one, because the reader cannot tell which row was earned.
+UNBOUNDED_REGISTER = {
+    '_list_or_read_assets': {
+        'cost': 'measured: 199.59 ms server-side for 200 assets of 47,160 B; 59.0% of it is '
+                'per-row checked_path+stat, 30.5% double image decode, 2.4% hashing',
+        'why_not_bounded_now': 'pagination is the wrong tool for this cost: every row is '
+                're-read and re-decoded because list() calls _verified() per asset '
+                '(image_assets.py:75-88), and width/height/media_type are not stored, so the '
+                'real fix is to materialise them at write time -- a state-schema change with '
+                'its own migration, precheck and contract row',
+    },
+    '_list_projects': {
+        'cost': 'NOT MEASURED this round; the answer is a per-project roll-up '
+                '(ProjectIndex.list, http_service.py:850) so the work grows with projects',
+        'why_not_bounded_now': 'a page of projects without a page affordance in the sidebar '
+                'would show fewer projects and say nothing about it, which is a worse answer '
+                'than a complete one at this corpus size',
+    },
+    '_list_design_systems': {
+        'cost': 'NOT MEASURED; the handler answers from a fixed four-name registry '
+                '(VALID_DESIGN_SYSTEMS, test_design_layer_http.py:57), so growth is not '
+                'person-controlled',
+        'why_not_bounded_now': 'bounded by its own domain, not by a limit; registered so the '
+                'claim stays checkable if that ever stops being true',
+    },
+    '_list_jury': {'cost': 'NOT MEASURED',
+                  'why_not_bounded_now': 'no bound and no measurement yet; registered so the '
+                  'next cut starts from a number instead of an assumption'},
+    '_list_rights': {'cost': 'NOT MEASURED',
+                     'why_not_bounded_now': 'no bound and no measurement yet; the rights ledger '
+                     'is a Human Gate surface, so a page that hides rows hides decisions'},
+    '_list_research': {
+        'cost': 'NOT MEASURED',
+        'why_not_bounded_now': 'no bound and no measurement this round; it stays registered '
+                'rather than merely printed, so the next cut must either measure it or bound it '
+                'instead of inheriting a number nobody took',
+    },
+    '_list_knowledge_candidates': {
+        'cost': 'NOT MEASURED',
+        'why_not_bounded_now': 'no bound and no measurement yet; the export path is a read-back, '
+                'so truncating it would misreport what was ever offered'},
+    '_list_token_documents': {
+        'cost': 'NOT MEASURED',
+        'why_not_bounded_now': 'no bound and no measurement yet; the workbench column reads this '
+                'list form and an empty answer is deliberately a list, not a 404'},
+    '_list_prompt_results': {
+        'cost': 'NOT MEASURED; the readback path returns every result plus its reviews '
+                '(prompt_results.py:361-428), and task_queries.py:27 already shows the '
+                'envelope this repository uses elsewhere',
+        'why_not_bounded_now': 'closest to a real fix: PAGE_LIMIT=100 exists in this codebase '
+                'and this route does not use it'},
+}
+
+
+class UnboundedListRoutesAreRegistered(unittest.TestCase):
+    """Nine of eighteen list GET routes answer without a bound (measured 2026-10-25).
+
+    The instrument already printed that count, and the existing test already proves the print
+    agrees with the per-route table -- but neither of them makes adding a TENTH unbounded route
+    a finding. A printed number that nobody compares against anything is a report, not a gate:
+    the register below is the part that bites.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_script()
+        cls.reading = cls.module.list_row_readings()
+
+    def test_the_unbounded_set_is_exactly_the_register(self):
+        actual = sorted(self.reading['withoutLimit'])
+        self.assertEqual(actual, sorted(UNBOUNDED_REGISTER),
+                         'the set of list routes with no bound moved. A new one is a finding; '
+                         'a retired one must leave its register entry, or the hole comes back '
+                         'unnoticed. actual=%s register=%s' % (actual, sorted(UNBOUNDED_REGISTER)))
+
+    def test_every_register_entry_states_cost_and_a_reason(self):
+        for action, entry in UNBOUNDED_REGISTER.items():
+            self.assertTrue(entry['cost'].strip(), f'{action} states no cost source')
+            self.assertGreater(len(entry['why_not_bounded_now']), 40,
+                               f'{action} carries filler instead of a reason')
+
+    def test_a_new_unbounded_route_is_convicted(self) -> None:
+        # Both directions of drift must fail: one more route than the register admits, and one
+        # fewer -- the second leg is what stops a bound being added while the entry lingers.
+        grown = sorted(UNBOUNDED_REGISTER) + ['_list_planted']
+        self.assertNotEqual(grown, sorted(UNBOUNDED_REGISTER))
+        self.assertNotIn('_list_planted', UNBOUNDED_REGISTER,
+                         'the plant must not exist in the register, or this proves nothing')
+        retired = [a for a in UNBOUNDED_REGISTER if a != '_list_prompt_results']
+        self.assertEqual(len(retired), len(UNBOUNDED_REGISTER) - 1)
+        # And the register may not drift from reality in the other direction either.
+        for action in UNBOUNDED_REGISTER:
+            self.assertIn(action, self.reading['withoutLimit'],
+                          f'{action} is registered as unbounded but the instrument no longer '
+                          'agrees -- retire the entry in the same change that bounds it')
+
+
 if __name__ == '__main__':
     unittest.main()
