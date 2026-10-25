@@ -428,7 +428,39 @@ async function seedAssistancePlanForAudit(prefix) {
   if (created.status !== 201) {
     fail(`OV_SEED_PLAN_REFUSED ${JSON.stringify(created.json).slice(0, 200)}`);
   }
-  return { project: pid, plan: created.json.plan.plan_id };
+  const planId = created.json.plan.plan_id;
+  // A second revision so the comparison panel has two documents to line up -- the state whose
+  // twelve side-by-side rows are most likely to break a layout at the narrow end.
+  const second = await post(`/api/projects/${pid}/assistance-plans/${planId}/revisions`,
+    { ...plan, objective: '第二版：把标题落点改成右下方留白，副标题缩短一行',
+      expected_revision: 1 });
+  if (second.status !== 201) {
+    fail(`OV_SEED_REVISION_REFUSED ${JSON.stringify(second.json).slice(0, 200)}`);
+  }
+  return { project: pid, plan: planId, revision: second.json.revision };
+}
+
+// Settle on the panel's own words: the rows landed and the status line stopped saying 正在读回
+// and is not a failure. Text alone is not the mark -- an honest empty answer has text too.
+async function openPlanCompare(page, key, problems) {
+  await page.evaluate(() => {
+    const details = document.getElementById('as-compare');
+    if (details) details.open = true;
+  });
+  await page.selectOption('#as-compare-from', '1');
+  await page.selectOption('#as-compare-to', '2');
+  await page.click('#as-compare-run');
+  const settled = await page.waitForFunction(() => {
+    const body = document.getElementById('as-compare-body');
+    const status = document.getElementById('as-compare-status');
+    return !!body && body.querySelectorAll('li').length >= 12 && !!status
+      && !/正在读回|失败/.test(status.textContent || '');
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 两案对照没有把十二个字段读回来（按不动、读回失败或行数不足），`
+      + '这一态的几何无人认领');
+  }
+  return settled;
 }
 
 // Choose a target the way the screen asks. The settled mark is the panel's own state flag
@@ -550,6 +582,13 @@ for (const w of widths) {
           /未读回/.test((document.getElementById('as-plan')?.textContent ?? ''))
             ? 'refused' : 'read'));
         absorbPanel(`${w}:assistant+plan-detail`, panel);
+      }
+      if (await openPlanCompare(page, `${w}:assistant+plan-compare`, interactionMissing)) {
+        const panel = await page.evaluate(MEASURE);
+        panel.state = await page.evaluate(() => (
+          /失败|没有可读的修订/.test(document.getElementById('as-compare-status')?.textContent ?? '')
+            ? 'refused' : 'read'));
+        absorbPanel(`${w}:assistant+plan-compare`, panel);
       }
     }
     if (name === 'target-profiles') {

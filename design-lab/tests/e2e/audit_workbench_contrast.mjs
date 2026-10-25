@@ -540,7 +540,18 @@ async function seedAssistancePlanForAudit(prefix) {
   if (created.status !== 201) {
     fail(`${prefix.toUpperCase()}_SEED_PLAN_REFUSED ${JSON.stringify(created.json).slice(0, 200)}`);
   }
-  return { project: pid, plan: created.json.plan.plan_id };
+  const planId = created.json.plan.plan_id;
+  // A second revision, same route and same key set with expected_revision. The comparison panel
+  // needs two readable revisions to have anything to say, so without this the state a person
+  // actually reaches -- twelve fields lined up side by side at 1280 -- would never be measured.
+  const second = await post(`/api/projects/${pid}/assistance-plans/${planId}/revisions`,
+    { ...plan, objective: '第二版：把标题落点改成右下方留白，副标题缩短一行',
+      expected_revision: 1 });
+  if (second.status !== 201) {
+    fail(`${prefix.toUpperCase()}_SEED_REVISION_REFUSED `
+      + JSON.stringify(second.json).slice(0, 200));
+  }
+  return { project: pid, plan: planId, revision: second.json.revision };
 }
 
 // Open the plan the way a person does, and wait for the detail to be assembled from its several
@@ -638,8 +649,32 @@ async function openKnowledgeDetail(page, key, problems) {
 // The settled mark is the panel's own state flag: #tp-combination's data-mode only becomes
 // 'target' once a real profile resolves. "Some text appeared" would be the wrong predicate,
 // because an honest empty answer also has text.
-async function openCombinationState(page, key, problems) {
-  for (const id of ['tp-software', 'tp-agent', 'tp-entry', 'tp-model', 'tp-task-mode']) {
+// The comparison is the state a person reaches when they want to know what a revision changed:
+// twelve fields lined up with a 相同/不同 pill each. Settle on the panel's own words -- the rows
+// landed and the status line is no longer 正在读回 nor a failure -- because the honest empty and
+// the loaded state both have text.
+async function openPlanCompare(page, key, problems) {
+  await page.evaluate(() => {
+    const details = document.getElementById('as-compare');
+    if (details) details.open = true;
+  });
+  await page.selectOption('#as-compare-from', '1');
+  await page.selectOption('#as-compare-to', '2');
+  await page.click('#as-compare-run');
+  const settled = await page.waitForFunction(() => {
+    const body = document.getElementById('as-compare-body');
+    const status = document.getElementById('as-compare-status');
+    return !!body && body.querySelectorAll('li').length >= 12 && !!status
+      && !/正在读回|失败/.test(status.textContent || '');
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 两案对照没有把十二个字段读回来（对比按不动、读回失败或行数不足），`
+      + '这一态的配色无人认领');
+  }
+  return settled;
+}
+
+async function openCombinationState(page, key, problems) {  for (const id of ['tp-software', 'tp-agent', 'tp-entry', 'tp-model', 'tp-task-mode']) {
     const select = page.locator('#' + id);
     if (await select.count() !== 1) continue;
     if (await page.locator('#' + id + ' option').count() < 2) continue;
@@ -714,6 +749,8 @@ for (const w of widths) {
       // as a clean one.
       const opened = await openPlanDetail(page, `${w}:assistant+plan-detail`, controlBad);
       if (opened) absorb(`${w}:assistant+plan-detail`, await page.evaluate(MEASURE));
+      const compared = await openPlanCompare(page, `${w}:assistant+plan-compare`, controlBad);
+      if (compared) absorb(`${w}:assistant+plan-compare`, await page.evaluate(MEASURE));
     }
     if (name === 'knowledge') {
       // Same rule for the entry detail: it is a named state of its own, and a panel that never
