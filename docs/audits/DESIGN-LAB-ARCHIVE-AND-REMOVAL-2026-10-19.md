@@ -2172,3 +2172,42 @@ workflow 步骤点名：**CI 从没执行过这把浏览器尺**，而该注册�
 `TEST_SELF_SUFFICIENCY=OK modules=259 violations=0`；`KNOWLEDGE_SEARCH_P95_MS=34.7 budget=300`。
 owner 未裁项不变：150 KB 上限、顶栏吸顶、标题阶梯、勾选框标签、hover 墨色，新增一件：
 `_list_prompt_results` 是否套用仓内已有的 `PAGE_LIMIT=100` 信封（它是最接近能直接落地的一条）。
+
+### 5.57 CI 抓到我自己造的一次红：一把尺的依赖面不能大于它所在作业的装机面
+
+**红在远端，本地全绿。** 推送 `1d86e877` 后 `Workbench strict-TS product gate` 失败，步骤是
+`python3 scripts/measure_workbench_weight.py --check`，逐字读数
+`MEASURE_SOURCE_MOVED cannot import the route table: ModuleNotFoundError: No module named 'PIL'`
+（run `40187301910`，job `121150712090`，head `1d86e877`）。**造成者是我本轮加的 DL-KB-13 读数**：它为了拿
+`ROUTES` 去 `from design_lab.http_service import ROUTES`，而这条 import 链到达 `image_assets`、需要 Pillow——
+strict-TS 是 **node 作业，不装任何 Python 第三方包**（workflow 里那个 job 只有 setup-node/pnpm 步骤）。
+本机 `.venv` 有 Pillow，所以同一条命令本地绿、远端红。这与今天早些时候那条"只在远端出现的 AA"是同一类
+错误：**测量工具的依赖面大于它所在环境的装机面**，于是它的"绿"只代表"我这台机器"。
+
+**修法不是给 CI 加安装，也不是动 workflow。** 本脚本早就带着一套 AST 静态读取机器（`parse` /
+`module_tables`，用来解常量与页大小），拿路由表本来就该走它——改回复用之后，`--check` 回到纯标准库。
+同时拆开一个字段干两件事的错误通道：`readerError` 只代表"读不到路由表"（致命）；新增 `callSiteError`
+代表"规范匹配器不可用"（它确实需要产品依赖），**如实报缺失、绝不当成 0**。此前 `frontend_calls=0`
+会被这把尺自己当成致命错，那等于把"这列没测"报成"路由表形状变了"——一次假红与一次假绿之间只隔着
+一个字段名。
+
+**兼容性靠契约而不是猜。** 解析出的路由对象要交给规范匹配器 `verify_workbench_route_calls.route_matches`，
+它会调 `route.accepts(match)`，所以轻量对象必须实现它。带 `when=` 的路由无法从源码文本求值，答 `True`
+就是静默过匹配——现抛 `ValueError`，而调用方本来就 `except ValueError` 记成 "dynamic call shape"。
+实测全表只有一条路由带 `when=`（`_task_detail_or_events`），且它不是列表路由。
+
+**三把防复发的闸。** ① 结构闸：函数体之外不得模块级 import 任何非标准库模块——这把"我本地能跑"和
+"这个作业能跑"绑成同一件事；② 客户端列若因缺依赖不可用，测试必须失败并点名，不许把 0 读成"页面没要东西"；
+③ `when=` 路由必须拒绝求值。
+
+**用 CI 的真实条件复验，而不是用我自己的 venv 复验。** 无 Pillow 的裸解释器：
+`LISTROWS list_routes=18 bounded=9 without_limit=9 frontend_call_sites_scanned=0`、NOTE 点名缺失的匹配器、
+`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=160052`、**exit 0**；venv 下同样三个核心数，另加
+`frontend_call_sites_scanned=142`。两套读数核心一致，缺的那列被明确标注为"缺失而非零"。
+`tests.test_workbench_weight` 22 条 OK；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+
+**账。** 代码提交 `31862800`；`evidence` 292 → **293**（新行 `kb-13-gate-toolchain-coupling-20261025`，
+轴 `browser`，`subject_sha=31862800`，回执 2,757 字节、`sha256=f2a5f254…`；append 前再次证明 JSON 往返
+逐字节相同，哈希从写入字节读回）。`currentExecution` 50 项直方图不变
+（34 `FROZEN_DEFERRED` / 13 `DONE` / 2 `PARTIAL` / 1 `NOT_STARTED`），`DL-KB-13` 仍 PARTIAL。
+**远端是否转绿以推送后 exact-SHA 的作业为准，不以本地 exit 0 代替。**
