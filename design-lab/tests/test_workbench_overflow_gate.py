@@ -298,25 +298,40 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         self.assertIn('read', {value.get('state') for value in interactions.values()},
                       'no width ever displayed the readback itself; the gate would have passed on '
                       'an error card, so the rendered panel is unverified')
-        # The brand tile at every width the gate walked. `decode` is the load-bearing one:
-        # it is the browser reporting the natural size of the bitmap the inlined data URI
-        # actually produced, which is the only proof here that the stylesheet carries the
-        # mark rather than a declaration pointing at nothing.
+        # The brand mark at every width the gate walked. `decode` is the load-bearing one: it is
+        # the browser reporting that the inlined data URI loaded as an SVG document, how many
+        # paths it carries, and which brand ink it was drawn in -- the only proof here that the
+        # stylesheet paints the mark rather than a declaration pointing at nothing. It used to
+        # read `144x144`, the natural size of the superseded bitmap cut-out, and a bloom on the
+        # tile; both belonged to the retired pipeline.
         brand = report.get('brand', {})
         measured = [w.strip() for w in WIDTHS.split(',') if w.strip()]
         self.assertEqual(sorted(brand, key=str), sorted(measured, key=str),
-                         'the gate reported the brand tile for some widths and not others')
+                         'the gate reported the brand mark for some widths and not others')
         for width, seen in brand.items():
-            self.assertTrue(seen.get('present'), f'{width}: no .brand-mark was mounted')
+            self.assertTrue(seen.get('present'), f'{width}: no .app-nav-mark was mounted')
             self.assertEqual(seen.get('text', 'x'), '',
-                             f'{width}: the tile carries text, so a screen reader says the name twice')
+                             f'{width}: the figure carries text, so a screen reader says the name twice')
             self.assertEqual(seen.get('ariaHidden'), 'true',
-                             f'{width}: the decorative tile is exposed to assistive tech')
-            self.assertEqual(seen.get('decode'), '144x144',
-                             f'{width}: the inlined mark decoded as {seen.get("decode")}')
-            self.assertGreater(seen.get('uriChars', 0), 1000,
+                             f'{width}: the decorative figure is exposed to assistive tech')
+            decoded = seen.get('decode') or {}
+            self.assertTrue(decoded.get('loads'),
+                            f'{width}: the inlined data uri did not load as an image at all')
+            self.assertTrue(decoded.get('svg'),
+                            f'{width}: the inlined mark is not an svg document')
+            self.assertEqual(decoded.get('paths'), 2,
+                             f'{width}: the mark decoded with {decoded.get("paths")} paths, not the '
+                             'two of the tracked monogram')
+            self.assertEqual(decoded.get('fills'), ['#EEF2F5'],
+                             f'{width}: the default palette should paint the paper glyph, got '
+                             f'{decoded.get("fills")}')
+            self.assertGreater(seen.get('uriChars', 0), 500,
                                f'{width}: the data URI is a stub, not the mark')
-            self.assertTrue(seen.get('glow'), f'{width}: the mark has no bloom')
+            self.assertIn('DESIGN-LAB', seen.get('name', ''),
+                          f'{width}: the wordmark is missing beside the figure')
+            if seen.get('size', [0, 0])[0]:
+                self.assertEqual(seen['size'], [22, 22],
+                                 f'{width}: the mark box is {seen["size"]}, not the declared 22px')
 
 
     def test_the_ui2026_light_theme_is_graded_by_the_same_geometry_gate(self):

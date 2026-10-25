@@ -886,52 +886,71 @@ for (const w of widths) {
     console.log(`w=${String(w).padEnd(5)} nav-cue     hiddenPx=${String(cue.top.hiddenPx).padStart(4)} `
       + `atTop=${cue.top.cue} atEnd=${cue.end.cue} gap${shortHeight}=${cue.top.gap}`);
   }
-  // The brand tile is the owner's logo inlined into the stylesheet as a data URI, so
-  // "is the logo showing?" cannot be answered from the CSS text: the declaration survives
-  // a malformed URI, and the vm harness never mounts the shell at all (its MockElement has
-  // no querySelector, which is the shell's own capability guard). This measures the painted
-  // tile -- the ::after background resolved to a data URI the browser decoded to the
-  // expected bitmap, the tile carries no text, and the wordmark beside it is the name.
+  // The brand mark is the owner's vector, inlined into the stylesheet as a data URI (the service
+  // serves a fixed three-path allowlist under `img-src data:`), so "is the logo showing?" cannot
+  // be answered from the CSS text: the declaration survives a malformed URI, and the vm harness
+  // never mounts the shell at all (its MockElement has no querySelector, which is the shell's own
+  // capability guard).
+  //
+  // This probe measured the superseded bitmap tile until 2026-10-25 and went red on the exact-SHA
+  // cloud run: it decoded a `data:image/png` and required 144x144 with a 48x48 box and a bloom.
+  // The shipped surface is now `.app-nav-mark` -- 22px, an SVG encoding that flips to the theme's
+  // ink, and no filter (a drop-shadow on a masked glyph is clipped away by paint order anyway).
+  // So the assertions are about the vector: the URI decodes to an svg carrying path geometry and
+  // the ink the token claims, the figure paints at its declared size, it stays out of the
+  // accessible name, and the name itself is still text next to it.
   const brand = await page.evaluate(() => {
-    const tile = document.querySelector('.brand-mark');
+    const tile = document.querySelector('.app-nav-mark');
     if (!tile) return { present: false };
-    const after = getComputedStyle(tile, '::after');
+    const style = getComputedStyle(tile);
     const rect = tile.getBoundingClientRect();
-    const match = /url\("?(data:image\/png;base64,[A-Za-z0-9+/=]+)"?\)/
-      .exec(after.backgroundImage || '');
+    const match = /url\("?(data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+)"?\)/
+      .exec(style.backgroundImage || '');
+    const brand = document.querySelector('.app-nav-brand');
     return {
       present: true,
       text: (tile.textContent || '').trim(),
       ariaHidden: tile.getAttribute('aria-hidden'),
       size: [Math.round(rect.width), Math.round(rect.height)],
-      glow: (after.filter || 'none') !== 'none',
       uri: match ? match[1] : '',
-      name: (document.querySelector('.brand h1') || {}).textContent || '',
+      name: brand ? (brand.textContent || '').trim() : '',
     };
   });
+  // Decoding inside the page proves the URI is loadable by a real SVG decoder, and reading the
+  // bytes back out proves which artwork it is -- an image that decodes is not yet the right image.
   const decode = brand.uri
-    ? await page.evaluate((uri) => new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(`${img.naturalWidth}x${img.naturalHeight}`);
-      img.onerror = () => resolve('decode-failed');
-      img.src = uri;
-    }), brand.uri)
-    : 'no-data-uri';
+    ? await page.evaluate(async (uri) => {
+      const ok = await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = uri;
+      });
+      const text = atob(uri.split(',')[1]);
+      return { loads: ok, svg: text.startsWith('<svg'), paths: (text.match(/<path /g) || []).length,
+        fills: ['#EEF2F5', '#17212B'].filter((f) => text.includes(f)) };
+    }, brand.uri)
+    : { loads: false, svg: false, paths: 0, fills: [] };
   const seen = { ...brand, uriChars: brand.uri.length, decode };
   delete seen.uri; // 6.6 KB of base64 does not belong in a report a human reads.
   report.brand[w] = seen;
   if (!brand.present) {
-    brandProblems.push(`${w}: no .brand-mark in the mounted shell`);
+    brandProblems.push(`${w}: no .app-nav-mark in the mounted shell`);
   } else {
-    if (brand.text) brandProblems.push(`${w}: the tile carries text "${brand.text}"`);
-    if (brand.ariaHidden !== 'true') brandProblems.push(`${w}: the tile is not aria-hidden`);
-    if (!brand.glow) brandProblems.push(`${w}: the mark has no bloom (::after filter is none)`);
-    if (brand.uriChars < 1000) brandProblems.push(`${w}: the inlined uri is ${brand.uriChars} chars`);
-    if (decode !== '144x144') brandProblems.push(`${w}: the mark decoded as ${decode}, not 144x144`);
-    if (!brand.name.includes('DESIGN-LAB')) brandProblems.push(`${w}: no wordmark beside the tile`);
-    // A collapsed sidebar (the 760px breakpoint) legitimately has no box to measure.
-    if (brand.size[0] > 0 && brand.size.join('x') !== '48x48')
-      brandProblems.push(`${w}: the tile is ${brand.size.join('x')}, not 48x48`);
+    if (brand.text) brandProblems.push(`${w}: the figure carries text "${brand.text}"`);
+    if (brand.ariaHidden !== 'true') brandProblems.push(`${w}: the figure is not aria-hidden`);
+    if (brand.uriChars < 500) brandProblems.push(`${w}: the inlined uri is ${brand.uriChars} chars`);
+    if (!decode.loads) brandProblems.push(`${w}: the data uri did not decode in the browser`);
+    if (!decode.svg) brandProblems.push(`${w}: the uri is not an svg document`);
+    if (decode.paths < 1) brandProblems.push(`${w}: the svg carries no path geometry`);
+    if (decode.fills.length !== 1) {
+      brandProblems.push(`${w}: the mark should carry exactly one of the two brand inks, `
+        + `got ${JSON.stringify(decode.fills)}`);
+    }
+    if (!brand.name.includes('DESIGN-LAB')) brandProblems.push(`${w}: no wordmark beside the mark`);
+    // A collapsed rail legitimately has no box to measure.
+    if (brand.size[0] > 0 && brand.size.join('x') !== '22x22')
+      brandProblems.push(`${w}: the mark is ${brand.size.join('x')}, not 22x22`);
   }
   await page.close();
 }

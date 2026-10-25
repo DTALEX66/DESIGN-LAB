@@ -1,19 +1,27 @@
 # SPDX-License-Identifier: MIT
-"""The brand mark in the stylesheet is the tracked cut-out, and nothing else.
+"""The brand mark in the stylesheet is the tracked vector, and nothing else.
 
-The Workbench carries the owner's logo as a data URI inside `style.css` rather than as
+The Workbench carries the owner's logo as an SVG data URI inside `style.css` rather than as
 an asset route, because src/design_lab/workbench.py serves a fixed three-path allowlist
 under `img-src data:`. That makes the shipped stylesheet hold bytes that no editor
 should be trusted to keep in sync with the asset they came from, so the sync is checked
 here -- through design-lab/scripts/render_brand_asset.py's own `--check`, which is the
 single owner of the predicate (this module imports it rather than re-deriving it).
 
+The asset changed shape mid-round: a 144x144 PNG cut-out produced by a brightness-threshold
+pipeline was replaced by the owner's vector, and this module was not re-run then, so four of
+its cases went red on the first exact-SHA cloud run after the switch (design-lab/tests/
+test_workbench_brand_asset.py was not in the 76-gate rollup, which is why "aggregate green"
+never exercised it). They now grade the vector: the encoded payload, its path count, its
+single brand ink per encoding, its viewBox identity with the tracked file, and the digest the
+provenance record claims.
+
 What each case is for:
-  * the tree passes `--check`, and the two ways it can rot (payload swapped, digest
-    swapped) each make it fail -- a check that cannot be disturbed guards nothing;
-  * exactly one region exists, inside `:root`, and both brand tiles consume the token;
-  * the PNG is a cut-out (transparent ground, white glyph, inset from the edge), not a
-    rectangle of the artwork's black background;
+  * the tree passes `--check`, and the ways it can rot (payload swapped, digest claim
+    swapped, asset file absent) each make it fail -- a check that cannot be disturbed
+    guards nothing;
+  * exactly one region exists, inside `:root`, and every named consumer uses the token;
+  * the mark is a two-path glyph drawn in one ink, identical between its two encodings;
   * the mechanism that forces inlining is still the mechanism: if an asset route is ever
     added, this test says so instead of the data URI quietly surviving on its own;
   * the positioning line is one claim across three surfaces -- the authority states it, the
@@ -31,9 +39,6 @@ import sys
 import unittest
 from pathlib import Path
 
-import numpy as np
-from PIL import Image
-
 REPO = Path(__file__).resolve().parents[2]
 SCRIPT = REPO / 'design-lab' / 'scripts' / 'render_brand_asset.py'
 sys.path.insert(0, str(REPO / 'src'))
@@ -44,49 +49,63 @@ _spec.loader.exec_module(rba)
 
 
 def _check(png: Path, css: Path) -> tuple[int, str]:
-    """Run the script's own --check against a chosen pair of files."""
+    """Run the script's own --check against a chosen pair of files.
+
+    `png` is the mark the check hashes. It was the bitmap until 2026-10-25 and is now
+    `MARK_PATH`, the owner's vector; patching the wrong constant is what let a missing-asset
+    case pass on green, so all three of the paths the checker reads are swapped together.
+    """
     import contextlib
     out = io.StringIO()
-    png_real, css_real = rba.PNG_PATH, rba.CSS_PATH
-    rba.PNG_PATH, rba.CSS_PATH = png, css
+    png_real, css_real, mark_real = rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH
+    rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH = png, css, png
     try:
         with contextlib.redirect_stdout(out):
             code = rba.main(['--check'])
     finally:
-        rba.PNG_PATH, rba.CSS_PATH = png_real, css_real
+        rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH = png_real, css_real, mark_real
     return code, out.getvalue().strip()
 
 
 class BrandAssetSyncTests(unittest.TestCase):
     def test_the_shipped_pair_passes_the_generators_own_check(self):
-        code, line = _check(rba.PNG_PATH, rba.CSS_PATH)
-        self.assertEqual(code, 0, f'the stylesheet and the tracked png disagree: {line}')
+        code, line = _check(rba.MARK_PATH, rba.CSS_PATH)
+        self.assertEqual(code, 0, f'the stylesheet and the tracked svg disagree: {line}')
         self.assertIn('BRAND_ASSET=OK', line)
 
     def test_a_swapped_payload_is_caught(self):
-        png = rba.PNG_PATH.read_bytes()
-        other = rba._encode(Image.fromarray(np.zeros((144, 144, 4), np.uint8), 'RGBA'))
-        self.assertNotEqual(png, other)
+        """Replace the inlined glyph with a different svg and the check has to say stale."""
+        mark = rba.MARK_PATH.read_bytes()
+        other = (b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">'
+                 b'<path fill="#EEF2F5" d="M0 0h10v10H0z"/></svg>')
+        self.assertNotEqual(mark, other)
         css = rba.CSS_PATH.read_text(encoding='utf-8')
-        swapped = css.replace(base64.b64encode(png).decode('ascii'),
+        swapped = css.replace(base64.b64encode(mark).decode('ascii'),
                               base64.b64encode(other).decode('ascii'))
-        self.assertNotEqual(swapped, css, 'the payload was not findable in the css')
-        with _temp_pair(swapped.encode('utf-8'), png) as (p, c):
+        self.assertNotEqual(swapped, css, 'the vector payload was not findable in the css, so '
+                                         'this case would be comparing the file to itself')
+        with _temp_pair(swapped.encode('utf-8'), other) as (p, c):
             code, line = _check(p, c)
         self.assertEqual(code, 1)
         self.assertIn('BRAND_CSS_STALE', line)
 
     def test_a_stale_digest_claim_is_caught(self):
+        """The claim in the comment must be the digest of the svg, not of any file at all.
+
+        This case used to hand the checker the retired bitmap as the subject. It still exited 1
+        then -- for a different reason than it names -- which is exactly how a green suite hides
+        an unread assertion.
+        """
         css = re.sub(r'(brand-mark:begin sha256=)[0-9a-f]{64}', r'\g<1>' + 'a' * 64,
                      rba.CSS_PATH.read_text(encoding='utf-8'))
         self.assertIn('aaaaaa', css)
-        with _temp_pair(css.encode('utf-8'), rba.PNG_PATH.read_bytes()) as (p, c):
+        with _temp_pair(css.encode('utf-8'), rba.MARK_PATH.read_bytes()) as (p, c):
             code, line = _check(p, c)
         self.assertEqual(code, 1)
         self.assertIn('BRAND_CSS_STALE', line)
 
     def test_a_missing_asset_is_a_failure_not_a_pass(self):
-        missing = rba.PNG_PATH.with_name('no-such-mark.png')
+        missing = rba.MARK_PATH.with_name('no-such-mark.svg')
         self.assertFalse(missing.exists())
         code, line = _check(missing, rba.CSS_PATH)
         self.assertEqual(code, 1)
@@ -112,52 +131,93 @@ class BrandRegionTests(unittest.TestCase):
                         'design-lab/tests/test_workbench_css_single_definition.py fails on a '
                         'selector defined twice')
 
-    def test_both_brand_tiles_consume_the_token(self):
-        """An unread declaration is decoration: the asset must actually be painted."""
-        for selector in ('.mark{', '.brand-mark::after{'):
+    def test_the_nav_mark_and_the_legacy_tiles_consume_the_token(self):
+        """An unread declaration is decoration: the asset must actually be painted.
+
+        `.app-nav-mark` is the surface the product mounts; `.mark` and `.brand-mark::after` are
+        the pre-shell tiles that still carry the token. The bloom claim this case used to make
+        (`var(--glow)` on `.mark`) was dropped with the bitmap: `filter` on a masked glyph is
+        clipped by paint order, so asserting it would pin a decoration nobody can see.
+        """
+        for selector in ('.app-nav-mark{', '.mark{', '.brand-mark::after{'):
+            self.assertIn(selector, self.css, f'{selector} is gone -- the consumer sweep is '
+                                              'only as good as the names it knows')
             block = self.css[self.css.index(selector):]
             block = block[:block.index('}')]
             self.assertIn('var(--brand-mark)', block, f'{selector} does not use the mark')
-        self.assertIn('var(--glow)', self.css[self.css.index('.mark{'):],
-                      'the legacy tile should glow with the project token, not a copied rgba')
 
 
 class MarkShapeTests(unittest.TestCase):
-    """The cut-out is a mark, not a crop of the artwork's black ground."""
+    """The shipped mark is a two-path cut-out in one of two brand inks, not a box.
+
+    These cases used to open the 144x144 RGBA bitmap and assert a transparent ground, a white
+    glyph and an inset edge. That asset is superseded -- the interface now paints the owner's
+    vector -- so guarding its pixels guarded nothing that ships, which is the same mistake as
+    leaving a checker pointed at a retired pipeline.
+    """
 
     @classmethod
     def setUpClass(cls):
-        cls.array = np.asarray(Image.open(rba.PNG_PATH))
-        cls.image = Image.open(rba.PNG_PATH)
+        cls.mark = rba.MARK_PATH.read_bytes()
+        css = rba.CSS_PATH.read_text(encoding='utf-8')
+        cls.encodings = {}
+        for name in ('paper', 'ink'):
+            found = re.search(r'--brand-mark-%s:url\("data:image/svg\+xml;base64,'
+                              r'([A-Za-z0-9+/=]*)"\);' % name, css)
+            cls.encodings[name] = base64.b64decode(found.group(1)).decode('utf-8') \
+                if found else None
 
-    def test_square_rgba_canvas_with_a_transparent_ground(self):
-        self.assertEqual(self.image.mode, 'RGBA')
-        self.assertEqual(self.image.size, (144, 144))
-        alpha = self.array[..., 3]
-        self.assertGreater((alpha < 5).mean(), 0.5,
-                           'over half the canvas must be transparent or it is a box, not a mark')
-        self.assertGreater((alpha > 250).mean(), 0.05)
+    def test_the_tracked_mark_is_a_path_bearing_svg_with_a_view_box(self):
+        self.assertIn(b'<svg', self.mark[:200])
+        self.assertIn(b'viewBox', self.mark)
+        self.assertEqual(self.mark.count(b'<path '), 2,
+                         'the monogram is the D plus the star burst; a third path means the '
+                         'cut that separates glyph from wordmark moved')
 
-    def test_the_glyph_is_white_and_inset_from_the_edge(self):
-        alpha = self.array[..., 3]
-        self.assertEqual(np.unique(self.array[..., :3][alpha > 128]).tolist(), [255],
-                         'the mark is a white glyph; colour belongs to the tile, not the asset')
-        ys, xs = np.where(alpha > 128)
-        for name, lo, hi, limit in (('x', xs.min(), xs.max(), 144), ('y', ys.min(), ys.max(), 144)):
-            self.assertGreaterEqual(lo, 4, f'{name} touches the canvas edge')
-            self.assertLessEqual(hi, limit - 5, f'{name} touches the canvas edge')
+    def test_each_encoding_carries_exactly_one_of_the_two_brand_inks(self):
+        """Two encodings of one geometry: paper for charcoal, ink for the light palettes."""
+        for name, want in (('paper', '#EEF2F5'), ('ink', '#17212B')):
+            text = self.encodings[name]
+            self.assertIsNotNone(text, f'--brand-mark-{name} is gone from the stylesheet')
+            self.assertEqual(text.count('<path '), 2,
+                             f'--brand-mark-{name} lost geometry')
+            self.assertIn('fill="%s"' % want, text,
+                          f'--brand-mark-{name} is not drawn in the ink its name claims')
+            other = '#17212B' if want == '#EEF2F5' else '#EEF2F5'
+            self.assertNotIn('fill="%s"' % other, text,
+                             f'--brand-mark-{name} mixes both brand inks')
 
-    def test_the_provenance_records_a_source_digest_and_the_shipped_canvas(self):
-        """The artwork lives outside the repository and is not fetched here; what this
-        pins is that the recorded canvas agrees with the asset, and that the source is
-        named by digest rather than by a machine-specific path."""
+    def test_the_encoding_is_the_tracked_mark_reinked_and_not_a_reinterpretation(self):
+        """Same viewBox, same path data: the two tokens differ only in the fill."""
+        paper, ink = self.encodings['paper'], self.encodings['ink']
+        self.assertEqual(paper.replace('#EEF2F5', '@'), ink.replace('#17212B', '@'),
+                         'the paper and ink encodings differ in more than their ink, so one '
+                         'palette is showing a different drawing')
+        self.assertEqual(re.search(r'viewBox="([^"]+)"', paper).group(1),
+                         re.search(r'viewBox="([^"]+)"', self.mark.decode('utf-8')).group(1),
+                         'the inlined viewBox is not the tracked file\'s, so the tile scales '
+                         'a drawing nobody reviewed')
+
+    def test_the_provenance_records_source_digests_and_no_machine_path_for_the_shipped_svg(self):
+        """The artwork lives outside the repository and is not fetched here.
+
+        What this pins is that every tracked derivation names its source by digest and its
+        method, and that the shipped file's recorded digest is the file on disk. The absolute
+        owner directory is recorded once, in `source_dir_outside_repository`, as a provenance
+        note -- not as a path the verification reads.
+        """
         meta = json.loads(rba.PROVENANCE.read_text(encoding='utf-8'))
-        self.assertEqual(len(meta['source_sha256']), 64)
-        self.assertNotIn('source_path', meta,
-                         'a cross-project absolute path in the record would make the '
-                         'asset unverifiable on any other machine')
-        self.assertEqual(meta['canvas_px'], 144)
-        self.assertEqual(list(self.image.size), [meta['canvas_px']] * 2)
+        tracked = meta['tracked_derivations']
+        key = 'apps/workbench/brand/design-mark.svg'
+        self.assertIn(key, tracked)
+        self.assertEqual(len(tracked[key]['sha256']), 64)
+        self.assertEqual(tracked[key]['sha256'], hashlib.sha256(self.mark).hexdigest(),
+                         'the provenance record and the shipped bytes disagree')
+        self.assertEqual(tracked[key]['paths'], 2)
+        self.assertIn('derived_from', tracked[key])
+        for entry in meta['sources'].values():
+            self.assertEqual(len(entry['sha256']), 64,
+                             'a source without a full digest cannot be re-obtained verifiably')
 
 
 class InlineMechanismTests(unittest.TestCase):
@@ -175,7 +235,7 @@ class InlineMechanismTests(unittest.TestCase):
         body, mime = workbench.resource('/workbench/style.css')
         self.assertEqual(mime, 'text/css')
         self.assertIn(b'--brand-mark', body)
-        self.assertEqual(hashlib.sha256(rba.PNG_PATH.read_bytes()).hexdigest()[:16],
+        self.assertEqual(hashlib.sha256(rba.MARK_PATH.read_bytes()).hexdigest()[:16],
                          re.search(rb'brand-mark:begin sha256=([0-9a-f]{16})', body).group(1).decode())
 
 

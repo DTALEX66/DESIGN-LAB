@@ -32,6 +32,7 @@ from PIL import Image
 REPO = Path(__file__).resolve().parents[2]
 BRAND_DIR = REPO / 'apps' / 'workbench' / 'brand'
 PNG_PATH = BRAND_DIR / 'design-lab-mark.png'
+MARK_PATH = BRAND_DIR / 'design-mark.svg'
 PROVENANCE = BRAND_DIR / 'PROVENANCE.json'
 CSS_PATH = REPO / 'apps' / 'workbench' / 'style.css'
 CANVAS = 144          # square output canvas; the tile renders it at 48px (3x)
@@ -152,7 +153,7 @@ def main(argv=None) -> int:
         # apps/workbench/brand/design-mark.svg, so the check follows that byte-for-byte. The PNG
         # pipeline below is kept for provenance of the superseded asset, and a checker that still
         # hashed it would either fail on a correct stylesheet or pass on a stale one.
-        mark_path = BRAND_DIR / 'design-mark.svg'
+        mark_path = MARK_PATH
         if not mark_path.is_file():
             print('BRAND_ASSET_MISSING design-mark.svg is not on disk')
             return 1
