@@ -739,6 +739,7 @@ const MEASURE_SPEC = () => {
   let errorNodes = 0;
   let errorAdjacent = 0;
   let errorNamed = 0;
+  let errorNamedAdjacent = 0;
   let errorUnowned = 0;
   const errorFar = [];
   const refusalWords = window.__ctRefusalWords || [];
@@ -777,8 +778,12 @@ const MEASURE_SPEC = () => {
       const eb0 = el.getBoundingClientRect();
       const candidates = [...host.querySelectorAll('input:not([type=hidden]), select, textarea')]
         .filter((c) => painted(c, getComputedStyle(c)));
-      control = candidates.reduce((best, c) => (gapTo(eb0, c.getBoundingClientRect())
-        < gapTo(eb0, best.getBoundingClientRect()) ? c : best), null);
+      // Seeding the reduction with null would crash on the first comparison the moment a host has
+      // no painted control, so the fallback is taken only over a non-empty set.
+      control = candidates.length
+        ? candidates.reduce((best, c) => (gapTo(eb0, c.getBoundingClientRect())
+          < gapTo(eb0, best.getBoundingClientRect()) ? c : best))
+        : null;
       errorUnowned += 1;
     }
     if (!control || !painted(control, getComputedStyle(control))) {
@@ -791,7 +796,14 @@ const MEASURE_SPEC = () => {
     const eb = el.getBoundingClientRect();
     errorNodes += 1;
     const dy = gapTo(eb, cb);
-    if (dy <= 24) { errorAdjacent += 1; continue; }
+    if (dy <= 24) {
+      errorAdjacent += 1;
+      // The named subset keeps its own counter: that is the pair the pack rule obliges, and
+      // keeping it apart from the unowned ones is what stops the enforced number from being
+      // improved by reclassifying the population.
+      if (named) errorNamedAdjacent += 1;
+      continue;
+    }
     if (errorFar.length < 8) {
       errorFar.push(nodeTag(el) + (named ? ' -> #' + named : ' -> nearest') + ' dy='
         + Math.round(dy) + 'px');
@@ -807,7 +819,7 @@ const MEASURE_SPEC = () => {
            brandBluePaints: brandBlues.length, brandBlueExamples: unique,
            veilHosts, veilExamples, unknownColour,
            headingLadder, labelled, labelAbove, labelSideBySide,
-           errorNodes, errorAdjacent, errorNamed, errorUnowned, errorFar };
+           errorNodes, errorAdjacent, errorNamed, errorNamedAdjacent, errorUnowned, errorFar };
 };
 
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
@@ -1031,30 +1043,33 @@ async function openKnowledgeDetail(page, key, problems) {
 //   * `p.view-hint#knowledge-outcome` and friends -- local refusals written into a *hint* class
 //     with no role=alert, invisible to the old selector and to assistive tech. Graded here by the
 //     product's own refusal prefixes, handed in as CT_REFUSAL_WORDS.
-async function openRefusalState(page, key, lineId, fieldId, triggerId) {
-  const trigger = await page.$('#' + triggerId);
-  const line = await page.$('#' + lineId);
+async function openRefusalState(page, key, lineSel, fieldSel, triggerSel) {
+  // Selectors, not ids: the knowledge create form builds its fields as `${prefix}-title` but gives
+  // the submit button and the status region no id at all, so an id-only probe ends up naming
+  // elements the route never had.
+  const trigger = await page.$(triggerSel);
+  const line = await page.$(lineSel);
   if (!trigger || !line) {
-    refusalAbsent.push(`${key}: #${triggerId}/#${lineId} is not on this state, so this refusal `
+    refusalAbsent.push(`${key}: ${triggerSel} / ${lineSel} is not on this state, so this refusal `
       + 'family was not provoked here');
     return false;
   }
-  await page.evaluate((id) => {
-    const field = document.getElementById(id);
+  await page.evaluate((sel) => {
+    const field = document.querySelector(sel);
     if (field) field.value = '';
-  }, fieldId);
+  }, fieldSel);
   await trigger.click();
   let text = null;
   for (let attempt = 0; attempt < 40; attempt += 1) {
-    text = await page.evaluate((id) => {
-      const node = document.getElementById(id);
+    text = await page.evaluate((sel) => {
+      const node = document.querySelector(sel);
       return node && (node.textContent || '').trim() ? node.textContent.trim() : null;
-    }, lineId);
+    }, lineSel);
     if (text) break;
     await page.waitForTimeout(100);
   }
   if (!text) {
-    refusalAbsent.push(`${key}: #${lineId} stayed empty after the empty submit, so the local `
+    refusalAbsent.push(`${key}: ${lineSel} stayed empty after the empty submit, so the local `
       + 'validation did not run on this state');
     return false;
   }
@@ -1358,7 +1373,7 @@ const specTotals = { runs: 0, below12: 0, formCount: 0, formBelow36: 0, formRadi
                      veilHosts: 0, unknownColour: 0, controls: 0, inBodyBand: 0, minPx: null,
                      gradients: 0, bigGradients: 0, brandBlues: 0,
                      labelled: 0, labelAbove: 0, errors: 0, errorAdjacent: 0,
-                     errorNamed: 0, errorUnowned: 0 };
+                     errorNamed: 0, errorNamedAdjacent: 0, errorUnowned: 0 };
 const specHeadingLadder = [];
 const specLabelExamples = [];
 const specErrorExamples = [];
@@ -1436,6 +1451,7 @@ const absorb = (key, m) => {
     specTotals.errors += s.errorNodes;
     specTotals.errorAdjacent += s.errorAdjacent;
     specTotals.errorNamed += s.errorNamed;
+    specTotals.errorNamedAdjacent += s.errorNamedAdjacent;
     specTotals.errorUnowned += s.errorUnowned;
     for (const h of s.headingLadder) if (!specHeadingLadder.includes(h)) specHeadingLadder.push(h);
     for (const e of s.labelSideBySide) {
@@ -1477,8 +1493,8 @@ for (const w of widths) {
     if (name === 'assistant') {
       // The mandatory provocation: the intake form's own error line is `p.error[role=alert]`, so
       // this is the case where the selector was never the problem and only the missing state was.
-      const refused = await openRefusalState(page, `${w}:assistant+refusal`, 'as-form-error',
-        'as-objective', 'as-submit');
+      const refused = await openRefusalState(page, `${w}:assistant+refusal`, '#as-form-error',
+        '#as-objective', '#as-submit');
       if (refused) absorb(`${w}:assistant+refusal`, await measureBoth(page));
       // The plan detail is measured as its own named state. A screen that never settled is pushed
       // into the same miss list the wrapper asserts to zero, so an unmeasured panel cannot be read
@@ -1501,8 +1517,13 @@ for (const w of widths) {
       // The refusal state is provoked first and measured as its own named row: 「错误紧邻字段」 is
       // a claim about a message's distance from its field, and no route the walk visits otherwise
       // ever shows one.
-      const refused = await openRefusalState(page, `${w}:knowledge+refusal`, 'knowledge-outcome',
-        'knowledge-title', 'knowledge-create-submit');
+      // Reveal the create form through the route's own affordance, then name the elements it
+      // really builds: the fields are `kb-new-*`, the submit is the panel's only primary action,
+      // and the sentence lands in the status region (as `p.error`, which the graded population
+      // already covers).
+      if (await page.$('#kb-new')) await page.click('#kb-new');
+      const refused = await openRefusalState(page, `${w}:knowledge+refusal`,
+        '#kb-form [role=status]', '#kb-new-title', '#kb-form .primary-btn');
       if (refused) absorb(`${w}:knowledge+refusal`, await measureBoth(page));
       // Same rule for the entry detail: it is a named state of its own, and a panel that never
       // settled lands in the miss list the wrapper asserts to zero rather than being skipped.
@@ -1719,6 +1740,7 @@ for (const g of specGlass) console.log(`  GLASS ${g}`);
 console.log(`CT_SPEC headings=[${specHeadingLadder.join(' | ')}] labelled=${specTotals.labelled}`
   + ` labelAbove=${specTotals.labelAbove} errorNodes=${specTotals.errors}`
   + ` errorAdjacent=${specTotals.errorAdjacent} errorNamed=${specTotals.errorNamed}`
+  + ` errorNamedAdjacent=${specTotals.errorNamedAdjacent}`
   + ` errorUnowned=${specTotals.errorUnowned}`);
 for (const e of specLabelExamples) console.log(`  LABEL-SIDEBY ${e}`);
 for (const e of specErrorExamples) console.log(`  ERROR-FAR ${e}`);

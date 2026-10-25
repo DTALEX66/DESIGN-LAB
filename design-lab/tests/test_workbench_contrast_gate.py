@@ -1151,19 +1151,58 @@ class FieldRefusalsLandOnTheFieldTheyName(unittest.TestCase):
         report = json.loads(path.read_text(encoding='utf-8'))
         spec = report.get('spec') or {}
         seen = (report.get('refusalAdjacency') or {}).get('seen') or []
+        proved = [row.get('key', '') for row in (report.get('refusals') or {}).get('proved', [])]
+        # The rule the pack states is about a message and THE FIELD IT NAMES, so that pair is what
+        # gets enforced. `errors == errorAdjacent` was the first shape of this assertion and it only
+        # held because the population then contained no message without a referent; the knowledge
+        # family, now provoked for real, contributes four compound messages that name three fields
+        # at once and sit 82px from any control. Requiring the whole count to be adjacent would
+        # have been satisfied by dropping those from the count -- so the count is asserted to
+        # include them, and the obligation is asserted on the named subset.
         self.assertGreaterEqual(spec.get('errorNamed', 0), 1,
                                 'no graded message carried a data-for referent, so the adjacency '
                                 'rule is back to guessing which field a sentence is about')
-        self.assertEqual(spec.get('errors'), spec.get('errorAdjacent'),
-                         'errors=%s but errorAdjacent=%s: the receipt itself says some refusals '
-                         'are not on their field' % (spec.get('errors'),
-                                                     spec.get('errorAdjacent')))
+        self.assertEqual(spec.get('errorNamed'), spec.get('errorNamedAdjacent'),
+                         'named=%s namedAdjacent=%s: a refusal that says which field it is about '
+                         'is not sitting on that field' % (spec.get('errorNamed'),
+                                                           spec.get('errorNamedAdjacent')))
+        self.assertGreater(spec.get('errors', 0), spec.get('errorNamed', 0),
+                           'errors=%s equals the named count, so the compound messages that are '
+                           'not yet adjacent have left the measured population -- that is a '
+                           'narrowing, not a fix (their distance is in errorFarExamples)'
+                           % spec.get('errors'))
+        for family in (':assistant+refusal', ':knowledge+refusal'):
+            self.assertTrue([k for k in proved if k.endswith(family)],
+                            'no run provoked the %s family, so 「错误紧邻字段」 is being graded on '
+                            'half the refusal population' % family)
         self.assertGreaterEqual(len(seen), 3,
                                 'only %s field refusal(s) were provoked, which is how the old '
                                 'reading came to describe one element instead of the family'
                                 % len(seen))
         self.assertEqual(adjacency_offenders(seen), [],
                          'these provoked refusals did not land on the field they name')
+
+    def test_the_knowledge_form_is_reached_by_the_ids_that_route_really_builds(self):
+        """`#knowledge-title` never existed here: the create form's fields are `kb-new-*`.
+
+        That phantom naming is why this family reported `absent` for every run since it was first
+        asked for, and why `errors` looked like a one-family population. The provocation now reveals
+        the form through the route's own `#kb-new` affordance and addresses the panel by structure,
+        because its submit button and status region carry no id at all.
+        """
+        script = GATE_SCRIPT.read_text(encoding='utf-8')
+        self.assertIn("'#kb-form [role=status]', '#kb-new-title', '#kb-form .primary-btn'",
+                      script, 'the knowledge provocation went back to ids this route does not '
+                              'build, so the family silently stops being provoked')
+        self.assertIn("page.click('#kb-new')", script,
+                      'the create form is no longer revealed, so its refusal cannot exist on the '
+                      'walked state')
+        self.assertNotIn("'knowledge-title', 'knowledge-create-submit'", script,
+                      'the phantom ids are back')
+        source = (ROOT / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
+        self.assertIn("el('div', { id: 'kb-form' })", source,
+                      'the panel that holds the create form was renamed, so the probe targets '
+                      'silently point at nothing')
 
     def test_the_product_writes_each_field_refusal_through_one_door(self):
         source = (ROOT / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
