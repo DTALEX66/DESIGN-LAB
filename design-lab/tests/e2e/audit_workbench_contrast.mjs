@@ -1025,6 +1025,55 @@ async function measureBoth(page) {
   return m;
 }
 
+// The remote run convicted a row the local sweep never reached, so the sweep now walks one step
+// further than "a combination resolved": validate the target, then change the target, so the CTA
+// sits in its stale wording -- the exact state the CI runner measured. A state that only one
+// platform happens to reach is not a tested state; it is a gap with a green badge on it.
+async function openStaleValidationState(page, key, problems) {
+  const btn = page.locator('#tp-validate');
+  if (await btn.count() !== 1) {
+    problems.push(`${key}: 页面上没有 #tp-validate，重校验态进不去`);
+    return false;
+  }
+  if (await btn.isEnabled()) {
+    await btn.click().catch(() => false);
+    await page.waitForFunction(() => {
+      const b = document.getElementById('tp-validate');
+      return !!b && b.textContent.trim() === '按这个目标重新校验';
+    }, null, { timeout: 20000 }).catch(() => false);
+  }
+  for (const id of ['tp-task-mode', 'tp-model', 'tp-entry', 'tp-agent']) {
+    const select = page.locator('#' + id);
+    if (await select.count() !== 1) continue;
+    if (await select.locator('option').count() < 3) continue;
+    const current = await select.inputValue();
+    const values = await select.locator('option').evaluateAll((os) => os.map((o) => o.value));
+    const other = values.find((v) => v && v !== current);
+    if (!other) continue;
+    await select.selectOption(other);
+    break;
+  }
+  // Measure whatever state the change actually produced and name the key after it. Requiring one
+  // wording would turn "I could not reach that state" into a red the reader misreads as a
+  // regression in the UI; the wording and the disabled flag are printed instead, so the row says
+  // what it measured and the unreachable case stays visible as coverage, not as a false failure.
+  await page.waitForTimeout(1200);
+  const seen = await page.evaluate(() => {
+    const b = document.getElementById('tp-validate');
+    if (!b) return null;
+    const cs = getComputedStyle(b);
+    return { text: b.textContent.trim(), disabled: b.disabled, color: cs.color,
+             bg: cs.backgroundImage === 'none' ? cs.backgroundColor : 'image' };
+  });
+  if (!seen) {
+    problems.push(`${key}: 换了目标之后 #tp-validate 不在页面里，这一态仍未被量到`);
+    return false;
+  }
+  console.log(`  STALEROW ${key} text=${seen.text} disabled=${seen.disabled ? 1 : 0} `
+    + `color=${seen.color} bg=${seen.bg}`);
+  return true;
+}
+
 const ctSeed = await seedAssistancePlanForAudit('对比度审计');
 report.auditSeed = { kind: 'synthetic-assistance-plan', project: ctSeed.project,
   plan: ctSeed.plan, product_data: false,
@@ -1177,6 +1226,12 @@ for (const w of widths) {
       const opened = await openCombinationState(page, `${w}:target-profiles+combination`,
         controlBad);
       if (opened) absorb(`${w}:target-profiles+combination`, await measureBoth(page));
+      if (opened) {
+        // Measured as its own named row, so a clean combination cannot stand in for a dirty one.
+        const stale = await openStaleValidationState(page,
+          `${w}:target-profiles+combination-after-change`, controlBad);
+        if (stale) absorb(`${w}:target-profiles+combination-after-change`, await measureBoth(page));
+      }
     }
   }
   await page.close();
