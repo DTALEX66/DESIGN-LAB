@@ -148,27 +148,62 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     if args.check:
-        if not PNG_PATH.is_file():
-            print('BRAND_ASSET_MISSING')
+        # The shipped mark is now the owner's vector, not a bitmap cut-out: the token derives from
+        # apps/workbench/brand/design-mark.svg, so the check follows that byte-for-byte. The PNG
+        # pipeline below is kept for provenance of the superseded asset, and a checker that still
+        # hashed it would either fail on a correct stylesheet or pass on a stale one.
+        mark_path = BRAND_DIR / 'design-mark.svg'
+        if not mark_path.is_file():
+            print('BRAND_ASSET_MISSING design-mark.svg is not on disk')
             return 1
-        png = PNG_PATH.read_bytes()
+        mark = mark_path.read_bytes()
         css = CSS_PATH.read_text(encoding='utf-8')
-        m = re.search(r'[ \t]*' + re.escape(BEGIN) + r'([0-9a-f]{64}) \*/\n'
-                      r'[ \t]*--brand-mark:url\("data:image/png;base64,([A-Za-z0-9+/=]*)"\);\n'
-                      r'[ \t]*' + re.escape(END), css)
+        m = re.search(r'[ \t]*' + re.escape(BEGIN) + r'([0-9a-f]{64}) \*/.*?'
+                      r'--brand-mark-paper:url\("data:image/svg\+xml;base64,([A-Za-z0-9+/=]*)"\);\s*'
+                      r'--brand-mark-ink:url\("data:image/svg\+xml;base64,([A-Za-z0-9+/=]*)"\);\s*'
+                      r'--brand-mark:var\(--brand-mark-(paper|ink)\);.*?'
+                      + re.escape(END), css, re.S)
         if not m:
-            print('BRAND_CSS_REGION_UNREADABLE')
+            print('BRAND_CSS_REGION_UNREADABLE the managed block no longer carries the two '
+                  'svg encodings plus the default selection this check expects')
             return 1
-        inlined = base64.b64decode(m.group(2))
+        claimed, paper_b64, ink_b64, default_variant = m.group(1), m.group(2), m.group(3), m.group(4)
         problems = []
-        if hashlib.sha256(png).hexdigest() != m.group(1):
-            problems.append('the tracked png no longer matches the digest the css claims')
-        if inlined != png:
-            problems.append('the css carries bytes that are not the tracked png')
+        if hashlib.sha256(mark).hexdigest() != claimed:
+            problems.append('the tracked design-mark.svg no longer matches the digest the css claims')
+        for name, blob, want_fill in (('paper', paper_b64, '#EEF2F5'), ('ink', ink_b64, '#17212B')):
+            decoded = base64.b64decode(blob)
+            if b'<path d=' not in decoded:
+                problems.append(f'--brand-mark-{name} is not a path-bearing svg')
+                continue
+            if decoded.replace(b' ', b'').count(b'<path') < 1:
+                problems.append(f'--brand-mark-{name} carries no path geometry')
+            if ('fill="%s"' % want_fill).encode() not in decoded:
+                problems.append(f'--brand-mark-{name} does not carry the {want_fill} ink it claims')
+            if b'viewBox' not in decoded:
+                problems.append(f'--brand-mark-{name} lost its viewBox, so it cannot scale to the tile')
+        source_paths = mark.count(b'<path ')
+        for name, blob in (('paper', paper_b64), ('ink', ink_b64)):
+            got = base64.b64decode(blob).count(b'<path ')
+            if got != source_paths:
+                problems.append(f'--brand-mark-{name} carries {got} paths, the tracked svg has '
+                                f'{source_paths}')
+        if default_variant != 'paper':
+            problems.append('the default --brand-mark must be the paper glyph, because the '
+                            'shipped palette is charcoal; a light palette has to opt in explicitly')
+        # Every `--brand-mark:var(--brand-mark-ink)` outside the managed block is one light palette
+        # opting in; the block's own default is the paper glyph, so it never appears there and no
+        # correction term is needed. (An earlier draft subtracted one and so convicted a correct
+        # stylesheet of being one palette short.)
+        light_flips = len(re.findall(r'--brand-mark:var\(--brand-mark-ink\);', css))
+        if light_flips < 2:
+            problems.append(f'only {light_flips} light palette(s) opt into the ink glyph; both '
+                            'ui2026/light and stitch/light must, or the mark is invisible there')
         if problems:
             print('BRAND_CSS_STALE: ' + '; '.join(problems))
             return 1
-        print(f'BRAND_ASSET=OK png={len(png)}B inlined={len(inlined)}B')
+        print(f'BRAND_ASSET=OK svg={len(mark)}B paths={source_paths} encodings=2 '
+              f'default={default_variant} light_flips={light_flips}')
         return 0
 
     if not args.source or not args.source.is_file():

@@ -9415,7 +9415,12 @@ export function mountAppShell(): void {
   const login = byId<HTMLDivElement>('login');
   const workspace = byId<HTMLDivElement>('workspace');
   const nav = el('nav', { class: 'app-nav', 'aria-label': 'DESIGN-LAB 导航' },
-    el('span', { class: 'app-nav-brand' }, 'DESIGN-LAB'),
+    // The owner's mark rides next to the wordmark rather than replacing it: the text is the
+    // accessible name, so the glyph stays aria-hidden. The old sidebar tile this copies from
+    // (shell.ts's commented-out legacy markup) renders at zero size, which is why the nav header
+    // had no logo at all until now.
+    el('span', { class: 'app-nav-brand' },
+      el('i', { class: 'app-nav-mark', 'aria-hidden': 'true' }), 'DESIGN-LAB'),
     ...navGroupChunks(ROUTE_VIEWS, (route) => el('button', {
       type: 'button', class: 'app-nav-item', dataset: { route: route.view },
       onclick: () => { window.location.hash = route.hash === '' ? '' : route.hash; },

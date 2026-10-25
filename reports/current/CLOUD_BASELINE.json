@@ -9,15 +9,45 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-25T11:53:03+00:00",
+  "generatedAt": "2026-10-25T13:29:44+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "d75a375c6b9bc4bc2f9798ae2b2cddbbc6444f9b",
+    "sha": "bdaf4883e5e12eebdaedfed7a9a0927a6451703a",
     "source_worktree_clean": false,
     "tracked_files": 3979,
     "worktree_changes": [
+      {
+        "content": "sha256:0016b5bf78efdc0ea82657cb7b717de1296fc70eb596dfc9f2f778c581d88067",
+        "kind": "M",
+        "path": "DESIGN.md"
+      },
+      {
+        "content": "sha256:a65465925c04425685bb7098aa6e668ba99771b108d5fd62422973a43f60a7f0",
+        "kind": "M",
+        "path": "apps/workbench/brand/PROVENANCE.json"
+      },
+      {
+        "content": "sha256:92560d972349430198b6ae9f70096e5a9027d8eeb31b036b95b53b9f1e5911c0",
+        "kind": "M",
+        "path": "apps/workbench/build/main.js"
+      },
+      {
+        "content": "sha256:43f77c89e57d39540ce0dcac259e069ea99e963e0b2c5780ab8370565beaed26",
+        "kind": "M",
+        "path": "apps/workbench/shell.ts"
+      },
+      {
+        "content": "sha256:8b0b4a391122c330266b4b1f154ae66c1e8243cf3f2c8e0b4016b92e53e456ee",
+        "kind": "M",
+        "path": "apps/workbench/style.css"
+      },
+      {
+        "content": "sha256:7a87403d0012e0a53932d4ee421dd3cc8cedd7b816b2d4b314dc4b9e16015acb",
+        "kind": "M",
+        "path": "design-lab/scripts/render_brand_asset.py"
+      },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
         "kind": "U",
@@ -27,15 +57,35 @@
         "content": "sha256:13c275506e946cc3df2e2a30250454ec64a88046c5b04ad2ffaeca601b692efe",
         "kind": "U",
         "path": ".cursor/rules/universal-agent-core.mdc"
+      },
+      {
+        "content": "sha256:ad70979f175928ef698ba5b6e702e69ed722f94b7b27e2a0a63455701750cebb",
+        "kind": "U",
+        "path": "apps/workbench/brand/design-lockup.svg"
+      },
+      {
+        "content": "sha256:1235389294cbdf0fe43eb9eded9f4d9a214f83068c002e2e9f962928f554bf7b",
+        "kind": "U",
+        "path": "apps/workbench/brand/design-lockup.svg.license"
+      },
+      {
+        "content": "sha256:0dc0a7362f6fc192bb7b6383afec34de08f85d2deff84bd525bcdcac4488f87f",
+        "kind": "U",
+        "path": "apps/workbench/brand/design-mark.svg"
+      },
+      {
+        "content": "sha256:48037af882ad3815a93db012ab9553ee762e633441e28b59f92d2f94805e9a0d",
+        "kind": "U",
+        "path": "apps/workbench/brand/design-mark.svg.license"
       }
     ],
-    "worktree_digest": "sha256:f0c98ed7ddd81b88b0ba80b4d98efccdfca48e95a47a6f02a3e07b74e313cf83"
+    "worktree_digest": "sha256:fe6c27c0deb8ab230bb3f3c9e42d8ee8a8c1d0fe47461c93d18ebb0898dbfca2"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "d75a375c6b9bc4bc2f9798ae2b2cddbbc6444f9b",
+  "subjectSha": "bdaf4883e5e12eebdaedfed7a9a0927a6451703a",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -50,5 +100,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:f0c98ed7ddd81b88b0ba80b4d98efccdfca48e95a47a6f02a3e07b74e313cf83"
+  "worktreeDigest": "sha256:fe6c27c0deb8ab230bb3f3c9e42d8ee8a8c1d0fe47461c93d18ebb0898dbfca2"
 }

@@ -99,7 +99,7 @@ measuredDebtAtCommit: 700ee3fb
 - Do 用 `color-mix(in srgb, var(--x) N%, transparent)` 派生态；Don't 新写字面色值。
   当前存量（由 `scripts/design_debt_baseline.py` 按声明的规则实测，`--check` 看守，
   不再是手点数字）：非令牌声明、去掉注释后的 7 个界面源文件里，
-  字面色值 26 处、字面 px 517 处、阴影声明 25 条（其中 19 条已读 var()）。
+  字面色值 26 处、字面 px 521 处、阴影声明 25 条（其中 19 条已读 var()）。
   534 → 514 的 20 处来自同一件事：`shell.ts` 里 `style: 'margin-top:16px'` 重复了 14 次、
   `style: 'display:grid;gap:8px'` 重复了 6 次，现收成 `.spaced-top` / `.grid-stack` 两个用间距
   token 的类。内联样式是这条棘轮与 `css_single_definition` 都看不见的地方，而且交替主题根本读不到它们。
