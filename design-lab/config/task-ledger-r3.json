@@ -12364,6 +12364,18 @@
         "command": "The 20261023 pack writes its visual rules as numbers, so the contrast ruler now grades them on the same painted document it uses for AA: 元数据至少12px, 圆角输入/按钮6-10px, 玻璃只给顶栏/导航/临时面板, 长文字与列表实底, and the control-height and typography histograms it reports without asserting. Measured before the fix at width 1440: 119 text runs under 12px, 23 list rows and text buttons painted on translucent white, 474 form controls over the 10px radius band. After the fix, under stitch/light: below12=0 translucentTextHosts=0 formRadiusOver10=0 glassOffAllowlist=0 unparsableAlpha=0 over 15602 text runs and 1002 form controls, with AA still belowAA=0. The 12px floor was raised globally (--uif-font-micro and five 11px rules); the 实底 and radius fixes are scoped to the pack theme, which the falsifier proves by going red on the default palette. Glass needed no change: the only two blurred surfaces measured are the top bar and the navigation, and the allowlist is now that list.",
         "exit_code": 0,
         "observed_at": "2026-10-25T03:16:33Z"
+      },
+      {
+        "id": "kb-06-browser-single-accent-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "78a1685427afa5de5df80dff382e340a7a559ea0",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-single-accent-20261025.json",
+        "artifact_sha256": "610e63b37dafe6eb6a0b2694db82b02b2c9c2374fb813c43936cac99a2ef051a",
+        "command": "The 20261023 pack writes its visual rules as numbers, so the contrast ruler now grades them on the same painted document it uses for AA: 元数据至少12px, 圆角输入/按钮6-10px, 玻璃只给顶栏/导航/临时面板, 长文字与列表实底, and the control-height and typography histograms it reports without asserting. Measured before the fix at width 1440: 119 text runs under 12px, 23 list rows and text buttons painted on translucent white, 474 form controls over the 10px radius band. After the fix, under stitch/light: below12=0 translucentTextHosts=0 formRadiusOver10=0 glassOffAllowlist=0 unparsableAlpha=0 over 15602 text runs and 1002 form controls, with AA still belowAA=0. The 12px floor was raised globally (--uif-font-micro and five 11px rules); the 实底 and radius fixes are scoped to the pack theme, which the falsifier proves by going red on the default palette. Glass needed no change: the only two blurred surfaces measured are the top bar and the navigation, and the allowlist is now that list.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T03:38:18Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

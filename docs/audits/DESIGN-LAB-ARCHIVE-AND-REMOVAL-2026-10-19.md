@@ -1891,3 +1891,52 @@ OV_SUMMARY clipped=0 stray=0 tiny=0 interactions=28 [1440:evidence+projection-re
 主按钮现在仍是两停 brand 渐变，珍珠白下不是平涂的 `#356B92`，这条必须连 AA 一起重测才好说；
 「字段密度」与「标题层级」要先定分母（按哪一列算密度）才好写成数。owner 未裁的两件继续记账不代做：
 `DL-KB-13` 的 150 KB 上限，与长屏上顶栏是否吸顶。
+
+### 5.51 包里那句「单一低饱和强调色」被拆成一支可数的第二色，然后归零。
+
+**这条量的是什么。** `08_STITCH完整提示词.txt` 写的是一句正面断言——「单一低饱和强调色 #356B92」，
+它的反面是可数的：界面里还有没有第二支蓝。答案是有，而且是成对的两停：`--brand-gradient-from #1D4FC4`
+与 `--brand-gradient-to #2A63D8`（style.css:23-25，2026-10-06 为了让白字过 AA 从 `#316CFF` 加深来的，
+那次实测记录就在同一行上方）。尺子读的是**已渲染的色**，不是样式表里的 token：把 painted 元素的
+`background-color`／`background-image`／`border-top-color` 里出现 `rgb(29,79,196)` 或 `rgb(42,99,216)`
+的算一处，所以 token 从哪条规则流过来都一样会被数到。
+
+**第一次量（stitch／light，width 1440）**：珍珠白下 **21 处** painted 面仍是那对深蓝——
+`button.primary-btn`（能力详情里的「使用此能力」）、`#research-submit`、`#preflight-run`、`#jury-submit`
+这些主动作。压平到包里那一支之后为 **0**。
+
+**这一刀自己带回来一个已经量掉的缺陷，尺子当场拦下。** 压平的第一版没排除禁用态：我的规则特异性
+压过了 `button:disabled`（style.css:303，2026-10-09 那次实测把禁用的「使用此能力」从 2.31:1 改成
+平涂次级底＋虚线边＋可读次级墨），于是 13px 的次级墨被压在强调色底上报出 **1.06:1**，产品级红 **29** 条。
+加上 `:not(:disabled)` 之后这三处只在可点状态下翻成强调色，禁用态继续用它自己的非文字线索。
+**「高特异性规则顺手覆盖掉一个为无障碍而写的状态」是这一轮的根因**，不是我改错了色值。
+
+**顺手修了尺子自己的账。** `belowAA` 以前按 `failCount - control.reported` 扣植入控制，
+而 `control.reported` 是「每个 id 至少被报过一次」的布尔计数（它证明解析器还认得那串颜色序列化，
+这个作用不变）；一个长页面会植入多枚同名折叠控制，多出来的行就被算成了产品债。现在按
+**实际控制行数**扣，产品债与测试台自己的道具第一次分开，`controlMisses=0` 仍然要求每枚控制都被报出。
+
+**改完的读数**（同一条尺，stitch／light，widths 1440+1920）：
+
+```
+CT_SUMMARY checked=15772 belowAA=0 pseudoLayers=0 coveredForeign=0 obscured=4 unparsable=0 collapsedOpened=6248 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0 glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0 brandBluePaints=0 formControls=1002 formBelow36px=14（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）
+```
+
+几何尺量同一份 CSS：
+
+```
+OV_SUMMARY clipped=0 stray=0 tiny=0 interactions=28 [1440:evidence+projection-read=read,1440:capabilities+global-search=read,1440:knowledge+entry-detail=read,1440:assistant+plan-detail=read,1440:assistant+plan-compare=read,1440:assistant+plan-feedback=read,1440:target-profiles+combination=read,1280:evidence+projection-read=read,1280:capabilities+global-search=read,1280:knowledge+entry-detail=read,1280:assistant+plan-detail=read,1280:assistant+plan-compare=read,1280:assistant+plan-feedback=read,1280:target-profiles+combination=read,1536:evidence+projection-read=read,1536:capabilities+global-search=read,1536:knowledge+entry-detail=read,1536:assistant+plan-detail=read,1536:assistant+plan-compare=read,1536:assistant+plan-feedback=read,1536:target-profiles+combination=read,1920:evidence+projection-read=read,1920:capabilities+global-search=read,1920:knowledge+entry-detail=read,1920:assistant+plan-detail=read,1920:assistant+plan-compare=read,1920:assistant+plan-feedback=read,1920:target-profiles+combination=read] brand=4 navEdge=4 spec=0 theme=stitch/light
+```
+
+**这条同样会咬。** 默认炭黑在同一条 enforce 下现在报 **三条**红：`长文字与列表实底`、
+`避免大面积渐变`、`单一低饱和强调色`（21 处深蓝正是它的读数），
+`test_the_pack_number_assertion_refuses_a_theme_it_was_not_applied_to` 断言这三句同时出现——
+珍珠白的 0 不是把默认配色一起改掉换来的。
+
+**账与边界。** `DL-KB-06` 加第 16 条 `visual_review` 回执，`evidence` 289→**290**，直方图
+**`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变；TS 未改，bundle 字节不动。
+包里的句子还剩两句没落成数：「字段密度」与「标题层级」要先定分母；`苹果式克制玻璃感` 已经用玻璃名单钉住，
+`.app-nav button:hover` 这类 **hover 态**读同一对 brand token，但对比度尺目前只量静息态 painted 面，
+所以那处不改也不宣称已合规——要改得先决定 hover 的墨色跟不跟着翻，这是一条需要 owner 拍的设计裁定，
+不是我能替包猜的。owner 未裁的两件照旧记账：`DL-KB-13` 的 150 KB 上限，与长屏顶栏是否吸顶。
