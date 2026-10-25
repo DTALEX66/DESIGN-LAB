@@ -2211,3 +2211,29 @@ strict-TS 是 **node 作业，不装任何 Python 第三方包**（workflow 里�
 逐字节相同，哈希从写入字节读回）。`currentExecution` 50 项直方图不变
 （34 `FROZEN_DEFERRED` / 13 `DONE` / 2 `PARTIAL` / 1 `NOT_STARTED`），`DL-KB-13` 仍 PARTIAL。
 **远端是否转绿以推送后 exact-SHA 的作业为准，不以本地 exit 0 代替。**
+
+### 5.58 第二次远端红：账本绑定纪律真抓到了一次"记录变老"，而它该被抓
+
+**红在哪。** 再次推送 `d8962779` 后 `Python gate` 分片 1/3 报一条 FAIL：
+`test_evidence_artifact_presence...test_tracked_artefacts_of_the_real_ledger_all_read_back`，
+`outcomes={'FAIL': 1, 'PASS': 1018, 'SKIP': 14}`。同一矩阵里
+**`Workbench browser E2E` 绿**——说明上一轮两个修复（`--check` 回到纯标准库、预检浏览器套件登记）在 Linux 上成立。
+
+**为什么这不是产品回归。** 本轮给 `test_design_layer_http.py` 加了 404 测试，而**冻结记录
+`r5-workbench-http-native-ui-reobserved-20261006` 把那个模块当自己的工件哈希**——那条 2026-10-06 的观察
+现在描述的是比它命名文件更旧的字节。这把闸钉的是"漂移清单双向精确"，所以新增一对必须被当成 finding。
+
+**处置顺序决定诚实与否。** 先把活清单从闸自身重算、与钉住的集合**双向 diff**，再动文件：
+钉 30 对 / 64，活 31 对 / 65，唯一差异就是这一对；**无计数位移、无消失、broken=0**。
+然后按本文件既有惯例把这一对带日期理由加进期望集合，总数 pin 64→65 写进变更日志
+（沿用 59→60、60→64 的记法），**旧记录一字不改**——它仍是它当时的观察。
+不诚实的做法是两种：把那条从账本里删掉，或取消精确性检查。
+
+**一个自指情形要点明。** 编辑这个测试模块本身，本应让它自己绑定的记录也变老；实测改完后
+钉 65 == 活 65，`new/count_moves/vanished` 全空——因为绑定 `test_evidence_artifact_presence.py`
+的记录**早已在清单里**（2026-10-19 那条注释讲的正是这种"闸门模块让自己的绑定记录变老"的情形）。
+这不是巧合，是那次把自老化写进名单换来的可预测性。
+
+**账。** 代码 `9d4a17ca`；`evidence` 293 → **294**（`kb-13-drift-inventory-repin-20261025`，轴 `unit`，
+`subject_sha=9d4a17ca`，回执 2,577 字节、`sha256=8bc5e031…`）；直方图不变
+（34/13/2/1），`DL-KB-13` 仍 PARTIAL。远端仍以再次推送后的 exact-SHA 作业为准。

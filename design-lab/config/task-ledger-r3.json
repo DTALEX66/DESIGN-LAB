@@ -12412,6 +12412,18 @@
         "command": "推送 1d86e877 后 CI 抓到一次我自己的红：Workbench strict-TS product gate 在步骤 `python3 scripts/measure_workbench_weight.py --check` 死于 MEASURE_SOURCE_MOVED cannot import the route table: ModuleNotFoundError: No module named 'PIL'。归因不靠猜：那个 node 作业不装任何 Python 第三方包，而我本轮新增的 DL-KB-13 读数为了拿 ROUTES 去 import design_lab.http_service，import 链到达 image_assets 并需要 Pillow；本机 .venv 有 Pillow 所以本地绿——与今天早些时候那条\"只在远端出现的 AA\"同属平台依赖假绿。修法不给自己加安装、也不动 CI 配置：改用本脚本已有的 AST 静态读取拿路由表。同时拆开一个字段承担两件事的错误通道：readerError 只代表\"读不到路由表\"（致命），新增 callSiteError 表示\"规范匹配器（它确实需要产品依赖）不可用\"，如实报缺失、绝不当成 0。解析出的路由对象补上 accepts() 以兼容规范匹配器 verify_workbench_route_calls.route_matches，带 when= 的路由无法从文本求值则抛 ValueError（调用方本就按 dynamic call shape 处理），不答 True 造成静默过匹配。三把防复发闸：函数体外不得模块级 import 非标准库；客户端列不可用必须点名失败；when= 必须拒绝求值。用 CI 真实条件复验（无 Pillow 的裸解释器）：list_routes=18 bounded=9 without_limit=9、NOTE 点名缺失的匹配器、GATE=OK、exit 0；venv 下同三个数再加 142 个调用点。tests.test_workbench_weight 22 条 OK，聚合 VERIFY_DESIGN_LAB=OK total=76 failed=0。E2，不含产品功能变化；远端是否绿以推送后的 exact-SHA 作业为准。",
         "exit_code": 0,
         "observed_at": "2026-10-25T11:23:30Z"
+      },
+      {
+        "id": "kb-13-drift-inventory-repin-20261025",
+        "task_id": "DL-KB-13",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "9d4a17cad6d67830bdb5c9cc1c3c2da5c702a59a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-drift-inventory-repin-20261025.json",
+        "artifact_sha256": "8bc5e031cbb9dcbb0b9f1da6e7cd07fb245f5c340e4176ed420e211f45c2fb75",
+        "command": "第二次推送后 CI 又红一次，而且红在账本绑定纪律上：Python gate 的分片 1/3 报 tests.test_evidence_artifact_presence.EvidenceArtifactPresenceTests.test_tracked_artefacts_of_the_real_ledger_all_read_back 一条 FAIL（outcomes={'FAIL': 1, 'PASS': 1018, 'SKIP': 14}）。同一矩阵里 Workbench browser E2E 已绿，说明前一轮两个修复（--check 回到纯标准库、预检浏览器套件登记）在 Linux 上成立。原因不是产品回归而是纪律生效：本轮给 test_design_layer_http.py 加了 404 测试，而冻结记录 r5-workbench-http-native-ui-reobserved-20261006 把那个模块当工件哈希，所以那条观察现在描述的是比它命名的文件更旧的字节。处置按本仓既有惯例：先把活清单从闸自身重算并与钉住的集合双向 diff（钉 30 对/64、活 31 对/65，唯一差异就是这一对，无位移、无消失、broken=0），再把它作为带日期注释的一条加入期望集合，并把总数 pin 64→65 写进既有变更日志——旧记录不改写。这不是放松断言：断言仍要求双向精确；不诚实的做法是把那条从账本里删掉或取消精确性检查。改完自检：钉 65 == 活 65，new/count_moves/vanished 全空、broken=0；编辑本测试模块自身没有新增绑定它的一对（2026-10-19 那条注释讲的正是这种自老化情形，它已在清单里）。本地 tests.test_evidence_artifact_presence 5 条 OK。E2，无产品行为变化。",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T11:52:00Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
