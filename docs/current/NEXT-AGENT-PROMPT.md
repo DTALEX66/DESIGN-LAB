@@ -130,6 +130,27 @@ ui2026/light 各一遍）、几何 112 个面（1440/1280/1536/1920）`docOverfl
 （`ASSET`、`KNOWLEDGE`），`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到，
 而 `/api/projects/<id>/briefs`、`/directions`、`/prompt-results` 三条读路由都已存在且各有合同行。
 
+**台账读数（2026-10-25 第十五轮收口时现数，取代上面第十四轮那一段的"当下"身份）**：直方图仍
+**`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**，`evidence` 286→**287**
+（`DL-KB-06` 12→13 条 `visual_review`，仍 DONE）。这一轮开始做 owner 那句
+**"一比一复刻 STITCH 界面设计"**，落成第一件实物：`08_STITCH完整提示词.txt` 视觉段逐字给的六个值
+（`#356B92`／`#17212B`／`#566472`／`#F4F6F8`／`#FFFFFF`／`#D8DFE5`）做成**第三套可选色板**
+`?palette=stitch`，**浅色一侧 only**（包没写暗色值，自造就是把复刻变成猜），默认那套按 token 逐条
+证明没被改（`--color-bg #060A14`／`--color-primary #316CFF`／`--color-text #F5F7FC`）。
+**这套颜色第一次量就被自己的闸门判红**：珍珠白画布上淡底药丸配白墨，12px 粗体状态词
+`1.83:1 / 2.2:1`，`LOWCONTRAST` **405** 行、exit 1；控制跑逐字留在
+`kb-06-stitch-pill-ink-control.log`。修的是**角色不是阈值**（`--tag-ink` 取包的正文色、
+info 药丸保持中性淡底），修完 stitch/light 下 **58 面／15,772 run `belowAA=0`**（与默认色板同一批
+测量对象，只差配色）、几何 **132 面**全零。顺带挖出一个可达性缺陷：`readThemeChoice()` 硬比两个色板名，
+第三套在菜单和 CSS 里都在、**就是进不去**——现在问 `PALETTES` 这张表，
+`test_workbench_stitch_palette.py`（7 条）钉住六个值、"默认不被覆盖"、"声明的 scheme 必须有 CSS 规则"
+与这个写法不许回潮。体积 bundle 609,452→**609,950**、gzip 159,775→**160,052**（+277），
+`DL-KB-13` 的 150 KB 上限仍等 owner 裁，本轮不删内容凑数。**这是量，不是批**：
+设计批准仍等 owner 真机测试，`DESIGN.md` 不进已批准状态。
+**下一刀接着做复刻对照**：包里的"屏幕一…屏幕六"逐个与渲染屏对表，量标题层级、字段密度、
+按钮唯一主动作、玻璃只给顶栏/导航/临时面板这几条能不能落在可断言的数字上；
+owner 未裁的两件（顶栏吸顶、体积上限）继续记账不代做。
+
 **台账读数（2026-10-25 第十四轮收口时现数，取代上面第十三轮那一段的"当下"身份）**：直方图仍
 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**，`evidence` 285→**286**
 （`DL-KB-16` 3→4 条，状态仍 `PARTIAL`——它差的仍是具名真人，不是界面）。

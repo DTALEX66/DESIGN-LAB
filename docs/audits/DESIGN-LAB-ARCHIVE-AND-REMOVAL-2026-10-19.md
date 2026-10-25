@@ -1758,3 +1758,35 @@ LOWCONTRAST 1440:knowledge+entry-detail 4.08:1 need>=4.5:1 16px bold opacity=1
 条目详情、方案详情、两案对照、反馈读回、目标组合、全局搜索、证据投影。
 `DL-KB-16` 加 1 条 browser 回执（3→4 条，状态仍 `PARTIAL`——差的仍是具名真人，不是界面），
 `evidence` 285→**286**，直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变。
+
+### 5.48 把 STITCH 的六个值做成第三套色板：它第一次量就把自己量红了
+
+**这是 owner 那句"一比一复刻 STITCH 界面设计"的第一件实物。** `08_STITCH完整提示词.txt` 的视觉段
+逐字给了六个值：单一低饱和强调色 `#356B92`、正文 `#17212B`、次级 `#566472`、背景 `#F4F6F8`、
+内容 `#FFFFFF`、边界 `#D8DFE5`。按既有裁定，**新任务包配色不覆盖既有配色**，所以它落成第三套
+可选色板 `?palette=stitch`，默认那套一字节没动（`test_workbench_stitch_palette.py` 逐条钉住
+`--color-bg #060A14`／`--color-primary #316CFF`／`--color-text #F5F7FC` 还在默认 `:root` 里）。
+**只做浅色一侧**：包里没写暗色值，自造一份暗色就是把"复刻"变成"照着自己的口味猜"。
+
+**第一次量，闸门就把这套颜色判红了。** 珍珠白画布上，`warn/success/error` 药丸的填充是淡底，
+而我沿用深色主题的白墨——12px 粗体的状态词实测 **1.83:1 / 2.2:1**，
+`UNRESOLVED / VERIFIED / E0 / BLOCKED / NOT_ACCEPTED …` 这些词一个不落，
+`LOWCONTRAST` 共 **405** 行，闸门 exit 1。控制跑逐字留在
+`kb-06-stitch-pill-ink-control.log`，同 bundle、同种子、只改那两行角色。
+**修的是角色，不是阈值**：`--tag-ink` 取包自己声明的正文色，info 药丸保持中性淡底
+（这套基线要的是"单一"强调色，把 info 填成深色再压白字，是同一个错换了一处犯）。
+修完同一条尺 `CT_OK`：stitch/light 下 **58** 个面、**15772** 条文本 run，`belowAA=0 unparsable=0
+controlMisses=0`；几何 **132** 个面，`clipped/stray/tiny/occluded/docOverflowX` 全 0。
+
+**顺手挖出一个可达性缺陷，形状很眼熟。** `readThemeChoice()` 判断色板用的是硬写的
+`urlParam('palette') === 'ui2026' ? 'ui2026' : 'design-lab'`——
+于是第三套色板在菜单里、在 CSS 里、就是**进不去**：URL 与 `data-palette` 属性都被折回两套之一。
+现在统一问 `PALETTES` 这张表，并留一条测试专门判这个写法回潮。
+**"表里加了东西，读表的地方还在抄枚举"是同一类错的第 N 次出现**，这轮的账记在这条上。
+
+**账与边界。** `DL-KB-06` 加 1 条 `visual_review` 回执（12→13 条，状态仍 DONE），
+`evidence` 286→**287**，直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变。
+体积：bundle 609,452→**609,950** 字节、gzip 159,775→**160,052**（+277），
+`DL-KB-13` 的 150 KB 上限裁定仍在 owner 手上，本轮不靠删内容凑数。
+这是**量**，不是**批**：设计批准仍等 owner 真机测试，`DESIGN.md` 不进已批准状态，
+也没有拿 VLM 或像素差当签字。

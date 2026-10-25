@@ -8791,7 +8791,8 @@
           "kb-06-browser-zoom-r2-20261024",
           "kb-06-visual-review-r2-20261024",
           "kb-06-browser-a11y-r2-20261024",
-          "kb-06-browser-debt-r2-20261024"
+          "kb-06-browser-debt-r2-20261024",
+          "kb-06-browser-stitch-palette-theme-20261025"
         ]
       },
       {
@@ -12327,6 +12328,18 @@
         "command": "Both rulers now record one synthetic piece of external feedback inside the plan detail and measure the state that only exists afterwards. Contrast 56→58 route-runs / 15772 text runs with belowAA=0; geometry 128→132 route-runs with clipped/stray/tiny/occluded/docOverflowX all zero and four feedback rows reporting state=read. The recorder name says it is scaffolding, the state field is read off the panel's own status line, and a missing plan row is now quoted instead of crashing the run (the crash is recorded in the receipt; its cause is not established). DL-KB-16 still needs a named human for human_review.",
         "exit_code": 0,
         "observed_at": "2026-10-25T01:53:02Z"
+      },
+      {
+        "id": "kb-06-browser-stitch-palette-theme-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "28603bb7b8e12580daa7fd9a2ead4439a7630b74",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-stitch-palette-theme-20261025.json",
+        "artifact_sha256": "d908d6b97623a4fee1357d894c62856c89e73753e7286655d64614b5b0ac8d20",
+        "command": "The 20261023 pack's six STITCH colours ship as a third optional palette (?palette=stitch), light side only because the pack names no dark values, with the default palette untouched token by token. The contrast gate caught a real defect on the first measurement -- white pill ink on the pack's light canvas measured 1.83:1 and 2.2:1 across 405 lines -- and the fix moved roles, not thresholds; the control log is kept beside this receipt. After the fix: contrast 58 route-runs / 15772 text runs belowAA=0, geometry 132 route-runs with every problem counter zero, both under stitch/light. Also fixed: readThemeChoice() hardcoded two palette names, so a third was unreachable from the URL even though the menu and CSS had it. design-lab/tests/test_workbench_stitch_palette.py (7 cases) ties the six values to the pack text and the schemes to the CSS rules.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T02:14:28Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
