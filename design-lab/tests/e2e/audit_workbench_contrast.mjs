@@ -458,7 +458,14 @@ const MEASURE = () => {
   // and that is a boolean per id. Subtracting it from failCount instead of the row count turned
   // the fixture's own duplicate rows (one collapsed control per <details> on a long page) into
   // product debt the moment those rows stopped being masked by a covering pseudo layer.
-  const controlRows = fails.filter((f) => CONTROL_IDS.some((id) => f.el.includes('#' + id))).length;
+  const isFixture = (f) => CONTROL_IDS.some((id) => f.el.includes('#' + id));
+  // Product rows are returned as their own list. They used to share `fails` with the fixtures and
+  // `fails` is capped at 60 for size, so a page with 60 fixture rows could push the single real
+  // offender out of the log -- which is exactly the "counted 1, printed nothing" CI result this
+  // file could not explain. failTotal now reads productCount, and the two derivations are
+  // cross-checked against each other instead of one of them being trusted.
+  const productRows = fails.filter((f) => !isFixture(f));
+  const controlRows = fails.filter(isFixture).length;
   const control = { planted: CONTROL_IDS.length, reported: 0, detail: [] };
   for (const id of CONTROL_IDS) {
     const row = fails.find((f) => f.el.includes('#' + id)) || null;
@@ -466,7 +473,9 @@ const MEASURE = () => {
     control.detail.push({ id, reported: !!row, ratio: row ? row.got : null });
   }
   for (const id of [...CONTROL_IDS, 'ct-collapsed-host']) document.querySelector('#' + id)?.remove();
-  return { checked, fails: fails.slice(0, 60), failCount: fails.length, controlRows, math, colour,
+  return { checked, fails: fails.slice(0, 60), failCount: fails.length, controlRows,
+           productCount: productRows.length, productFails: productRows.slice(0, 12),
+           math, colour,
            pseudoLayers, unknown, control, margin, collapsed,
            coveredForeign, coveredExamples, obscured, obscuredExamples };
 };
@@ -1057,7 +1066,11 @@ const absorb = (key, m) => {
   for (const c of m.colour) {
     if (!colourChecks.some((k) => k.value === c.value)) colourChecks.push(c);
   }
-  failTotal += m.failCount - m.controlRows;
+  if (m.productCount !== m.failCount - m.controlRows) {
+    controlBad.push(`${key} 行账对不上：failCount=${m.failCount} controlRows=${m.controlRows} `
+      + `productCount=${m.productCount}`);
+  }
+  failTotal += m.productCount;
   controlsExpected += m.control.planted;
   controlsReported += m.control.reported;
   checkedTotal += m.checked;
@@ -1264,9 +1277,20 @@ for (const e of specFormRadiusExamples) console.log(`  FORM-RADIUS ${e}`);
 for (const e of specBigGradientExamples) console.log(`  BIGGRADIENT ${e}`);
 for (const e of specBrandBlueExamples) console.log(`  BRANDBLUE ${e}`);
 if (failTotal > 0) {
+  // The arithmetic has to be legible in the same log as the verdict. An earlier CI run reported
+  // `belowAA=1` while the offender dump was empty, because the dump filtered the fixture prefix
+  // `#ct-control` and the counter subtracted `controlRows` computed over ALL rows -- so the one
+  // counted row was invisible exactly when it needed naming. Every route now prints its own
+  // failCount/controlRows pair, and every retained row prints with a fixture flag instead of
+  // being dropped.
   for (const [k, v] of Object.entries(report.routes)) {
-    for (const f of v.fails) {
-      if (f.el.includes('#ct-control')) continue;
+    if (v.failCount !== v.controlRows) {
+      console.log(`  ROWCOUNT ${k} failCount=${v.failCount} controlRows=${v.controlRows} `
+        + `retainedFails=${v.fails.length}`);
+    }
+  }
+  for (const [k, v] of Object.entries(report.routes)) {
+    for (const f of (v.productFails || [])) {
       console.log(`  LOWCONTRAST ${k} ${f.got}:1 need>=${f.need}:1 ${f.px}px${f.bold ? ' bold' : ''} opacity=${f.opacity} fg=${f.fg} :: ${f.el.slice(0, 96)}`);
     }
   }
