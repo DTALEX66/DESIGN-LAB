@@ -12532,6 +12532,30 @@
         "artifact_sha256": "97265d24d495b2ff93f2a79b47d3e2b18d7b63bedf4618efab5fff57dcd5a967",
         "exit_code": 0,
         "command": "拒绝态第一次被造出来后，珍珠白的错误墨色被同一把尺按每条路由报红；本轮把 --color-error 在该作用域重指到既有已实测值 —— 读数见工件。"
+      },
+      {
+        "id": "kb-13-theme-geometry-palette-table-derived-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:33:00Z",
+        "subject_sha": "e7168474b862e9e60ec4fe50913ff72cf00b99ea",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-theme-geometry-palette-table-derived-20261026.json",
+        "artifact_sha256": "97c4198807d58f82eca506209b25acba8df2d0b42238ca186b9c33b15f434aa3",
+        "exit_code": 0,
+        "command": "几何门的色板表改为从 shell.ts 现读，并等值断言珍珠白不改布局 —— 读数见工件。"
+      },
+      {
+        "id": "kb-13-single-accent-graded-as-paint-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:42:00Z",
+        "subject_sha": "a3ff2db1baf7fb24fd1d155c7ffb25e0c97a6dec",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-single-accent-graded-as-paint-20261026.json",
+        "artifact_sha256": "675ad33f810d4a054697364aff5ae7d64dd989441b4bb3150fa977df420d66cc",
+        "exit_code": 0,
+        "command": "把包里那支单一强调色按\"它被画成什么\"实测：结构上从不作字墨，两方向的 AA 代价分别量化 —— 读数见工件。"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

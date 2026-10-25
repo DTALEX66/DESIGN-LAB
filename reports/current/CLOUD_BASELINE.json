@@ -9,19 +9,29 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-25T17:23:15+00:00",
+  "generatedAt": "2026-10-25T17:43:13+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "1f1931d87b3fa22830845ee78485886849d59531",
+    "sha": "a3ff2db1baf7fb24fd1d155c7ffb25e0c97a6dec",
     "source_worktree_clean": false,
     "tracked_files": 3993,
     "worktree_changes": [
       {
-        "content": "sha256:244a5fc7c2bacaf94670d427a144afb63be75d25010989f65f50a85dea9ca4db",
+        "content": "sha256:fde45c41bb1993079648180a94e5d2219c1c1cc8bd15184fdd95af63dcd07948",
+        "kind": "M",
+        "path": "design-lab/config/task-ledger-r3.json"
+      },
+      {
+        "content": "sha256:3b0be302173b0fc73c825e1be7075b73d684ff9e0e0504d9af298dfe9204f5b1",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
+      },
+      {
+        "content": "sha256:eb24ba968c9e3c11c592f3a3ab8f6114122b4d4b276b403091b049eafd141bd2",
+        "kind": "M",
+        "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
@@ -32,15 +42,25 @@
         "content": "sha256:13c275506e946cc3df2e2a30250454ec64a88046c5b04ad2ffaeca601b692efe",
         "kind": "U",
         "path": ".cursor/rules/universal-agent-core.mdc"
+      },
+      {
+        "content": "sha256:675ad33f810d4a054697364aff5ae7d64dd989441b4bb3150fa977df420d66cc",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-single-accent-graded-as-paint-20261026.json"
+      },
+      {
+        "content": "sha256:97c4198807d58f82eca506209b25acba8df2d0b42238ca186b9c33b15f434aa3",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-theme-geometry-palette-table-derived-20261026.json"
       }
     ],
-    "worktree_digest": "sha256:2d0d6adc7c802ec806a9c4941b5167f6dd92ec9efe0f4a3560380d0d7fa6acd4"
+    "worktree_digest": "sha256:eab705c4f3137479cea3b210aef9dd8f26a613f28bbdda7b2950f10ca7b98f9d"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "1f1931d87b3fa22830845ee78485886849d59531",
+  "subjectSha": "a3ff2db1baf7fb24fd1d155c7ffb25e0c97a6dec",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -55,5 +75,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:2d0d6adc7c802ec806a9c4941b5167f6dd92ec9efe0f4a3560380d0d7fa6acd4"
+  "worktreeDigest": "sha256:eab705c4f3137479cea3b210aef9dd8f26a613f28bbdda7b2950f10ca7b98f9d"
 }
