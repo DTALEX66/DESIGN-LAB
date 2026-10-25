@@ -443,11 +443,18 @@ def make_server(service, token, port=0, *, local_session=False):
             if len(lengths) != 1 or not re.fullmatch(r'[0-9]{1,8}', lengths[0]):
                 return
             remaining = int(lengths[0]) - getattr(self, '_body_read', 0)
-            while remaining > 0:
-                chunk = self.rfile.read(min(remaining, 65536))
-                if not chunk:
-                    break
-                remaining -= len(chunk)
+            try:
+                while remaining > 0:
+                    chunk = self.rfile.read(min(remaining, 65536))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+            except OSError:
+                # The docstring above promises "any failure here is ignored", and this is the
+                # only place that promise was unenforced: a socket timeout raised inside an
+                # except handler escapes to handle_one_request, which is precisely the
+                # connection-aborted (WinError 10053) path this helper exists to prevent.
+                return
 
         def guard(self, require_auth=True):
             authority = f'127.0.0.1:{self.server.server_port}'
@@ -958,8 +965,14 @@ def make_server(service, token, port=0, *, local_session=False):
 
         def _get_project(self, match):
             project = service.get_project(match[1])
-            if project is not None:
-                return self.send_json(200, {'project': project})
+            if project is None:
+                # Every sibling module answers an unknown project with this word
+                # (image_assets.py:46, jury_review.py:33, model_selection.py:121 …).
+                # Falling off the end here handed the client an empty reply on a
+                # connection with no status line, so "the project is not there" and
+                # "the service broke mid-answer" were indistinguishable at the UI.
+                raise RequestError(404, 'PROJECT_NOT_FOUND')
+            return self.send_json(200, {'project': project})
 
         def _submit_task_patch(self, match):
             value=self.body(fields={'source_attempt_id','patch','idempotency_key'},limit=1_000_000)

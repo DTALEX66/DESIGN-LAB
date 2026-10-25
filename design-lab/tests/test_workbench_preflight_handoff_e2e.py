@@ -26,28 +26,27 @@ ROOT = Path(__file__).resolve().parents[2]
 NODE_SCRIPT = ROOT / 'design-lab' / 'tests' / 'e2e' / 'browser_preflight_handoff.mjs'
 REGISTRY_REL = Path('design-lab') / 'config' / 'task-resources.json'
 sys.path.insert(0, str(ROOT / 'src'))
+sys.path.insert(0, str(ROOT / 'design-lab' / 'tests'))
+
+# The two browser/toolchain probes are the shared ones, not a third local copy.
+# This module's own `_browser()` looked only at `$HOME/AppData/Local/ms-playwright` with a
+# `chrome-win*` glob, so it returned None on Linux; the private `_node_modules_dir()` walked
+# only `apps/workbench` and the repo root. Both are the same question every other browser
+# gate already asks, and `test_workbench_contrast_gate.py:68` sets the precedent of
+# importing those two functions (helpers, not a TestCase class, so nothing double-runs).
+# Importing here is also what makes CI registration honest: a gate whose browser discovery
+# is platform-bound silently skips wherever it cannot find one, and a silent skip in a
+# required job is a green that nobody measured.
+from test_workbench_design_layer_e2e import _find_browser, _find_node_modules_dir  # noqa: E402
 
 
 def _node_modules_dir():
-    override = os.environ.get('E2E_NODE_MODULES')
-    if override and (Path(override) / 'node_modules' / 'playwright').is_dir():
-        return Path(override)
-    for candidate in (ROOT / 'apps' / 'workbench', ROOT):
-        if (candidate / 'node_modules' / 'playwright').is_dir():
-            return candidate
-    return None
+    return _find_node_modules_dir()
 
 
 def _browser():
-    override = os.environ.get('E2E_BROWSER')
-    if override and Path(override).is_file():
-        return override
-    root = Path.home() / 'AppData' / 'Local' / 'ms-playwright'
-    if not root.is_dir():
-        return None
-    for chrome in sorted(root.glob('chromium*/chrome-win*/chrome.exe'), reverse=True):
-        return str(chrome)
-    return None
+    found = _find_browser()
+    return str(found) if found else None
 
 
 class PreflightHandoffE2ETests(unittest.TestCase):

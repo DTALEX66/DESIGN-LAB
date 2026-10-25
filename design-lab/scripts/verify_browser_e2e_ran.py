@@ -52,6 +52,17 @@ TEST_MODULES = (
     # landing in packages/capabilities/selected-sources.json. A CONSUMED claim whose measuring gate
     # could skip silently would be a record kept alive by nobody looking, so it belongs on this list.
     "test_workbench_motion_gate",
+    # Joined 2026-10-25 (full-scope audit): this suite existed, passed locally in 2.455s, and
+    # was named by no workflow step and no entry above -- so every CI roll-up was green over a
+    # preflight block->fix->re-check chain that the cloud never once executed. Its own module
+    # comment says an unlisted browser suite skips forever without a finding; this entry is
+    # that finding. Registration was safe because line ~87 below exports E2E_NODE_MODULES for
+    # every module here; the module's own browser probe was the thing that needed fixing first
+    # -- it globbed `$HOME/AppData/Local/ms-playwright/chromium*/chrome-win*/chrome.exe`, a
+    # Windows-only shape, so on Linux it silently declined to name a browser. It now asks the
+    # same shared cross-platform question the other seven gates ask, so the receipt says which
+    # Chromium actually answered.
+    "test_workbench_preflight_handoff_e2e",
 )
 
 

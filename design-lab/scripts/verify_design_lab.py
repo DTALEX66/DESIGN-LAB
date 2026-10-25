@@ -8,7 +8,9 @@ release evidence, source registry, v2 protocols and v21 visual quality.
 """
 from __future__ import annotations
 
+import importlib
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -294,12 +296,58 @@ def emit_registry(root: Path, repo_root: Path) -> int:
     return 0
 
 
+#: Distribution name -> import name, for the declared dependencies whose two names differ.
+#: The required SET is read from pyproject.toml rather than repeated here, so this table only
+#: translates a name and never decides on its own what the project needs.
+_IMPORT_NAME_ALIASES = {"pillow": "PIL", "scikit-image": "skimage"}
+
+
+def missing_declared_dependencies(repo_root: Path) -> list:
+    """Which of the package's own declared dependencies this interpreter cannot import.
+
+    Why this exists: `run_child` spawns every verifier with `sys.executable`, so the whole
+    chain silently runs under whichever python invoked it. On a machine where the project
+    venv was not used, 17 verifiers that import `jsonschema` each failed with ModuleNotFound
+    and the aggregate reported `VERIFY_DESIGN_LAB=OK total=76 failed=29` on the SAME commit
+    that reports `failed=0` under `.venv`. Twenty-nine product regressions is a lie; the
+    truth is one wrong interpreter, and a reader has no way to tell from that line. Refusing
+    with a named cause attributes the failure at its raise site instead of laundering it into
+    the step count.
+    """
+    import tomllib
+
+    pyproject = repo_root / "pyproject.toml"
+    if not pyproject.exists():
+        return []
+    with open(pyproject, "rb") as handle:
+        declared = tomllib.load(handle).get("project", {}).get("dependencies", [])
+    missing = []
+    for spec in declared:
+        name = re.split(r"[<>=!;\[\s]", str(spec).strip(), maxsplit=1)[0].lower()
+        module = _IMPORT_NAME_ALIASES.get(name, name.replace("-", "_"))
+        try:
+            importlib.import_module(module)
+        except Exception:  # any failure to import is a missing dependency for this purpose
+            missing.append(f"{spec} (import {module})")
+    return missing
+
+
 def main() -> int:
     root = Path(__file__).resolve().parent
     results: list[tuple[str, int]] = []
     repo_root = root.parent.parent
     if '--emit-registry' in sys.argv[1:]:
         return emit_registry(root, repo_root)
+    missing = missing_declared_dependencies(repo_root)
+    if missing:
+        print(f"VERIFY_DESIGN_LAB=REFUSED interpreter={sys.executable}")
+        for item in missing:
+            print(f"  MISSING_DEPENDENCY {item}")
+        print("VERIFY_DESIGN_LAB=REFUSED the declared dependencies above are not importable in "
+              "this interpreter, so the 76 steps below would report the missing import as a "
+              "product failure. Run the chain with the project venv "
+              "(.venv/Scripts/python.exe on Windows, .venv/bin/python elsewhere).")
+        return 2
     for name in SCRIPTS:
         script = resolve_script(name, root, repo_root)
         if not script.exists():

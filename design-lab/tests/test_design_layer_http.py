@@ -456,5 +456,44 @@ class DesignLayerHttpTests(unittest.TestCase):
         conn.close()
 
 
+    def test_unknown_project_id_answers_404_with_the_established_word(self):
+        """`GET /api/projects/<32-hex>` used to fall off the end of the handler when the id was
+        well-formed but absent: `_get_project` only had an `if project is not None` branch, so
+        the client got a connection with no status line instead of a 404. At the UI that makes
+        "the project is not there" and "the service died mid-answer" the same event.
+
+        Every sibling module already answers an unknown project with PROJECT_NOT_FOUND
+        (image_assets.py:46, jury_review.py:33, model_selection.py:121, design_layer.py:464),
+        so this pins the one route that had not joined them. Two 404 words are asserted on
+        purpose: a malformed id never reaches the handler (the route table's pattern rejects
+        it and the dispatcher answers NOT_FOUND), while a well-formed absent id does -- so the
+        two paths must not be collapsed into one expectation, and a handler that 404s
+        everything would still pass a not-found-only check.
+        """
+        project_id = self._project('404 leg')
+        status, body = self.request('GET', f'/api/projects/{project_id}')
+        self.assertEqual(status, 200)
+        self.assertEqual(body['project']['id'], project_id)
+
+        absent = hashlib.sha256(b'design-lab-absent-project-id').hexdigest()[:32]
+        self.assertEqual(len(absent), 32,
+                         'the route pattern is /api/projects/([0-9a-f]{32}); a longer id never '
+                         'reaches the handler and the 404 it proves is the dispatcher\'s, not '
+                         'the one under test')
+        self.assertNotEqual(absent, project_id)
+        status, body = self.request('GET', f'/api/projects/{absent}')
+        self.assertEqual(status, 404,
+                         'a well-formed id that is not in the store must be a 404, '
+                         'not an empty reply')
+        self.assertEqual(body.get('error'), 'PROJECT_NOT_FOUND',
+                         'the word must match the sibling modules, not invent a new one')
+
+        status, body = self.request('GET', '/api/projects/not-an-id')
+        self.assertEqual(status, 404)
+        self.assertEqual(body.get('error'), 'NOT_FOUND',
+                         'a malformed id is refused by the route pattern, not by the handler; '
+                         'these two 404s are different facts and must stay distinguishable')
+
+
 if __name__ == '__main__':
     unittest.main()
