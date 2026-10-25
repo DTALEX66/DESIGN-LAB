@@ -38,6 +38,15 @@ SANCTIONED = {
                        "chrome only.",
     "body > main p": "F-3 block, same reason as body > header p.",
     "body > footer p": "F-3 block, same reason as body > header p.",
+    # The 20261023 pack states 圆角输入/按钮 as 6-10px, and its colours ship as an additive
+    # theme (standing owner ruling: a new pack's values become a selectable theme, never an
+    # override of what is already shipped). So the radius is re-declared ONLY inside
+    # :root[data-palette="stitch"][data-scheme="light"]; the default theme keeps 12/14px.
+    # Measured before the block, one width: 474 of 501 graded form controls over 10px.
+    ".primary-btn": "20261023 pack theme sets the control radius band for the pack palette "
+                    "only; the override is the point of that block.",
+    ".soft-btn": "20261023 pack theme, same reason as .primary-btn.",
+    "select": "20261023 pack theme, same reason as .primary-btn.",
 }
 
 # The D-2 split: these names must exist exactly once each, and the overloaded
