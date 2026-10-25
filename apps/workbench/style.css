@@ -1806,21 +1806,17 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 :root[data-palette="stitch"][data-scheme="light"] .grid-bg{
   display:none;
 }
-/* 「单一低饱和强调色 #356B92」在字面上就排斥第二支蓝，而界面里三处主动作与选中态用的是 brand
-   两停渐变（`--brand-gradient-from #1D4FC4` → `--brand-gradient-to #2A63D8`——这两支是为了让白字
-   过 AA 才从 #316CFF 加深来的，见上面 line 802 那段测量记录）。珍珠白下把这三处压平到包里那一支
-   强调色：白字压 #356B92 由对比度尺重测，不是拿算出来的比值当通过。默认炭黑那三处一字节不动。
-   `.app-nav button:hover` 也读同一对 token，但 hover 态不在尺子当前量的 painted 状态里，
-   所以这里只记账不代改——改动它需要先决定墨色跟着翻不翻。
-   `:not(:disabled)` 不是装饰：压平的第一版没写它，尺子当场报出 29 条 `button.primary-btn` 白底下
-   13px 次级字压 1.06:1——`button:disabled` 那套（2026-10-09 实测把禁用态"使用此能力"从 2.31:1
-   修成平涂次级底＋虚线边＋可读次级墨）被我的高特异性规则按掉了，等于把一个已经量掉过的缺陷
-   又请回来。禁用态因此继续走它自己的线索，不跟着强调色翻面。 */
-:root[data-palette="stitch"][data-scheme="light"] .primary-btn:not(:disabled),
-:root[data-palette="stitch"][data-scheme="light"] .toolbar .seg button.active:not(:disabled),
-:root[data-palette="stitch"][data-scheme="light"] .seg button.active:not(:disabled){
-  background:var(--color-primary);
-}
+/* 「单一低饱和强调色 #356B92」这条在珍珠白下**尚未满足**，理由是量出来的，不是推出来的。
+   尺子把 painted 面上出现的 `rgb(29,79,196)`／`rgb(42,99,216)`（brand 两停那对深蓝）计数，
+   stitch/light width 1440 一次扫描读到 **21 处**；把它们压平到包里那一支之后本地（Windows）复测
+   `belowAA=0`，但**同一提交在 CI 的 Linux 跑上报出两条真红**：
+   `1920:target-profiles+combination button#tp-validate.primary-btn 2.86:1 need>=4.5:1 16px
+   fg=rgb(222,224,227)`。按白字反推，那一刻它落到眼睛上的底不是 `#356B92` 而是更亮的一档
+   （L≈0.23，白字也只有 3.79:1），所以我**没有**靠再猜一个色值去追那条远程读数：
+   这三处恢复原状，`brandBluePaints` 从断言里移出、继续作为**登记的债**打印，包里这一句连同
+   CI 读数一起记在 §5.52 与卷宗里，等一次真正的配色裁定（同一 hue 的深阶？还是让按钮文字改深色
+   并放弃这个强调色当填充？）。这与 `project-brand-blue-cannot-carry-white-body-text` 是同一类
+   问题在第三套配色上的重现，不是新 bug。 */
 
 /* ---- 可选主题的几何（2026-10-11 追补）--------------------------------------
    上面那组 --uif-sidebar/--uif-gutter-* 此前被登记却没有任何规则读它，所以"20261009

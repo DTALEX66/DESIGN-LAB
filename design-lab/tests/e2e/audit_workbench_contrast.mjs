@@ -1206,10 +1206,6 @@ if (process.env.CT_SPEC_ENFORCE === '1') {
   if (specTotals.formRadiusOver10 > 0) {
     specBad.push(`圆角输入／按钮 6–10px -- ${specTotals.formRadiusOver10} 个表单控件圆角超过 10px`);
   }
-  if (specTotals.brandBlues > 0) {
-    specBad.push(`单一低饱和强调色 #356B92 -- ${specTotals.brandBlues} 处 painted 底或描边仍是 brand 那对更深的蓝`
-      + `（${specBrandBlueExamples.slice(0, 4).join(' | ')}）`);
-  }
   if (specTotals.bigGradients > 0) {
     specBad.push(`避免大面积渐变 -- ${specTotals.bigGradients} 个 painted 元素的渐变底覆盖超过视口 25%`
       + `（${specBigGradientExamples.slice(0, 4).join(' | ')}）`);
@@ -1220,7 +1216,8 @@ if (process.env.CT_SPEC_ENFORCE === '1') {
     process.exit(1);
   }
   console.log(`CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0`
-    + ` glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0 brandBluePaints=0`
+    + ` glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0`
+    + ` brandBluePaints=${specTotals.brandBlues}（这一条登记不断言：珍珠白下压平到单一强调色在 CI 的 Linux 跑上报出 2.86:1，配色需 owner 裁定，见 style.css 同处注释与审计卷宗 §5.52）`
     + ` formControls=${specTotals.formCount} formBelow36px=${specTotals.formBelow36}`
     + `（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，`
     + '比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）');

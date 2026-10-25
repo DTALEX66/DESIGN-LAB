@@ -1940,3 +1940,37 @@ OV_SUMMARY clipped=0 stray=0 tiny=0 interactions=28 [1440:evidence+projection-re
 `.app-nav button:hover` 这类 **hover 态**读同一对 brand token，但对比度尺目前只量静息态 painted 面，
 所以那处不改也不宣称已合规——要改得先决定 hover 的墨色跟不跟着翻，这是一条需要 owner 拍的设计裁定，
 不是我能替包猜的。owner 未裁的两件照旧记账：`DL-KB-13` 的 150 KB 上限，与长屏顶栏是否吸顶。
+
+### 5.52 单一强调色这一条被撤回为「已测量、未满足」，证据是 CI 自己的读数。
+
+**发生了什么。** 上一段的收口在本地（Windows + Chromium）是全绿的：珍珠白下压平三处 brand 渐变之后
+`brandBluePaints=0`、`belowAA=0`。同一提交推到 CI，`Workbench browser E2E (exact-SHA controlled-runtime,
+no-skip)` 在 Linux runner 上报 **2 条真红**，逐字是：
+
+```
+LOWCONTRAST 1920:target-profiles+combination 2.86:1 need>=4.5:1 16px opacity=1
+  fg=rgb(222, 224, 227) :: button#tp-validate.primary-btn :: 按新目标重新校验
+```
+
+**为什么不是把色值再猜一次。** 那枚按钮的墨色是 `rgb(222,224,227)`（浅灰白，不是 `#fff`）。按 2.86:1
+反推，它那一刻落到眼睛上的底比 `#356B92` 更亮（L≈0.23），而白字压那种底也只有约 3.79:1——也就是说
+"改成平涂单一强调色"并没有把这一处带到 AA 之上，而我手上只有一次远程读数、没有 Linux 复现环境。
+**在这种情况下继续调一个本地验证不了的色值，就是把绿灯建立在猜上**，所以处理是：三处渐变恢复原状，
+`brandBluePaints` 从 enforce 断言里移出、继续作为登记的债打印，测试里换成"这条仍在测量、且非零"的断言，
+并把平台差异写进注释（`:not(:disabled)` 那条修复保留——它抓回的是另一个已被量掉的缺陷，两平台一致）。
+
+**现在包里这句话的真实状态**：`单一低饱和强调色 #356B92` 在珍珠白下**未满足**，实测 21 处 brand 深蓝仍在
+（本地与 CI 同一次扫描的 `brandBluePaints` 读数一致）；要满足它需要一次配色裁定，两个方向都有代价——
+同一 hue 的深阶当填充（保持单一色相，但要重测白字），或者按钮文字改深色并放弃"强调色当填充"。
+这与 `品牌蓝压不住白字` 那条既有项目问题是同一类：不是新缺陷，是同一个约束在第三套配色上重新出现。
+
+**流程上的账（本轮真正的收获）。** 三条 CI 红里，两条来自我本地只跑了 76 项聚合门禁、没跑单元套件与
+权威链：`AUTHORITY_CHAIN=DRIFT`（账本加行后没重生成链）与 `--uif-font-micro` 抬到 12px 撞上 20261009 包
+登记的 11——后者用这条尺自带的 `DOCUMENTED_DEVIATIONS` 正式登记，不删检查、不偷偷对齐。**闸门包不等于
+测试套件**，这两条已经写进本轮收尾清单。
+
+**账与边界。** 本轮只改样式与尺子的断言，`evidence` 仍 **290**、直方图 **`DONE 13`／`PARTIAL 2`／
+`NOT_STARTED 1`** 不变；上一段那份 `kb-06-browser-single-accent-20261025` 回执**一字不动**（它记的是
+它那次测量的事实，撤回发生在它之后，不能被改写），本段就是它的取代说明。`.app-nav button:hover` 仍读同一对
+brand token 且不在尺子的静息态测量范围内，继续记为未测。owner 未裁的两件照旧：`DL-KB-13` 的 150 KB 上限，
+与长屏顶栏是否吸顶。
