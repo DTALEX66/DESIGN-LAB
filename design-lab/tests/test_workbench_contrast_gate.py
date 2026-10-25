@@ -111,7 +111,6 @@ def _run_gate(env_extra):
     evidence = _evidence_dir()
     evidence.mkdir(parents=True, exist_ok=True)
     report_path = evidence / 'workbench-contrast-gate.json'
-    log_path = parent / 'contrast-gate.log'
 
     with patch.dict(os.environ, {'PROJECT_LOCAL_ROOT': str(root / '.project-local')}):
         service = ProjectService(str(root))
@@ -131,6 +130,12 @@ def _run_gate(env_extra):
                 'CT_OUT': str(report_path),
                 **env_extra,
             }
+            # One log per report, named after the report this run actually writes. Sharing one
+            # path meant a themed run overwrote the default run's log -- and the receipt reads
+            # CT_SUMMARY and CT_SPEC_ENFORCED out of that file, so a green themed receipt could
+            # have quoted the other theme's numbers. `workbench-overflow-gate-<theme>.log`
+            # already worked this way; this closes the same hole in the contrast harness.
+            log_path = parent / (Path(env['CT_OUT']).stem + '.log')
             with open(log_path, 'w', encoding='utf-8') as logf:
                 proc = subprocess.Popen([node, str(GATE_SCRIPT)], env=env, stdout=logf,
                                         stderr=subprocess.STDOUT, cwd=str(ROOT))
