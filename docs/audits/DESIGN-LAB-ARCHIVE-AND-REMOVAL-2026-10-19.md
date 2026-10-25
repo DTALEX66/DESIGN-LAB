@@ -2445,3 +2445,250 @@ pixi.js 226KB 与 lottie-web 76.8KB 因体积/维护不引入；react-bits 与 m
 **仍未结清的账（不写成已结）。** `54931d74` 那一趟 PR 跑的 3352 并集与 17 门浏览器清单，覆盖的是
 **换 logo 之后、本轮修复之前**的字节；本轮 `14959a3d` 推上去之后要按精确 SHA 重读一次矩阵，
 读到什么写什么，不拿本机绿代替云端绿。
+### 5.62 精确 SHA 的矩阵终于全绿，而它顺手抓到一把尺在量空集：`errors=0` 不是通过，是没测到
+
+**先把上一节欠的账结清，并且结在正确的对象上。** §5.61 承认了"拿 `bdaf4883` 的绿当换 logo
+那轮的结论"是断言错位。本轮把品牌尺迁到矢量真值（`14959a3d`）与权威链重录（`f9683930`）推上去之后，
+**run 40211581088（PR 跑，head 逐字 `f9683930a7189bacb2e5d0a0c42d8acb927b2806`）`conclusion=success`**，
+10 个非 skipped 作业全绿；逐字读数：
+`PYTHON_TESTS_UNION=OK expected=3363 distinct=3363 ran=3363 duplicates=0 missing=0 unexpected=0`，
+三分片各自 `exit=0`（1/3 tests=1043 PASS 1029 SKIP 14；2/3 tests=1194 PASS 1186 SKIP 8；
+3/3 tests=1126 PASS 1123 SKIP 3），`BROWSER_E2E ran=27 skipped=0 failed=0`。
+并集从 3352 涨到 3363 是本轮新增动效尺用例的正常增量，`expected_tests` 由发现的 id 集合现算
+（`scripts/run_python_tests_all.py:126`），没有计数钉要改。
+
+**增强面的"自造风险"从"未量"变成已证。** §5.60 交付时写下：`?motion=enhanced` 的 12s 浮动光斑在
+半透明卡片底下移动，等于改变文字下方的合成背色，属 §5.55 那一族，而**增强面对比度从未量过**。
+本轮不是推理它安不安全，是把动画**冻在关键帧的每一档**再量：`floatGlow` 只有三个停靠点
+（0%、100% 恒等，50% `translateY(20px) translateX(12px) scale(1.06)`），所以取 0/3000/6000/9000/12000ms
+五个冻结姿态，用**同一个 `MEASURE` 谓词**、同一次渲染、同一批面逐档量。读数：
+`CT_MOTION_PASS poses=5 routes=24 checked=34170 belowAA=0 distinctTransforms=4`——
+4 个不同合成变换而不是 5 个，正因为 0% 与 100% 同点，这本身就是尺子在动而不是在原地重取样；
+`checked=34170` 说明这一路真的扫到了文字 run，不是空输入。**没有为此调高任何阈值。**
+
+**这一轮最值钱的一条：`errors=0` 是空集，而空集有两个不同的成因，先分清再修。**
+包写的是「错误紧邻字段」（`docs/taskpacks/20261023-ui-kb/source/09_DESIGN.md:13`），闸门那段循环的
+选择器是 `.error, [role=alert], .field-note, .refusal`。**归因先纠正一次**：我一度把这条写成
+"选择器错了"，实测不成立——`#as-form-error` 就是 `p.error[role=alert]`（shell.ts:4708），
+选择器本来就覆盖它，**真正缺的是"从来没有人让界面拒绝一次"**：闸门走过的每条路由读盘都成功，
+拒绝行一直是空的，所以 0 描述的是"没造出状态"。同时**确实还有第二类拒绝被漏掉**：知识/评审/权利/研究
+四条线的本地拒绝写进 **`p.view-hint`**（`#knowledge-outcome` 等，如
+`未提交：标题为空。服务端未写入任何候选。`），既没有 `role=alert`（读屏也不播报，那是可及性缺口不是
+测试缺口），也不在选择器里。两类各自修：
+① 选择器覆盖 `view-hint`，但不是整族收进来（view-hint 也写普通说明），而是按**产品自己的拒绝前缀**判；
+前缀从 `apps/workbench/shell.ts` 现数得到 6 个：`未提交`、`未签署`、`未记录`、`未选择方向版本`、
+`未选择简报`、`未选择资产`，经 `CT_REFUSAL_WORDS` 传给闸门，**空列表时闸门直接拒绝开跑**——
+因为"没给词"和"没有拒绝"这两种 0 必须能分开。② 新增 `openRefusalState` 去**真的点一次**：主刀是 `#/assistant` 的
+`#as-submit`（清空 `#as-objective` 后提交 → `#as-form-error` 写
+`请先写下要完成的设计目标…`），因为它落在闸门必走的默认路由上；第二刀是 `#/knowledge` 的
+`#knowledge-create-submit`（清空标题 → `#knowledge-outcome` 写 `未提交：标题为空。…`），
+专门覆盖 view-hint 那一族。两者都作为命名行 `+refusal` 进回执，并打印各自的 `role=`，
+让"有 role 的那族"和"没有 role 的那族"在读数里就能分开。
+新断言 `RefusalPopulationIsGraded` 三条：前缀数 ≥3 且三个已知词必须在；闸门源码必须含
+`CT_REFUSAL_WORDS is empty` 的拒绝与 `.view-hint` 的选择；回执里必须有 `+refusal` 行且 `errors>=1`。
+第三条在它该红的时候红过：先跑的那次用的是**改前留下的旧回执**，它逐字报
+`AssertionError: [] is not true : the receipt has no knowledge+refusal row`——这把尺不是摆设。
+
+**动效层按"有没有渲染"重扫一遍，抓到 `.soft-btn` 是零渲染样式。** 新增
+`EnhancedMotionLayerStaysComposited.test_every_wired_surface_is_actually_rendered`：把三张宿主名单里
+每个 class token 拿到**全部 `apps/workbench/*.ts` 与 `index.html`** 里找整词，找不到即红；
+并允许"片段拼装的类名"（形如 `class: <code>-btn`）作为有渲染者的旁证，以免把拼接的类当成死类——
+这条自我约束是因为**差点错判**：`.seg button`、`.review-card`、`[data-motion="count"]` 第一次都只
+在 bundle 里出现 1 次，而那 1 次就是本层自己写的选择器字符串；`.soft-btn` 经 shell/workbench/design/
+ui-primitives/main/index.html 逐个 grep 全为 0，判定为**样式表有定义、产品从不构建**。
+处置：从动效宿主里摘掉（不接线一个不存在的表面），CSS 那一条**保留不删**并作为发现记账——
+它同时服务 UIKIT 的对外合同，删它是另一个判定。数字滚动也一并摘掉：shell 已有
+`animateKpiCount` 驱动 `strong[data-count]`，再加一个动画器就是把同一个数跑两遍。
+重建后 `build/main.js` 615,430 → **614,144 字节**（gzip level 9 161,916 → **161,478**，净减 438 字节——
+本轮清死码反而变小），`tsc --noEmit` 干净，node 三套 rc=0。
+
+**两条被我上一轮写进台账、本轮被实测推翻的"待办"，按证据改写而不是照做。**
+① 「唯一强调色 `#356B92` 待落」：**早已在仓**——`style.css` 的
+`:root[data-palette="stitch"][data-scheme="light"]` 块里 `--color-primary`、`--accent`、
+`--color-secondary`、`--secondary` 四个都写 `#356B92`，且带日期注释说明"单一低饱和强调色同时担任
+action/focus/selection/info"。这一条不该再占施工单位。
+② 「`_list_prompt_results` 套 `PAGE_LIMIT` 信封是最成熟的一刀」：子代理实测**否掉**——
+`design-lab/schemas/prompt-result-readback-v1.schema.json` 是 `additionalProperties:false` 加 13 键
+固定集，喂 `limit/next_cursor/truncated` 会被自家校验判 500（逐字
+`Additional properties are not allowed ('limit', 'next_cursor', 'truncated' were unexpected)`），
+而兄弟先例 `knowledge-library-readback-v1.schema.json` 的 `required` 里就有
+`total/offset/limit/returned/next_offset`——即"加界"必然要改 **schema 文件**、路由模式（现不带查询串）、
+合同行拒绝词、以及 `test_workbench_weight.py` 的 `UNBOUNDED_REGISTER` 摘牌，是一整刀带迁移的活，
+不是顺手一刀。它按授权面**停手未改任何文件**，基线复验仍绿
+（`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=90 dispatched=90 bound=76`、
+`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=57 failures=0`、`Ran 41 tests / OK`）。
+
+**150KB 那句的调研结论，一并写在这里，因为它决定后面每一刀的取舍。** 行业那族是
+「critical file size budget < 170Kb gzipped」，出处是 2018 前端性能检查表第 07 条并被 web.dev 的
+code-splitting codelab 沿用；它由两条依据**反推**得出（$200 Android + 3G、400ms RTT、约 400kb/s、
+TTI<5s；170KB gzip 解压 0.8–1MB 在普通手机上约 1 秒解析编译），而且覆盖的是**整条关键路径**
+（HTML+CSS+JS 合计）。包里 150KB 只管 JS、单口径更严，却没写画像、指标与推导。本项目实测
+（gzip level 9，本行落笔时从磁盘现取）：bundle 616351/162258、
+stylesheet 121330/41645、document 10144/3857，
+**关键路径合计 207760 字节 = 202.9 KiB**；同时 `transferSize` 实测就是全额 610,364（**回环服务不
+gzip**），`responseEnd` 4ms、冷启动 `load` 93ms、**0 个 long task**、堆 2.3MB、DOM 436 节点。
+结论：这条传输预算量的是本部署形态下**不发生的传输**；对 127.0.0.1 的桌面 UI，规范化的等价物是
+CPU 预算（解析+编译+执行、无 >50ms 长任务、可交互 ≤1s），而我们在 CPU 侧有约 40 倍余量。
+`scripts/measure_workbench_weight.py` 自述不发明预算、实测 `budgetDeclared=False`，所以**上限怎么改
+仍是 owner 的决定**，本轮不擅自换数也不为凑数删内容。
+
+**仍未做（不写成已做）。** 粒子/氛围层的 canvas 需要样式表那条定位规则与重建后的测量，另起 §5.63；
+`?motion=enhanced` 的真人视觉验收没有；勾选框标签是否违反「标签放输入上方」（实测
+`labelSideBySideExamples` 里有 `1440:preflight label vs input#jury-approve dy=-17px` 这类同排）
+仍待 owner；`_list_prompt_results` 那一刀等 schema 迁移授权；release、安装态分发、真实宿主 E3、
+真人 E4、模型推理、ComfyUI/MiniMax H3、AAOS 联调、E 盘、手机端（排除项）一律不变。
+### 5.63 粒子层照"抄结构不引依赖"落地：画在文字之下的一层 canvas，并且用可冻帧的方式被量过
+
+**做了什么。** Owner 要的是"更多动画动效粒子"。调研回来的可装库各有代价：GSAP 3.13 gzip 27.2KB
+但许可是 GreenSock License（非 MIT，要过权利登记）；@tsparticles/slim MIT 30.5KB；canvas-confetti
+ISC 4.3KB；pixi.js 226KB、lottie-web 76.8KB 因体积与维护不引入；react-bits/magicui 是
+React+Tailwind。owner 既有的裁法是「吸收融入不了的 可以参考它的结构架构源代码等进行复制啊」，
+所以这一层**不装任何依赖**：照 canvas-confetti 的结构（一次性发射、速度+衰减、自动停）自写，
+24 颗粒子、只用两种品牌墨（`#EEF2F5` / `#17212B`）、alpha 0.10–0.22，
+挂在 `--layer-canvas-ambient` 那一层（`.app` 的第一个子节点、`pointer-events:none`、
+`aria-hidden="true"`），**永远在面板与文字之下**，不覆盖任何字形。
+
+**可测性是先设计进去的，不是事后补的。** `?motion=enhanced&particles=static` 画**一帧确定图**并停下：
+位置由固定种子函数 `seeded(i)` 生成，同一台机器与不同机器都是同一画面。这不是为测试开的后门，
+它同时是包里那条降级要求的落点（`09_DESIGN.md:9`「低性能或系统关闭透明时回退实底」）；
+`particles=live` 才用 rAF 动。`prefers-reduced-motion: reduce` 时整层不挂载，
+默认（不带 `?motion=enhanced`）也不挂载。
+
+**本轮实测读数（逐字，跑这次门时现取）。** 产品自己写的属性：
+`CT_MOTION_WIRED {"dataMotion": "enhanced", "canvas": true, "canvasAriaHidden": "true", "canvasZ": "-2"}`——注意 `data-motion` 现在来自
+`motion.ts` 而不是注入，这是"用户从 URL 一步进得来"的证据，而不是"样式表面对"的证据。
+逐姿态对比度：`poses=[0, 3000, 6000, 9000, 12000]` `routes=24`
+`checked=34170` `belowAA=0`
+`distinctTransforms=4`。
+被造出来的拒绝态行：["1440:assistant+refusal"]；
+`errors=4`、`errorAdjacent=0`。
+体积（gzip level 9，同档前后对照）：`build/main.js` 616351 字节 / gzip 162258；
+`style.css` 121330 / 41645；`index.html` 10144 / 3857；
+**关键路径合计 gzip 207760 字节 = 202.9 KiB**。
+
+**这条断言会咬在哪里。** 闸门现在会**因为粒子层没挂上而红**
+（`?motion=enhanced&particles=static did not mount an aria-hidden particle canvas`），
+也会因为产品不再自己写 `data-motion` 而红。也就是说：这一层要么真的可达并被量，要么把门卡住，
+不存在"代码在界面上看不见却全绿"的第三种结局。
+
+**未做（不写成已做）。** `particles=live` 的**动画过程**未做逐帧对比度认证——本轮量的是它与
+0% 一致的确定首帧；氛围层默认关闭，尚未有人从界面内一键进入（主题入口那把闸只点色板，不点 motion）；
+真人视觉验收没有；GSAP/tsparticles 的引入与权利登记没有发生。
+### 5.64 主题点击路径上有一个真缺陷：切色板时带的是旧色板的明暗侧，珍珠白因此永远点不出来
+
+**这条不是样式表问题，也不是测试问题，是产品问题。** 20261023 包的 STITCH 基线只给了珍珠白那一侧的值
+（`09_DESIGN.md:9`），所以 `PALETTES` 表里 `stitch` 只声明 `schemes: ['light']`。而色板按钮的旧写法是
+`{ ...readThemeChoice(), palette: cyclePalette(...) }`——**scheme 从旧色板继承**。从只声明 dark 的面
+切到 stitch 时，继承来的 `dark` 让 `applyTheme()` 走 `removeAttribute('data-scheme')` 那一支，
+`:root[data-palette="stitch"][data-scheme="light"]` 因此永不匹配：屏幕上画的还是默认炭黑面，
+而 URL 已经写成 `?palette=stitch`。**属性和界面在同一个时刻互相矛盾**，且只有点击路径断，
+直链是好的（`?palette=stitch&scheme=light` 返 200 且落对属性）。
+
+**这是被"走完整个色板表"的闸抓出来的，不是被注入属性的闸。** 前一版主题闸只点一步、只到 `ui2026`，
+所以 `stitch` 从来没有在点击路径上被验过——CSS 面由对比度闸用 `addInitScript` 注入属性量得干干净净，
+产品自己的按钮却到不了那一面。修法按职责分两侧：**产品侧** `shell.ts` 的色板按钮改为按
+**目标色板自己声明的那一侧**解析 scheme（`spec.schemes.includes(now.scheme) ? now.scheme :
+ spec.schemes[0]`），并把 `palette` 与 `scheme` 两个查询参数一起写回 URL，让属性、界面、URL 三者一致；
+**闸门侧**（`audit_workbench_theme_affordance.mjs` + `test_workbench_theme_affordance_gate.py`）
+色板表由两侧各自独立从 `shell.ts` 现读（不硬编码），断言①跳数必须等于表长（少一跳即红）、
+②**每一跳都必须真的改变被画的墨色**（只改属性不改颜色的 D13 缺陷从此按跳而不是按首次检查）、
+③最后一跳必须回到起点、④`?palette=stitch&scheme=light` 直链 200 且画出的不是默认面。
+
+**改前改后的逐跳读数。** 改前（同一台机、同一 bundle）：
+`HOP 1 ui2026/(absent) ink=rgb(159,177,195) over=rgb(8,14,22) ratio=8.81 moved=yes`、
+`HOP 2 stitch/(absent) ink=rgb(154,163,184) over=rgb(6,10,20) ratio=7.83 moved=yes`、
+`HOP 3 design-lab/light ink=rgb(154,163,184) over=rgb(6,10,20) ratio=7.83 moved=NO`——
+第 2 跳"看起来变了"是因为它从 ui2026 的暗面换到另一套暗值，**珍珠白根本没出现**；
+第 3 跳属性换了、颜色一动不动，就是 D13 那一形状。
+改后本轮实测：[{"hop": 1, "palette": "ui2026", "scheme": "(absent)", "url": "?palette=ui2026&scheme=dark", "probeText": "设计辅助", "ink": "rgb(159, 177, 195)", "backdrop": "rgb(8, 14, 22)", "bgChain": ["span=rgba(0, 0, 0, 0)", "nav=rgba(0, 0, 0, 0)", "aside#app-sidebar=rgba(0, 0, 0, 0)", "div#b10-app=rgba(0, 0, 0, 0)", "body=rgb(8, 14, 22)"], "changeRatio": 8.81, "ratioBasis": "opaque rgb() ink over opaque rgb() backdrop", "moved": true, "paletteMoved": true, "paint": "rgb(159, 177, 195) on span=rgba(0, 0, 0, 0) | nav=rgba(0, 0, 0, 0) | aside#app-sidebar=rgba(0, 0, 0, 0) | div#b10-app=rgba(0, 0, 0, 0) | body=rgb(8, 14, 22)"}, {"hop": 2, "palette": "stitch", "scheme": "light", "url": "?palette=stitch&scheme=light", "probeText": "设计辅助", "ink": "rgb(86, 100, 114)", "backdrop": "rgb(244, 246, 248)", "bgChain": ["span=rgba(0, 0, 0, 0)", "nav=rgba(0, 0, 0, 0)", "aside#app-sidebar=rgba(0, 0, 0, 0)", "div#b10-app=rgba(0, 0, 0, 0)", "body=rgb(244, 246, 248)"], "changeRatio": 5.6, "ratioBasis": "opaque rgb() ink over opaque rgb() backdrop", "moved": true, "paletteMoved": true, "paint": "rgb(86, 100, 114) on span=rgba(0, 0, 0, 0) | nav=rgba(0, 0, 0, 0) | aside#app-sidebar=rgba(0, 0, 0, 0) | div#b10-app=rgba(0, 0, 0, 0) | body=rgb(244, 246, 248)"}, {"hop": 3, "palette": "design-lab", "scheme": "(absent)", "url": "?palette=design-lab&scheme=dark", "probeText": "设计辅助", "ink": "rgb(154, 163, 184)", "backdrop": "rgb(6, 10, 20)", "bgChain": ["span=rgba(0, 0, 0, 0)", "nav=rgba(0, 0, 0, 0)", "aside#app-sidebar=rgba(0, 0, 0, 0)", "div#b10-app=rgba(0, 0, 0, 0)", "body=rgb(6, 10, 20)"], "changeRatio": 7.83, "ratioBasis": "opaque rgb() ink over opaque rgb() backdrop", "moved": true, "paletteMoved": true, "paint": "rgb(154, 163, 184) on span=rgba(0, 0, 0, 0) | nav=rgba(0, 0, 0, 0) | aside#app-sidebar=rgba(0, 0, 0, 0) | div#b10-app=rgba(0, 0, 0, 0) | body=rgb(6, 10, 20)"}]
+直链：{"asked": "palette=stitch&scheme=light", "status": 200, "palette": "stitch", "scheme": "light", "ink": "rgb(86, 100, 114)", "backdrop": "rgb(244, 246, 248)", "bgChain": ["span=rgba(0, 0, 0, 0)", "nav=rgba(0, 0, 0, 0)", "aside#app-sidebar=rgba(0, 0, 0, 0)", "div#b10-app=rgba(0, 0, 0, 0)", "body=rgb(244, 246, 248)"], "paintsLikeDefault": false}；色板表现读：[{"id": "design-lab", "schemes": ["dark"]}, {"id": "ui2026", "schemes": ["dark", "light"]}, {"id": "stitch", "schemes": ["light"]}]。
+
+**这些数字的权威边界，写在读数旁边而不是事后解释。** 每跳的比值是**变化探测器**，不是 AA 结论：
+该探针只在"墨色与祖先链全为不透明 `rgb()`"时给数，否则 `changeRatio=null` 退回原始色串比。
+仓库里唯一的对比度主人是 `audit_workbench_contrast.mjs`，`stitch` 浅色侧是否过 AA 由
+`test_workbench_contrast_gate.py` 以 `UI_PALETTE=stitch` 逐路由回答，本闸不越权也不重复认领。
+
+**体积（gzip level 9）。** `build/main.js` 616351 / 162258；`style.css` 121330 / 41645。
+
+**未做（不写成已做）。** `audit_workbench_theme_geometry.mjs:56` 那份**硬编码**色板表仍缺 `stitch`，
+本轮没动它（改了要把几何结论一起重读）；主题不写 localStorage 是既有裁决（`shell.ts:10140`），
+没有为"记住珍珠白"新开键；勾选框标签是否违反「标签放输入上方」仍待 owner；真人视觉验收没有。
+### 5.65 造出拒绝态的下一步就抓到一支不达标的红字：珍珠白的错误墨色默认继承 #F05252，压白底只有 3.48:1
+
+**这条是上一节的直接后果，不是新话题。** 闸门第一次让界面真的拒绝了一次（清空目标后点
+`#as-submit`，`p#as-form-error.error[role=alert]` 显示
+「请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。」），珍珠白面立刻报红，逐字：
+`LOWCONTRAST 1440:assistant+refusal 3.48:1 need>=4.5:1 13px opacity=1 fg=rgb(240, 82, 82) :: p#as-form-error.error`，
+同一条在 1920 与 plan-detail/plan-compare/plan-feedback 各自复用，合计 `CT_FAIL: 8 text run(s) below WCAG 2.1 AA contrast`。
+**为什么以前从不红**：这行文字在此之前**没有任何界面会显示**——所有路由的读盘都成功，
+`errors=0` 一直是空集。一个永远不会出现的状态当然永远不会失败。
+
+**根因是一处作用域漏配，不是品牌决定。** `:root` 定义 `--color-error:#F05252`（为炭黑默认面选的，
+压深色面过 AA）；ui2026/light 早在本文件里就把 `--color-error` 重指为 `var(--uif-light-danger)`
+（style.css:1770），而 `stitch/light` 那一块**没有重指**，于是珍珠白继承了给深色面设计的红。
+
+**取既有已实测值，不新造一支红。** 20261023 包只逐字给了六个值（强调/正文/次级/背景/内容/边界），
+**没有给错误色**，所以自造一支红就是冒充包的规定。这里重指到同仓已存在的
+`--uif-light-danger:#ab384d`，用闸门自己的合成算法算：压白 **6.17:1**、压珍珠白 `#F4F6F8` **5.69:1**、
+压浅色 elevate **5.20:1**，三档都在 4.5 以上；默认炭黑面**一字节不动**，仍是 `#F05252`。
+`--color-success`/`--color-warning` 未被改动：同一闸门在珍珠白逐路由量过全部被画文字，
+只有这一支在拒绝态出现时不达标，其余没有实测证据支持动它们。
+
+**改后同一把尺的读数（本轮现取，不是引用改前）。**
+`CT_SUMMARY`：{"checked": "42381", "belowAA": "0", "pseudoLayers": "32209", "coveredForeign": "0", "obscured": "6", "unparsable": "0", "collapsedOpened": "6317", "controlMisses": "0", "strict": "1", "mathChecks": "4", "mathBad": "0", "colourChecks": "4", "colourBad": "0"}；
+改后仍低于 AA 的 `assistant+refusal` 行数：**0**；
+本轮跑过 `Ran 20 tests in 367.012s`，判定 ["OK", "OK"]；
+被造出的拒绝态：proved 1 条
+（roles=["alert"]）、
+未落地的族 1 条。
+体积：`build/main.js` 616351 / gzip9 162258；
+`style.css` 121330 / gzip9 41645。
+
+**这条断言会咬在哪里。** 拒绝态现在是必造状态：`RefusalPopulationIsGraded` 要求回执里存在
+`+refusal` 行且 `errors>=1`，而 `CT_FAIL: the assistant intake form never showed its refusal line…`
+会在没人让界面拒绝一次时直接红——**"没有错误可量"不再是绿，是红**。
+珍珠白若有人再把 `--color-error` 改回亮红，下一跳的对比度闸会按每条路由把它报回来。
+
+**一处需要承认的仪器形状问题（顺手改掉）。** 拒绝态植入最初被推进 `controlBad` 那一个列表，
+于是"某个表单不在这次走到的状态上"被报成
+`CT_FAIL: the white-on-color(srgb) control was not reported as a failure` ——一个列表服务两个含义，
+失败信息就指错了仪器。现在拒绝态有自己的一对
+`refusalProved/refusalAbsent`、自己的一行 `CT_REFUSAL_PROVED count=… absent=…`，
+并且 `assistant` 那一族**必须**被造出来（造不出即红），`knowledge` 那一族落在没有该面板的状态时
+如实写成 `CT_REFUSAL_ABSENT`，不再伪装成颜色解析器的失职。
+### 5.66 那一条"最接近可落地"的登记被实测推翻后，这一轮把它真做完了：提示词读回现在是**有界的一页**
+
+**先接上一段没做完的。** §5.62 记下了"套 `PAGE_LIMIT` 信封是最成熟一刀"这个说法被子代理实测推翻：
+`prompt-result-readback-v1.schema.json` 是 `additionalProperties:false` 的 13 键闭集，直接加
+`limit/next_cursor/truncated` 会被自家校验判 500。推翻不等于不做——它只是说明这刀**必须带上 schema**，
+于是本轮按本仓已有的两个先例（`/api/knowledge-entries/search` 与 assistance-plan 列表）把它做完了。
+`contracts.ts` 里没有这支读回的类型（grep `PromptResultReadback` 零命中），所以这次改动**不需要**动前端形状，
+这一点是在动手前查的，不是事后补的。
+
+**改的是四处，一次带齐。** ① `prompt_results.py`：`PROMPT_RESULT_LIMIT=100`、
+`MAX_PROMPT_RESULT_LIMIT=200`，`readback(project_id, offset=0, limit=…)` 先校验再取数；
+② **信封字段全部在切片之前取**：`total_readable` 是可读出来的全部、`result_count` 仍是数据库行数
+（含解析不了的）、`newest`/`state`/`accepted_count`/`reviews` 都按全量算，只有 `results` 是这一页——
+分页因此**不可能**把 400 条提示词读成 100 条；`reviews` 明确不翻页，因为截断签收记录就是隐藏决定。
+③ 路由声明 `path_only=True`，`offset/limit` 在 handler 里用 `urlsplit + parse_qsl` 解析（与
+task-preflight、知识检索同一写法），非法值回**具名 400**而不是 404：
+`PROMPT_RESULT_FILTER_MALFORMED`、`PROMPT_RESULT_OFFSET_INVALID`、`PROMPT_RESULT_LIMIT_INVALID`；
+④ 合同行的 `reason` 记下这个界与三个拒绝词，`test_workbench_weight.py` 的
+`UNBOUNDED_REGISTER` **同轮摘牌**（9→8），摘牌的那条断言同时要求仪器不再把它算作无界——
+登记与现状不许朝任何一个方向漂。
+
+**仪器自己的现读（不是引用上面的话）。** `LISTROWS list_routes=18 bounded=10 without_limit=8 frontend_call_sites_scanned=142`
+`LISTROWS _list_prompt_results           initial_rows= 100 kind=page-limit    at=prompt_results.py:51(PROMPT_RESULT_LIMIT) max_rows=   - client_calls=2 client_limits=- client_without_limit=2`
+
+**这条断言会咬在哪里。** 三条新用例都是路由级：默认页必须报出 100 与 `truncated=False/next_offset=None`；
+两行数据用 `?limit=1` 翻页时，第一页必须仍说"共 2 条、还有下文、next_offset=1"，第二页必须
+`truncated=False` 且 `next_offset=None`，且 `state/newest/reviews` 与全量逐字节相等；
+`?limit=0`、`?limit=201`、`?limit=ten`、`?offset=-1` 必须各回自己那个码——**一个无名 400 就是
+让参数变成谜**。加上摘牌那条，把界悄悄改回无界、或把 `returned` 当成总数，都会红。
+
+**未做（不写成已做）。** 前端调用点仍不传 `limit/offset`（默认页就是当前答案），界面要不要显式翻页是
+UI 那一刀的活，本轮没动任何 `.ts`；其余 7 条无界路由不套同一修法，理由各自不同并已逐条登记
+（`_list_or_read_assets` 成本在每行重校验而非行数，`_list_projects` 是逐项目汇总，
+`_list_design_systems` 由四名注册表天然有界，`_list_rights/_list_jury/_list_knowledge_candidates`
+是 Human Gate 与读回面——截断即隐藏决定，`_list_token_documents` 空值语义须保列表，
+`_list_research` 未测量）。

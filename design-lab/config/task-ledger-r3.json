@@ -12472,6 +12472,66 @@
         "artifact_sha256": "dcd656bb0a07291db2708bf98449e86824350a26174ad8f87087bffcd2ac6486",
         "exit_code": 0,
         "command": "追正 §5.59 的过早绿 + 把三处品牌尺迁到矢量真值 —— 见工件；本行记录的是测量与断言修复，不是真人验收。"
+      },
+      {
+        "id": "kb-06-particle-layer-copied-structure-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:19:00Z",
+        "subject_sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-particle-layer-copied-structure-20261026.json",
+        "artifact_sha256": "0080bff1ef571afb3df4464514b03dbf16d30d80c22709a1f354866f2fe86b91",
+        "exit_code": 0,
+        "command": "粒子层按抄结构落地（零依赖），并由对比度闸门在增强面逐姿态量过 —— 见工件；live 动画过程与真人视觉验收未做。"
+      },
+      {
+        "id": "kb-13-prompt-results-list-bounded-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:19:00Z",
+        "subject_sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-prompt-results-list-bounded-20261026.json",
+        "artifact_sha256": "c52f65567cb562bfeac3f1d183ff595d28e00d0b426cf3870bf174fdcba31089",
+        "exit_code": 0,
+        "command": "提示词读回列表改为有界一页，界与信封在切片前取数，四个非法参数各回具名 400；同轮从 UNBOUNDED_REGISTER 摘牌 —— 读数见工件。"
+      },
+      {
+        "id": "kb-13-enhanced-face-pose-measured-and-ci-closed-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "f9683930a7189bacb2e5d0a0c42d8acb927b2806",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-enhanced-face-pose-measured-and-ci-closed-20261026.json",
+        "artifact_sha256": "394bd349f70e958efc118301528f5eba069dd736820c05808cb7983228dfff8b",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T17:22:00Z",
+        "command": "精确-SHA 矩阵读数 + 增强面逐姿态对比度 + 拒绝态空集盲区的修复 —— 全部见工件；本行记录测量与断言修复，不是真人验收。"
+      },
+      {
+        "id": "kb-06-theme-click-path-scheme-fix-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:22:00Z",
+        "subject_sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-theme-click-path-scheme-fix-20261026.json",
+        "artifact_sha256": "925c4ffdc0a646b48e90cb0d060e206953d9e0cdb69b35b74db21d5d14fc3337",
+        "exit_code": 0,
+        "command": "主题点击路径的 scheme 归属缺陷修复 + 走完整个色板表的闸 —— 读数见工件；比值是变化探测器不是 AA 结论。"
+      },
+      {
+        "id": "kb-13-refusal-state-exposes-light-error-ink-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:22:00Z",
+        "subject_sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-refusal-state-exposes-light-error-ink-20261026.json",
+        "artifact_sha256": "97265d24d495b2ff93f2a79b47d3e2b18d7b63bedf4618efab5fff57dcd5a967",
+        "exit_code": 0,
+        "command": "拒绝态第一次被造出来后，珍珠白的错误墨色被同一把尺按每条路由报红；本轮把 --color-error 在该作用域重指到既有已实测值 —— 读数见工件。"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
