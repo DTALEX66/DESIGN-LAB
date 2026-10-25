@@ -12376,6 +12376,18 @@
         "command": "The 20261023 pack writes its visual rules as numbers, so the contrast ruler now grades them on the same painted document it uses for AA: 元数据至少12px, 圆角输入/按钮6-10px, 玻璃只给顶栏/导航/临时面板, 长文字与列表实底, and the control-height and typography histograms it reports without asserting. Measured before the fix at width 1440: 119 text runs under 12px, 23 list rows and text buttons painted on translucent white, 474 form controls over the 10px radius band. After the fix, under stitch/light: below12=0 translucentTextHosts=0 formRadiusOver10=0 glassOffAllowlist=0 unparsableAlpha=0 over 15602 text runs and 1002 form controls, with AA still belowAA=0. The 12px floor was raised globally (--uif-font-micro and five 11px rules); the 实底 and radius fixes are scoped to the pack theme, which the falsifier proves by going red on the default palette. Glass needed no change: the only two blurred surfaces measured are the top bar and the navigation, and the allowlist is now that list.",
         "exit_code": 0,
         "observed_at": "2026-10-25T03:38:18Z"
+      },
+      {
+        "id": "kb-06-browser-remote-only-aa-root-cause-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "7f7a29461bd362b136f1f14c2ef81479de015225",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-remote-only-aa-root-cause-20261025.json",
+        "artifact_sha256": "ba200ec03cc3ef8350a5c052fd929431acd72bc9f7cf77151125b0225238f087",
+        "command": "§5.54 留下的\"只在远端出现的 AA\"定位到了，而且交接里的前提需要先更正：读 CI 实况时，PR run 40170639181（head_sha 13df2a9e，即本分支尖端）已经全绿，BROWSER_E2E ran=15 skipped=0 failed=0，含 test_workbench_contrast_gate ran=5 failed=0；红的是更早的 40168878523（head_sha b5b59927）。所以本轮不是把一条红改成绿，而是把一枚硬币改成必然：同一条代码路径在 b5b59927 上红两次、在 13df2a9e 上绿一次，差别只在采样时刻。根因量出来了：四类动作按钮的共享规则写的是不带属性表的 `transition:.2s ease`，等价于 transition-property:all，于是启用/禁用切换把 color 与 background-color 一起补间。rAF 逐帧采样（1920/stitch-light）读到墨色 rgb(23,33,43) → 118,124,130 → 187,190,193 → 226,227,228 → 251,251,252 → 255,255,255，同时 background-color 从实白褪到透明；rgb(187,190,193) 压在 .294 白纱覆盖的品牌蓝上按闸门算法合出 1.97:1。CI 两次点名的灰值经按通道反解，与「白字 ↔ 该主题 --text」的线性插值三通道同解（stitch #17212b t=0.422/0.423/0.425；ui2026 #152b3d t=0.197/0.198/0.196），而枚举 document.styleSheets 只找到三条匹配该元素的 color 声明、全部写白字：那条红量的不是任何规则里的颜色。修复只撤掉中间帧——transition 限定为 transform/border-color/box-shadow，时长与缓动未动，端点值仍是 §5.54 之后那一套，没有改阈值、没有放宽断言、没有跳过该面、没有猜新色值。§5.54 问\"为什么我改什么远端读数就跟着变\"也有答案了：那三次改的都是这条补间的端点。第二件：本应走到该态的换目标循环是空转（它要求每个下拉≥3 个 option，而组合解析成功后 tp-agent 只剩空选项、tp-entry/tp-model/tp-task-mode 各只剩一个可用值），现在判据改成页面自己写的「唯一对应档案 <key>」，实测 flux2--api--image-generation → elevenlabs--web-app--music 且 mode 仍为 target，脏文案「按新目标重新校验」变成必须出现的断言，进不去即进 controlBad 让闸门 exit 1。三套配色双宽度复测：default checked=8129、stitch/light 与 ui2026/light 各 checked=16258，三者 belowAA=0、controlMisses=0、unparsable=0，STALEROW 三处一致 color=rgb(255,255,255)、transition-property=transform, border-color, box-shadow；补测试后 test_workbench_contrast_gate 6 条 261.082s OK。还原简写的反证实测：静态守卫点名 all 并变红，同一态下采样器重新量到 7 个不同墨色，修复后只剩 1 个，两枚日志逐字节存本目录。包里仍未满足的五句照实登记（强调色 44 处、标题 10 个组合非单调、errorNodes=0 因为闸门尚未制造失败态、标签旁置 98 处其中新增 20 处已核到行、hover 态不在静息尺内），未当作已交付。E2 controlled-runtime，不是 E3/E4。",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T07:30:00Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

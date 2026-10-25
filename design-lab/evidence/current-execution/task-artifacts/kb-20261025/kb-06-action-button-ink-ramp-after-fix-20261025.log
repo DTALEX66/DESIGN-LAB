@@ -1,0 +1,11 @@
+PROBE palette=stitch/light width=1920
+PROBE picks=tp-software:picked tp-agent:single-option tp-entry:picked tp-model:picked tp-task-mode:picked settled=yes
+PROBE transitionProperty=transform, border-color, box-shadow
+PROBE frames=40 distinctInkStates=1
+  FRAME t=2660 disabled=0 text=按新目标重新校验 color=rgb(255, 255, 255) bgColor=rgba(0, 0, 0, 0) bgImage=linear-gradient(135deg, rgb(29, 79, 196)
+PROBE combo={"text":"软件：Black Forest Labs FLUX.2 · Agent：未声明 · 入口：API · 模型：FLUX.2 [pro] / [flex] / [m","mode":"target"}
+PROBE btn={"text":"按新目标重新校验","disabled":false,"color":"rgb(255, 255, 255)"}
+PROBE rules declaring color that match #tp-validate (3):
+  OWNER button { color: rgb(255, 255, 255) }
+  OWNER .primary-btn { color: rgb(255, 255, 255) }
+  OWNER #tp-validate { color: rgb(255, 255, 255) }

@@ -2033,3 +2033,65 @@ label 是 wrapper。直接量 label 的盒子时，它的底边在控件之下�
 
 **账。** `evidence` 仍 290，直方图不变；本节只记录事实与下一步，不新增通过声明。owner 未裁项不变：
 150 KB 上限、顶栏吸顶、标题阶梯、勾选框标签是否纳入「标签在上方」。
+
+### 5.55 那条只在远端出现的 AA 定位了：闸门量到的是补间的中间帧，不是任何规则里写过的颜色。
+
+**先更正前提。** 交接写"分支尖端红"，我读 CI 实况时尖端已经绿了：PR run `40170639181`（head_sha
+`13df2a9e`）`Workbench browser E2E` 通过，`BROWSER_E2E ran=15 skipped=0 failed=0`，其中
+`test_workbench_contrast_gate ran=5 failed=0`；红的是更早的 `40168878523`（head_sha `b5b59927`，
+作业 `121095476953`）。**所以本轮不是把一条红拧成绿**：同一条代码路径红过两次、绿过一次，
+差别只在采样时刻落不落在那 200ms 里。绿的一次没有修掉任何东西，下一轮照样可能再红——本轮删的是那 200ms。
+
+**根因是量出来的。** 四类动作按钮的共享规则写 `transition:.2s ease`，简写不带属性表就等于
+`transition-property:all`，于是启用↔禁用切换时 `color` 与 `background-color` 一起补间。rAF 逐帧
+采样器（1920 / stitch-light，一帧一行）读到墨色
+`rgb(23,33,43) → 118,124,130 → 187,190,193 → 226,227,228 → 251,251,252 → 255,255,255`，
+同一时刻背景色从实白褪到 `rgba(255,255,255,0)` 压在 brand 渐变上；把 `rgb(187,190,193)` 与
+`rgba(255,255,255,.294)` 覆盖的 `rgb(29,79,196)` 按闸门自己的合成算法算出来是 **1.97:1**。
+
+**两次远端读数与插值逐通道吻合。** 按通道反解线性插值参数：stitch/light 的 `rgb(157,161,165)` 对
+`#fff ↔ #17212b` 解出 `t = 0.422 / 0.423 / 0.425`，ui2026/light 的 `rgb(209,213,217)` 对
+`#fff ↔ #152b3d` 解出 `t = 0.197 / 0.198 / 0.196`（残差是 8-bit 取整）。同时枚举
+`document.styleSheets`，匹配该元素的 `color` 声明只有三条，全部写白字。**那条红量的不是任何规则
+里的颜色。** §5.54 问"为什么我改什么远端读数就跟着变"也一并有了答案：那三次改的（撤 opacity、
+`--muted`→`--text`、id 级钉色）都是这条补间的端点，端点一动中间帧跟着动。
+
+**改的只有"补间哪些属性"。** `transition` 限定为 `transform, border-color, box-shadow`，时长与缓动
+一字节未动，两个端点值仍是 §5.54 之后那一套。没改阈值、没放宽断言、没跳过该面、没关 enforce、
+没猜新色值。motion 尺抓不到这一类：`color`／`background` 不是布局属性，它只打印
+`transitionAllCount` 并拒绝定罪——所以这是对比度尺的责任，也由它先咬到。
+
+**第二件事：本应走到该态的循环是空转的。** 旧 `openStaleValidationState` 要求每个下拉至少三个
+`<option>`；组合解析成功之后 `tp-agent` 只剩空选项，`tp-entry`／`tp-model`／`tp-task-mode` 各只剩
+一个可用值，五个轴一条都不满足，所以"换目标"从未发生，本地 `STALEROW` 才一直打印洁净文案——
+交接里"本地不可复现"是真的，但不是状态不可达，是闸门根本没去换。判据现在改成页面自己写的
+「唯一对应档案 <key>」：实测 `flux2--api--image-generation → elevenlabs--web-app--music` 且
+`dataset.mode` 仍为 `target`，脏文案「按新目标重新校验」升级为必须出现的断言，走不到就进
+`controlBad` 让闸门 exit 1（进不去是红，不是跳过）。
+
+**修复后的实测。** 三套配色双宽度：default `checked=8129`、stitch/light `16258`、ui2026/light `16258`，
+三者 `belowAA=0 controlMisses=0 unparsable=0`；三处 `STALEROW` 一致
+`color=rgb(255,255,255)`、`transition-property=transform, border-color, box-shadow`，
+`STALEOWNER` 三条规则全白。还原成不带属性表的简写做反证：静态守卫点名 `all` 变红，同一态下采样器
+重新量到 **7 个**不同墨色，修复后只剩 **1 个**——两枚日志逐字节存在
+`design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-action-button-ink-ramp-{before,after}-fix-20261025.log`。
+`python -m unittest test_workbench_contrast_gate` 6 条 `261.082s OK`。
+
+**包里仍未满足的五句，只登记不交付。**
+① 「单一低饱和强调色 #356B92」：`brandBluePaints` 本轮 stitch/light 双宽度 **44 处**（§5.52 的 21 处
+是单宽度读数，两个数字不可互换），仍等 owner 二选一。
+② 标题层级：仍是 10 个 `(级别,字号,字重)` 组合，`h1` 同时 26px 与 17px、`h3` 可小于 `h4`，收敛成一套
+阶梯要一次裁定（包参照文档 42/27/19px），本轮不替包编 px。
+③ 「错误紧邻字段」：`errorNodes=0` 是因为闸门还没制造任何一次真实失败态——这一句既不能记为满足，
+也不能记为"已测量"。下一刀的前置是先造一次真失败（保存失败／目标不兼容／模型不可用）。
+④ 勾选框／单选行的标签位置：带标签控件从 §5.53 的 494 增至 **532**、在上方从 416 增至 **434**、
+旁置从 78 增至 **98**。增量已核到行，不是猜测：新量的 `combination-after-change` 在 1440 与 1920 上
+各读到 `labelled=19 / labelAbove=9 / 旁置=10`，两处合计 +38 / +18 / +20。另注：打印的
+`LABEL-SIDEBY` 样例上限是 10 条，98 这个数来自 `labelled − labelAbove`，不是数样例。
+⑤ hover 态仍不在静息尺的测量对象内（`.app-nav button:hover` 读同一对 brand token），未测即不称合规。
+
+**账。** `evidence` 290 → **291**（新行 `kb-06-browser-remote-only-aa-root-cause-20261025`，
+`subject_sha=7f7a2946`，回执 18216 字节、`sha256=ba200ec0…`，append 前已证明 JSON 往返逐字节相同）；
+`currentExecution` 50 项直方图不变（34 `FROZEN_DEFERRED` / 13 `DONE` / 2 `PARTIAL` / 1 `NOT_STARTED`），
+`DL-KB-06` 状态未动，旧 34 项一项未解冻。owner 未裁项不变：150 KB 上限、顶栏吸顶、标题阶梯、
+勾选框标签是否纳入「标签在上方」、hover 墨色跟不跟着翻。
