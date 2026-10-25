@@ -373,6 +373,19 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         # Reported, not asserted: flattening the accent produced two AA failures on CI's Linux
         # runner that the same bytes did not produce on Windows, so the pack's single-accent rule
         # stays an open, measured debt until a colour ruling lands.
+        # The position rules measure a population, so the coverage is asserted even while the
+        # verdict is still a report: 247 labelled controls and a non-empty heading ladder were
+        # read off the painted document. A ruler that reports 0 labelled fields would mean the
+        # selector broke, not that the UI is clean.
+        self.assertGreaterEqual(int(spec.get('labelled', '0')), 200,
+                                'only %s labelled controls were measured; the caption pass is not '
+                                'reaching the forms' % spec.get('labelled'))
+        self.assertIn('labelAbove', spec, 'the caption-placement count stopped being reported')
+        # The heading ladder is a list, so it is read from the report rather than the log line.
+        self.assertGreaterEqual(len(recorded.get('spec', {}).get('headingLadder') or []), 5,
+                                'the heading ladder reported %r; the pass measured too little to '
+                                'say anything about hierarchy'
+                                % (recorded.get('spec', {}).get('headingLadder'),))
         self.assertIn('brandBluePaints', spec,
                       'the single-accent count stopped being measured at all: %s' % sorted(spec))
         self.assertGreater(int(spec.get('brandBluePaints', '0')), 0,

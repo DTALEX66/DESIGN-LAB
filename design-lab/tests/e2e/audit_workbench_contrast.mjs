@@ -661,6 +661,90 @@ const MEASURE_SPEC = () => {
     .sort((a, b) => parseFloat(b.split(' ').pop()) - parseFloat(a.split(' ').pop()))
     .slice(0, 8);
 
+  // Two sentences from the same pack that are written as positions, not opinions: 「标签放输入上方」
+  // and 「错误紧邻字段」 (09_DESIGN.md), plus the heading ladder its reference document ships
+  // (h1 42px / h2 27px / h3 19px). All three are read off laid-out boxes, so a label that is
+  // associated by `for=` but painted to the left of its field is caught the same way a
+  // structurally-nested one that flexes into a row is.
+  const headings = [];
+  for (const el of document.querySelectorAll('h1,h2,h3,h4,h5,h6')) {
+    const cs = getComputedStyle(el);
+    if (!painted(el, cs)) continue;
+    headings.push(el.tagName.toLowerCase() + ' ' + round1(parseFloat(cs.fontSize)) + 'px/'
+      + (parseInt(cs.fontWeight, 10) || 400) + '/lh' + round1(parseFloat(cs.lineHeight) || 0));
+  }
+  const headingLadder = Array.from(new Set(headings)).sort();
+
+  // The label WRAPS its control throughout this app (`label{display:grid}` with the caption as a
+  // text node and the field as a child), so measuring the label element's own box would put its
+  // bottom under the field's bottom and convict 240 correctly-labelled fields of being side by
+  // side. The caption's box is the union of the label's own text nodes, which is what an eye
+  // actually sees above the field; a `for=`-associated label elsewhere in the DOM has no such
+  // wrapper, so its box is used directly and the same test still catches a label left of a field.
+  const captionBox = (label, control) => {
+    if (!label.contains(control)) return label.getBoundingClientRect();
+    const rects = [];
+    for (const n of label.childNodes) {
+      if (n.nodeType !== 3 || !n.textContent.trim()) continue;
+      const r = document.createRange();
+      r.selectNodeContents(n);
+      const b = r.getBoundingClientRect();
+      if (b.width > 0 && b.height > 0) rects.push(b);
+    }
+    if (!rects.length) {
+      for (const child of label.children) {
+        if (child === control || child.contains(control)) continue;
+        const b = child.getBoundingClientRect();
+        if (b.width > 0 && b.height > 0) rects.push(b);
+      }
+    }
+    if (!rects.length) return null;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const b of rects) {
+      x0 = Math.min(x0, b.left); y0 = Math.min(y0, b.top);
+      x1 = Math.max(x1, b.right); y1 = Math.max(y1, b.bottom);
+    }
+    return { left: x0, top: y0, right: x1, bottom: y1 };
+  };
+
+  let labelled = 0;
+  let labelAbove = 0;
+  const labelSideBySide = [];
+  for (const el of document.querySelectorAll('input:not([type=hidden]), select, textarea')) {
+    const cs = getComputedStyle(el);
+    if (!painted(el, cs)) continue;
+    const label = el.closest('label') || (el.labels && el.labels.length ? el.labels[0] : null);
+    if (!label || !painted(label, getComputedStyle(label))) continue;
+    const box = el.getBoundingClientRect();
+    const lb = captionBox(label, el);
+    if (!lb) continue;
+    labelled += 1;
+    const overlapsX = lb.left < box.right - 1 && lb.right > box.left + 1;
+    if (lb.bottom <= box.top + 1 && overlapsX) { labelAbove += 1; continue; }
+    if (labelSideBySide.length < 8) {
+      labelSideBySide.push(nodeTag(label) + ' vs ' + nodeTag(el)
+        + ' dy=' + Math.round(box.top - lb.top) + 'px');
+    }
+  }
+
+  let errorNodes = 0;
+  let errorAdjacent = 0;
+  const errorFar = [];
+  for (const el of document.querySelectorAll('.error, [role=alert], .field-note, .refusal')) {
+    const cs = getComputedStyle(el);
+    if (!painted(el, cs)) continue;
+    const host = el.closest('.field-row, label, .panel, form');
+    if (!host) continue;
+    const control = host.querySelector('input:not([type=hidden]), select, textarea');
+    if (!control || !painted(control, getComputedStyle(control))) continue;
+    const cb = control.getBoundingClientRect();
+    const eb = el.getBoundingClientRect();
+    errorNodes += 1;
+    const dy = Math.min(Math.abs(eb.top - cb.bottom), Math.abs(cb.top - eb.bottom));
+    if (dy <= 24) { errorAdjacent += 1; continue; }
+    if (errorFar.length < 8) errorFar.push(nodeTag(el) + ' dy=' + Math.round(dy) + 'px');
+  }
+
   return { runs: runs.length, sizes, minPx: Number.isFinite(minPx) ? minPx : null,
            below12, below12Examples, inBodyBand,
            controlCount: controls.length, heights, radii,
@@ -668,7 +752,9 @@ const MEASURE_SPEC = () => {
            formRadiusOver10, formRadiusExamples, glass,
            gradientCount: gradientRuns.length, bigGradients, biggestGradients,
            brandBluePaints: brandBlues.length, brandBlueExamples: unique,
-           veilHosts, veilExamples, unknownColour };
+           veilHosts, veilExamples, unknownColour,
+           headingLadder, labelled, labelAbove, labelSideBySide,
+           errorNodes, errorAdjacent, errorFar };
 };
 
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
@@ -943,7 +1029,11 @@ report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.e
 // the same counters two owners, and the second screen is exactly the one that would drift.
 const specTotals = { runs: 0, below12: 0, formCount: 0, formBelow36: 0, formRadiusOver10: 0,
                      veilHosts: 0, unknownColour: 0, controls: 0, inBodyBand: 0, minPx: null,
-                     gradients: 0, bigGradients: 0, brandBlues: 0 };
+                     gradients: 0, bigGradients: 0, brandBlues: 0,
+                     labelled: 0, labelAbove: 0, errors: 0, errorAdjacent: 0 };
+const specHeadingLadder = [];
+const specLabelExamples = [];
+const specErrorExamples = [];
 const specSizes = {};
 const specHeights = {};
 const specRadii = {};
@@ -1009,6 +1099,17 @@ const absorb = (key, m) => {
     }
     specTotals.gradients += s.gradientCount;
     specTotals.bigGradients += s.bigGradients;
+    specTotals.labelled += s.labelled;
+    specTotals.labelAbove += s.labelAbove;
+    specTotals.errors += s.errorNodes;
+    specTotals.errorAdjacent += s.errorAdjacent;
+    for (const h of s.headingLadder) if (!specHeadingLadder.includes(h)) specHeadingLadder.push(h);
+    for (const e of s.labelSideBySide) {
+      if (specLabelExamples.length < 10) specLabelExamples.push(`${key} ${e}`);
+    }
+    for (const e of s.errorFar) {
+      if (specErrorExamples.length < 10) specErrorExamples.push(`${key} ${e}`);
+    }
     specTotals.brandBlues += s.brandBluePaints;
     for (const e of s.brandBlueExamples) {
       if (!specBrandBlueExamples.includes(e)) specBrandBlueExamples.push(e);
@@ -1100,6 +1201,9 @@ report.spec = { ...specTotals, sizes: specSizes, heights: specHeights, radii: sp
   formSmallExamples: specFormSmallExamples, formRadiusExamples: specFormRadiusExamples,
   bigGradientExamples: specBigGradientExamples,
   brandBlueExamples: specBrandBlueExamples,
+  headingLadder: specHeadingLadder,
+  labelSideBySideExamples: specLabelExamples,
+  errorFarExamples: specErrorExamples,
   note: '20261023 包的数字规则（正文14–16px／元数据≥12px、控件约36–40px、圆角6–10px、'
     + '玻璃只给顶栏导航与临时面板、长文字与列表实底）在同一个已渲染文档上的实测' };
 if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 2));
@@ -1147,6 +1251,11 @@ console.log(`CT_SPEC glass=${specGlass.length} glassOffAllowlist=${glassOffList(
   + ` gradients=${specTotals.gradients} bigOver25pct=${specTotals.bigGradients}`
   + ` brandBluePaints=${specTotals.brandBlues}`);
 for (const g of specGlass) console.log(`  GLASS ${g}`);
+console.log(`CT_SPEC headings=[${specHeadingLadder.join(' | ')}] labelled=${specTotals.labelled}`
+  + ` labelAbove=${specTotals.labelAbove} errorNodes=${specTotals.errors}`
+  + ` errorAdjacent=${specTotals.errorAdjacent}`);
+for (const e of specLabelExamples) console.log(`  LABEL-SIDEBY ${e}`);
+for (const e of specErrorExamples) console.log(`  ERROR-FAR ${e}`);
 for (const g of glassOffList()) console.log(`  GLASS-OFF-LIST ${g}`);
 for (const e of specBelow12Examples) console.log(`  SMALLTEXT ${e}`);
 for (const e of specVeilExamples) console.log(`  NOTSOLID ${e}`);
