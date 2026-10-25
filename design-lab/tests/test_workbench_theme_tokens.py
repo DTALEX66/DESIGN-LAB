@@ -94,6 +94,14 @@ DOCUMENTED_DEVIATIONS = {
                   "declares 64. Either side moving changes landed layout, so this is owner ruling B "
                   "in DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md, not a transcription error.",
     },
+    "--uif-font-micro": {
+        "spec": "typography.size_css_px.micro",
+        "reason": "the 20261023 pack states 元数据至少 12px, and the contrast ruler grades that floor "
+                  "on the painted document (CT_SPEC below12, asserted 0 under the pack theme): 119 "
+                  "text runs measured under 12px before the raise. So the 20261009 registration of 11 "
+                  "is refused on measured legibility grounds, not re-typed silently -- putting 11 back "
+                  "turns the themed contrast gate red and this entry becomes the thing to delete.",
+    },
 }
 
 #: Tokens allowed to sit unread, each with a reason. The register can only shrink.

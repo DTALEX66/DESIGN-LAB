@@ -453,6 +453,12 @@ const MEASURE = () => {
     }
   }
 
+  // Every row a planted fixture produced. `reported` below answers a different question -- did
+  // each control id appear at least once, i.e. is the parser still able to see the colour form --
+  // and that is a boolean per id. Subtracting it from failCount instead of the row count turned
+  // the fixture's own duplicate rows (one collapsed control per <details> on a long page) into
+  // product debt the moment those rows stopped being masked by a covering pseudo layer.
+  const controlRows = fails.filter((f) => CONTROL_IDS.some((id) => f.el.includes('#' + id))).length;
   const control = { planted: CONTROL_IDS.length, reported: 0, detail: [] };
   for (const id of CONTROL_IDS) {
     const row = fails.find((f) => f.el.includes('#' + id)) || null;
@@ -460,7 +466,7 @@ const MEASURE = () => {
     control.detail.push({ id, reported: !!row, ratio: row ? row.got : null });
   }
   for (const id of [...CONTROL_IDS, 'ct-collapsed-host']) document.querySelector('#' + id)?.remove();
-  return { checked, fails: fails.slice(0, 60), failCount: fails.length, math, colour,
+  return { checked, fails: fails.slice(0, 60), failCount: fails.length, controlRows, math, colour,
            pseudoLayers, unknown, control, margin, collapsed,
            coveredForeign, coveredExamples, obscured, obscuredExamples };
 };
@@ -635,6 +641,22 @@ const MEASURE_SPEC = () => {
     gradientRuns.push(`${nodeTag(el)} x${hits.length} ${(share * 100).toFixed(0)}%`);
     if (share > 0.25) bigGradients += 1;
   }
+  // 单一低饱和强调色 #356B92 excludes a second blue by its own wording, and the interface has one:
+  // the brand fill pair #1D4FC4 -> #2A63D8, which was introduced to carry white text at AA under the
+  // shipped palette. Comparing the resolved serialisation is what makes this a measurement rather
+  // than a grep of the stylesheet -- it counts the surface a person sees, wherever the token reached
+  // it from. rgb(29,79,196) and rgb(42,99,216) are those two blues.
+  const brandBlues = [];
+  const BRAND_BLUES = /rgb\(\s*29,\s*79,\s*196\s*\)|rgb\(\s*42,\s*99,\s*216\s*\)/;
+  for (const el of all) {
+    const cs = getComputedStyle(el);
+    if (!painted(el, cs)) continue;
+    const paints = [cs.backgroundColor, cs.backgroundImage, cs.borderTopColor].join(' ');
+    if (!BRAND_BLUES.test(paints)) continue;
+    brandBlues.push(`${nodeTag(el)} ${BRAND_BLUES.exec(paints)[0]}`);
+  }
+  const unique = brandBlues.slice(0, 8);
+
   const biggestGradients = gradientRuns.slice()
     .sort((a, b) => parseFloat(b.split(' ').pop()) - parseFloat(a.split(' ').pop()))
     .slice(0, 8);
@@ -645,6 +667,7 @@ const MEASURE_SPEC = () => {
            formCount, formBelow36, formSmallExamples,
            formRadiusOver10, formRadiusExamples, glass,
            gradientCount: gradientRuns.length, bigGradients, biggestGradients,
+           brandBluePaints: brandBlues.length, brandBlueExamples: unique,
            veilHosts, veilExamples, unknownColour };
 };
 
@@ -920,12 +943,13 @@ report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.e
 // the same counters two owners, and the second screen is exactly the one that would drift.
 const specTotals = { runs: 0, below12: 0, formCount: 0, formBelow36: 0, formRadiusOver10: 0,
                      veilHosts: 0, unknownColour: 0, controls: 0, inBodyBand: 0, minPx: null,
-                     gradients: 0, bigGradients: 0 };
+                     gradients: 0, bigGradients: 0, brandBlues: 0 };
 const specSizes = {};
 const specHeights = {};
 const specRadii = {};
 const specGlass = [];
 const specBigGradientExamples = [];
+const specBrandBlueExamples = [];
 const specBelow12Examples = [];
 const specVeilExamples = [];
 const specFormSmallExamples = [];
@@ -943,7 +967,7 @@ const absorb = (key, m) => {
   for (const c of m.colour) {
     if (!colourChecks.some((k) => k.value === c.value)) colourChecks.push(c);
   }
-  failTotal += m.failCount - m.control.reported;
+  failTotal += m.failCount - m.controlRows;
   controlsExpected += m.control.planted;
   controlsReported += m.control.reported;
   checkedTotal += m.checked;
@@ -985,13 +1009,17 @@ const absorb = (key, m) => {
     }
     specTotals.gradients += s.gradientCount;
     specTotals.bigGradients += s.bigGradients;
+    specTotals.brandBlues += s.brandBluePaints;
+    for (const e of s.brandBlueExamples) {
+      if (!specBrandBlueExamples.includes(e)) specBrandBlueExamples.push(e);
+    }
     for (const e of s.biggestGradients) {
       if (parseFloat(e.split(' ').pop()) > 25 && !specBigGradientExamples.includes(e)
           && specBigGradientExamples.length < 10) specBigGradientExamples.push(e);
     }
   }
   console.log(`w=${key.padEnd(24)} checked=${String(m.checked).padStart(4)} `
-    + `belowAA=${String(m.failCount - (m.control.reported ? 2 : 0)).padStart(3)} `
+    + `belowAA=${String(m.failCount - m.controlRows).padStart(3)} `
     + `pseudoLayers=${String(m.pseudoLayers).padStart(3)} unparsable=${m.unknown.length} `
     + `covered=${m.coveredForeign} obscured=${m.obscured} collapsed=${m.collapsed} `
     + `control=${m.control.reported}/${m.control.planted}`);
@@ -1071,6 +1099,7 @@ report.spec = { ...specTotals, sizes: specSizes, heights: specHeights, radii: sp
   below12Examples: specBelow12Examples, veilExamples: specVeilExamples,
   formSmallExamples: specFormSmallExamples, formRadiusExamples: specFormRadiusExamples,
   bigGradientExamples: specBigGradientExamples,
+  brandBlueExamples: specBrandBlueExamples,
   note: '20261023 包的数字规则（正文14–16px／元数据≥12px、控件约36–40px、圆角6–10px、'
     + '玻璃只给顶栏导航与临时面板、长文字与列表实底）在同一个已渲染文档上的实测' };
 if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 2));
@@ -1115,7 +1144,8 @@ console.log(`CT_SPEC controls=${specTotals.controls} formControls=${specTotals.f
   + ` hHist=[${sortedHist(specHeights)}] rHist=[${sortedHist(specRadii)}]`);
 console.log(`CT_SPEC glass=${specGlass.length} glassOffAllowlist=${glassOffList().length}`
   + ` translucentTextHosts=${specTotals.veilHosts} unparsableAlpha=${specTotals.unknownColour}`
-  + ` gradients=${specTotals.gradients} bigOver25pct=${specTotals.bigGradients}`);
+  + ` gradients=${specTotals.gradients} bigOver25pct=${specTotals.bigGradients}`
+  + ` brandBluePaints=${specTotals.brandBlues}`);
 for (const g of specGlass) console.log(`  GLASS ${g}`);
 for (const g of glassOffList()) console.log(`  GLASS-OFF-LIST ${g}`);
 for (const e of specBelow12Examples) console.log(`  SMALLTEXT ${e}`);
@@ -1123,6 +1153,7 @@ for (const e of specVeilExamples) console.log(`  NOTSOLID ${e}`);
 for (const e of specFormSmallExamples) console.log(`  FORM-BELOW36 ${e}`);
 for (const e of specFormRadiusExamples) console.log(`  FORM-RADIUS ${e}`);
 for (const e of specBigGradientExamples) console.log(`  BIGGRADIENT ${e}`);
+for (const e of specBrandBlueExamples) console.log(`  BRANDBLUE ${e}`);
 if (failTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
     for (const f of v.fails) {
@@ -1175,6 +1206,10 @@ if (process.env.CT_SPEC_ENFORCE === '1') {
   if (specTotals.formRadiusOver10 > 0) {
     specBad.push(`圆角输入／按钮 6–10px -- ${specTotals.formRadiusOver10} 个表单控件圆角超过 10px`);
   }
+  if (specTotals.brandBlues > 0) {
+    specBad.push(`单一低饱和强调色 #356B92 -- ${specTotals.brandBlues} 处 painted 底或描边仍是 brand 那对更深的蓝`
+      + `（${specBrandBlueExamples.slice(0, 4).join(' | ')}）`);
+  }
   if (specTotals.bigGradients > 0) {
     specBad.push(`避免大面积渐变 -- ${specTotals.bigGradients} 个 painted 元素的渐变底覆盖超过视口 25%`
       + `（${specBigGradientExamples.slice(0, 4).join(' | ')}）`);
@@ -1185,7 +1220,7 @@ if (process.env.CT_SPEC_ENFORCE === '1') {
     process.exit(1);
   }
   console.log(`CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0`
-    + ` glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0`
+    + ` glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0 brandBluePaints=0`
     + ` formControls=${specTotals.formCount} formBelow36px=${specTotals.formBelow36}`
     + `（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，`
     + '比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）');
