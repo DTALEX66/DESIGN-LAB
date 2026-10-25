@@ -11,7 +11,10 @@ What this pins, and why each line is a real risk rather than ceremony:
 * every scheme a palette declares has a CSS rule and every CSS rule belongs to a declared palette,
   so the table in shell.ts and the stylesheet cannot each be right on their own;
 * the URL/attribute reader consults the table instead of a pair of string comparisons, which is how
-  a palette could exist in the menu and stay unreachable from ``?palette=``.
+  a palette could exist in the menu and stay unreachable from ``?palette=``;
+* the pack's typography floor (元数据至少12px) holds for every size the stylesheet declares, not
+  only for the ones a browser sweep happened to paint -- the two guards cover different sets and
+  the difference is exactly the rule that no measured route renders.
 """
 from __future__ import annotations
 
@@ -112,6 +115,38 @@ class StitchPaletteTests(unittest.TestCase):
                       re.sub(r'\s+', ' ', self.shell.replace('\n', ' ')))
         self.assertNotIn(':root[data-palette="stitch"][data-scheme="dark"]', self.css,
                          'a dark stitch rule exists although the pack never named dark values')
+
+    def _sizes_in(self, text):
+        """Every px font size the stylesheet declares, in any of the three shapes it appears in."""
+        found = []
+        for pattern in (r'font-size:\s*([0-9.]+)px', r'font:\s*([0-9.]+)px',
+                        r'--[a-z0-9-]*font[a-z0-9-]*:\s*([0-9.]+)px'):
+            found += [float(m.group(1)) for m in re.finditer(pattern, text)]
+        return found
+
+    def test_the_pack_typography_floor_holds_in_the_stylesheet_not_only_where_the_walk_painted(self):
+        """CT_SPEC grades 元数据至少12px on painted text, so a rule no measured route renders is
+        invisible to it forever. `.brand small` was exactly that case: 10px, declared, never
+        painted on any swept route, so the browser ruler reported minPx=12 while the file still
+        shipped a smaller floor. This is the static half of the same rule -- every font-size in
+        the stylesheet, reachable or not, sits at or above the pack's 12px.
+        """
+        sizes = self._sizes_in(self.css)
+        self.assertGreater(len(sizes), 40,
+                           'the reader found only %d sizes; the pattern is broken, so a '
+                           'violation would pass unseen' % len(sizes))
+        low = sorted({s for s in sizes if s < 12})
+        self.assertEqual(low, [],
+                         'the pack puts 元数据 at 至少12px, but the stylesheet still declares %s'
+                         % low)
+        # The guard itself must be able to bite: plant a violation and show this reader sees it.
+        planted = self.css.replace('--uif-font-micro:12px;', '--uif-font-micro:11px;', 1)
+        self.assertNotEqual(planted, self.css,
+                            'the token line this guard watches has moved; re-point the plant so '
+                            'the guard keeps biting')
+        self.assertIn(11.0, self._sizes_in(planted),
+                      'a planted 11px token got past the reader, so the pass above measures '
+                      'nothing')
 
 
 if __name__ == '__main__':

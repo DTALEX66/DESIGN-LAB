@@ -168,7 +168,11 @@
   --uif-font-h3:16px;
   --uif-font-body:14px;
   --uif-font-small:12px;
-  --uif-font-micro:11px;
+  /* 20261023 包（09_DESIGN.md / 08_STITCH完整提示词.txt）把最小可读字号写成「元数据至少12px」。
+     11px 曾在渲染文档里被实测到 119 处（导航分组标签、页脚、连接状态行），现在按地板值抬到 12px，
+     与 --uif-font-small 同值：micro 这一档不再是比小字更小，而是同一地板值的别名。对比度尺子在
+     每次改动后重测，见 design-lab/tests/e2e/audit_workbench_contrast.mjs 的 CT_SPEC 段。 */
+  --uif-font-micro:12px;
   --uif-body-line-height:1.65;
   /* 间距（4/8/12/16/24/32/40）与圆角（controls 7 / cards 10 / hero 12） */
   --uif-space-1:4px;  --uif-space-2:8px;  --uif-space-3:12px; --uif-space-4:16px;
@@ -237,7 +241,7 @@ body > header h1{margin:2px 0;font-size:26px}
   box-shadow:var(--glow);
 }
 body > header .badge{margin-left:auto}
-.eyebrow{font-size:10px;letter-spacing:2px;font-weight:750;margin:0 0 10px;color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:2px;font-weight:750;margin:0 0 10px;color:var(--muted)}
 body > header .eyebrow{color:var(--muted)}
 
 body > main{max-width:1240px;margin:28px auto;padding:0 22px}
@@ -339,7 +343,7 @@ form label{flex:1}
 .section-head,.future{display:flex;justify-content:space-between;align-items:center;gap:18px}
 .badge{
   border:1px solid var(--line);
-  border-radius:30px;padding:7px 12px;font-size:11px;white-space:nowrap;
+  border-radius:30px;padding:7px 12px;font-size:12px;white-space:nowrap;
   color:var(--muted);
 }
 .events{font:12px/1.8 ui-monospace,monospace;overflow-wrap:anywhere}
@@ -351,7 +355,7 @@ form label{flex:1}
 
 body > footer{
   max-width:1240px;margin:30px auto;padding:0 22px 30px;
-  font-size:11px;color:var(--muted);
+  font-size:12px;color:var(--muted);
   display:flex;justify-content:space-between;
 }
 [hidden]{display:none!important}
@@ -427,7 +431,7 @@ body > footer{
   border-color:var(--line);
   box-shadow:inset 3px 0 0 var(--accent);
 }
-.app-nav-meta{font-size:11px;color:var(--muted);padding:0 4px;margin-top:auto}
+.app-nav-meta{font-size:12px;color:var(--muted);padding:0 4px;margin-top:auto}
 /* B10 1:1 shell host. The authoritative B10 `.app` grid (280px sidebar + 1fr
    main, defined in the B10 block below) is the ONLY route shell: `main.main`
    carries the 78px `.topbar` and the flex-1 `.content` view slot. The legacy
@@ -466,7 +470,7 @@ body > footer{
   .app-nav-brand,.app-nav-meta{display:none}
   .app-nav-item{
     flex:0 0 auto;width:auto;min-width:max-content;
-    padding:8px 10px;text-align:center;font-size:11px;white-space:nowrap;
+    padding:8px 10px;text-align:center;font-size:12px;white-space:nowrap;
   }
   /* 横向滚动条里的组标签是分隔词，不是一列。基规则没给 flex，默认 0 1 auto 会把它
      压到 32px、四个字竖排成 121px，按钮跟着 stretch 到同一高度，整条底栏吃掉 138px
@@ -514,7 +518,7 @@ body > footer{
   border-radius:var(--radius-lg);padding:16px 18px;
 }
 .kpi-value{font-size:28px;margin:4px 0;font-weight:750;color:var(--ink)}
-.kpi-note{font-size:11px;color:var(--muted);line-height:1.6}
+.kpi-note{font-size:12px;color:var(--muted);line-height:1.6}
 .state-machine{
   display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:10px 0 24px;
 }
@@ -695,7 +699,7 @@ html,body{margin:0}
   filter:drop-shadow(0 0 3px rgba(255,255,255,.5)) drop-shadow(0 0 12px color-mix(in srgb,var(--color-secondary) 45%, transparent));
 }
 .brand h1{margin:0;font-size:17px;line-height:1.15}
-.brand small{display:block;margin-top:4px;color:var(--secondary);font-size:10px;letter-spacing:.12em}
+.brand small{display:block;margin-top:4px;color:var(--secondary);font-size:12px;letter-spacing:.12em}
 .nav{display:flex;flex-direction:column;gap:7px;overflow:auto;padding-right:4px;
   /* Measured 2026-10-19 at 1440/1280/1920: the list always cuts an item in half at its bottom
      edge, and with no gap the identity footer's 1px top border landed exactly on that cut line
@@ -1762,6 +1766,28 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   --tag-ink:#17212B;
   --avatar-ink:#17212B;
   --glow:0 0 14px rgba(53,107,146,.16);
+}
+
+/* 同一份包给的「质感」规则也是数字，所以照同样三条做几何覆盖，默认配色一字节不动。
+   三条都在已渲染的文档上量过（design-lab/tests/e2e/audit_workbench_contrast.mjs 的 CT_SPEC 段），
+   改动前的实测读数写在这里，不是照着描述猜：
+   · 「长文字与列表实底」——珍珠白下列表面与文字按钮的底是 color-mix(…74%/62%, transparent)，
+     一个宽度 1440 的扫描里 23 处列表行／按钮压在半透明白上，这里改成实底。
+   · 「玻璃只给顶栏／导航／临时面板」——本 UI 的 backdrop-filter 实测只有 header.topbar 与
+     aside#app-sidebar 两处，全在允许名单内，所以这条不需要改样式，由尺子把名单钉住。
+   · 「圆角输入／按钮 6–10px、临时面板 12–16px」——表单控件与四枚按钮类实测 12px 与 14px，
+     取带内上限 10px；行卡与面板保持 14px（在 12–16 内），状态药丸不动：包自己的 HTML 用
+     `border-radius:20px` 的 `.status`，药丸不是这条带子的适用对象。 */
+:root[data-palette="stitch"][data-scheme="light"] .row-card,
+:root[data-palette="stitch"][data-scheme="light"] .list-item,
+:root[data-palette="stitch"][data-scheme="light"] .ghost-btn,
+:root[data-palette="stitch"][data-scheme="light"] .soft-btn{
+  background:var(--surface2);
+}
+:root[data-palette="stitch"][data-scheme="light"] :is(.ghost-btn,.soft-btn,.primary-btn,.danger-btn),
+:root[data-palette="stitch"][data-scheme="light"]
+  :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  border-radius:10px;
 }
 
 /* ---- 可选主题的几何（2026-10-11 追补）--------------------------------------

@@ -465,6 +465,162 @@ const MEASURE = () => {
            coveredForeign, coveredExamples, obscured, obscuredExamples };
 };
 
+// The 20261023 pack writes its visual rules as numbers, so the replication is graded against
+// those numbers instead of against an opinion: 正文 14–16px、元数据至少 12px; 控件高度约 36–40px;
+// 圆角输入/按钮 6–10px、临时面板 12–16px; 玻璃只给顶栏/导航/临时面板，长文字与列表实底
+// (source/09_DESIGN.md, source/08_STITCH完整提示词.txt, adopted by the owner on 2026-10-23 as
+// 「按此实施」). A grep of style.css cannot answer any of these -- `.eyebrow` is declared at 10px
+// on line 240 and raised to 12px on line 1601, so only the painted document knows what a person
+// actually reads. This pass measures that; the verdict is taken outside the page.
+const MEASURE_SPEC = () => {
+  const round1 = (v) => Math.round(v * 10) / 10;
+  const nodeTag = (n) => `${n.tagName.toLowerCase()}${n.id ? '#' + n.id : ''}`
+    + (typeof n.className === 'string' && n.className.trim()
+      ? '.' + n.className.trim().split(/\s+/).slice(0, 2).join('.') : '');
+  const words = (el) => (el.textContent || '').replace(/\s+/g, ' ').trim();
+  const painted = (el, cs) => {
+    if (cs.visibility === 'hidden' || cs.display === 'none') return false;
+    if (parseFloat(cs.opacity) === 0) return false;
+    const b = el.getBoundingClientRect();
+    return b.width >= 1 && b.height >= 1;
+  };
+  // Alpha of a computed colour, with no default when the serialisation is unknown: assuming
+  // `solid` for a form this file has not seen would silently grade a translucent card as 实底,
+  // which is the exact defect this check exists to find.
+  const alphaOf = (value) => {
+    const s = (value || '').trim();
+    if (s === '' || s === 'none' || s === 'transparent') return 0;
+    let m = s.match(/^rgba?\([^)]*,\s*([\d.]+)\s*\)$/);
+    if (m) return parseFloat(m[1]);
+    if (s.startsWith('rgb(')) return 1;
+    m = s.match(/^color\([^)/]*\/\s*([\d.]+)\s*\)$/);
+    if (m) return parseFloat(m[1]);
+    if (s.startsWith('color(')) return 1;
+    return null;
+  };
+
+  const all = Array.from(document.querySelectorAll('body *'));
+  const runs = [];
+  for (const el of all) {
+    const own = Array.from(el.childNodes).some((n) =>
+      n.nodeType === 3 && n.textContent.trim().length > 0);
+    if (!own) continue;
+    const cs = getComputedStyle(el);
+    if (!painted(el, cs)) continue;
+    if (el.classList.contains('sr-status')) continue;
+    runs.push({ el, cs });
+  }
+
+  const sizes = {};
+  let minPx = Infinity;
+  let below12 = 0;
+  const below12Examples = [];
+  let inBodyBand = 0;
+  for (const { el, cs } of runs) {
+    const px = round1(parseFloat(cs.fontSize) || 0);
+    sizes[px] = (sizes[px] || 0) + 1;
+    if (px < minPx) minPx = px;
+    if (px >= 14 && px <= 16) inBodyBand += 1;
+    if (px < 12) {
+      below12 += 1;
+      if (below12Examples.length < 12) {
+        below12Examples.push(`${px}px ${nodeTag(el)} :: ${words(el).slice(0, 40)}`);
+      }
+    }
+  }
+
+  const controls = [];
+  // The pack's 控件高度 and 圆角 6–10px sentences are about form controls and the action
+  // buttons, so that is the graded population. A checkbox is 13px tall by design and a status
+  // pill is round on purpose -- the pack's own HTML ships `.status{border-radius:20px}` -- so
+  // sweeping them into the same band would convict two things the spec never addressed.
+  const FORM = 'button.ghost-btn, button.soft-btn, button.primary-btn, button.danger-btn,'
+    + ' input, select, textarea';
+  for (const el of document.querySelectorAll('button, input:not([type=hidden]), select, textarea')) {
+    const cs = getComputedStyle(el);
+    if (!painted(el, cs)) continue;
+    const box = el.getBoundingClientRect();
+    const kind = el.tagName.toLowerCase();
+    const isForm = (kind === 'input' || kind === 'select' || kind === 'textarea'
+        || (kind === 'button' && el.matches(FORM)))
+      && !(kind === 'input' && ['checkbox', 'radio'].includes((el.type || '').toLowerCase()));
+    controls.push({ el, cs, h: Math.round(box.height), isForm,
+                    r: round1(parseFloat(cs.borderTopLeftRadius) || 0) });
+  }
+  const heights = {};
+  const radii = {};
+  let formCount = 0;
+  let formBelow36 = 0;
+  const formSmallExamples = [];
+  let formRadiusOver10 = 0;
+  const formRadiusExamples = [];
+  for (const c of controls) {
+    heights[c.h] = (heights[c.h] || 0) + 1;
+    radii[c.r] = (radii[c.r] || 0) + 1;
+    if (!c.isForm) continue;
+    formCount += 1;
+    if (c.h < 36) {
+      formBelow36 += 1;
+      if (formSmallExamples.length < 10) formSmallExamples.push(`${c.h}px ${nodeTag(c.el)}`);
+    }
+    if (c.r > 10) {
+      formRadiusOver10 += 1;
+      if (formRadiusExamples.length < 10) formRadiusExamples.push(`${c.r}px ${nodeTag(c.el)}`);
+    }
+  }
+
+  // Where glass is actually used. The pack limits it to the top bar, the navigation and
+  // temporary panels, so the honest check is the list of names -- an allowlist over these
+  // is a decision this file can state, and anything not on it is a defect with a name.
+  const glass = [];
+  for (const el of all) {
+    const cs = getComputedStyle(el);
+    if (!painted(el, cs)) continue;
+    const bf = cs.backdropFilter || cs.webkitBackdropFilter || 'none';
+    if (bf === 'none') continue;
+    glass.push(`${nodeTag(el)} ${bf}`);
+  }
+
+  // 长文字与列表实底: for a run that carries a paragraph of prose, or for a list row, the
+  // nearest ancestor that owns a background has to be opaque. Walking outward is what makes
+  // this a statement about the surface a person sees rather than about one element's CSS.
+  let veilHosts = 0;
+  let unknownColour = 0;
+  const veilExamples = [];
+  for (const { el, cs } of runs) {
+    const isListRow = el.closest('li, tr') !== null;
+    const isLongProse = words(el).length >= 120;
+    if (!isListRow && !isLongProse) continue;
+    const ownAlpha = alphaOf(cs.backgroundColor);
+    if (ownAlpha === null) { unknownColour += 1; continue; }
+    if (ownAlpha > 0) {
+      if (ownAlpha < 1) {
+        veilHosts += 1;
+        if (veilExamples.length < 8) veilExamples.push(`${nodeTag(el)} a=${ownAlpha}`);
+      }
+      continue;
+    }
+    let alpha = 1;
+    let host = null;
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const a = alphaOf(getComputedStyle(p).backgroundColor);
+      if (a === null) { unknownColour += 1; continue; }
+      if (a > 0) { alpha = a; host = p; if (a >= 1) break; }
+    }
+    if (alpha < 1) {
+      veilHosts += 1;
+      if (veilExamples.length < 8) veilExamples.push(`${nodeTag(el)} on ${host ? nodeTag(host) : 'body'} a=${alpha}`);
+    }
+  }
+
+  return { runs: runs.length, sizes, minPx: Number.isFinite(minPx) ? minPx : null,
+           below12, below12Examples, inBodyBand,
+           controlCount: controls.length, heights, radii,
+           formCount, formBelow36, formSmallExamples,
+           formRadiusOver10, formRadiusExamples, glass,
+           veilHosts, veilExamples, unknownColour };
+};
+
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
 // DL-UI-U02 (2026-10-09): which colour theme this run measured is part of the
 // measurement, so it is recorded on the report and comes from the environment, not
@@ -715,6 +871,15 @@ async function openCombinationState(page, key, problems) {  for (const id of ['t
   return settled;
 }
 
+// The pack's numeric rules are measured on the same painted document as the AA ratios, so one
+// sweep answers both questions. Attaching the spec to the contrast row keeps the single counting
+// sink: a second accumulator for the same walks would give the panel rows two owners.
+async function measureBoth(page) {
+  const m = await page.evaluate(MEASURE);
+  m.spec = await page.evaluate(MEASURE_SPEC);
+  return m;
+}
+
 const ctSeed = await seedAssistancePlanForAudit('对比度审计');
 report.auditSeed = { kind: 'synthetic-assistance-plan', project: ctSeed.project,
   plan: ctSeed.plan, product_data: false,
@@ -726,6 +891,21 @@ report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.e
 
 // One sink for both the route sweep and the plan detail. Duplicating the accumulation would give
 // the same counters two owners, and the second screen is exactly the one that would drift.
+const specTotals = { runs: 0, below12: 0, formCount: 0, formBelow36: 0, formRadiusOver10: 0,
+                     veilHosts: 0, unknownColour: 0, controls: 0, inBodyBand: 0, minPx: null };
+const specSizes = {};
+const specHeights = {};
+const specRadii = {};
+const specGlass = [];
+const specBelow12Examples = [];
+const specVeilExamples = [];
+const specFormSmallExamples = [];
+const specFormRadiusExamples = [];
+// The three names the pack allows glass on: the top bar, the navigation, and temporary panels.
+// Measured on the shipped document, only these two exist (nothing is a temporary panel today),
+// so the allowlist is the whole rule -- a fourth blurred surface is a named defect, not drift.
+const GLASS_ALLOWED = ['aside#app-sidebar.sidebar', 'header.topbar'];
+const glassOffList = () => specGlass.filter((g) => !GLASS_ALLOWED.includes(g.split(' ')[0]));
 const absorb = (key, m) => {
   report.routes[key] = m;
   for (const c of m.math) {
@@ -745,6 +925,36 @@ const absorb = (key, m) => {
   collapsedTotal += m.collapsed;
   if (m.control.reported < m.control.planted) controlBad.push(`${key} ${JSON.stringify(m.control.detail)}`);
   for (const u of m.unknown) if (unknownSamples.length < 12) unknownSamples.push(`${key} ${u}`);
+  const s = m.spec;
+  if (s) {
+    specTotals.runs += s.runs;
+    specTotals.below12 += s.below12;
+    specTotals.controls += s.controlCount;
+    specTotals.formCount += s.formCount;
+    specTotals.formBelow36 += s.formBelow36;
+    specTotals.formRadiusOver10 += s.formRadiusOver10;
+    specTotals.veilHosts += s.veilHosts;
+    specTotals.unknownColour += s.unknownColour;
+    specTotals.inBodyBand += s.inBodyBand;
+    specTotals.minPx = specTotals.minPx === null ? s.minPx
+      : Math.min(specTotals.minPx, s.minPx === null ? Infinity : s.minPx);
+    for (const [k, v] of Object.entries(s.sizes)) specSizes[k] = (specSizes[k] || 0) + v;
+    for (const [k, v] of Object.entries(s.heights)) specHeights[k] = (specHeights[k] || 0) + v;
+    for (const [k, v] of Object.entries(s.radii)) specRadii[k] = (specRadii[k] || 0) + v;
+    for (const g of s.glass) if (!specGlass.includes(g)) specGlass.push(g);
+    for (const e of s.below12Examples) {
+      if (specBelow12Examples.length < 24) specBelow12Examples.push(`${key} ${e}`);
+    }
+    for (const e of s.veilExamples) {
+      if (specVeilExamples.length < 16) specVeilExamples.push(`${key} ${e}`);
+    }
+    for (const e of s.formSmallExamples) {
+      if (specFormSmallExamples.length < 12) specFormSmallExamples.push(`${key} ${e}`);
+    }
+    for (const e of s.formRadiusExamples) {
+      if (specFormRadiusExamples.length < 12) specFormRadiusExamples.push(`${key} ${e}`);
+    }
+  }
   console.log(`w=${key.padEnd(24)} checked=${String(m.checked).padStart(4)} `
     + `belowAA=${String(m.failCount - (m.control.reported ? 2 : 0)).padStart(3)} `
     + `pseudoLayers=${String(m.pseudoLayers).padStart(3)} unparsable=${m.unknown.length} `
@@ -762,7 +972,7 @@ for (const w of widths) {
   for (const [name, hash] of ROUTES) {
     await page.evaluate((h) => { window.location.hash = h; }, hash);
     await page.waitForTimeout(1000);
-    const m = await page.evaluate(MEASURE);
+    const m = await measureBoth(page);
     // The planted controls are deliberate failures; they are counted as proof the
     // parser and the overlap branch work, never as product violations.
     absorb(`${w}:${name}`, m);
@@ -771,17 +981,17 @@ for (const w of widths) {
       // into the same miss list the wrapper asserts to zero, so an unmeasured panel cannot be read
       // as a clean one.
       const opened = await openPlanDetail(page, `${w}:assistant+plan-detail`, controlBad);
-      if (opened) absorb(`${w}:assistant+plan-detail`, await page.evaluate(MEASURE));
+      if (opened) absorb(`${w}:assistant+plan-detail`, await measureBoth(page));
       const compared = await openPlanCompare(page, `${w}:assistant+plan-compare`, controlBad);
-      if (compared) absorb(`${w}:assistant+plan-compare`, await page.evaluate(MEASURE));
+      if (compared) absorb(`${w}:assistant+plan-compare`, await measureBoth(page));
       const fed = await openFeedbackState(page, `${w}:assistant+plan-feedback`, controlBad);
-      if (fed) absorb(`${w}:assistant+plan-feedback`, await page.evaluate(MEASURE));
+      if (fed) absorb(`${w}:assistant+plan-feedback`, await measureBoth(page));
     }
     if (name === 'knowledge') {
       // Same rule for the entry detail: it is a named state of its own, and a panel that never
       // settled lands in the miss list the wrapper asserts to zero rather than being skipped.
       const opened = await openKnowledgeDetail(page, `${w}:knowledge+entry-detail`, controlBad);
-      if (opened) absorb(`${w}:knowledge+entry-detail`, await page.evaluate(MEASURE));
+      if (opened) absorb(`${w}:knowledge+entry-detail`, await measureBoth(page));
     }
     if (name === 'target-profiles') {
       // The screen's own claim is that the four support-state pills and the two truth columns are
@@ -789,7 +999,7 @@ for (const w of widths) {
       // the state where those columns actually fill, so it is measured as a named row.
       const opened = await openCombinationState(page, `${w}:target-profiles+combination`,
         controlBad);
-      if (opened) absorb(`${w}:target-profiles+combination`, await page.evaluate(MEASURE));
+      if (opened) absorb(`${w}:target-profiles+combination`, await measureBoth(page));
     }
   }
   await page.close();
@@ -818,8 +1028,16 @@ console.log(`CT_MARGIN tightest=${tightest ? tightest.ratio : 'n/a'}`
   + ` need=${tightest ? tightest.need : 'n/a'} route=${tightest ? tightest.el : 'none'}`);
 await browser.close();
 
+// The merged spec numbers belong in the receipt, not only in the log: whoever holds the JSON has
+// to be able to see which pack numbers this run measured. Assigned before the write, so the file
+// and the printed CT_SPEC lines come from one accumulation.
+report.spec = { ...specTotals, sizes: specSizes, heights: specHeights, radii: specRadii,
+  glass: specGlass, glassAllowed: GLASS_ALLOWED, glassOffAllowlist: glassOffList(),
+  below12Examples: specBelow12Examples, veilExamples: specVeilExamples,
+  formSmallExamples: specFormSmallExamples, formRadiusExamples: specFormRadiusExamples,
+  note: '20261023 包的数字规则（正文14–16px／元数据≥12px、控件约36–40px、圆角6–10px、'
+    + '玻璃只给顶栏导航与临时面板、长文字与列表实底）在同一个已渲染文档上的实测' };
 if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 2));
-
 const mathBad = mathChecks.filter((c) => !c.ok);
 for (const c of mathChecks) {
   console.log(`  MATH ${c.a} on ${c.b} got=${c.got} want=${c.want} ${c.ok ? 'ok' : 'WRONG'}`);
@@ -846,6 +1064,27 @@ console.log(`CT_SUMMARY checked=${checkedTotal} belowAA=${failTotal} pseudoLayer
   + ` controlMisses=${controlsExpected - controlsReported} strict=${strict ? 1 : 0}`
   + ` mathChecks=${mathChecks.length} mathBad=${mathChecks.filter((c) => !c.ok).length}`
   + ` colourChecks=${colourChecks.length} colourBad=${colourChecks.filter((c) => !c.ok).length}`);
+
+// The pack's numbers, measured on the same painted document. Printed on every run, so a green
+// contrast verdict can never be read as silence about the 20261023 visual rules.
+const sortedHist = (h) => Object.entries(h)
+  .sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]))
+  .map(([k, v]) => `${k}=${v}`).join(' ');
+console.log(`CT_SPEC palette=${uiPalette}/${uiScheme} textRuns=${specTotals.runs}`
+  + ` minPx=${specTotals.minPx} below12=${specTotals.below12}`
+  + ` in14to16=${specTotals.inBodyBand}/${specTotals.runs}`
+  + ` pxHist=[${sortedHist(specSizes)}]`);
+console.log(`CT_SPEC controls=${specTotals.controls} formControls=${specTotals.formCount}`
+  + ` formBelow36px=${specTotals.formBelow36} formRadiusOver10=${specTotals.formRadiusOver10}`
+  + ` hHist=[${sortedHist(specHeights)}] rHist=[${sortedHist(specRadii)}]`);
+console.log(`CT_SPEC glass=${specGlass.length} glassOffAllowlist=${glassOffList().length}`
+  + ` translucentTextHosts=${specTotals.veilHosts} unparsableAlpha=${specTotals.unknownColour}`);
+for (const g of specGlass) console.log(`  GLASS ${g}`);
+for (const g of glassOffList()) console.log(`  GLASS-OFF-LIST ${g}`);
+for (const e of specBelow12Examples) console.log(`  SMALLTEXT ${e}`);
+for (const e of specVeilExamples) console.log(`  NOTSOLID ${e}`);
+for (const e of specFormSmallExamples) console.log(`  FORM-BELOW36 ${e}`);
+for (const e of specFormRadiusExamples) console.log(`  FORM-RADIUS ${e}`);
 if (failTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
     for (const f of v.fails) {
@@ -876,6 +1115,38 @@ if (unknownTotal > 0) {
   console.error(`CT_FAIL: ${unknownTotal} colour value(s) this gate cannot parse; `
     + 'extending the parser is the fix, not the threshold');
   process.exit(1);
+}
+// Whether the pack's numbers are assertions or only measurements. The wrapper turns this on for
+// the theme it grades, so the first sweep of a new rule can report its debt without pretending
+// the debt is not there; a rule that is printed forever is not a rule.
+if (process.env.CT_SPEC_ENFORCE === '1') {
+  const specBad = [];
+  if (specTotals.below12 > 0) {
+    specBad.push(`元数据至少 12px -- ${specTotals.below12} 处 painted 文字小于 12px，最小 ${specTotals.minPx}px`);
+  }
+  if (specTotals.veilHosts > 0) {
+    specBad.push(`长文字与列表实底 -- ${specTotals.veilHosts} 处文字画在半透明底上`);
+  }
+  if (specTotals.unknownColour > 0) {
+    specBad.push(`${specTotals.unknownColour} 个背景色读不出透明度，无法判定是否实底`);
+  }
+  if (glassOffList().length > 0) {
+    specBad.push(`玻璃只给顶栏／导航／临时面板 -- ${glassOffList().length} 处 backdrop-filter 在名单外：`
+      + glassOffList().join(' | '));
+  }
+  if (specTotals.formRadiusOver10 > 0) {
+    specBad.push(`圆角输入／按钮 6–10px -- ${specTotals.formRadiusOver10} 个表单控件圆角超过 10px`);
+  }
+  if (specBad.length > 0) {
+    for (const b of specBad) console.error(`  SPEC-VIOLATION ${b}`);
+    console.error(`CT_FAIL: ${specBad.length} 项 20261023 包的视觉数字未满足`);
+    process.exit(1);
+  }
+  console.log(`CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0`
+    + ` glassOffAllowlist=0 formRadiusOver10=0`
+    + ` formControls=${specTotals.formCount} formBelow36px=${specTotals.formBelow36}`
+    + `（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，`
+    + '比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）');
 }
 console.log('CT_OK: every measured text run meets WCAG 2.1 AA for its painted background,'
   + ' and every colour the page computes was parsed');

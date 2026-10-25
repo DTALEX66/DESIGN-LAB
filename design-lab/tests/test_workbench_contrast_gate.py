@@ -154,6 +154,24 @@ def _summary(out):
     return dict(tok.split('=', 1) for tok in line.split()[1:] if '=' in tok)
 
 
+def _spec_fields(out):
+    """The three CT_SPEC lines merged into one dict.
+
+    The pack's numbers are printed as three lines because they measure three different
+    populations (text, controls, surfaces); the assertions read them as one record, so the
+    merge happens here rather than in three places that could disagree about a key name.
+    """
+    fields = {}
+    for line in out.splitlines():
+        if not line.startswith('CT_SPEC'):
+            continue
+        for tok in line.split()[2:]:
+            if '=' in tok and '[' not in tok and '/' not in tok:
+                key, value = tok.split('=', 1)
+                fields.setdefault(key, value)
+    return fields
+
+
 class WorkbenchContrastGateTests(unittest.TestCase):
     def test_every_rendered_text_run_meets_aa(self):
         code, out, report_path = _run_gate({})
@@ -273,15 +291,28 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         The default palette is untouched by this theme (owner ruling: a new pack's colours become
         a selectable theme, never an override), and the measured floor values stay where the
         contrast gate put them, so what this case measures is exactly the six values.
+
+        The pack's numbers are graded on the objects its sentence actually names. 圆角 6–10px is
+        written for 输入/按钮, so the graded population is input/select/textarea plus the four
+        action-button classes -- measured at 501 controls in this run. The other 909 painted
+        controls are list rows, nav items and chips, and the same pack puts 面板 at 12–16px while
+        its own reference HTML ships a 20px `.status` pill; those keep their radius and stay in the
+        printed histogram. 控件高度 is written as 「约36–40px」, so it is reported (主动作 measures
+        41–47px, i.e. taller than the target) and not asserted. Both readings are stated here
+        because a band applied to a different population than the spec names is not a 1:1 check.
         """
         report = _evidence_dir() / 'workbench-contrast-gate-stitch-light.json'
         code, out, _ = _run_gate({
             'UI_PALETTE': 'stitch',
             'UI_SCHEME': 'light',
             'CT_OUT': str(report),
+            # The 20261023 pack writes its visual rules as numbers too, and this is the theme
+            # that carries the pack, so the same painted document is graded on both scales.
+            'CT_SPEC_ENFORCE': '1',
         })
         if code != 0:
-            low = [l for l in out.splitlines() if l.strip().startswith('LOWCONTRAST')]
+            low = [l for l in out.splitlines()
+                   if l.strip().startswith(('LOWCONTRAST', 'SPEC-VIOLATION'))]
             self.fail('CONTRAST_GATE_FAILED under stitch/light (exit %d)\n'
                       '--- first 25 offenders ---\n%s\n--- tail ---\n%s'
                       % (code, '\n'.join(low[:25]), out[-1200:]))
@@ -311,6 +342,64 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         missing = [k for k in wanted if k not in recorded.get('routes', {})]
         self.assertEqual(missing, [],
                          'the stitch theme was never measured for these panels: %s' % missing)
+        # The pack's numbers, read off the same painted document in the same run.
+        self.assertIn('CT_SPEC_ENFORCED', out,
+                      'CT_SPEC_ENFORCE=1 was set but the run never reported the pack numbers'
+                      ' as enforced:\n%s' % out[-1500:])
+        spec = _spec_fields(out)
+        self.assertGreaterEqual(int(spec.get('textRuns', '0')), 1000,
+                                'the pack-number pass looked at only %s text runs; coverage is '
+                                'suspect' % spec.get('textRuns'))
+        self.assertGreaterEqual(int(spec.get('formControls', '0')), 20,
+                                'no form controls were measured, so the 6-10px radius band and '
+                                'the control-height reading are both unmeasured claims')
+        self.assertGreaterEqual(float(spec.get('minPx', '0')), 12,
+                                'the pack puts the smallest readable text at 12px: %s' % spec)
+        self.assertEqual(spec.get('below12'), '0',
+                        '元数据至少12px is not satisfied under the pack theme: %s' % spec)
+        self.assertEqual(spec.get('translucentTextHosts'), '0',
+                        '长文字与列表实底 is not satisfied under the pack theme: %s' % spec)
+        self.assertEqual(spec.get('glassOffAllowlist'), '0',
+                        'backdrop-filter is used outside 顶栏／导航／临时面板: %s' % spec)
+        self.assertEqual(spec.get('formRadiusOver10'), '0',
+                        '圆角输入／按钮 6–10px is not satisfied under the pack theme: %s' % spec)
+        # The receipt carries the same numbers the log printed, so a reader holding the JSON can
+        # check which pack rules this run graded without re-running the browser.
+        recorded_spec = recorded.get('spec') or {}
+        for key in ('below12', 'veilHosts', 'formRadiusOver10'):
+            self.assertEqual(recorded_spec.get(key), 0,
+                             'the report does not carry %s=0 from this run: %s'
+                             % (key, sorted(recorded_spec)))
+        self.assertEqual(recorded_spec.get('glassOffAllowlist'), [],
+                         'the report lists glass surfaces outside the pack allowance: %s'
+                         % recorded_spec.get('glassOffAllowlist'))
+
+    def test_the_pack_number_assertion_refuses_a_theme_it_was_not_applied_to(self):
+        """An assertion that cannot fail guards nothing. The 实底 fix is scoped to the pack's own
+        theme (owner ruling: a new pack's values become a selectable theme, never an override of
+        the shipped one), so the default palette still paints list rows on a translucent surface
+        and the identical enforcement must go red there -- naming the pack sentence it enforces,
+        not a generic failure. Run at one width: this is a red-proof, not a coverage sweep."""
+        code, out, _ = _run_gate({
+            'UI_PALETTE': 'design-lab',
+            'UI_SCHEME': 'dark',
+            'CT_WIDTHS': '1440',
+            'CT_SPEC_ENFORCE': '1',
+        })
+        self.assertNotEqual(code, 0,
+                            'the pack-number enforcement passed on a theme whose list rows are '
+                            'still translucent, so the assertion is vacuous:\n%s' % out[-1500:])
+        violations = [l for l in out.splitlines() if l.strip().startswith('SPEC-VIOLATION')]
+        self.assertTrue(any('实底' in v for v in violations),
+                        'the run failed, but not for the translucent-surface rule: %s' % violations)
+        self.assertNotIn('CT_OK', out,
+                        'a red pack-number run still printed the AA verdict, so the two are not'
+                        ' separated in the log')
+        # 元数据≥12px was raised globally, not per theme, so it must NOT be what goes red here.
+        spec = _spec_fields(out)
+        self.assertEqual(spec.get('below12'), '0',
+                        'the 12px floor was only fixed for one palette, so the default theme '
+                        'still ships 11px metadata: %s' % spec)
 
     def test_contrast_maths_reference_table_is_satisfied(self):
         """The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio()
