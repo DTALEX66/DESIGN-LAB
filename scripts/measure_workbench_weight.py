@@ -416,7 +416,17 @@ def list_row_readings() -> dict:
                      'signals': len(caps), 'unresolved': sorted(set(notes)),
                      'clientCalls': len(matched), 'clientLimits': sorted(asked),
                      'clientCallsWithoutLimit': bare})
-    return {'routes': rows, 'frontendCallSites': scanned, 'readerError': gate_error,
+    return {'routes': rows, 'frontendCallSites': scanned,
+            # Two channels, because they mean two different things. `readerError` is fatal: it
+            # says this file could not read the route table at all. `callSiteError` is a
+            # limitation: the canonical route-call matcher lives in design-lab/scripts and
+            # imports the product's third-party dependencies, so a job that runs this script
+            # with a bare interpreter (the workbench strict-TS job installs no Python packages)
+            # loses only the "what does the page ask for" column. Collapsing both into one field
+            # made a dep-free job fail as if the reader had gone blind.
+            'readerError': None if rows else 'no list-bearing GET route was produced from the '
+                                             'parsed ROUTES table',
+            'callSiteError': gate_error,
             'listRoutes': len(rows),
             'bounded': len([r for r in rows if r['initialRows'] is not None]),
             'withoutLimit': [r['action'] for r in rows if r['initialRows'] is None],
@@ -436,14 +446,99 @@ def named_constant(identifier, imports):
             'at': f'{Path(rel).name}:{value[1]}({original})'}
 
 
+class ParsedRoute:
+    """A ROUTES entry read from source text, shaped like the real Route for the canonical matcher.
+
+    `verify_workbench_route_calls.route_matches` calls `route.accepts(match)`, so a bare data
+    object is not compatible with the one owner of that logic. A route carrying a `when=`
+    predicate cannot be evaluated from AST, and answering `True` for it would over-match: so
+    it raises `ValueError`, which is the exception the caller already catches and reports as
+    "dynamic call shape". Exactly one GET route carries `when` today, and it is not a list route.
+    """
+
+    __slots__ = ('method', 'pattern', 'action', 'exact', 'path_only', 'has_when')
+
+    def __init__(self, method, pattern, action, exact, path_only, has_when):
+        self.method = method
+        self.pattern = pattern
+        self.action = action
+        self.exact = exact
+        self.path_only = path_only
+        self.has_when = has_when
+
+    def accepts(self, match):
+        if not self.has_when:
+            return True
+        raise ValueError(f'{self.action} carries a when= predicate this text reader cannot '
+                         'evaluate; treating it as a dynamic call shape rather than guessing')
+
+
 def live_routes():
-    first_party()
-    try:
-        from design_lab.http_service import ROUTES
-    except Exception as exc:                                # noqa: BLE001
-        raise SystemExit(f'MEASURE_SOURCE_MOVED cannot import the route table: '
-                         f'{type(exc).__name__}: {exc}') from None
-    return list(ROUTES)
+    """Read the route table out of the source text instead of importing it.
+
+    The first version imported `design_lab.http_service` for ROUTES. That made this script's
+    dependency set equal the product's, and the workbench strict-TS job runs it with plain
+    `python3` in a node job that installs no Python third-party packages at all -- so the
+    import reached `image_assets`, wanted `PIL`, and the step died on
+    `MEASURE_SOURCE_MOVED cannot import the route table: ModuleNotFoundError: No module
+    named 'PIL'`. It passed locally because the project venv does have Pillow, which is
+    exactly the shape of a false green: a measuring tool that needs more than the toolchain
+    the gate actually has is not a gate.
+
+    The static reader this file already uses for constants (`parse` / `module_tables`) is the
+    right owner, so ROUTES is now parsed from the source. Only `method`, `pattern` and `action`
+    are consumed downstream; a pattern built from a named constant is resolved where the
+    constant is a plain string and marked `<expr>` otherwise, because a fabricated pattern
+    would be worse than an admitted imprecise one.
+    """
+    tree = parse(HTTP_REL)
+    routes_node = None
+    tables = module_tables(tree)[0]
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id == 'ROUTES' for t in node.targets):
+            routes_node = node.value
+            break
+    if not isinstance(routes_node, (ast.Tuple, ast.List)):
+        raise SystemExit('MEASURE_SOURCE_MOVED no ROUTES tuple literal found in '
+                         f'{HTTP_REL} -- the route inventory is no longer a literal this '
+                         'reader can follow')
+
+    def literal(node):
+        if isinstance(node, ast.Constant):
+            return node.value if isinstance(node.value, str) else None
+        if isinstance(node, ast.JoinedStr):
+            return ''.join(str(v.value) if isinstance(v, ast.Constant) else '<expr>'
+                           for v in node.values)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+            left, right = literal(node.left), literal(node.right)
+            return f'{left if left is not None else "<expr>"}' \
+                   f'{right if right is not None else "<expr>"}'
+        if isinstance(node, ast.Name):
+            entry = tables.get(node.id)
+            if entry:
+                return entry[0]
+            return '<expr>'
+        return '<expr>'
+
+    routes = []
+    for call in routes_node.elts:
+        if not (isinstance(call, ast.Call) and getattr(call.func, 'id', '') == 'Route'):
+            raise SystemExit(f'MEASURE_SOURCE_MOVED a ROUTES member is not a Route(...) call: '
+                             f'{ast.dump(call)[:80]}')
+        positional = [literal(a) for a in call.args]
+        if len(positional) < 3:
+            raise SystemExit('MEASURE_SOURCE_MOVED Route(...) lost its (method, pattern, action) '
+                             'positional shape')
+        method, pattern, action = positional[0], positional[1], positional[2]
+        keywords = {k.arg: (getattr(k.value, 'value', None)) for k in call.keywords}
+        routes.append(ParsedRoute(method=method, pattern=pattern, action=action,
+                                  exact=bool(keywords.get('exact')),
+                                  path_only=bool(keywords.get('path_only')),
+                                  has_when='when' in keywords))
+    if not routes:
+        raise SystemExit('MEASURE_SOURCE_MOVED the ROUTES tuple parsed to zero routes')
+    return routes
 
 
 # ---------------------------------------------------------------------------
@@ -745,8 +840,11 @@ def print_list_rows(rows: dict) -> None:
     print(f'LISTROWS list_routes={rows["listRoutes"]} bounded={rows["bounded"]} '
           f'without_limit={len(rows["withoutLimit"])} '
           f'frontend_call_sites_scanned={rows["frontendCallSites"]}')
-    if rows['readerError']:
-        print(f'LISTROWS NOTE the shipped call-site reader did not load: {rows["readerError"]} '
+    if rows['callSiteError']:
+        print('LISTROWS NOTE the canonical route-call matcher did not load in this '
+              f"interpreter: {rows['callSiteError']} -- the bound readings above come from the "
+              'parsed route table and stand on their own; only the "what the page asks for" '
+              f"column is missing (frontend_call_sites={rows['frontendCallSites']}) "
               '-- the client half below is absent, not zero.')
     for row in rows['routes']:
         initial = 'NONE' if row['initialRows'] is None else str(row['initialRows'])

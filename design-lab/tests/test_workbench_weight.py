@@ -14,6 +14,7 @@ the attachment numbers are a baseline, not an optimisation.
 """
 from __future__ import annotations
 
+import ast
 import contextlib
 import importlib.util
 import io
@@ -356,6 +357,57 @@ class UnboundedListRoutesAreRegistered(unittest.TestCase):
             self.assertIn(action, self.reading['withoutLimit'],
                           f'{action} is registered as unbounded but the instrument no longer '
                           'agrees -- retire the entry in the same change that bounds it')
+
+
+    def test_the_reader_sees_the_route_table_it_claims(self):
+        # A blind reader would print an empty table and a zero "without limit" count, which is
+        # exactly the confident-nothing this repository already refuses elsewhere.
+        self.assertIsNone(self.reading['readerError'], self.reading['readerError'])
+        self.assertGreater(self.reading['listRoutes'], 10)
+        self.assertGreater(self.reading['frontendCallSites'], 50)
+        self.assertIsNone(self.reading['callSiteError'],
+                          'the client column needs the canonical route-call matcher, which '
+                          'imports the product dependencies; this suite must run under the '
+                          'project venv or say so, not read 0 as "the page asks for nothing"')
+
+    def test_the_check_path_stays_stdlib_only(self):
+        """The workbench strict-TS job runs `python3 scripts/measure_workbench_weight.py --check`
+        in a node job that installs no Python third-party packages. When the route reader was
+        changed to `from design_lab.http_service import ROUTES`, that import reached image_assets,
+        needed Pillow, and the job died with MEASURE_SOURCE_MOVED -- while passing locally under
+        the venv, which is the exact shape of a platform-dependent green.
+
+        So the rule is pinned structurally: nothing outside a function body may import a
+        first-party or third-party module. The optional client-half reader may still import the
+        gate inside its try block, because that degradation is reported rather than trusted.
+        """
+        tree = ast.parse(SCRIPT.read_text(encoding='utf-8'))
+        offenders = []
+        for node in tree.body:
+            if isinstance(node, ast.Import):
+                offenders += [a.name.split('.')[0] for a in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                offenders.append((node.module or '').split('.')[0])
+        stdlib = {'__future__', 'argparse', 'ast', 'gzip', 'importlib', 'json', 're',
+                  'statistics', 'sys', 'time', 'functools', 'pathlib', 'contextlib', 'unittest'}
+        bad = sorted(set(offenders) - stdlib)
+        self.assertEqual(bad, [],
+                         f'module-level non-stdlib imports would make --check need the project '
+                         f'venv, and the strict-TS job has none: {bad}')
+
+    def test_a_when_bearing_route_is_not_guessed_at(self):
+        """The parsed route stands in for the real Route, and the canonical matcher calls
+        accepts(); a route carrying a `when=` predicate cannot be evaluated from source text, so
+        it must refuse rather than answer True and quietly over-match."""
+        routes = self.module.live_routes()
+        with_when = [r for r in routes if r.has_when]
+        self.assertTrue(with_when, 'the plant of this assertion is that one route still '
+                                   'carries when=; if that changed, re-read this test')
+        for route in with_when:
+            with self.assertRaises(ValueError):
+                route.accepts(None)
+        plain = [r for r in routes if not r.has_when]
+        self.assertTrue(all(r.accepts(None) for r in plain))
 
 
 if __name__ == '__main__':
