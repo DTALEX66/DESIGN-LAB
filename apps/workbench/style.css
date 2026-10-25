@@ -1394,7 +1394,13 @@ html,body{margin:0}
   border-color:color-mix(in srgb,var(--primary) 48%, white 4%);
   color:#fff;
 }
-.seg button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+/* 禁用态不用 opacity 淡化。这一行原来写 `opacity:.45`，把整枚按钮连字一起压淡：CI 的 Linux
+   runner 在 1920 的「目标组合」态上逐字量到 `button#tp-validate.primary-btn` 的有效墨色是
+   rgb(180,190,199)（= #566472 以 .45 压在 #FFFFFF 上）压白底 **1.37:1**，ui2026/light 同处
+   3.59:1，两个配色各红一次。同一份文件在 1900 行附近早就登记过这个陷阱（主题控制器因此不用禁用态）。
+   现在只撤掉 opacity：`button:disabled` 已经给了平涂次级底、虚线边、无投影这三条非文字线索，
+   "不能点"仍然看得出来，字也读得清——WCAG 对非活动控件的豁免不该变成界面写不清字。 */
+.seg button:disabled{cursor:not-allowed;transform:none}
 
 /* Restoration: `.seg button`(0,1,1) also matches `.toolbar .seg button`(0,2,1) for
    the `transition` property, which B10's toolbar rule does not declare -- so the
