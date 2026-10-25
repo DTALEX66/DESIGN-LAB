@@ -431,6 +431,28 @@ async function seedAssistancePlanForAudit(prefix) {
   return { project: pid, plan: created.json.plan.plan_id };
 }
 
+// Choose a target the way the screen asks. The settled mark is the panel's own state flag
+// (#tp-combination's data-mode reaches 'target' only when a real profile resolves), not "some text
+// appeared" -- an honest empty answer also has text.
+async function openCombinationState(page, key, problems) {
+  for (const id of ['tp-software', 'tp-agent', 'tp-entry', 'tp-model', 'tp-task-mode']) {
+    const select = page.locator('#' + id);
+    if (await select.count() !== 1) continue;
+    if (await page.locator('#' + id + ' option').count() < 2) continue;
+    if (await select.inputValue() !== '') continue;
+    await select.selectOption({ index: 1 });
+  }
+  const settled = await page.waitForFunction(() => {
+    const line = document.getElementById('tp-combination');
+    return !!line && line.dataset.mode === 'target';
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 依次选了软件／Agent／接入方式之后仍未解析到一份目标档案，`
+      + '这一态的几何无人认领');
+  }
+  return settled;
+}
+
 const planSeed = await seedAssistancePlanForAudit('几何审计');
 report.auditSeed = { kind: 'synthetic-assistance-plan', project: planSeed.project,
   plan: planSeed.plan, product_data: false,
@@ -528,6 +550,17 @@ for (const w of widths) {
           /未读回/.test((document.getElementById('as-plan')?.textContent ?? ''))
             ? 'refused' : 'read'));
         absorbPanel(`${w}:assistant+plan-detail`, panel);
+      }
+    }
+    if (name === 'target-profiles') {
+      // Selecting a target is the state where the two truth columns and the combination sentence
+      // actually fill, so the layout claim belongs to that state and not to the empty screen.
+      if (await openCombinationState(page, `${w}:target-profiles+combination`, interactionMissing)) {
+        const panel = await page.evaluate(MEASURE);
+        panel.state = await page.evaluate(() => (
+          document.getElementById('tp-combination')?.dataset.mode === 'target'
+            ? 'read' : 'refused'));
+        absorbPanel(`${w}:target-profiles+combination`, panel);
       }
     }
     if (m.navEdge && m.navEdge.overflow > 0) {

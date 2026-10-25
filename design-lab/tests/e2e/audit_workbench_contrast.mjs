@@ -634,6 +634,29 @@ async function openKnowledgeDetail(page, key, problems) {
   return false;
 }
 
+// Choose a target the way the screen asks -- software first, then whatever the next picker offers.
+// The settled mark is the panel's own state flag: #tp-combination's data-mode only becomes
+// 'target' once a real profile resolves. "Some text appeared" would be the wrong predicate,
+// because an honest empty answer also has text.
+async function openCombinationState(page, key, problems) {
+  for (const id of ['tp-software', 'tp-agent', 'tp-entry', 'tp-model', 'tp-task-mode']) {
+    const select = page.locator('#' + id);
+    if (await select.count() !== 1) continue;
+    if (await page.locator('#' + id + ' option').count() < 2) continue;
+    if (await select.inputValue() !== '') continue;
+    await select.selectOption({ index: 1 });
+  }
+  const settled = await page.waitForFunction(() => {
+    const line = document.getElementById('tp-combination');
+    return !!line && line.dataset.mode === 'target';
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 依次选了软件／Agent／接入方式之后仍未解析到一份目标档案，`
+      + '这一态的配色无人认领');
+  }
+  return settled;
+}
+
 const ctSeed = await seedAssistancePlanForAudit('对比度审计');
 report.auditSeed = { kind: 'synthetic-assistance-plan', project: ctSeed.project,
   plan: ctSeed.plan, product_data: false,
@@ -697,6 +720,14 @@ for (const w of widths) {
       // settled lands in the miss list the wrapper asserts to zero rather than being skipped.
       const opened = await openKnowledgeDetail(page, `${w}:knowledge+entry-detail`, controlBad);
       if (opened) absorb(`${w}:knowledge+entry-detail`, await page.evaluate(MEASURE));
+    }
+    if (name === 'target-profiles') {
+      // The screen's own claim is that the four support-state pills and the two truth columns are
+      // only worth something if the chosen combination's colours clear AA. Selecting a target is
+      // the state where those columns actually fill, so it is measured as a named row.
+      const opened = await openCombinationState(page, `${w}:target-profiles+combination`,
+        controlBad);
+      if (opened) absorb(`${w}:target-profiles+combination`, await page.evaluate(MEASURE));
     }
   }
   await page.close();

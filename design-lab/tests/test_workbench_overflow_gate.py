@@ -274,7 +274,8 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         # at 1440 only is not a geometry claim about 1280 or 1920.
         measured_widths = [w.strip() for w in WIDTHS.split(',') if w.strip()]
         absent = ['%s:%s' % (w, panel) for w in measured_widths
-                  for panel in ('knowledge+entry-detail', 'assistant+plan-detail')
+                  for panel in ('knowledge+entry-detail', 'assistant+plan-detail',
+                                'target-profiles+combination')
                   if '%s:%s' % (w, panel) not in report['routes']]
         self.assertEqual(absent, [],
                          'these panel states were never geometry-checked, so their layout is '
