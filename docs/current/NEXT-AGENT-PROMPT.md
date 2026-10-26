@@ -264,6 +264,17 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 40350057037 success 但只跑轻闸）。人口仍是 3415 是预期的——这几提交只加登记件、回执与散文，没加断言。
 **同一条规矩对本句所在提交继续成立**：本句之后的那个 head 的 run 不在本轮宣称里，由下一轮读回；
 `main` 无分支保护，PR #277 合不合入是 owner 的决定，本轮没有合。
+**§5.79：那之后同一条浏览器尺自己红了一次，红在闸的读法上。** `cf30ee05` 的 PR run 40352855984 `failure`，
+唯一红作业 `Workbench browser E2E`，逐字 `BROWSER_E2E ran=44 skipped=0 failed=1`，条名
+`test_design_layer_slice_in_real_browser`，而定罪行 `E2E_ASSISTANT_PLAN_DUPLICATE … answer={"revision":1,
+"id":"aplan-b5d27f…"} writes=5/5` 说明服务已写、写入计数已进一位，**被读出来的却是提交前的提示语**——
+`shell.ts:6236` 的确认文案由 `afterWrite()` 在页面 POST promise settle 之后才写，闸拿到响应就 `innerText()`，
+读到的是渲染没跟上的一帧（与 §5.55 的补间中间帧同族）。已把闸改成**先等它该看到的那句话**
+（谓词与断言原有条件逐字相同：`已复制为新的方案` ＋那个 id，25 s 到不了就 `confirmationRendered=false` 交回断言，
+所以这条尺仍然会红，只是不再把"没等到"误报成"没写"）。本机：`Ran 2 tests in 22.235s OK`、
+`node --check` 干净、`test_e2e_script_is_lint_clean` 过、漂移钉 66 对未动；**但本机那份
+`browser-e2e-summary.json` 没有 `assistant` 字段，证明不了四态那一段在本机被走过**——逐段结论要从 CI 的
+`E2E step:` 序列里读。
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
 不是把那些任务重新派工。

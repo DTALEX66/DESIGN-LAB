@@ -1415,16 +1415,30 @@ try {
     await page.locator('#as-author').fill('E2E Copier');
     await page.locator('#as-submit').click();
     const copied = await planCreatePost.then((r) => r.json()).catch(() => null);
-    const copyStatus = await page.locator('#as-form-status').innerText();
     const copyId = (copied && copied.plan) ? copied.plan.plan_id : '';
+    // The confirmation is written by `afterWrite`, which runs after the page's own POST promise
+    // settles -- so reading the status cell the instant the response arrives races the render. CI run
+    // 40352855984 (head cf30ee05) did exactly that and convicted a copy that had been written: the
+    // cell still carried the pre-save advisory (「保存会新建一条方案」) while the service had already
+    // returned revision 1 with a fresh id. Wait for the state the assertion needs, using the SAME
+    // words as the predicate, so nothing about what counts as success gets loosened.
+    const copySettled = /^aplan-[0-9a-f]{32}$/.test(copyId)
+      && await page.waitForFunction((id) => {
+        const el = document.getElementById('as-form-status');
+        const text = ((el && el.textContent) || '').trim();
+        return /已复制为新的方案 /.test(text) && text.includes(id);
+      }, copyId, { timeout: 25000 }).then(() => true).catch(() => false);
+    const copyStatus = await page.locator('#as-form-status').innerText();
     const copyWritten = !!copied && /^aplan-[0-9a-f]{32}$/.test(copyId)
-      && copied.revision === 1 && /已复制为新的方案 /.test(copyStatus)
+      && copied.revision === 1 && copySettled
+      && /已复制为新的方案 /.test(copyStatus)
       && copyStatus.includes(copyId) && assistanceWrites === writesBeforeDuplicate + 1;
     if (!copyWritten) {
       await abort('E2E_ASSISTANT_PLAN_DUPLICATE: status=' + JSON.stringify(copyStatus)
                   + ' answer=' + JSON.stringify(copied && { revision: copied.revision,
                                                              id: copied.plan?.plan_id })
-                  + ' writes=' + assistanceWrites + '/' + (writesBeforeDuplicate + 1),
+                  + ' writes=' + assistanceWrites + '/' + (writesBeforeDuplicate + 1)
+                  + ' confirmationRendered=' + copySettled,
                   15, ctx, b);
     }
     // Reopen the SOURCE plan -- the copy carries the same objective, so the badges are what tells

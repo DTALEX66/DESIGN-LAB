@@ -3240,3 +3240,33 @@ success（只有轻闸）；PR run 40328675340 **cancelled**——8 个重作业
 回执与散文，没有新增断言——所以这两条 run 的差别只在字节身份，不在测试人口。**同一条规矩对本句继续成立**：
 本节这一段所在的那个 head 的 run 不在本节里，由下一轮读回；`main` 无分支保护
 （`gh api .../branches/main/protection` → `Branch not protected`），所以合不合入完全是 owner 的决定，本轮没有合。
+
+### 5.79 §5.78 刚读回绿，同一条浏览器尺在下一个 head 上自己红了一次：它在读一个还没渲染出来的状态
+
+**红在哪，不在哪。** run 40352855984（event=pull_request，head `cf30ee05`）`conclusion=failure`，唯一红作业是
+`Workbench browser E2E`，逐字 `BROWSER_E2E ran=44 skipped=0 failed=1`，红的那条是
+`test_workbench_design_layer_e2e.WorkbenchDesignLayerE2ETests.test_design_layer_slice_in_real_browser`；
+同一次跑的 `Python gate` 是 success。**产品字节一个都没动**：`8190527d → cf30ee05` 之间只有卷宗、接续提示词、
+登记件与投影；同一把闸在 `8190527d` 上读到的是 `BROWSER_E2E[test_workbench_design_layer_e2e] ran=2 skipped=0 failed=0`。
+
+**成因写在它自己的失败行里。** 逐字
+`E2E_ASSISTANT_PLAN_DUPLICATE: status="以上内容取自 aplan-bbec54… 的 r2：保存会新建一条方案（编号由服务铸造）…"
+answer={"revision":1,"id":"aplan-b5d27f…"} writes=5/5`——服务已经返回新方案与 r1，写入计数也确实进了一位
+（`5/5`），**可被读出来的是提交前的提示语**。`apps/workbench/shell.ts:6236` 那句确认文案由 `afterWrite()` 写，
+而它在页面自己的 POST promise settle 之后才跑；闸用 `waitForResponse(/assistance-plans$/)` 拿到响应就
+`innerText()`，读到的是渲染还没跟上的一帧。与 §5.55 那次"CI 在补间中间帧里读到一帧谁都不存在的颜色"同族：
+**量的是一页还没进入的状态**。
+
+**修法只把"读"变严，不把"判"变松。** `design-lab/tests/e2e/browser_design_layer_e2e.mjs` 现在先等它该看到的
+那句话——谓词要求 `#as-form-status` 同时含 `已复制为新的方案` 与那个 plan id（**与断言原本的两个条件逐字相同**），
+25 s 到不了就把 `copySettled=false` 交回断言；定罪行多带一个 `confirmationRendered=`，让下一个读者一眼分得开
+"确认从来没写出来"与"写出来了但没等到"。**这条闸仍然会红**：UI 若不写确认，等待超时 → `copySettled` 假 →
+`copyWritten` 假 → `abort(..., 15)`。
+
+**本机复测，以及本机证明不了的那一半。** `Ran 2 tests in 22.235s OK`，同一次跑写出的
+`.project-local/task-artifacts/browser-e2e/browser-e2e-summary.json` 为 `result=PASS consoleErrors=0`；
+`node --check` 干净，仓内自带的 `test_e2e_script_is_lint_clean` 过；`verify_evidence_artifact_presence`
+的 7 条也过（改这个 `.mjs` 没有让漂移钉的 66 对变成 67 或 65）。**如实写**：本机这份 summary 里没有
+`assistant` 字段，所以"四态那一段在本机被走过"不能由这份工件证明——它证明的是文件合规与本机不红，
+逐段结论仍要从 CI 自己的 `E2E step:` 序列里读。**宣称的边界**：本轮推上去的那个 head 的 run 会被读回并
+写进给 owner 的结论里，本节不替它预先宣称绿。
