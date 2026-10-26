@@ -2909,3 +2909,41 @@ python 与 mjs 两realm 的推导会先于任何断言炸在"少于 4 项"上。
 它的 `state` 仍是 `FROZEN_DEFERRED`——**owner 这份审计授权的是修这一处缺陷，不是把那张任务重新派工**；
 要改状态需要另一次明确授权。审计里"不能把本地 3294 通过／54 失败合并成全量复测通过"这条也照写在此：
 那 54 条失败本轮没有一并复现，本轮只声称上面点名的读数。
+### 5.72 owner 审计第 4 条（`doctor --task` 确定性崩溃）已修，并且把这一类缺陷做成了一把全仓的尺
+
+**复现先于修改。** 修复前两条输入都崩，逐字是
+`UnboundLocalError: cannot access local variable 'resolve_paths' where it is not associated with a value`
+（`src/design_lab/runtime/doctor.py:161`），**有效 id 与无效 id 一模一样地崩**——审计用"确定性"这个词是准的。
+
+**根因是一行局部 import 的作用域语义。** `main()` 的 `--paths` 分支里写着
+`from .paths import PathPolicyError, resolve_paths`；Python 的局部绑定是**整个函数级**的，
+于是排在前面的 `--task` 分支读 `resolve_paths` 时读的是一个尚未绑定的局部名。
+修法就是把 `PathPolicyError` 提到模块级那行 import（第 14 行本来就已经导入 `resolve_paths`），
+函数里那行局部 import 删掉。**为什么它一路绿着进仓**：`test_doctor.py` 原来只测 `probe_tools()`，
+没有任何用例走过 `--task` 分支。
+
+**约定格式现在有三条钉住。** 无效 id → `TASK_PREFLIGHT_FAIL` 且 `reason` 明写期望形状
+`'<TASKPACK>::<TASK_KEY>'`、退出码 2；有效 id → 返回合同封套
+`schemaVersion=design-lab/task-resource-preflight/v1`（这个封套**没有** `status` 字段，
+`status` 只属于拒绝路径——我第一版测试就是照这个假设写错而红了一次）；`--paths` 照旧可解。
+
+**比修这一处更值钱的是第二把尺。** 新增 `test_local_import_shadowing.py`：枚举 `git ls-files` 里的
+受版本控制 Python 文件，判"同名在**同一函数作用域**内被后面的局部 import 重新绑定、而前面已被读取"，
+且该名字在模块层已有绑定——正是这枚缺陷的形状。三条边界写死以免变成噪声机器：
+嵌套函数/lambda 里的读取**不定罪**（那里的名字在调用时才解析，是另一个问题）、
+形参不算（它本来就是局部名）、人口从 git 索引现数而不是手抄清单。
+**它不是恒真的**：对修复前的 `doctor.py` 定罪 `[[161, "main", "resolve_paths", 186]]`，
+对修复后的文件返回 `[]`；
+全仓现有命中 **0**。样本植入还额外证明"读在前、绑在后"这个方向性成立。
+
+**本轮实测。** `test_doctor.py: Ran 5 tests in 0.206s OK`、`test_local_import_shadowing.py: Ran 4 tests in 1.216s OK`；
+`test_doctor_evidence` 9、`test_doctor_tool_bindings` 12、`test_migration_preview` 11、
+`test_model_manifest` 22（本机 1 skip）、`test_model_selection` 8 全部 OK；
+聚合 `VERIFY_DESIGN_LAB=OK total=77 failed=0`；投影新鲜度 25 条 OK。
+
+**审计摄入进度（写清楚哪些还没做）。** 第 1 条（sdist）见 §5.71；第 4 条本节；
+第 **2、6、7(b)** 条已对回字节确证但**未修**（引用点在 §5.71 末段）；
+第 **3** 条（workbench.ts 响应头之后就清计时器，慢正文越过 750ms）与第 **5** 条
+（知识表单把多个字段的问题合成一句）**本轮尚未复现**，不作完成声明。
+旧 34 项状态一字未改：本行证据挂在语义主人 `DL-FINAL-T04`「机器配置、生成器、校验和CI同步」下，
+它的 `state` 仍是 `FROZEN_DEFERRED`——审计授权的是修这处缺陷，不是把那张任务重新派工。

@@ -8,21 +8,21 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-26T11:14:17+00:00",
+  "generatedAt": "2026-10-26T11:26:36+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "a7bd9a47266954b92a9be8218d917205ba4d8d1a",
+    "sha": "d2dbeefcce3d93c60be19ade4df5fffbd3fd9106",
     "source_worktree_clean": false,
-    "tracked_files": 3999,
+    "tracked_files": 4001,
     "worktree_changes": [
       {
-        "content": "sha256:d161b2c08344effcc38f42d84926138ea4d39398086d3a9d479a0dd347059fdf",
+        "content": "sha256:ea81442ca281f48596cf0650d3f0b9fbe070c611a5fc5b5c9951b320cfd390e1",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:1571062edd8a86a78cf49ffc4b2329f963d6aa5fe324c0d3dde9a995d846b6b1",
+        "content": "sha256:2e2b4e98916bc62f679986eda330b897d9a72c60ccf48715b6a86cd9fd93dcd4",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
@@ -37,12 +37,12 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       },
       {
-        "content": "sha256:2608aee8a4d83e83736b4c4e855db62f210ca75846076189c3870f9af1028dfc",
+        "content": "sha256:89bf64372cf2bc6d7e4debcdba4cba3c7ec227049f275aeb61d7d38eb58cf29e",
         "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t05-sdist-wheel-roundtrip-20261026.json"
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-doctor-task-unboundlocal-20261026.json"
       }
     ],
-    "worktree_digest": "sha256:2e8195931c46cc4e3a497afcf8c27f0956ee54ed6b1b16f60193579316aa2b9c"
+    "worktree_digest": "sha256:9dd8f18afef0f0e4cb344884c976167c621e05ba3e47db4493f7429289efceb4"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -58,7 +58,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "a7bd9a47266954b92a9be8218d917205ba4d8d1a",
+  "subjectSha": "d2dbeefcce3d93c60be19ade4df5fffbd3fd9106",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -74,9 +74,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 3390,
+    "definedTestMethodCount": 3397,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:2e8195931c46cc4e3a497afcf8c27f0956ee54ed6b1b16f60193579316aa2b9c"
+  "worktreeDigest": "sha256:9dd8f18afef0f0e4cb344884c976167c621e05ba3e47db4493f7429289efceb4"
 }

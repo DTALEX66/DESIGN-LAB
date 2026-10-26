@@ -12592,6 +12592,18 @@
         "artifact_sha256": "2608aee8a4d83e83736b4c4e855db62f210ca75846076189c3870f9af1028dfc",
         "exit_code": 0,
         "command": "按审计验收从源码发行包重建 wheel、装入干净环境并跑 GET/POST；两个来源的 wheel 逐字节相同。新增 sdist↔wheel 覆盖闸与 CI 的源码包路径 —— 读数见工件。"
+      },
+      {
+        "id": "dl-final-t04-doctor-task-unboundlocal-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T11:26:00Z",
+        "subject_sha": "d2dbeefcce3d93c60be19ade4df5fffbd3fd9106",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-doctor-task-unboundlocal-20261026.json",
+        "artifact_sha256": "89bf64372cf2bc6d7e4debcdba4cba3c7ec227049f275aeb61d7d38eb58cf29e",
+        "exit_code": 0,
+        "command": "修掉 doctor --task 的 UnboundLocalError（局部 import 遮蔽），并把这一类缺陷做成全仓作用域尺（对修复前定罪、修复后沉默） —— 读数见工件。"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
