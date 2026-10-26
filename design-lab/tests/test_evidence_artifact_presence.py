@@ -275,18 +275,29 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # only difference was this artefact; no pair vanished and no existing count moved.
             ('design-lab/tests/test_design_layer_http.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-26, one new pair, and it is a record bound to a test module: the owner-audit
+            # fix for `doctor --task` added the three format cases to test_doctor.py (refusal names
+            # the expected '<TASKPACK>::<TASK_KEY>' shape and exits 2; success returns the preflight
+            # contract envelope; --paths unchanged), and a record hashes that module as its
+            # artefact. The product file it aged was `src/design_lab/runtime/doctor.py` -- no record
+            # binds that one by hash, which is why only this pair moved. Re-measured against this
+            # file's own spy rather than inherited: observed 66 pairs against the 65 pinned before
+            # this line, broken=0, and the delta was exactly this one name; no pair shrank.
+            ('design-lab/tests/test_doctor.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 65,
+        self.assertEqual(sum(counts.values()), 66,
                          'the total drifted-record count is pinned, not derived '
                          '(59 -> 60 on 2026-10-19: the gate module aged its own binding record; '
                          '60 -> 64 on 2026-10-23: four records aged when their bound code moved to '
                          'repo_resource so an installed wheel can open its own contracts; '
                          '64 -> 65 on 2026-10-25: one record aged when a 404 test was added to the '
-                         'HTTP module it hashes)')
+                         'HTTP module it hashes; 65 -> 66 on 2026-10-26: one record aged when the '
+                         'owner-audit fix for doctor --task added cases to the module it hashes)')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
         ledger = copy.deepcopy(_ledger())
