@@ -3290,3 +3290,51 @@ failed=0`；同 head push run 40357121752 success 但 11 个重作业 skipped。
 与那句话描述的"单一路径形状"对得上）。展开后重跑：**checked=6 unresolved=0 out_of_range=0**。
 `§5.74` 引用的 `design-lab/schemas/state/design-lab-state-creative-v1.sql:116-124` 也回读过：那 9 行正是
 `worklab_session_link` 的建表与 `UNIQUE (job_id, session_ref)`，也就是"写一次"的出处。
+### 5.80 对抗性审计本轮自己：把刚修好的那把闸打回红一次，再把本轮写下的每条断言逐条反问
+
+**为什么要这一节。** owner 的判据是"别把文档修订写成功能完成"；这一轮的反面风险是"别把修好了写成修好了"。
+所以这一节不新增功能，只攻击本轮自己留下的断言。
+
+**① 植入实验：证明 §5.79 那把闸不是被我改空的。** 把 `apps/workbench/shell.ts:6236` 的确认措辞
+`已复制为新的方案 ` 改成 `复制完成 `（服务侧一字不动），`vite build` 后跑同一条浏览器尺：
+`Ran 2 tests in 31.842s FAILED (failures=1)`，定罪行逐字带
+`E2E_ASSISTANT_PLAN_DUPLICATE: status="…保存会新建一条方案…" answer={"revision":1,"id":"aplan-ddb0c767…"}
+writes=5/5 confirmationRendered=false`。这一次实验同时钉住两件事：**闸仍能定罪**（真缺确认时它红，且烧掉
+那 25 s 预算——31.8 s 对复原本地跑的 10.7 s 就是这个差），以及 **cf30ee05 那次红的形态与植入形态逐字同形**，
+差别只在"等没等"——这正是 §5.79 归因的独立复现，不是我对那条日志的事后解释。复原不走 `git checkout`：
+从改前的两份拷贝按 sha256 还原并校验（`shell.ts` `a3febac0…`、`build/main.js` `5cd4cc19…`，后者与 CI 自己
+打印的 `bundleSha256` 同值），还原后 `Ran 2 tests in 10.741s OK`，`git status --porcelain` 无跟踪改动。
+
+**② 指针回读到字节，不只是"行号没越界"。** §5.73／§5.74 的 6 处 `path:line` 现在每处都读到过内容：
+`test_capability_library_clean_install.py:247` → `self.assertNotEqual(result.returncode, 0,`（正是 §5.73
+更正段说的跨行调用形状）、`test_release_preflight.py:470` → `self.assertNotEqual(code, 0)`（那句"判的是
+子进程退出码、不落回执"成立）、三条 `report_path = evidence / '<各自闸门名>.json'`（那句"单一路径形状、
+没有第二个写入者"成立）、`design-lab-state-creative-v1.sql:116-124` → `CREATE TABLE worklab_session_link`
+含 `UNIQUE (job_id, session_ref)`（§5.74 的"写一次"出处成立）。接续提示词里的 **36 个 `§5.NN` 引用全部
+解析到真标题，悬挂 0**；§5.66 的标题确为"提示词读回现在是有界的一页"、§5.67 为几何色板表，与本轮改正
+后的指向一致。
+
+**③ 本轮写下的人话数字被反证过。** "3415 相对 3412 净增 3 条，来自 `53cdc7eb` 两条与 `7b9a4f37` 一条"——
+用 `git show` 数新增的 `def test_` 行数：`53cdc7eb` = 2，`7b9a4f37` = 1，差值吻合。**没有把一次算术当作证据**：
+先测人口再写原因。
+
+**④ 收口面复数（把 §5.78 的读数推前，不让它悄悄过期）。** 账本 `currentExecution.evidence` 现数 **319**
+（§5.78 写 318 是当时的读数，本节说明它为什么动），20261026 日期 **22** 条（原 21 条＋本轮那枚收口回执），
+22 条的 `artifact_path` 全部在 git 索引且 `artifact_sha256` 与 HEAD blob 逐字节相等（不匹配 0 条）；
+投影 `DEEPSEEK-AUTHORITY-CHAIN.json` 现publish `evidence_receipts: 319`；登记件行 5 由自家闸现读
+`RECORD_REGISTER_GATE=PASS checks=5 problems=0`；直方图仍 `34 FROZEN_DEFERRED / 13 DONE / 2 PARTIAL /
+1 NOT_STARTED`；`scripts/verify_current_execution.py` 在最终树上 `CURRENT_EXECUTION=PASS tasks=50`。
+
+**⑤ 一处必须写下来的自我纠正（本轮我自己的跑法缺陷）。** 提交 `c46ef4b6` 的信息里宣称
+`RECORD_REGISTER_GATE=PASS checks=5 problems=0`，而**当时那条命令并没有跑成**：它被写成
+`python … | tail -1`，管道把退出码换成了 `tail` 的 0，于是 `&&` 链带着一条没跑过的闸继续走。
+不加管道重跑之后 `REGISTER_EXIT=0` 且同一行读数成立，所以那句声明现在是测量而不是断言——
+但成因如实记在这里：**管道吃掉退出码**这条教训本仓记忆里早已有一条（[[feedback-pipeline-exit-codes]]），
+这一轮我又踩了一次，而且踩在了"用来自证一句话"的那条命令上。
+
+**⑥ 这一节没有证明的东西。** 本机 `browser-e2e-summary.json` 里没有 `assistant` 字段，所以四态那一段
+"在 Windows 本机被走过"不由该工件证明（§5.79 已写）；植入实验证明的是**这把闸的读法**，不是真实宿主
+E3、也不是真人 E4——两者仍是冻结项；`_list_rights` 与 `_list_knowledge_candidates` 封不封页、CSV 安全
+模式、初始界 50 还是 100、150 KB 上限、`DESIGN.md` 批准与合格模型裁定仍归 owner；本轮没有发现需要
+撤回的产品断言，撤回的只有我自己那句被管道掩过的自证与两处不可解析的指针写法。
+**写本节时的 CI 状态**（不替它宣称）：`f3bab9a3` 的 PR run 40361725324 仍在跑——`Workbench browser E2E` 已 success，`Python gate` 未完成；它承载的只有文档、登记件与投影字节，**代码字节的绿仍由 `751df4a0` 那条已读回的 run 覆盖**（§5.79）。本节所在 head 的 run 按同一条规矩由下一轮读回。
