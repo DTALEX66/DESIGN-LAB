@@ -3268,5 +3268,16 @@ answer={"revision":1,"id":"aplan-b5d27f…"} writes=5/5`——服务已经返回
 `node --check` 干净，仓内自带的 `test_e2e_script_is_lint_clean` 过；`verify_evidence_artifact_presence`
 的 7 条也过（改这个 `.mjs` 没有让漂移钉的 66 对变成 67 或 65）。**如实写**：本机这份 summary 里没有
 `assistant` 字段，所以"四态那一段在本机被走过"不能由这份工件证明——它证明的是文件合规与本机不红，
-逐段结论仍要从 CI 自己的 `E2E step:` 序列里读。**宣称的边界**：本轮推上去的那个 head 的 run 会被读回并
-写进给 owner 的结论里，本节不替它预先宣称绿。
+逐段结论仍要从 CI 自己的 `E2E step:` 序列里读。
+
+**承载这次闸改动的 head 已经读回：`751df4a0`。** PR run 40357134311 `conclusion=success`，12 个作业里
+10 个 success、2 个 skipped（`Branch light gate` 与 `CI artifact proof`，都不属于本事件应有的作业），
+逐字 `PYTHON_TESTS_SHARD_RESULT shard=1/3 exit=0 tests=1094 wall_seconds=558.435`、`shard=2/3 exit=0
+tests=1101`、`shard=3/3 exit=0 tests=1220`、`PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415
+duplicates=0 missing=0 unexpected=0`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、
+`BROWSER_E2E[test_workbench_design_layer_e2e] ran=2 skipped=0 failed=0`、`BROWSER_E2E ran=44 skipped=0
+failed=0`；同 head push run 40357121752 success 但 11 个重作业 skipped。**"四态那一段在这一跑里走过"
+怎么证的**：绿跑不会打印 `E2E step:` 序列（包装脚本只在失败时回显子进程 stdout），但这条尺的每一步失败
+都 `abort(..., 15)`，而 Python 侧断言的是子进程 0 退出与 `result=PASS` 摘要——所以这一段跑到末尾本身就是
+"逐步没有红"的证明，不需要我看不到的一行标记。**留给下一轮的边界照旧**：本节这几句所在的 head 不在
+`751df4a0` 那条 run 里，按同一条规矩由下一轮读回。

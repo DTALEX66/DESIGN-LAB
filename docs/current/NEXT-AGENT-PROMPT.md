@@ -274,7 +274,7 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 所以这条尺仍然会红，只是不再把"没等到"误报成"没写"）。本机：`Ran 2 tests in 22.235s OK`、
 `node --check` 干净、`test_e2e_script_is_lint_clean` 过、漂移钉 66 对未动；**但本机那份
 `browser-e2e-summary.json` 没有 `assistant` 字段，证明不了四态那一段在本机被走过**——逐段结论要从 CI 的
-`E2E step:` 序列里读。
+`E2E step:` 序列里读；绿跑不打印那段序列（包装脚本只在失败时回显子进程 stdout），所以证明是「每一步失败都 exit 15 ＋ 子进程 0 退出且摘要 `result=PASS`」。**承载这次闸改动的 head 已读回**：`751df4a0` 的 PR run 40357134311 `success`，逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；同 head push run 40357121752 只跑轻闸。本句所在 head 的 run 仍由下一轮读回。
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
 不是把那些任务重新派工。
