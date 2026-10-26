@@ -2995,9 +2995,16 @@ python 与 mjs 两realm 的推导会先于任何断言炸在"少于 4 项"上。
 断言两边互不相同：基准 `specEnforce=false`、反证 `specEnforce=true widths=1440`。
 另外把规则本身做成可判红的尺：任何改了配置（主题/宽度/enforce）却没写自己文件名的
 `_run_gate` 调用都会定罪，删掉反证那一行 `CT_OUT` 的植入样本必须被它抓住。
-诚实边界：**全仓只有这一处**存在反证覆写——`grep assertNotEqual(code, 0)` 只命中一处；
-motion / theme-affordance / theme-geometry 三个闸门共用"单一路径"的形状但**没有第二个写入者**，
-本轮不改动它们，只登记。
+诚实边界：**这一类覆写全仓只此一处**，但人口不是用我第一版写的那条 grep 数的——
+`grep "assertNotEqual(code, 0)"` 匹配不到跨行调用（对比闸那条就写成
+`assertNotEqual(code, 0,\n ...)`，命中的反而是无关的 `test_release_preflight.py`）。
+可复现的探针对是 `grep -rnE "assertNotEqual\(.*,\s*0" design-lab/tests/*.py`：**11 处断言、跨 8 个模块**，
+其中只有对比闸的反证会把回执写进 CI 上传的 evidence 目录（`test_capability_library_clean_install.py:247`
+与 `test_release_preflight.py:470` 判的是子进程退出码，不落回执）。
+motion / theme-affordance / theme-geometry 三个闸门共用"单一路径"的形状但**没有第二个写入者**
+（`test_workbench_motion_gate.py:100`、`..._theme_affordance_gate.py:106`、`..._theme_geometry_gate.py:103`），
+本轮不改动它们，只登记。**教训记进记忆**：一条匹配不到的探针给出的"0/1 命中"不是证据，
+只是探针自己在说空话——这与 §5.71 那条"外部工具零发现不等于证明"同源。
 
 **第 7(b) 条 · 审计脚本在打印自己路径时崩。** `audit_workbench_ui.py` 扫完、写完 JSON，再对打印行做
 `out_path.relative_to(REPO)`，`--out`（或 `E2E_EVIDENCE_DIR`）指向仓外任何目录都在**成功测量之后**

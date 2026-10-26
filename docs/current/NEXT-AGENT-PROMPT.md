@@ -210,7 +210,9 @@ release／安装态分发／真实宿主 E3／真人 E4／ComfyUI／MiniMax H3�
 （`.two-col` 是两列栅格，"行之后"会落进右列），浏览器尺新增 `walkKnowledgeFieldRefusals()`，
 **并且删掉了 `errors > errorNamed` 这条要求缺陷继续存在的断言**；审计回执覆写（反证跑写自己的
 `-enforce-red.json`，两份回执各带 `report.run` 身份，另有静态尺定罪"改了配置却没写自己文件名的
-`_run_gate`"，全仓同类缺陷经枚举**只有这一处**）；会话关联出处（链接写一次，答复改读库里那行的
+`_run_gate`"，人口探针用 `grep -rnE "assertNotEqual\(.*,\s*0" design-lab/tests/*.py`＝**11 处／8 模块**，
+只有对比闸的反证会写回执；我第一版那条 `grep "assertNotEqual(code, 0)"` **匹配不到跨行调用**，
+所以它的"只命中一处"不算证据，见 §5.73 的更正）；会话关联出处（链接写一次，答复改读库里那行的
 `source_system`，矛盾的重新链接直接拒绝；可达性由 126 个文件的表面人口**断言**而非由话说，
 所以本轮等级只是模块级 E2）；仓外报告路径打印崩溃（新增 `scripts/report_paths.py`）。
 第 **7** 条剩余两项**未结且不是工程缺口**：无界列表与原图读取的容量项（逐路由现读表在 **§5.67**：
