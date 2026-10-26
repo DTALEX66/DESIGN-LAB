@@ -614,5 +614,41 @@ class SupersessionForkIsRefused(unittest.TestCase):
             conn.close()
 
 
+    def test_the_trigger_fallback_refusal_names_the_successor_too(self):
+        """A writer that reaches the database trigger is refused in the same words, with the id.
+
+        The guard is the polite door; the trigger is the wall behind it. The wall's message used to
+        be vaguer than the door's -- "already superseded by another entry" without saying which -- so
+        the one caller who most needed the id (a race, where the operator already thinks they are the
+        first) got the least. The guard is silenced here on purpose: that is the only way to arrive
+        at the fallback deliberately instead of by losing a race.
+        """
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        successor = self.library.create(entry(supersedes=first))['entry']['knowledge_entry_id']
+        real_guard = knowledge_library._supersedes_guard
+        knowledge_library._supersedes_guard = lambda conn, supersedes: None
+        try:
+            with self.assertRaises(KnowledgeLibraryError) as caught:
+                self.library.create(entry(supersedes=first))
+        finally:
+            knowledge_library._supersedes_guard = real_guard
+        self.assertEqual(409, caught.exception.status)
+        self.assertEqual('KNOWLEDGE_SUPERSESSION_CONFLICT', caught.exception.code)
+        self.assertIn(successor, caught.exception.detail,
+                      'the fallback refusal does not name the entry that holds the claim: %s'
+                      % caught.exception.detail)
+        conn = self.library._connect()
+        try:
+            self.assertEqual([successor], sorted(self.successors_of(conn, first)),
+                             'the refused fallback write forked the chain anyway')
+        finally:
+            conn.close()
+        # And the two refusals agree, which is why they share one formatter.
+        with self.assertRaises(KnowledgeLibraryError) as via_guard:
+            self.library.create(entry(supersedes=first))
+        self.assertEqual(via_guard.exception.detail, caught.exception.detail,
+                         'the guard and the trigger fallback describe the same refusal differently')
+
+
 if __name__ == '__main__':
     unittest.main()

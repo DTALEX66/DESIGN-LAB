@@ -489,6 +489,19 @@ def _readings(conn):
     return documents, unreadable
 
 
+def _superseded_detail(supersedes, taken):
+    """The one wording for "this entry already has a successor", from both refusals.
+
+    The application guard and the trigger's `IntegrityError` fallback used to say nearly the same
+    thing differently, and the shorter one omitted the successor's id -- which is the only piece the
+    operator can act on. One function, so the difference cannot come back.
+    """
+    return (f'{supersedes} is already superseded by {", ".join(taken[:3])}'
+            + f'{", …" if len(taken) > 3 else ""}; two rows replacing one entry would make '
+            '"which one is current" unanswerable. Revise the successor instead of adding a '
+            'second one beside it')
+
+
 def _supersedes_guard(conn, supersedes):
     """The whole rule about `supersedes`, asked the same way by every route that can start a chain.
 
@@ -511,12 +524,8 @@ def _supersedes_guard(conn, supersedes):
         'SELECT entry_id FROM knowledge_entry WHERE supersedes=? ORDER BY created_at, entry_id',
         (supersedes,))]
     if taken:
-        raise KnowledgeLibraryError(
-            409, 'KNOWLEDGE_SUPERSESSION_CONFLICT',
-            f'{supersedes} is already superseded by {", ".join(taken[:3])}'
-            + f'{", …" if len(taken) > 3 else ""}; two rows replacing one entry would make '
-            '"which one is current" unanswerable. Revise the successor instead of adding a '
-            'second one beside it')
+        raise KnowledgeLibraryError(409, 'KNOWLEDGE_SUPERSESSION_CONFLICT',
+                                    _superseded_detail(supersedes, taken))
 
 
 class KnowledgeLibrary:
@@ -579,20 +588,23 @@ class KnowledgeLibrary:
         The state schema's `knowledge_entry_one_successor` trigger is the last line of defence
         against a fork. When it fires, the writer that lost the race must not surface a bare
         sqlite3.IntegrityError as a 500: it is being told the same thing `_supersedes_guard` would
-        have told it, one moment too late.
+        have told it, one moment too late -- including WHICH entry holds the claim, because the
+        operator's next action is to go read that one. `RAISE(ABORT)` rolls back only the failed
+        statement, so the successor is still queryable on this connection.
         """
         try:
             conn.execute(
                 'INSERT INTO knowledge_entry (entry_id, supersedes, created_at, created_by)'
                 ' VALUES (?,?,?,?)', (entry_id, supersedes, _now(), created_by))
         except sqlite3.IntegrityError as exc:
-            if 'at most one successor' in str(exc):
-                raise KnowledgeLibraryError(
-                    409, 'KNOWLEDGE_SUPERSESSION_CONFLICT',
-                    f'{supersedes} is already superseded by another entry; two rows replacing one '
-                    'entry would make "which one is current" unanswerable. Revise the successor '
-                    'instead of adding a second one beside it') from None
-            raise
+            if 'at most one successor' not in str(exc):
+                raise
+            taken = [row['entry_id'] for row in conn.execute(
+                'SELECT entry_id FROM knowledge_entry WHERE supersedes=?'
+                ' ORDER BY created_at, entry_id', (supersedes,))]
+            raise KnowledgeLibraryError(
+                409, 'KNOWLEDGE_SUPERSESSION_CONFLICT',
+                _superseded_detail(supersedes, taken)) from None
 
     def create(self, value) -> dict:
         fields = _fields(value, for_revision=False)
