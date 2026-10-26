@@ -37,6 +37,11 @@ def run_child(command: list) -> subprocess.CompletedProcess:
 
 SCRIPTS = [
     "verify_identity_gate.py",
+    # Packaging provenance, added after the owner audit at 7671ec70: the wheel force-includes repo
+    # paths the published sdist did not carry, so the distribution could not rebuild its own wheel
+    # (`FileNotFoundError: Forced include not found: …/design-lab/domain-packs`) while CI stayed
+    # green -- it built from the checkout and never from the sdist.
+    "verify_sdist_packaging.py",
     # The ledger's own contract: select a schema BY the ledger's schemaVersion, fail hard when
     # a version names no schema file (that is exactly how r5-v1 shipped without a contract for
     # a month), and keep schema and data accountable in both directions.
@@ -343,10 +348,11 @@ def main() -> int:
         print(f"VERIFY_DESIGN_LAB=REFUSED interpreter={sys.executable}")
         for item in missing:
             print(f"  MISSING_DEPENDENCY {item}")
-        print("VERIFY_DESIGN_LAB=REFUSED the declared dependencies above are not importable in "
-              "this interpreter, so the 76 steps below would report the missing import as a "
-              "product failure. Run the chain with the project venv "
-              "(.venv/Scripts/python.exe on Windows, .venv/bin/python elsewhere).")
+        print(f"VERIFY_DESIGN_LAB=REFUSED the declared dependencies above are not importable in "
+              f"this interpreter, so the {len(SCRIPTS) + len(EXTRA_CHECKS)} steps below would "
+              f"report the missing import as a "
+              f"product failure. Run the chain with the project venv "
+              f"(.venv/Scripts/python.exe on Windows, .venv/bin/python elsewhere).")
         return 2
     for name in SCRIPTS:
         script = resolve_script(name, root, repo_root)
