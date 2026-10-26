@@ -3344,4 +3344,6 @@ writes=5/5 confirmationRendered=false`。这一次实验同时钉住两件事：
 E3、也不是真人 E4——两者仍是冻结项；`_list_rights` 与 `_list_knowledge_candidates` 封不封页、CSV 安全
 模式、初始界 50 还是 100、150 KB 上限、`DESIGN.md` 批准与合格模型裁定仍归 owner；本轮没有发现需要
 撤回的产品断言，撤回的只有我自己那句被管道掩过的自证与两处不可解析的指针写法。
-**写本节时的 CI 状态**（不替它宣称）：`f3bab9a3` 的 PR run 40361725324 仍在跑——`Workbench browser E2E` 已 success，`Python gate` 未完成；它承载的只有文档、登记件与投影字节，**代码字节的绿仍由 `751df4a0` 那条已读回的 run 覆盖**（§5.79）。本节所在 head 的 run 按同一条规矩由下一轮读回。
+**承载本节全部字节的 head 已读回：`0331b68f`。** PR run 40365602992 `conclusion=success`、push run 40365593987 `success`（只跑轻闸），逐字取作业自己的日志：
+`PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`、`EVIDENCE_ARTIFACTS=WARN tracked_broken=0`（漂移钉仍 66 对，改 `.mjs` 没有让它多出或少出一对）。
+在它之前，`751df4a0`（第一次带这个闸修复的 head）的 PR run 40357134311 也已单独读回为 success（§5.79），所以代码字节被两条 run 各覆盖一次，不是借用。**唯一仍按规矩交给下一轮的**，是把这段读数写进文件的那次文档／登记件／投影提交本身——它是 derived-only，人口与判据都不会因它变化。
