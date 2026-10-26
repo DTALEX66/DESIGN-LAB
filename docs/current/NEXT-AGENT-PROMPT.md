@@ -200,16 +200,21 @@ release／安装态分发／真实宿主 E3／真人 E4／ComfyUI／MiniMax H3�
 不得靠改断言或删接口或把失败改成演示成功来通过、`.codebuddy/` 与 `.cursor/` 永不暂存。
 
 **台账读数（2026-10-26 owner 审计摄入，7 条，逐条对回字节后的当下身份）**：第 **1** 条（P1 源码包不能
-重建安装包）已修并结清——见卷宗 §5.71 与回执 `dl-final-t05-sdist-wheel-roundtrip-20261026`
-（`evidence` 307→**308**，挂在语义主人 `DL-FINAL-T05`「能力库安装资源与干净wheel核心链」下，
-**它的 `state` 仍是 `FROZEN_DEFERRED`：审计授权的是修这处缺陷，不是把那张任务重新派工**）。
-第 **2、6、7(b)** 条已**确证但未修**，引用点逐条写在 §5.71 最后一段（导入路径少一道 `KNOWLEDGE_SUPERSESSION_CONFLICT`
-校验、库层无 UNIQUE/CHECK、投影 `superseded_by` 只能装一个且取第一条；对比度闸的植入反例与基线共用
-`workbench-contrast-gate.json` 且报告无身份字段；`audit_workbench_ui.py:171` 对仓外目录 `relative_to` 抛
-ValueError，同形还在 `run_design_review_plugin.py:279/:161`）。第 **3、4、5** 条本轮**未复现**，
-不得当作已知事实继续引用。另记两条我自己的陷阱：把三段已安装布局测试合在一条 `python -m unittest` 里会因
-`test_workbench_launch` 注入 `src` 而造出 12 条假红；而"两个 wheel 文件必须逐字节相同"是过度断言
-（同一批成员被两次构建压成不同字节流），判据是成员集合 + 每个成员的字节。
+重建安装包）已修并结清——见卷宗 §5.71 与回执 `dl-final-t05-sdist-wheel-roundtrip-20261026`。
+第 **4** 条（`doctor --task` 确定性崩溃）见 §5.72 与 `dl-final-t04-doctor-task-unboundlocal-20261026`。
+第 **2、3、5、6、7(b)** 条**已修并各自带反证**，见 §5.73 与那一条下的五枚回执：知识后继分叉（两条路线
+共用一个 `_supersedes_guard`、`BEGIN IMMEDIATE`、状态 SQL 里新增 `knowledge_entry_one_successor` 触发器；
+五枚新用例在修复前提交上判红，含并发跑出 `['wrote','wrote']`）；正文阶段无人管辖（`api()` 把头部与正文
+放进同一个 try，三条用例带看门狗；反证跑先谎报过一次 `rc=0`，成因是**我的跑法硬编码返回 0**且没断言
+"换源码真的改了 bundle"）；知识表单一句合并提示改成**一字段一条**、落在该字段自己的 `.field-row` 内
+（`.two-col` 是两列栅格，"行之后"会落进右列），浏览器尺新增 `walkKnowledgeFieldRefusals()`，
+**并且删掉了 `errors > errorNamed` 这条要求缺陷继续存在的断言**；审计回执覆写（反证跑写自己的
+`-enforce-red.json`，两份回执各带 `report.run` 身份，另有静态尺定罪"改了配置却没写自己文件名的
+`_run_gate`"，全仓同类缺陷经枚举**只有这一处**）；仓外报告路径打印崩溃（新增 `scripts/report_paths.py`）。
+第 **7** 条剩余三项**未结**：会话关联响应与持久化来源是否 UI/HTTP 可达（本轮只定位）、无界列表与原图
+读取的容量项、以及 **CSV 安全模式=待 owner 决策**。旧 34 项状态一字未改：这些证据挂在语义主人
+`DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
+不是把那些任务重新派工。
 
 **台账读数（2026-10-26 第二十五轮收口时现数，取代上面第二十四轮那一段的"当下"身份）**：本轮把上一轮欠的三件事全部落到"有实测读数"而不是"已实现"。① **精确 SHA 的 CI 矩阵读通了**：run 40211581088（PR，head `f9683930`）`conclusion=success`，10 个非 skipped 作业全绿，逐字 `PYTHON_TESTS_UNION=OK expected=3363 distinct=3363 ran=3363 duplicates=0 missing=0 unexpected=0`、`BROWSER_E2E ran=27 skipped=0 failed=0`。§5.59 那句"CI 已绿"曾被 §5.61 追正——它引的是换 logo **之前**的 SHA，教训写进记忆：**结清一轮的 CI 账必须点名叫到承载该变更的那个 SHA**。② **增强面对量过**：把 `.ambient` 的动画冻在关键帧每一档（0/3000/6000/9000/12000ms）后用同一个 `MEASURE` 谓词逐档量，`CT_MOTION_PASS poses=5 routes=24 checked=34170 belowAA=0 distinctTransforms=4`；四个不同变换（不是五个）恰因 0% 与 100% 同声明停靠点，这一条同时是"尺子在动"的反证。③ **`errors=0` 原来是空集**，且有两个不同成因：`.error[role=alert]` 那族（`#as-form-error`）选择器一直覆盖，缺的是**没人让界面拒绝一次**；`p.view-hint` 那族（知识/评审/权利/研究的 outcome 行）连 `role` 都没有，既是尺子盲区也是**读屏盲区**。现在闸门**自己点一次**空表单造出真失败（`CT_REFUSAL_PROVED … role=alert`），词表从 `shell.ts` 现数 6 个前缀经 `CT_REFUSAL_WORDS` 传入，**空词表时闸门拒绝开跑**；`RefusalPopulationIsGraded` 三条断言里有一条在它该红的时候红过（旧回执没有 `+refusal` 行）。
 

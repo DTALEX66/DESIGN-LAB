@@ -12604,6 +12604,78 @@
         "artifact_sha256": "89bf64372cf2bc6d7e4debcdba4cba3c7ec227049f275aeb61d7d38eb58cf29e",
         "exit_code": 0,
         "command": "修掉 doctor --task 的 UnboundLocalError（局部 import 遮蔽），并把这一类缺陷做成全仓作用域尺（对修复前定罪、修复后沉默） —— 读数见工件。"
+      },
+      {
+        "id": "kb-02-supersedes-fork-refused-on-both-routes-20261026",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-02-supersedes-fork-refused-on-both-routes-20261026.json",
+        "artifact_sha256": "188f2de1830442318a706296ad9d333a59dedef475ca4eb73e78863c2d465170",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 2 of 7 (P2): a knowledge entry can acquire a second successor through the import route while create refuses it, and the detail read shows one of the two"
+      },
+      {
+        "id": "kb-06-body-phase-deadline-and-cancel-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-06-body-phase-deadline-and-cancel-20261026.json",
+        "artifact_sha256": "204dbcb839fed8eb8a4836fd750f32391e2883d5f75e8c532682af3fb59e13e9",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 3 of 7 (P2): the request deadline and the page-change cancel are released when response HEADERS arrive, so a slow body outruns the budget and a lost write body is unclassified"
+      },
+      {
+        "id": "kb-06-knowledge-form-one-refusal-per-field-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-06-knowledge-form-one-refusal-per-field-20261026.json",
+        "artifact_sha256": "ff5a9d7e94b9d7533884ec8695a133972397263d24df705119f88d295688367a",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 5 of 7 (P2): the knowledge form merges several field problems into one message, and the green tests only constrain the named subset while forcing unnamed messages to persist"
+      },
+      {
+        "id": "dl-final-t04-receipt-identity-and-separation-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-receipt-identity-and-separation-20261026.json",
+        "artifact_sha256": "0ceb063ff523859504cc36c96b2351cec6767ad1646a7e29f1292c3bff865594",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 6 of 7 (P2): a normal scan and the falsification test share one receipt path, so the archived artefact may be the deliberate red"
+      },
+      {
+        "id": "dl-final-t04-report-path-outside-repo-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-report-path-outside-repo-20261026.json",
+        "artifact_sha256": "94c9bf19a7a24be5a05687cfdc709ae88cd51ecb1518add2b657c649690893c8",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 7 of 7: an audit script writes its report outside the repository and then crashes while printing the path"
+      },
+      {
+        "id": "dl-final-t04-session-link-source-answered-from-the-row-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:55:00Z",
+        "subject_sha": "f12931bf82e2985822d4420de89f3414cfaae1a6",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-session-link-source-answered-from-the-row-20261026.json",
+        "artifact_sha256": "a2f72bb5538fe56e974451494bd5fe732d06450060556e8a00ff8d54e09d64d9",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 7 of 7 (first half): the compatible Python API may answer session correlation from a different source than the one it persists, with UI/HTTP reachability unconfirmed"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

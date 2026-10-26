@@ -2947,3 +2947,106 @@ python 与 mjs 两realm 的推导会先于任何断言炸在"少于 4 项"上。
 （知识表单把多个字段的问题合成一句）**本轮尚未复现**，不作完成声明。
 旧 34 项状态一字未改：本行证据挂在语义主人 `DL-FINAL-T04`「机器配置、生成器、校验和CI同步」下，
 它的 `state` 仍是 `FROZEN_DEFERRED`——审计授权的是修这处缺陷，不是把那张任务重新派工。
+### 5.73 owner 审计第 2、3、5、6、7(b) 条：五处已修，每处都先在旧字节上红过一遍
+
+本轮把审计里工程可完成的五条做完，每条的验收方式都是同一件事：**修改前的字节必须被同一套用例判红**。
+一条从来只在修好之后跑绿的测试，什么也没证明。
+
+**第 2 条 · 知识 supersedes 可以分叉。** 复现属实，且不对称的位置很具体：`create()` 检查
+"这条是否已被替代"，`import_entry()` 只检查 id 形状与存在性，然后直接 INSERT——于是 UI 拦得住的分叉，
+导入路线一条就能写进去。读侧再把痕迹藏起来：`_statuses()` 用 `dict.setdefault` 配一条**无序**扫描，
+库里两条后继时它显示先回来的那一条。修法分四层：两条路线改调用同一个
+`_supersedes_guard()`（拒绝话术一致，并点名"已被哪一条替代"）；检查与写入包在
+`BEGIN IMMEDIATE` 里——读后再判的锁外检查只是"可能性"，并发用例在旧字节上跑出的正是
+`['wrote','wrote']`；状态 SQL 里加 `knowledge_entry_one_successor` 触发器，让**绕过应用层的写入者**
+也被数据库拒绝（该用例直接 INSERT，故意不走那两条路线）；扫描改成 `ORDER BY created_at, entry_id`，
+这样历史库里已有的分叉仍然可读，但每次读都给出同一个后继，而不是随 SQLite 心情。
+本轮实测：`test_knowledge_library.py: Ran 26 tests in 5.483s OK`；对修复前提交 `71aff01b` 的同一套用例判红
+`Ran 5 tests in 0.579s FAILED (failures=5)`。
+
+**第 3 条 · 请求超时与取消管不到正文。** `api()` 的 `finally` 在响应头到达时就 `clearTimeout`
+并摘掉两把取消监听，所以"答得快、正文慢慢滴"可以无限越过预算，切页也无法取消，写丢了正文落进一条
+无类错误。现在头部与正文在同一个 try 里，三种结局仍然可辨且各自动作不同：慢正文→读取超时（无副作用，
+可重试）；正文期切页→页面已切换；写丢了正文→`outcomeUnknown`「结果待核对」，禁止不看读回就重发。
+三条用例都带**看门狗**：无人管辖的实现要判红，而不是把测试挂死——挂死既测不出回归，也会被 CI
+当成环境噪声。第一条反证跑原本报 `rc=0`，那是**我自己的跑法在谎报**：`run_appshell()` 硬编码返回 0
+而从子进程取码，同时脚本没有断言"换源码这件事真的改了 bundle"。补上"bundle 摘要必须变化"与
+"只有修复版才有的那句话必须消失"两道见证之后（本轮：5cd4cc19598a -> bd048fe282c3 and it lost "答复在读取过程中被取消"），
+旧 bundle 判红 `PROVED: all 3 body-phase cases are non-vacuous -- each one is red on the pre-fix bytes and green on the fixed ones.`。
+
+**第 5 条 · 知识表单把多个字段的问题合成一句。** 原句「标题、一句话用途和正文都必须填写」一次说三个框，
+填掉两个之后屏上仍是同一句话，而且它写在面板末尾、离任何输入框都有半屏；导入路线把
+「来源 ID」和「来源版本」也同样合成一句。现在一个空字段一条说明，`data-for` 点名自己的字段、
+`aria-describedby` 让读屏进框就听见原因、光标交给第一条。位置不是"行之后"而是**行之内**：
+`.field-row` 是单列 grid，而表单容器 `.two-col` 是**两列** grid——插在行之后就落进右边那一格，
+变成挂在别人家字段旁边的错误。浏览器尺 `walkKnowledgeFieldRefusals()` 把这一族按画布上量：
+`errors=28 named=24 namedAdjacent=24`，
+案例 `4` 条知识 + `3` 条助手，`bad=0`，
+知识族每条 `dy` 实测 [18, 18, 18, 18]。
+**同时把测试自身的一处缺陷改掉**：`FieldRefusalsLandOnTheFieldTheyName` 原先断言
+`errors > errorNamed`，那是在**要求不具名的合并提示继续存在**——把它修好反而会让闸门变红。
+现在守的是人口不许缩小（具名数不少于被激发的案例数、具名是不具名的子集），不再守住缺陷的形状。
+
+**第 6 条 · 审计回执被反证覆写。** 基准跑与"故意判红"的反证跑共用同一个
+`workbench-contrast-gate.json`，而 CI 的 `Upload E2 evidence artifact` 是 `if: always()` 整目录上传，
+谁最后写谁就是归档件——归档里可能是那条刻意的红。反证跑现在写自己的
+`workbench-contrast-gate-enforce-red.json`，两份回执各自带上 `report.run`
+（`{"palette": "design-lab", "scheme": "dark", "widths": "1440,1920", "specEnforce": false, "gitSha": "022c5a9bd989bc4f1b57af7936167cb8656bf009", "productFails": 0, "plantedControls": 368}`），
+断言两边互不相同：基准 `specEnforce=false`、反证 `specEnforce=true widths=1440`。
+另外把规则本身做成可判红的尺：任何改了配置（主题/宽度/enforce）却没写自己文件名的
+`_run_gate` 调用都会定罪，删掉反证那一行 `CT_OUT` 的植入样本必须被它抓住。
+诚实边界：**全仓只有这一处**存在反证覆写——`grep assertNotEqual(code, 0)` 只命中一处；
+motion / theme-affordance / theme-geometry 三个闸门共用"单一路径"的形状但**没有第二个写入者**，
+本轮不改动它们，只登记。
+
+**第 7(b) 条 · 审计脚本在打印自己路径时崩。** `audit_workbench_ui.py` 扫完、写完 JSON，再对打印行做
+`out_path.relative_to(REPO)`，`--out`（或 `E2E_EVIDENCE_DIR`）指向仓外任何目录都在**成功测量之后**
+抛 ValueError；`run_design_review_plugin.py` 里同样的写法有两处。`display_path()` 在仓内仍给相对形式
+（现有钉住的读数不受影响），仓外给绝对形式，永不抛。`test_report_path_display.py: Ran 6 tests in 0.009s OK`，其中一条用例复现原式确实抛
+ValueError，另有一条把旧写法植入回去证明守卫会定罪。
+
+**顺带修好的一处测试基建（不改产品行为，但决定上面几条能不能被证伪）。**
+`apps/workbench/tests/appshell.mjs` 的替身此前没有 `parentNode` / `nextSibling` / `insertBefore` /
+`closest` / `getAttribute` / `id` 存取器。`closest()` 缺位会让 `control.closest('.field-row') ?? control`
+悄悄退化成"贴到输入框自己身上"，`id` 缺位让 `if (control.id)` 在替身里永远走 false 分支——
+也就是说"按字段拒绝"这一族在 DOM 测试里只能证明"放了个节点"，证不了"放在哪个字段里"。
+补上之后 `WORKBENCH SMOKE: all checks passed`、`APPSHELL REGRESSION: all checks passed`。
+
+**本轮实测汇总。** `test_knowledge_library.py: Ran 26 tests in 5.483s OK`、`test_report_path_display.py: Ran 6 tests in 0.009s OK`、`test_local_import_shadowing.py: Ran 4 tests in 2.344s OK`；
+node 三套 `WORKBENCH SMOKE: all checks passed` / `APPSHELL REGRESSION: all checks passed`；
+对比闸门 `7 条按字段案例 bad=0`，激发成功的拒绝家族
+`["1440:knowledge+refusal", "1440:assistant+refusal", "1920:knowledge+refusal", "1920:assistant+refusal"]`；
+`HEAD=022c5a9b`。
+
+**仍未做完的（不作完成声明）。** 第 7 条前半（兼容 Python API 的会话关联响应与持久化来源是否 UI/HTTP
+可达）本轮只完成定位、未见结论；第 7 条后半的**容量**两项：本轮现数 `src/design_lab/http_service.py`
+里有 **17 个 `_list_*` 处理器**，其中哪几个真正无界、以及各被界面调用几次，读数在 §5.71
+那一节里（本轮没有重测那份逐路由计数，故不在此复述为"本轮实测"）；原图读取同样是容量风险。
+**CSV 安全模式属于待决策项**，不是工程缺口，等 owner 的一句话而不是我的实现。
+旧 34 项 `FROZEN_DEFERRED` 一字未改：本轮证据分别挂在语义主人 `DL-KB-02`（知识可写面）、
+`DL-KB-06`（三主入口外壳）与 `DL-FINAL-T04`（机器配置、生成器、校验和 CI 同步）下，
+它们的 `state` 不因审计授权修缺陷而解冻。
+### 5.74 owner 审计第 7 条前半（会话关联的响应与持久化来源）：缺陷成立，位置确定，今天无人可达
+
+§5.73 末段写的是"本轮只完成定位、未见结论"——本节就是那个结论。
+
+**分叉是真的，而且成因很窄。** `link_session()` 命中已有链接时返回的是**调用参数** `source_system`，
+而那一行是**写一次**的：没有 `UPDATE` 语句，`UNIQUE(job_id, session_ref)` 又让第二次 INSERT 进不来
+（`design-lab/schemas/state/design-lab-state-creative-v1.sql:116-124`）。于是"用另一个来源重新链接同一对"
+会把答复写成新来源，库里仍留着旧来源——响应与持久化就此对"这条作业是谁关联的"给出两个答案。
+修法两处：答复改读**那一行记的值**；与库里记的值相矛盾的重新链接**直接拒绝**并点名两侧来源，
+因为这类调用者是问错了出处，而不是做了一次幂等空操作。
+
+**可达性用断言记下来，而不是用我的话记下来。** 人口从 `git ls-files` 现数：服务模块
+（`src/design_lab/**` 全部 `.py`，只排除 `session_link.py` 自身与 creative 包的再导出）、
+工作台源码（`apps/workbench/**` 的 `.ts`/`.html`）、以及工作流文件——共 **126 个文件**，
+其中**没有一个**提到 `session_link` 或 `link_session`。另有 15 份文件在**文字或清单里出现**这个模块名——
+`reports/current/**` 的投影、`design-lab/config/current-report-index.json` 这类登记索引、
+`scripts/deepseek_test_gate_report.py` 与 `scripts/deepseek_worktree_reconciliation.py` 两份 CI 记账、
+它自己的测试与迁移普查、以及 `docs/history/**` 的历史快照——它们是**关于**这个模块的记载，不是**通向**它的通路：
+只列名字、列迁移表、做账，谁也不会因此调用 `link_session`。所以这处缺陷是**未接线面上的潜在缺陷**，
+本轮证据等级是模块级 E2，
+不是真实产品流程的 E3；接线那天这条测试变红，欠读回的是那个人，不是替我把我的断言继承过去。
+
+**本轮实测。** 修复前 `Ran 10 tests in 1.107s FAILED (failures=1)`，失败原因逐字 `AssertionError: CreativeError not raised`；
+修复后 `Ran 10 tests in 0.997s OK`。反证走的是同一套用例打在 `022c5a9b` 的 worktree 上，跑完按 sha 还原。
