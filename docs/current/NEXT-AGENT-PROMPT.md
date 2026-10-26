@@ -215,9 +215,19 @@ release／安装态分发／真实宿主 E3／真人 E4／ComfyUI／MiniMax H3�
 所以它的"只命中一处"不算证据，见 §5.73 的更正）；会话关联出处（链接写一次，答复改读库里那行的
 `source_system`，矛盾的重新链接直接拒绝；可达性由 126 个文件的表面人口**断言**而非由话说，
 所以本轮等级只是模块级 E2）；仓外报告路径打印崩溃（新增 `scripts/report_paths.py`）。
-第 **7** 条剩余两项**未结且不是工程缺口**：无界列表与原图读取的容量项（逐路由现读表在 **§5.66**：
-`LISTROWS list_routes=18 bounded=10 without_limit=8`，每个不封页的路由都带 `client_calls` 与理由；
-`src/design_lab/http_service.py` 本轮现数 17 个 `_list_*` 处理器）、以及 **CSV 安全模式=待 owner 决策**。
+第 **7** 条剩余两项**未结**，但两句身份不一样——旧版本写"未结且不是工程缺口"，把混合面整块推给了 owner，
+这里按 `UNBOUNDED_REGISTER`（`design-lab/tests/test_workbench_weight.py:266`）的逐路由理由分开。
+**CSV 安全模式＝待 owner 决策**（§5.73 逐字：「属于待决策项，不是工程缺口」，等一句话而不是等我的实现）。
+**容量**那半是 **8 条无界路由**（`LISTROWS list_routes=18 bounded=10 without_limit=8`，
+每个不封页的路由都带 `client_calls` 与理由；这个数现在由 `scripts/verify_documented_counts.py` 直接数那张表，
+不再靠散文里的算术——本轮散文写的是"其余 7 条"而表里是 8 条，闸一加上去就红了）：
+`_list_design_systems` 由四名注册表天然有界，**没有活**；`_list_or_read_assets` 成本在每行重校验
+（实测 200×47,160 B 时服务端 199.59 ms，path+stat 59.0%、两次图像解码 30.5%、hash 2.4%），**分页修不了**，
+真修法是写入时物化 `width/height/media_type`，那是带迁移＋precheck＋合同行的 state-schema 单独一刀；
+`_list_projects`（逐项目汇总）与 `_list_token_documents`（空值语义须保列表）是**修法各不同的工程项**；
+`_list_jury` 与 `_list_research` 标着 `NOT MEASURED`，**先补数再谈修法**；
+只有 `_list_rights`（Human Gate 面——"一页把行藏起来就是把决定藏起来"）与 `_list_knowledge_candidates`
+（导出是读回——截断即误报曾经 offered 过什么）落到 owner：**要不要封页是产品裁定，不是我能替 owner 写的代码**。
 **本轮还修掉了一处 CI 红**：`5d603fe6` 的 PR run 唯一失败是漂移登记面少一对——`d2dbeefc` 给
 `test_doctor.py` 加用例，使一条哈希它的旧记录变旧；补钉并 65→**66**，成因为什么红、逐名 delta 都写在测试注释里。
 **本轮自造的两处红也已结清（卷宗 §5.76／§5.77）**：① 收尾脚本只暂存 `git status` 里 ` M` 的路径，新写的回执是
@@ -247,7 +257,7 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 `TMPDIR` 设在工作区里面，那条红（run 40331019135，head `fc9c8b0d`，Python gate 分片 2/3 两条 FAIL）
 正是这么来的；要从 checkout 自己位置推，
 并把前提写成断言。另外 push run 只跑轻闸（11 个重作业 `skipped`），套件结论只在 PR run 上，而推新 head 会把它
-cancel 掉——结清一轮要在最终 head 上等它跑完；① 界面上的翻页 affordance——服务端默认页已是 100，前端调用点仍不传 `limit/offset`，要做的是"还有 N 条"这条可见线索（包明文：长列表分页或窗口化，初始最多 50 行——**注意包给的初始界是 50，本轮沿用的是本仓既有 PAGE 常量的 100**，两者不是一回事，要收口就按包的 50 或让 owner 裁定，别默认自己赢了）；② `particles=live` 的**动画过程**未做逐帧认证，只证了确定首帧；③ `audit_workbench_theme_geometry.mjs:56` 那份**硬编码**色板表仍缺 `stitch`，改它要把几何结论一起重读；④ 其余 7 条无界路由理由已逐条登记，不要套同一修法；⑤ 五份手写 CSS 花括号扫描器的收敛（每份豁免面不同，要逐个证明覆盖不丢）。
+cancel 掉——结清一轮要在最终 head 上等它跑完；① 界面上的翻页 affordance——服务端默认页已是 100，前端调用点仍不传 `limit/offset`，要做的是"还有 N 条"这条可见线索（包明文：长列表分页或窗口化，初始最多 50 行——**注意包给的初始界是 50，本轮沿用的是本仓既有 PAGE 常量的 100**，两者不是一回事，要收口就按包的 50 或让 owner 裁定，别默认自己赢了）；② `particles=live` 的**动画过程**未做逐帧认证，只证了确定首帧；③ `audit_workbench_theme_geometry.mjs:56` 那份**硬编码**色板表仍缺 `stitch`，改它要把几何结论一起重读；④ 其余 **8 条无界路由**理由已逐条登记，不要套同一修法；⑤ 五份手写 CSS 花括号扫描器的收敛（每份豁免面不同，要逐个证明覆盖不丢）。
 
 **边界逐字重述（一条没动）**：只做**桌面端**，手机端是**排除项**——不是待办、不是缺口、不派工；**不部署模型、不自行下载权重**，不宣称推理已验证，选择成功／连接成功／返回文本／内容可用**四件事分别验**；候选**导出是读回不是发送**；验收与签字**只认具名真人**；编号由用户填写或显式选 `UNUSED`，代理不得自行铸造标识当来源证据；**E 盘不动**；旧 **34 项仍 `FROZEN_DEFERRED`**，解冻任何一项都要 owner 新的明确授权；release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3、外部软件自动化、AAOS 联调**继续冻结**；**不得靠改断言、删接口、硬改能力标记或把失败改成演示成功来通过**；新包配色做成可选主题、不覆盖既有配色，已实测地板值不改；不擅自升级框架或改全局配置；`.codebuddy/` 与 `.cursor/` **永不暂存**。
 

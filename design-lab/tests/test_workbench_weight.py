@@ -311,12 +311,14 @@ UNBOUNDED_REGISTER = {
 
 
 class UnboundedListRoutesAreRegistered(unittest.TestCase):
-    """Nine of eighteen list GET routes answer without a bound (measured 2026-10-25).
+    """Every list GET route that answers without a bound is named in the register below.
 
-    The instrument already printed that count, and the existing test already proves the print
-    agrees with the per-route table -- but neither of them makes adding a TENTH unbounded route
-    a finding. A printed number that nobody compares against anything is a report, not a gate:
-    the register below is the part that bites.
+    The instrument prints a count and the first test proves that print agrees with this table, but
+    neither of them makes adding one more unbounded route a finding. A printed number nobody
+    compares against anything is a report, not a gate: the register is the part that bites.
+    No number is written in this sentence on purpose -- it said "nine of eighteen" until
+    `_list_prompt_results` was bounded on 2026-10-26 and left the count stale in the prose while the
+    register stayed correct, which is the exact rot this round was called to catch elsewhere.
     """
 
     @classmethod

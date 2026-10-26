@@ -2687,11 +2687,11 @@ task-preflight、知识检索同一写法），非法值回**具名 400**而不�
 让参数变成谜**。加上摘牌那条，把界悄悄改回无界、或把 `returned` 当成总数，都会红。
 
 **未做（不写成已做）。** 前端调用点仍不传 `limit/offset`（默认页就是当前答案），界面要不要显式翻页是
-UI 那一刀的活，本轮没动任何 `.ts`；其余 7 条无界路由不套同一修法，理由各自不同并已逐条登记
+UI 那一刀的活，本轮没动任何 `.ts`；其余 **8** 条无界路由不套同一修法，理由各自不同并已逐条登记
 （`_list_or_read_assets` 成本在每行重校验而非行数，`_list_projects` 是逐项目汇总，
-`_list_design_systems` 由四名注册表天然有界，`_list_rights/_list_jury/_list_knowledge_candidates`
-是 Human Gate 与读回面——截断即隐藏决定，`_list_token_documents` 空值语义须保列表，
-`_list_research` 未测量）。
+`_list_design_systems` 由四名注册表天然有界，`_list_rights/_list_knowledge_candidates`
+是 Human Gate 与读回面——截断即隐藏决定，`_list_jury` 与 `_list_research` 只登记了"未测量"，
+`_list_token_documents` 空值语义须保列表）。
 ### 5.67 几何那把尺的色板表不再是手抄的：珍珠白第一次被量的同时，它证明了自己没改布局
 
 **接着 §5.64 的那条尾巴做。** 那一节记下「`audit_workbench_theme_geometry.mjs` 的色板表是硬编码的，
