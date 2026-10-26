@@ -215,11 +215,22 @@ release／安装态分发／真实宿主 E3／真人 E4／ComfyUI／MiniMax H3�
 所以它的"只命中一处"不算证据，见 §5.73 的更正）；会话关联出处（链接写一次，答复改读库里那行的
 `source_system`，矛盾的重新链接直接拒绝；可达性由 126 个文件的表面人口**断言**而非由话说，
 所以本轮等级只是模块级 E2）；仓外报告路径打印崩溃（新增 `scripts/report_paths.py`）。
-第 **7** 条剩余两项**未结且不是工程缺口**：无界列表与原图读取的容量项（逐路由现读表在 **§5.67**：
+第 **7** 条剩余两项**未结且不是工程缺口**：无界列表与原图读取的容量项（逐路由现读表在 **§5.66**：
 `LISTROWS list_routes=18 bounded=10 without_limit=8`，每个不封页的路由都带 `client_calls` 与理由；
 `src/design_lab/http_service.py` 本轮现数 17 个 `_list_*` 处理器）、以及 **CSV 安全模式=待 owner 决策**。
 **本轮还修掉了一处 CI 红**：`5d603fe6` 的 PR run 唯一失败是漂移登记面少一对——`d2dbeefc` 给
 `test_doctor.py` 加用例，使一条哈希它的旧记录变旧；补钉并 65→**66**，成因为什么红、逐名 delta 都写在测试注释里。
+**本轮自造的两处红也已结清（卷宗 §5.76／§5.77）**：① 收尾脚本只暂存 `git status` 里 ` M` 的路径，新写的回执是
+`??`，于是账本行进仓、它指的文件留在工作树——本地永远看不出（文件就在盘上），干净 checkout 里 `[Errno 2]`；
+run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 failed=2`。修法把 `??` 纳入暂存集，
+并给 `test_evidence_artifact_presence` 加两条：全量扫一遍账本，外加一枚"指一个不在索引里的工件必须被定罪"的
+植入（`.project-local/**` 的豁免不许被扩成红）。② 触发器兜底的拒绝话术不点名后继，现在应用层校验与
+`sqlite3.IntegrityError` 兜底共用 `_superseded_detail()`；用例**刻意把 `_supersedes_guard` 置空**逼触发器接管，
+同一用例在修改前的 `ac97cc71` 上判红、在修复后的字节上 `Ran 27 tests in 3.246s OK`。
+**§5.75 的 CI 账（逐字取作业自己的日志）**：run 40334885313（event=pull_request，head `768f3fac`）
+`conclusion=success`，10 个非 skipped 作业全绿，`PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=0 unexpected=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；相对 run 40315188651
+（head `5d603fe6`）读到的 **3397** 净增 **15** 条。**这条只覆盖 `768f3fac` 那批字节**——§5.77 的代码改动在其后，
+所以承载本轮全部字节的那个 head 的 run 必须单独读回（§5.76 末句留的就是这个前指），不要借用前一次的绿。
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
 不是把那些任务重新派工。

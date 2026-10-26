@@ -3027,7 +3027,7 @@ node 三套 `WORKBENCH SMOKE: all checks passed` / `APPSHELL REGRESSION: all che
 
 **仍未做完的（不作完成声明）。** 第 7 条前半（兼容 Python API 的会话关联响应与持久化来源是否 UI/HTTP
 可达）本轮只完成定位、未见结论（这一句由 §5.74 取代）；第 7 条后半的**容量**两项：本轮现数 `src/design_lab/http_service.py`
-里有 **17 个 `_list_*` 处理器**，其中哪几个真正无界、以及各被界面调用几次，读数在 **§5.67** 那张
+里有 **17 个 `_list_*` 处理器**，其中哪几个真正无界、以及各被界面调用几次，读数在 **§5.66** 那张
 `LISTROWS` 现读表里（`list_routes=18 bounded=10 without_limit=8`，逐路由给 `client_calls` 与不封页的
 理由；本节没有重测那份表，故不在此复述为"本轮实测"）；原图读取同样是容量风险。
 **CSV 安全模式属于待决策项**，不是工程缺口，等 owner 的一句话而不是我的实现。
@@ -3072,8 +3072,9 @@ PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=
 BROWSER_E2E ran=44 skipped=0 failed=0
 ```
 
-`PYTHON_TESTS_UNION` 那条把"分片跑过的集合＝发现集合"钉住：`expected=3412`；相对 §5.72 那次记下的
-**3397**，本轮净增 **15 条**（知识分叉、对比闸静态尺、报告路径显示、会话关联四组），
+`PYTHON_TESTS_UNION` 那条把"分片跑过的集合＝发现集合"钉住：`expected=3412`；相对本会话在
+run 40315188651（head `5d603fe6`，就是那条漂移登记红里读出来的同一行）读到的 **3397**，
+本轮净增 **15 条**（知识分叉、对比闸静态尺、报告路径显示、会话关联四组），
 所以这些用例在 CI 里被执行过，不是只在我本机跑过。浏览器套件
 `BROWSER_E2E ran=44 skipped=0`——no-skip 是
 `verify_browser_e2e_ran.py` 的硬条件，任何 skipped 直接把作业判红，所以这一行的 skipped=0 才是
@@ -3146,4 +3147,5 @@ kb-20261026/dl-final-t04-exact-sha-ci-matrix-20261026.json'"]}`、
 （`AssertionError: … not found in … already superseded by another entry`），在修复后的字节上
 `Ran 27 tests in 3.246s OK`。
 
-这一条不新增尺子，只把上节自己记下的债还掉；容量项与 CSV 安全模式仍按 §5.76 的说法归 owner。
+这一条不新增尺子，只把上节自己记下的债还掉；容量项与 CSV 安全模式仍按 §5.73 的说法归 owner
+（那句"待决策"写在 §5.73 的「仍未做完的」段里，§5.76 谈的是回执未提交，没有做过这项归属）。
