@@ -536,6 +536,9 @@ async function api(path, body, options = {}) {
   if (generation) generation.signal.addEventListener("abort", cancel, { once: true });
   options.signal?.addEventListener("abort", cancel, { once: true });
   let response;
+  let bodySeen = false;
+  let status = 0;
+  let value;
   try {
     response = await fetch("/api" + path, {
       method: body ? "POST" : "GET",
@@ -544,6 +547,9 @@ async function api(path, body, options = {}) {
       cache: "no-store",
       signal: controller.signal
     });
+    bodySeen = true;
+    status = response.status;
+    value = await response.json();
   } catch (error) {
     if (deadlineHit) {
       const seconds = timeoutMs >= 1e3 ? Math.round(timeoutMs / 1e3) : timeoutMs / 1e3;
@@ -555,21 +561,23 @@ async function api(path, body, options = {}) {
         `读取超时（${seconds} 秒未答复）：本次读取已放弃。读取没有产生任何写入，可以直接重试。`
       );
     }
-    if (controller.signal.aborted)
+    if (controller.signal.aborted) {
+      if (isWrite)
+        throw new WriteOutcomeUnknownError(
+          "提交已发出，但答复在读取过程中被取消：结果待核对，不是失败。请先读回该资源确认服务端是否已经落库，再决定是否重发。"
+        );
       throw new PageReadCancelledError(
         "页面已切换，本次读取已取消（没有产生写入）。重新进入该页会重新读取。"
       );
+    }
+    if (bodySeen) {
+      throw new Error(`服务回复无法解析（HTTP ${status}，${errMsg(error)}）`);
+    }
     throw new Error(`无法连接本机设计服务（${errMsg(error)}）`);
   } finally {
     clearTimeout(timer);
     generation?.signal.removeEventListener("abort", cancel);
     options.signal?.removeEventListener("abort", cancel);
-  }
-  let value;
-  try {
-    value = await response.json();
-  } catch (error) {
-    throw new Error(`服务回复无法解析（HTTP ${response.status}，${errMsg(error)}）`);
   }
   if (response.status === 401) dropSession();
   if (!response.ok) {

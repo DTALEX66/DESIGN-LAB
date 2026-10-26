@@ -143,6 +143,9 @@ export async function api<T>(path: string, body?: Record<string, unknown>,
   if (generation) generation.signal.addEventListener('abort', cancel, { once: true });
   options.signal?.addEventListener('abort', cancel, { once: true });
   let response: Response;
+  let bodySeen = false;
+  let status = 0;
+  let value: { error?: string } & Record<string, unknown>;
   try {
     response = await fetch('/api' + path, {
       method: body ? 'POST' : 'GET',
@@ -151,6 +154,9 @@ export async function api<T>(path: string, body?: Record<string, unknown>,
       cache: 'no-store',
       signal: controller.signal,
     });
+    bodySeen = true;
+    status = response.status;
+    value = (await response.json()) as { error?: string } & Record<string, unknown>;
   } catch (error) {
     if (deadlineHit) {
       // Sub-second budgets print as decimals, not as "0 秒": the deadline is real at any
@@ -165,26 +171,35 @@ export async function api<T>(path: string, body?: Record<string, unknown>,
         `读取超时（${seconds} 秒未答复）：本次读取已放弃。`
         + '读取没有产生任何写入，可以直接重试。');
     }
-    if (controller.signal.aborted)
+    if (controller.signal.aborted) {
+      // Reached when the page moved on while the BODY was still arriving. A write is still a
+      // write: navigating away did not undo the submission, and the body being lost is not
+      // evidence that the service rejected it.
+      if (isWrite)
+        throw new WriteOutcomeUnknownError(
+          '提交已发出，但答复在读取过程中被取消：结果待核对，不是失败。'
+          + '请先读回该资源确认服务端是否已经落库，再决定是否重发。');
       throw new PageReadCancelledError(
         '页面已切换，本次读取已取消（没有产生写入）。重新进入该页会重新读取。');
+    }
+    if (bodySeen) {
+      // A reply that starts arriving and then does not parse, or stops mid-body, is a different
+      // failure from an unreachable service -- most often something in front of the workbench
+      // answered instead of the workbench -- and the status code is the only clue worth keeping.
+      throw new Error(`服务回复无法解析（HTTP ${status}，${errMsg(error)}）`);
+    }
     // The request never got an answer. Unwrapped, this reaches the page as the browser's
     // own "Failed to fetch", which is indistinguishable from a view bug and tells the
     // operator nothing to do. Name what is unreachable, keep the browser's reason.
     throw new Error(`无法连接本机设计服务（${errMsg(error)}）`);
   } finally {
+    // The deadline and the cancellation hooks cover the whole exchange, headers AND body. They
+    // used to be released the moment headers arrived, so a service that answered promptly and
+    // then dribbled a body could take arbitrarily long, ignore a page change, and turn a write
+    // that never finished into an unclassified error.
     clearTimeout(timer);
     generation?.signal.removeEventListener('abort', cancel);
     options.signal?.removeEventListener('abort', cancel);
-  }
-  let value: { error?: string } & Record<string, unknown>;
-  try {
-    value = (await response.json()) as { error?: string } & Record<string, unknown>;
-  } catch (error) {
-    // A reply that is not JSON is a different failure from an unreachable service -- most
-    // often something in front of the workbench answered instead of the workbench -- and
-    // the status code is the only clue worth preserving.
-    throw new Error(`服务回复无法解析（HTTP ${response.status}，${errMsg(error)}）`);
   }
   if (response.status === 401) dropSession();
   if (!response.ok) {

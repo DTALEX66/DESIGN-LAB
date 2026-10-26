@@ -3560,10 +3560,85 @@ console.log('ok: ㉒ 知识回执与反馈：构建只读一次零写、状态/�
   if (!shell.pending.pop().init.signal) throw new Error('默认写请求没有装截止信号');
   shell.context.cancelPendingReads();
   await defaultedWrite;
+
+  // (6) 正文阶段也必须被截止时间与取消管住（owner 审计 2026-10-26 第 3 条）。以前头部一到就
+  // `clearTimeout` 并摘掉监听，于是"答得快、正文慢慢滴"能无限越过预算。浏览器的契约是 signal 在
+  // 正文期间触发会让 `response.json()` 以 AbortError 落定——替身必须照做，否则这段测不到。
+  // 每一条等待都带看门狗：无人管辖的实现要**判红**，而不是把测试挂死——挂死既测不出回归，
+  // 也会让 CI 把它当成超时环境噪声。三条的失败先收下、最后一起报：第一条就 throw 的话，后两条
+  // 在拿旧实现跑反证时根本没被执行过，那就只证明了三分之一的修正。
+  const bodyPhaseFailures = [];
+  const expectBody = (label, ok, detail) => {
+    if (!ok) bodyPhaseFailures.push(`${label}（${detail}）`);
+  };
+  const withWatchdog = (promise, ms, label) => Promise.race([
+    promise,
+    new Promise((_resolve, reject) => setTimeout(() => reject(
+      new Error(`${label}：${ms}ms 内没有落定，说明截止时间或取消根本没有管到正文`)), ms)),
+  ]);
+  const bodyHang = (signal) => ({
+    ok: true, status: 200,
+    json: () => new Promise((_resolve, reject) => {
+      const onAbort = () => {
+        const error = new Error('The operation was aborted.');
+        error.name = 'AbortError';
+        reject(error);
+      };
+      if (signal.aborted) onAbort();
+      else signal.addEventListener('abort', onAbort, { once: true });
+    }),
+  });
+
+  const slowBodyRead = capture(withWatchdog(
+    api('/projects/slow-body', undefined, { timeoutMs: 20 }), 3000, '正文慢过预算后读请求无人收尾'));
+  await flush();
+  const bodyRead = shell.pending.pop();
+  bodyRead.resolve(bodyHang(bodyRead.init.signal));
+  const bodyReadError = await slowBodyRead;
+  expectBody('正文慢过预算要按读超时落定',
+    Boolean(bodyReadError) && /读取超时/.test(bodyReadError.message),
+    bodyReadError ? bodyReadError.message : '承诺一直没有落定');
+  expectBody('正文超时不许报成连接或解析问题',
+    Boolean(bodyReadError) && !/无法连接|无法解析/.test(bodyReadError.message),
+    bodyReadError ? bodyReadError.message : '没有错误可查');
+
+  // (7) 正文没读完就切页：读要按「页面已切换」落定，而不是变成一条无类错误
+  const midBodyRead = capture(withWatchdog(
+    api('/projects/aborted-body', undefined, { timeoutMs: 5000 }), 3000,
+    '正文期间切页却收不到取消'));
+  await flush();
+  const midBodyRequest = shell.pending.pop();
+  midBodyRequest.resolve(bodyHang(midBodyRequest.init.signal));
+  await flush();
+  shell.context.cancelPendingReads();
+  const midBodyError = await midBodyRead;
+  expectBody('正文期间切页要收到取消',
+    Boolean(midBodyError) && /页面已切换/.test(midBodyError.message),
+    midBodyError ? midBodyError.message : '承诺一直没有落定');
+
+  // (8) 写：头部到了、正文丢了，仍然是"结果待核对"，不许被说成失败
+  const lostBodyWrite = capture(withWatchdog(
+    api('/projects/x/briefs', { title: 'd' }, { timeoutMs: 20 }), 3000,
+    '正文期丢答复的写无人收尾'));
+  await flush();
+  const bodyWrite = shell.pending.pop();
+  bodyWrite.resolve(bodyHang(bodyWrite.init.signal));
+  const lostWriteError = await lostBodyWrite;
+  expectBody('正文期丢答复的写要落到结果待核对',
+    Boolean(lostWriteError) && lostWriteError.outcomeUnknown === true,
+    lostWriteError ? lostWriteError.message : '承诺一直没有落定');
+  expectBody('正文期丢答复的写不许说成失败',
+    Boolean(lostWriteError) && !/(已失败|提交失败|写入失败)/.test(lostWriteError.message),
+    lostWriteError ? lostWriteError.message : '没有错误可查');
+
+  if (bodyPhaseFailures.length)
+    throw new Error(`㉑ 正文阶段无人管辖，${bodyPhaseFailures.length} 项判红：`
+      + bodyPhaseFailures.join(' | '));
 }
 
 console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试）与写超时（结果待核对、禁止盲目重发）'
-  + '彼此可辨，切页只取消读不取消写，401 仍清会话，默认预算读 15s / 写 45s');
+  + '彼此可辨，切页只取消读不取消写，401 仍清会话，默认预算读 15s / 写 45s，'
+  + '且截止时间与取消管到正文本身（慢正文按读超时、正文期切页按已取消、正文期丢答复的写按待核对）');
 
 // ㉓ DL-KB-02/03/04 · 知识与提示词库。这一块要证明的不是"页面存在"：搜索是主入口、类目词表
 // 来自读回、列表不带正文/哈希/路径、详情按需读回、新增与修订都是真实 POST 且一次点击只发一次、
