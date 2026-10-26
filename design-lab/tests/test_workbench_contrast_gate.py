@@ -127,7 +127,11 @@ def _run_gate_once(env_extra):
 
     evidence = _evidence_dir()
     evidence.mkdir(parents=True, exist_ok=True)
-    report_path = evidence / 'workbench-contrast-gate.json'
+    # The path handed back to the caller has to be the path the child was told to write. It used to
+    # be the baseline name regardless of CT_OUT, so a caller trusting the returned path could read
+    # another run's receipt than the one its own invocation produced.
+    report_path = evidence / Path(env_extra.get('CT_OUT')
+                                  or 'workbench-contrast-gate.json').name
 
     with patch.dict(os.environ, {'PROJECT_LOCAL_ROOT': str(root / '.project-local')}):
         service = ProjectService(str(root))
@@ -146,6 +150,19 @@ def _run_gate_once(env_extra):
                 'CT_STRICT': '1',
                 'CT_OUT': str(report_path),
                 'CT_REFUSAL_WORDS': json.dumps(refusal_prefixes(), ensure_ascii=False),
+                # Identity of THIS run, written into the receipt. CI uploads the whole evidence
+                # directory, so a receipt whose palette and enforce-mode cannot be recovered from
+                # its own bytes is a receipt that can be archived by accident -- which is what the
+                # owner audit of 2026-10-26 found (finding 6). Derived from what this invocation
+                # actually asked for, and spelled out rather than inherited: an ambient
+                # CT_SPEC_ENFORCE in the runner's environment must not decide what a "baseline"
+                # run enforced, and a themed run must not be labelled design-lab.
+                'CT_RUN_PALETTE': str(env_extra.get('UI_PALETTE') or 'design-lab'),
+                'CT_RUN_SCHEME': str(env_extra.get('UI_SCHEME') or 'dark'),
+                'CT_SPEC_ENFORCE': str(env_extra.get('CT_SPEC_ENFORCE') or '0'),
+                'CT_GIT_SHA': subprocess.run(
+                    ['git', 'rev-parse', 'HEAD'], cwd=str(ROOT), capture_output=True,
+                    text=True).stdout.strip(),
                 **env_extra,
             }
             # One log per report, named after the report this run actually writes. Sharing one
@@ -184,6 +201,67 @@ def refusal_prefixes():
     source = (ROOT / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
     found = set(re.findall(r"textContent = [`'\"](未[一-鿿]{1,6})：", source))
     return sorted(found)
+
+
+def _balanced(text):
+    """The substring from a leading '{' through its matching '}', quote-aware.
+
+    Used to read the argument literals of this module's own `_run_gate` calls out of its source.
+    A regex would stop at the first '}' inside an f-string or a nested dict, and the receipt names
+    are built with `_evidence_dir() / '...'`, so the scan has to track depth and string state the
+    way the parser does.
+    """
+    depth = 0
+    quote = None
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if quote:
+            if char == '\\':
+                index += 2
+                continue
+            if char == quote:
+                quote = None
+        elif char == '#':
+            index = text.find('\n', index)
+            if index == -1:
+                break
+            continue
+        elif char in "'\"":
+            quote = char
+        elif char == '{':
+            depth += 1
+        elif char == '}':
+            depth -= 1
+            if depth == 0:
+                return text[:index + 1]
+        index += 1
+    raise AssertionError('unbalanced braces in the scanned source')
+
+
+BASELINE_KEYS = {'UI_PALETTE', 'UI_SCHEME', 'CT_WIDTHS', 'CT_SPEC_ENFORCE'}
+
+
+def non_baseline_runs_without_a_name(source):
+    """The `_run_gate` calls in `source` that change the configuration but write the baseline file.
+
+    One function, because the guard and the plant that proves the guard have to agree on what the
+    rule IS -- two copies of the predicate would let the plant convict a rule the test does not
+    actually enforce.
+    """
+    found = []
+    for literal in _run_gate_call_literals(source):
+        keys = set(re.findall(r"'([A-Z_]+)':", literal))
+        if keys & BASELINE_KEYS and 'CT_OUT' not in keys:
+            found.append(sorted(keys))
+    return found
+
+
+def _run_gate_call_literals(source):
+    """Every dict literal passed to `_run_gate(` in this module's own source."""
+    for match in re.finditer(r'_run_gate\(\s*\{', source):
+        brace = source.index('{', match.start())
+        yield _balanced(source[brace:])
 
 
 def _summary(out):
@@ -263,6 +341,12 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         # is exactly where a real AA failure turned up the moment it started being measured.
         import json
         recorded = json.loads(report_path.read_text(encoding='utf-8'))
+        # A baseline receipt has to identify itself too, otherwise "the archive is clean" is a
+        # claim about an unknown configuration.
+        self.assertEqual((recorded.get('run') or {}).get('specEnforce'), False,
+                         'the baseline receipt does not state that it ran without pack-number '
+                         'enforcement, so a planted-red run could not be distinguished from it')
+        self.assertEqual((recorded.get('run') or {}).get('palette'), 'design-lab')
         wanted = ['%s:assistant+plan-detail' % w for w in WIDTHS.split(',')]
         wanted += ['%s:assistant+plan-compare' % w for w in WIDTHS.split(',')]
         wanted += ['%s:assistant+plan-feedback' % w for w in WIDTHS.split(',')]
@@ -446,11 +530,15 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         the shipped one), so the default palette still paints list rows on a translucent surface
         and the identical enforcement must go red there -- naming the pack sentence it enforces,
         not a generic failure. Run at one width: this is a red-proof, not a coverage sweep."""
-        code, out, _ = _run_gate({
+        code, out, red_path = _run_gate({
             'UI_PALETTE': 'design-lab',
             'UI_SCHEME': 'dark',
             'CT_WIDTHS': '1440',
             'CT_SPEC_ENFORCE': '1',
+            # A deliberate red is a measurement too, but it is not the baseline. Sharing the
+            # baseline filename meant the last writer -- this falsifier, which runs after the
+            # coverage cases in alphabetical order -- decided what CI archived.
+            'CT_OUT': str(_evidence_dir() / 'workbench-contrast-gate-enforce-red.json'),
         })
         self.assertNotEqual(code, 0,
                             'the pack-number enforcement passed on a theme whose list rows are '
@@ -469,6 +557,50 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         self.assertEqual(spec.get('below12'), '0',
                         'the 12px floor was only fixed for one palette, so the default theme '
                         'still ships 11px metadata: %s' % spec)
+        # The separation is asserted, not assumed.
+        self.assertTrue(red_path.is_file(), 'the falsification run wrote no receipt of its own')
+        self.assertEqual(red_path.name, 'workbench-contrast-gate-enforce-red.json')
+        red_report = json.loads(red_path.read_text(encoding='utf-8'))
+        self.assertEqual((red_report.get('run') or {}).get('specEnforce'), True,
+                         'the planted-red receipt does not say it enforced the pack numbers, so '
+                         'its own bytes cannot tell it apart from a baseline run')
+        self.assertEqual((red_report.get('run') or {}).get('widths'), '1440')
+
+    def test_a_run_that_is_not_the_baseline_has_to_name_its_own_receipt(self):
+        """The overwrite is only fixed until someone writes the next one, so the rule is graded on
+        this file's own source: any gate invocation that changes the configuration -- a theme, a
+        width list, or pack-number enforcement -- produces a receipt that is NOT the baseline and
+        must therefore say so in its filename. Static, so it costs no browser.
+
+        The defect the owner audit found was exactly this shape: a falsifier that enforced the pack
+        numbers wrote over the passing run, and CI archives the whole evidence directory, so the
+        artefact a reader trusted could be the deliberate red.
+        """
+        source = Path(__file__).read_text(encoding='utf-8')
+        self.assertEqual(non_baseline_runs_without_a_name(source), [],
+                         'these gate runs differ from the baseline configuration but write the '
+                         'baseline filename, so the last of them decides what CI archives: %s'
+                         % non_baseline_runs_without_a_name(source))
+
+    def test_the_naming_rule_can_actually_catch_the_collision(self):
+        """A guard that cannot fail guards nothing: drop the falsifier's own filename from a copy
+        of this file and the rule has to convict it."""
+        source = Path(__file__).read_text(encoding='utf-8')
+        blinded = source.replace(
+            "            'CT_OUT': str(_evidence_dir() / 'workbench-contrast-gate-enforce-red.json'),\n",
+            '')
+        self.assertNotEqual(blinded, source,
+                            'the plant did not move the bytes, so this test says nothing about '
+                            'the guard')
+        offenders = non_baseline_runs_without_a_name(blinded)
+        self.assertEqual(len(offenders), 1,
+                         'the blinded copy was not convicted -- or several runs were -- so the '
+                         'rule above does not describe the collision it exists to prevent: %s'
+                         % offenders)
+        self.assertEqual(offenders[0],
+                         sorted(BASELINE_KEYS | {'UI_PALETTE'}),
+                         'the convicted run is not the pack-number falsifier, so the plant missed '
+                         'its target: %s' % offenders)
 
     def test_contrast_maths_reference_table_is_satisfied(self):
         """The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio()
@@ -1127,6 +1259,16 @@ def adjacency_offenders(rows, limit=24):
         elif (row.get('dy') or 0) > limit:
             bad.append('%s: %spx from #%s' % (row.get('key'), row.get('dy'),
                                               row.get('dataFor')))
+        # The knowledge walker also records the two shapes that only that form's layout can break.
+        # Absent keys (the assistant family) are not graded here, so this cannot convict a family
+        # that never claimed the rule.
+        elif row.get('insideRow') is False:
+            bad.append('%s: the refusal of #%s is not inside that field\'s own .field-row, so in '
+                       'the two-column form it paints beside an unrelated field'
+                       % (row.get('key'), row.get('dataFor')))
+        elif row.get('labelNamed') is False:
+            bad.append('%s: the refusal of #%s does not repeat that field\'s label word「%s」'
+                       % (row.get('key'), row.get('dataFor'), row.get('labelWord', '')))
     return bad
 
 
@@ -1166,11 +1308,27 @@ class FieldRefusalsLandOnTheFieldTheyName(unittest.TestCase):
                          'named=%s namedAdjacent=%s: a refusal that says which field it is about '
                          'is not sitting on that field' % (spec.get('errorNamed'),
                                                            spec.get('errorNamedAdjacent')))
-        self.assertGreater(spec.get('errors', 0), spec.get('errorNamed', 0),
-                           'errors=%s equals the named count, so the compound messages that are '
-                           'not yet adjacent have left the measured population -- that is a '
-                           'narrowing, not a fix (their distance is in errorFarExamples)'
-                           % spec.get('errors'))
+        # This is where the suite used to assert `errors > errorNamed`. That clause demanded that
+        # unnamed compound messages KEEP existing, so fixing them into per-field lines would have
+        # turned this gate red -- the owner audit of 2026-10-26 (finding 5) named exactly that as a
+        # defect of the tests. What has to be guarded is the population shrinking, not the defect
+        # persisting: every provoked per-field case must appear among the named messages, and the
+        # named ones must be a subset of everything measured.
+        self.assertGreaterEqual(spec.get('errorNamed', 0), len(seen),
+                                'errorNamed=%s is below the %s refusal(s) this run provoked, so '
+                                'the painted population no longer contains what the walk made '
+                                'visible' % (spec.get('errorNamed'), len(seen)))
+        self.assertGreaterEqual(spec.get('errors', 0), spec.get('errorNamed', 0),
+                                'errors=%s is below named=%s: the named subset is no longer a '
+                                'subset of what was counted, so the denominator moved'
+                                % (spec.get('errors'), spec.get('errorNamed')))
+        knowledge_named = [row for row in seen if ':knowledge' in row.get('key', '')]
+        self.assertGreaterEqual(len(knowledge_named), 3,
+                                'only %s per-field knowledge refusal(s) were provoked, so the '
+                                'compound 「标题、一句话用途和正文都必须填写」 sentence has not been '
+                                'fully replaced on the painted document' % len(knowledge_named))
+        self.assertEqual(adjacency_offenders(knowledge_named), [],
+                         'these per-field knowledge refusals did not land on the field they name')
         for family in (':assistant+refusal', ':knowledge+refusal'):
             self.assertTrue([k for k in proved if k.endswith(family)],
                             'no run provoked the %s family, so 「错误紧邻字段」 is being graded on '
@@ -1231,6 +1389,9 @@ class FieldRefusalsLandOnTheFieldTheyName(unittest.TestCase):
         self.assertIn('walkFieldRefusals', script,
                       'a single provoked state cannot grade a rule that is about one field per '
                       'message')
+        self.assertIn('walkKnowledgeFieldRefusals', script,
+                      'the knowledge form is no longer walked on the painted document, so its '
+                      'per-field refusals are only proved in the DOM harness')
 
     def test_the_rule_convicts_a_row_that_is_far_from_its_field(self):
         near = {'key': 'x#case1', 'shown': True, 'dataFor': 'as-author',
@@ -1247,6 +1408,21 @@ class FieldRefusalsLandOnTheFieldTheyName(unittest.TestCase):
         orphan = dict(near, referentExists=False)
         self.assertTrue(adjacency_offenders([orphan]),
                         'a data-for pointing at a missing id is not convicted')
+        # The two shapes only the knowledge form's two-column layout can break. A near row carries
+        # neither key, which is what an assistant-family case looks like -- so these clauses must
+        # not convict it, and must convict the planted one.
+        self.assertEqual(adjacency_offenders([dict(near, insideRow=True, labelNamed=True)]), [],
+                         'a refusal that is inside its field\'s row and repeats its label word is '
+                         'convicted anyway, so the clause is not measuring what it claims')
+        beside = adjacency_offenders([dict(near, dataFor='kb-new-body', insideRow=False)])
+        self.assertEqual(len(beside), 1,
+                         'a refusal painted in the next COLUMN of a two-column form, rather than '
+                         'under its own field, is not convicted: %s' % beside)
+        nameless = adjacency_offenders([dict(near, dataFor='kb-new-title', insideRow=True,
+                                             labelNamed=False, labelWord='标题')])
+        self.assertEqual(len(nameless), 1,
+                         'a refusal that never says which field it blocks, while claiming to be '
+                         'that field\'s, is not convicted: %s' % nameless)
 
 
 if __name__ == '__main__':

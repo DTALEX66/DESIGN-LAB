@@ -1164,6 +1164,86 @@ async function walkFieldRefusals(page, key, problems, sink) {
   }
 }
 
+async function walkKnowledgeFieldRefusals(page, key, problems, sink) {
+  // The create form used to answer every empty field with ONE compound sentence
+  // -- 「标题、一句话用途和正文都必须填写」 -- written at the foot of the panel, so filling two of
+  // the three fields returned the identical words and no message was next to anything. It now
+  // writes one line per field, inside that field's own `.field-row`. This is the painted-document
+  // half of that claim: the DOM harness can only prove the tree, the browser proves the pixels.
+  await page.evaluate(() => {
+    const button = document.getElementById('kb-new');
+    if (button) button.click();
+  });
+  const opened = await page.waitForSelector('#kb-form .primary-btn',
+    { timeout: 10000 }).then(() => true).catch(() => false);
+  if (!opened) {
+    problems.push(`${key}: 新增条目表单没有出现（#kb-form .primary-btn），所以按字段的本地拒绝无从测量`);
+    return;
+  }
+  await page.click('#kb-form .primary-btn');
+  const lines = await page.evaluate(() => Array.from(
+    document.querySelectorAll('#kb-form p.error[data-for]')).map((err) => {
+    const named = err.getAttribute('data-for') || '';
+    const field = document.getElementById(named);
+    const cs = getComputedStyle(err);
+    const eb = err.getBoundingClientRect();
+    const row = field ? field.closest('.field-row') : null;
+    const label = row ? row.querySelector('.field-label') : null;
+    const word = label ? (label.textContent || '').replace(/（[^）]*）/g, '').trim() : '';
+    let dy = null;
+    if (field) {
+      const fb = field.getBoundingClientRect();
+      dy = Math.round(Math.min(Math.abs(eb.top - fb.bottom), Math.abs(fb.top - eb.bottom)));
+    }
+    return {
+      shown: true,
+      painted: cs.display !== 'none' && cs.visibility !== 'hidden'
+        && eb.width > 0 && eb.height > 0,
+      dataFor: named,
+      referentExists: !!field,
+      dy,
+      // The two-column form makes "the next node after the row" a different COLUMN, so the line
+      // has to sit inside the row it belongs to -- that is what puts it under the box.
+      insideRow: !!row && row === err.parentNode,
+      labelNamed: !!word && (err.textContent || '').includes(word),
+      labelWord: word,
+      text: (err.textContent || '').trim().slice(0, 36),
+    };
+  }));
+  if (!lines.length) {
+    problems.push(`${key}: 空白的新增表单提交后一条按字段的拒绝都没有出现，所以第 5 条的修正没有上屏`);
+    return;
+  }
+  lines.forEach((line, index) => {
+    const label = `${key}#case${index + 1}`;
+    sink.push({ key: label, ...line });
+    if (!line.dataFor) {
+      problems.push(`${label}: "${line.text}" names no field (no data-for)`);
+      return;
+    }
+    if (!line.referentExists) {
+      problems.push(`${label}: data-for points at #${line.dataFor}, which is not in the document`);
+      return;
+    }
+    if (!line.painted) {
+      problems.push(`${label}: the refusal of #${line.dataFor} is not painted`);
+      return;
+    }
+    if (!line.insideRow) {
+      problems.push(`${label}: the refusal of #${line.dataFor} is not inside that field's own `
+        + '.field-row, so in a two-column form it paints beside an unrelated field');
+    }
+    if (!line.labelNamed) {
+      problems.push(`${label}: the refusal of #${line.dataFor} does not contain that field's own `
+        + `label word「${line.labelWord}」, so the message and the box are linked only by position`);
+    }
+    if (line.dy > 24) {
+      problems.push(`${label}: the refusal sits ${line.dy}px from #${line.dataFor}, and the pack `
+        + 'asks for the message next to the field (<=24px)');
+    }
+  });
+}
+
 async function openPlanCompare(page, key, problems) {
   await page.evaluate(() => {
     const details = document.getElementById('as-compare');
@@ -1525,6 +1605,12 @@ for (const w of widths) {
       const refused = await openRefusalState(page, `${w}:knowledge+refusal`,
         '#kb-form [role=status]', '#kb-new-title', '#kb-form .primary-btn');
       if (refused) absorb(`${w}:knowledge+refusal`, await measureBoth(page));
+      // The per-field half of 「错误紧邻字段」 , graded on the painted document rather than the DOM:
+      // one line per empty field, inside that field's own row, within the pack's distance.
+      // Reference width only -- the reading is a distance inside one form, and a wider viewport
+      // moves the whole block without changing the gap.
+      if (String(w) === '1440')
+        await walkKnowledgeFieldRefusals(page, `${w}:knowledge`, adjacencyBad, adjacencySeen);
       // Same rule for the entry detail: it is a named state of its own, and a panel that never
       // settled lands in the miss list the wrapper asserts to zero rather than being skipped.
       const opened = await openKnowledgeDetail(page, `${w}:knowledge+entry-detail`, controlBad);
@@ -1677,10 +1763,27 @@ await browser.close();
 // The merged spec numbers belong in the receipt, not only in the log: whoever holds the JSON has
 // to be able to see which pack numbers this run measured. Assigned before the write, so the file
 // and the printed CT_SPEC lines come from one accumulation.
+// Identity of THIS run, recorded before the report is archived anywhere. The gate exits non-zero
+// for several reasons after this write, so a reader must be able to tell a baseline pass from a
+// planted red without the log that surrounded it.
+report.run = {
+  palette: process.env.CT_RUN_PALETTE || 'design-lab',
+  scheme: process.env.CT_RUN_SCHEME || 'dark',
+  widths: process.env.CT_WIDTHS || '',
+  strict: process.env.CT_STRICT === '1',
+  specEnforce: process.env.CT_SPEC_ENFORCE === '1',
+  gitSha: process.env.CT_GIT_SHA || 'unknown',
+  productFails: failTotal,
+  plantedControls: controlsExpected,
+  note: 'configuration of this single run; a falsification run and a baseline run are separate '
+    + 'files whose fields differ, so neither can stand in for the other',
+};
 report.refusals = {proved: refusalProved, absent: refusalAbsent};
 report.refusalAdjacency = {seen: adjacencySeen, bad: adjacencyBad,
-  note: 'each case is one of the assistant form\'s own local validations: the refusal it printed, '
-    + 'the field it named through data-for, and the measured gap between the two'};
+  note: 'two families, both provoked by empty submits: the assistant form\'s own local validations '
+    + 'and the knowledge create form\'s per-field refusals. Each case records the field the refusal '
+    + 'names through data-for, whether the line is inside that field\'s own row, whether it repeats '
+    + 'that field\'s label word, and the measured gap between the two'};
 report.spec = { ...specTotals, sizes: specSizes, heights: specHeights, radii: specRadii,
   glass: specGlass, glassAllowed: GLASS_ALLOWED, glassOffAllowlist: glassOffList(),
   below12Examples: specBelow12Examples, veilExamples: specVeilExamples,
@@ -1794,7 +1897,10 @@ console.log(`CT_ADJACENCY cases=${adjacencySeen.length} bad=${adjacencyBad.lengt
   + `named=${JSON.stringify(adjacencySeen.map((s) => s.dataFor))} `
   + `dy=${JSON.stringify(adjacencySeen.map((s) => s.dy))}`);
 for (const bad of adjacencyBad) console.log(`  ADJACENCY-MISSED ${bad}`);
-if (adjacencySeen.length < 3) {
+if (adjacencySeen.length < 6) {
+  // Three assistant validations plus at least three per-field knowledge refusals. The floor went
+  // from 3 to 6 with the second family, so a run that silently lost the knowledge form cannot read
+  // as "still enough cases to grade the rule".
   console.error(`CT_FAIL: only ${adjacencySeen.length} field refusal(s) were provoked, so `
     + '「错误紧邻字段」 is being graded on nearly nothing');
   process.exit(1);
