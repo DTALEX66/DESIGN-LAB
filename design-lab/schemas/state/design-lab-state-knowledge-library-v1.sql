@@ -95,6 +95,19 @@ BEGIN
   SELECT RAISE(ABORT, 'knowledge_entry is append-only');
 END;
 
+CREATE TRIGGER IF NOT EXISTS knowledge_entry_one_successor
+BEFORE INSERT ON knowledge_entry
+WHEN NEW.supersedes IS NOT NULL
+BEGIN
+  -- One entry may be replaced by at most one entry. The routes check this before writing, but a
+  -- check that reads before it writes is only a likelihood: two writers can both see "no
+  -- successor yet". This trigger is what makes it a guarantee, and it covers any writer that
+  -- forgets the application check. It fires only on new rows, so a library that already holds a
+  -- fork from before this rule stays readable instead of refusing to open.
+  SELECT RAISE(ABORT, 'knowledge entry may have at most one successor')
+  WHERE EXISTS (SELECT 1 FROM knowledge_entry WHERE supersedes = NEW.supersedes);
+END;
+
 CREATE TRIGGER IF NOT EXISTS knowledge_entry_revision_no_update
 BEFORE UPDATE ON knowledge_entry_revision
 BEGIN

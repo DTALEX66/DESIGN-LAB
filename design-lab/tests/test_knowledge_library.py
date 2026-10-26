@@ -35,10 +35,13 @@ here against the same constant the docs quote.
 from __future__ import annotations
 
 import os
+import sqlite3
+import threading
 import time
 import sys
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 from pathlib import Path
 
@@ -472,6 +475,143 @@ class KnowledgeLibraryTests(unittest.TestCase):
         self.assertEqual(revised['body'], detail['current']['body'])
         self.assertEqual(revised['content_sha256'], detail['current']['content_sha256'])
         self.assertLessEqual(1, len(detail['revisions']))
+
+
+class SupersessionForkIsRefused(unittest.TestCase):
+    """One entry may have at most one successor, and the route that wrote the fork is the point.
+
+    `create` had refused a second successor for as long as the feature existed. `import_entry`
+    validated that `supersedes` was well-formed and that the entry existed, then inserted without
+    asking whether something already replaced it -- so the exact fork the UI blocked was one
+    import away, and the read side picked one of the two rows with `dict.setdefault` over an
+    unordered scan. Owner audit 2026-10-26, finding 2. The acceptance is that both routes refuse
+    in the same words, that the refusal survives a restart, that a concurrent writer cannot slip
+    between the check and the insert, and that the database itself -- not only the Python -- holds
+    the rule.
+    """
+
+    def setUp(self):
+        os.environ.pop('PROJECT_LOCAL_ROOT', None)
+        self.base = Path(tempfile.mkdtemp(dir=REPO / '.project-local' / 'task-runtime'))
+        self.project = self.base / 'project'
+        self.project.mkdir()
+        (self.project / 'AGENTS.md').write_text('# supersession fixture', encoding='utf-8')
+        self.service = ProjectService(self.project)
+        self.service.create_project('Supersession')
+        self.library = KnowledgeLibrary(self.service)
+
+    def import_body(self, **overrides):
+        body = {key: value for key, value in entry().items() if key != 'created_by'}
+        body['imported_by'] = 'owner'
+        body.update(overrides)
+        return body
+
+    def successors_of(self, conn, entry_id):
+        return [row['entry_id'] for row in conn.execute(
+            'SELECT entry_id FROM knowledge_entry WHERE supersedes=?', (entry_id,))]
+
+    def test_the_import_route_refuses_the_fork_the_create_route_already_refused(self):
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        self.library.create(entry(supersedes=first))['entry']['knowledge_entry_id']
+        with self.assertRaises(KnowledgeLibraryError) as caught:
+            self.library.import_entry(self.import_body(
+                source=dict(SOURCE, sourceId='other-note', version='1'), supersedes=first))
+        self.assertEqual(409, caught.exception.status,
+                         'the import answered a different status than the create would have')
+        self.assertEqual('KNOWLEDGE_SUPERSESSION_CONFLICT', caught.exception.code,
+                         'the two routes refused with different words for the same rule, so a '
+                         'caller cannot tell a fork from any other import failure')
+        self.assertIn(first, caught.exception.detail,
+                      'the refusal does not name the entry that is already replaced')
+
+    def test_the_refusal_names_the_existing_successor_not_just_the_conflict(self):
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        successor = self.library.create(entry(supersedes=first))['entry']['knowledge_entry_id']
+        with self.assertRaises(KnowledgeLibraryError) as caught:
+            self.library.create(entry(supersedes=first))
+        self.assertIn(successor, caught.exception.detail,
+                      'the operator is told that a successor exists but not which one, so the '
+                      'only way to find it is to guess')
+
+    def test_the_fork_is_still_one_row_after_the_store_is_reopened(self):
+        """Restart read-back: the refusal must not have half-written anything."""
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        kept = self.library.create(entry(supersedes=first))['entry']['knowledge_entry_id']
+        with self.assertRaises(KnowledgeLibraryError):
+            self.library.import_entry(self.import_body(
+                source=dict(SOURCE, sourceId='late-note', version='1'), supersedes=first))
+        reopened = KnowledgeLibrary(self.service)
+        conn = reopened._connect()
+        try:
+            self.assertEqual([kept], self.successors_of(conn, first),
+                             'the refused import left a second successor row behind')
+            revision_rows = conn.execute(
+                'SELECT COUNT(*) FROM knowledge_entry_revision WHERE entry_id IN'
+                ' (SELECT entry_id FROM knowledge_entry WHERE supersedes=?)', (first,)).fetchone()[0]
+            self.assertEqual(1, revision_rows,
+                             'the refused transaction left revision bytes behind, so the library '
+                             'holds content for an entry row that was never accepted')
+        finally:
+            conn.close()
+        detail = reopened.detail(first)
+        self.assertEqual(kept, detail['superseded_by'],
+                         'the read side is still choosing between two rows')
+
+    def test_the_database_itself_refuses_a_writer_that_skips_the_application_check(self):
+        """The rule lives in the schema, not only in the two routes I remembered to fix.
+
+        A future route that inserts straight into `knowledge_entry` gets the trigger, so "both
+        callers now share the guard" is not the whole guarantee.
+        """
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        self.library.create(entry(supersedes=first))
+        conn = self.library._connect()
+        try:
+            with self.assertRaises(sqlite3.IntegrityError) as caught:
+                conn.execute('INSERT INTO knowledge_entry (entry_id, supersedes, created_at,'
+                             ' created_by) VALUES (?,?,?,?)',
+                             ('kentry' + '0' * 40, first, '2026-10-26T00:00:00Z', 'raw writer'))
+            self.assertIn('at most one successor', str(caught.exception))
+        finally:
+            conn.close()
+
+    def test_two_writers_cannot_both_become_the_successor(self):
+        """Concurrency: the guard reads, then the insert writes -- the window is the defect.
+
+        Both attempts use different routes and different sources, so a fix that only closed the
+        import path (or only ran the check outside the lock) cannot pass this.
+        """
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        barrier = threading.Barrier(2)
+
+        def via_create():
+            barrier.wait()
+            try:
+                self.library.create(entry(supersedes=first))
+                return 'wrote'
+            except KnowledgeLibraryError as exc:
+                return exc.code
+
+        def via_import():
+            barrier.wait()
+            try:
+                self.library.import_entry(self.import_body(
+                    source=dict(SOURCE, sourceId='racer', version='1'), supersedes=first))
+                return 'wrote'
+            except KnowledgeLibraryError as exc:
+                return exc.code
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            outcomes = sorted(f.result() for f in
+                              (pool.submit(via_create), pool.submit(via_import)))
+        self.assertEqual(['KNOWLEDGE_SUPERSESSION_CONFLICT', 'wrote'], outcomes,
+                         'both writers got through, or the loser was refused for the wrong reason:'
+                         ' %s' % outcomes)
+        conn = self.library._connect()
+        try:
+            self.assertEqual(1, len(self.successors_of(conn, first)))
+        finally:
+            conn.close()
 
 
 if __name__ == '__main__':

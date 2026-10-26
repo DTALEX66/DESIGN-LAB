@@ -33,7 +33,7 @@ and the terms found in them, computed from the stored bytes of the row being ret
 """
 from __future__ import annotations
 
-from contextlib import closing
+from contextlib import closing, contextmanager
 import hashlib
 import json
 import re
@@ -401,7 +401,13 @@ def _statuses(conn):
     """
     superseded_by = {}
     for row in conn.execute(
-            'SELECT entry_id, supersedes FROM knowledge_entry WHERE supersedes IS NOT NULL'):
+            'SELECT entry_id, supersedes FROM knowledge_entry WHERE supersedes IS NOT NULL'
+            ' ORDER BY created_at, entry_id'):
+        # Ordered, because `setdefault` keeps the first row it sees and an unordered scan makes
+        # "which successor is current" depend on SQLite's mood. The trigger in the state schema now
+        # refuses a second successor, so no library written from here on can fork a chain; a
+        # library that already holds one from before stays readable and now reports the same
+        # successor on every read instead of an arbitrary one.
         superseded_by.setdefault(row['supersedes'], row['entry_id'])
     recommended = {row['entry_id']: row['top'] for row in conn.execute(
         'SELECT entry_id, MAX(revision) AS top FROM knowledge_entry_revision'
@@ -483,6 +489,36 @@ def _readings(conn):
     return documents, unreadable
 
 
+def _supersedes_guard(conn, supersedes):
+    """The whole rule about `supersedes`, asked the same way by every route that can start a chain.
+
+    `create` refused a second successor; `import_entry` validated the shape and the existence but
+    never asked whether the entry was already replaced, so the fork the UI blocked was writable
+    through the import route (owner audit 2026-10-26, finding 2). One function now, so the two
+    routes cannot drift apart again, and the same words whichever one refused you.
+    """
+    if supersedes is None:
+        return
+    if not isinstance(supersedes, str) or _ID.match(supersedes) is None:
+        raise KnowledgeLibraryError(400, 'KNOWLEDGE_SUPERSEDES_MALFORMED',
+                                    'supersedes must be a knowledge entry id or null')
+    if conn.execute('SELECT 1 FROM knowledge_entry WHERE entry_id=?',
+                    (supersedes,)).fetchone() is None:
+        raise KnowledgeLibraryError(
+            404, 'KNOWLEDGE_SUPERSEDES_UNKNOWN',
+            f'{supersedes} is not an entry in this library, so nothing can replace it')
+    taken = [row['entry_id'] for row in conn.execute(
+        'SELECT entry_id FROM knowledge_entry WHERE supersedes=? ORDER BY created_at, entry_id',
+        (supersedes,))]
+    if taken:
+        raise KnowledgeLibraryError(
+            409, 'KNOWLEDGE_SUPERSESSION_CONFLICT',
+            f'{supersedes} is already superseded by {", ".join(taken[:3])}'
+            + f'{", …" if len(taken) > 3 else ""}; two rows replacing one entry would make '
+            '"which one is current" unanswerable. Revise the successor instead of adding a '
+            'second one beside it')
+
+
 class KnowledgeLibrary:
     def __init__(self, service):
         self.service = service
@@ -491,6 +527,25 @@ class KnowledgeLibrary:
     def _connect(self):
         return connect(self.paths.database_path(self.service.database),
                        project_root=self.paths.project_root)
+
+    @contextmanager
+    def _write_transaction(self, conn):
+        """Take the write lock BEFORE the caller reads, because every guard here is read-then-write.
+
+        With the default deferred transaction, two writers can both run `_supersedes_guard`, both
+        see no successor, and both insert. BEGIN IMMEDIATE serialises them, so the loser waits
+        (15 s busy timeout) and then sees the winner's row. The trigger in the state schema is
+        still what protects a writer that never calls this.
+        """
+        conn.execute('BEGIN IMMEDIATE')
+        try:
+            yield
+        finally:
+            if conn.in_transaction:
+                # Only reached on a path that returned without committing -- the duplicate-import
+                # read. Nothing was written, but holding the lock until the connection closes would
+                # stall every other writer for nothing.
+                conn.rollback()
 
     # -- the one writer -----------------------------------------------------------
 
@@ -518,6 +573,27 @@ class KnowledgeLibrary:
             ' targets) VALUES (?,?,?,?,?,?,?)', _fts_row(document))
         return document
 
+    def _insert_entry_row(self, conn, entry_id, supersedes, created_by):
+        """INSERT the entry row, and give a losing racer the same refusal the guard gives.
+
+        The state schema's `knowledge_entry_one_successor` trigger is the last line of defence
+        against a fork. When it fires, the writer that lost the race must not surface a bare
+        sqlite3.IntegrityError as a 500: it is being told the same thing `_supersedes_guard` would
+        have told it, one moment too late.
+        """
+        try:
+            conn.execute(
+                'INSERT INTO knowledge_entry (entry_id, supersedes, created_at, created_by)'
+                ' VALUES (?,?,?,?)', (entry_id, supersedes, _now(), created_by))
+        except sqlite3.IntegrityError as exc:
+            if 'at most one successor' in str(exc):
+                raise KnowledgeLibraryError(
+                    409, 'KNOWLEDGE_SUPERSESSION_CONFLICT',
+                    f'{supersedes} is already superseded by another entry; two rows replacing one '
+                    'entry would make "which one is current" unanswerable. Revise the successor '
+                    'instead of adding a second one beside it') from None
+            raise
+
     def create(self, value) -> dict:
         fields = _fields(value, for_revision=False)
         created_by = _text(value['created_by'], 'created_by')
@@ -529,27 +605,12 @@ class KnowledgeLibrary:
         supersedes = value['supersedes']
         entry_id = 'kentry-' + uuid.uuid4().hex
         with closing(self._connect()) as conn:
-            if supersedes is not None:
-                if not isinstance(supersedes, str) or _ID.match(supersedes) is None:
-                    raise KnowledgeLibraryError(400, 'KNOWLEDGE_SUPERSEDES_MALFORMED',
-                                                'supersedes must be a knowledge entry id or null')
-                if conn.execute('SELECT 1 FROM knowledge_entry WHERE entry_id=?',
-                                (supersedes,)).fetchone() is None:
-                    raise KnowledgeLibraryError(
-                        404, 'KNOWLEDGE_SUPERSEDES_UNKNOWN',
-                        f'{supersedes} is not an entry in this library, so nothing can replace it')
-                if conn.execute('SELECT 1 FROM knowledge_entry WHERE supersedes=?',
-                                (supersedes,)).fetchone() is not None:
-                    raise KnowledgeLibraryError(
-                        409, 'KNOWLEDGE_SUPERSESSION_CONFLICT',
-                        f'{supersedes} is already superseded by another entry; two rows replacing '
-                        'one entry would make "which one is current" unanswerable')
-            conn.execute(
-                'INSERT INTO knowledge_entry (entry_id, supersedes, created_at, created_by)'
-                ' VALUES (?,?,?,?)', (entry_id, supersedes, _now(), created_by))
-            document = self._write_revision(conn, entry_id, 1, fields, created_by=created_by,
-                                            supersedes=supersedes)
-            conn.commit()
+            with self._write_transaction(conn):
+                _supersedes_guard(conn, supersedes)
+                self._insert_entry_row(conn, entry_id, supersedes, created_by)
+                document = self._write_revision(conn, entry_id, 1, fields,
+                                                created_by=created_by, supersedes=supersedes)
+                conn.commit()
         return _check({'schemaVersion': WRITE_VERSION,
                        'status': 'KNOWLEDGE_ENTRY', 'stored': True, 'entry': document,
                        'revision': 1, 'claims_not_made': list(CLAIMS_NOT_MADE)},
@@ -645,20 +706,15 @@ class KnowledgeLibrary:
                     'claims_not_made': list(IMPORT_CLAIMS),
                 }, _IMPORT_SCHEMA_PATH, 'knowledge import', registry=_ref_registry())
             supersedes = value['supersedes']
-            if supersedes is not None and (
-                    not isinstance(supersedes, str) or _ID.match(supersedes) is None):
-                raise KnowledgeLibraryError(400, 'KNOWLEDGE_SUPERSEDES_MALFORMED',
-                                            'supersedes must be a knowledge entry id or null')
-            if supersedes is not None and conn.execute(
-                    'SELECT 1 FROM knowledge_entry WHERE entry_id=?', (supersedes,)).fetchone() is None:
-                raise KnowledgeLibraryError(404, 'KNOWLEDGE_SUPERSEDES_UNKNOWN',
-                                            f'{supersedes} is not an entry in this library')
-            conn.execute(
-                'INSERT INTO knowledge_entry (entry_id, supersedes, created_at, created_by)'
-                ' VALUES (?,?,?,?)', (entry_id, supersedes, _now(), imported_by))
-            document = self._write_revision(conn, entry_id, 1, fields, created_by=imported_by,
-                                            supersedes=supersedes)
-            conn.commit()
+            with self._write_transaction(conn):
+                # The same guard `create` runs, including the one it alone used to enforce: an
+                # import that named an already-superseded entry forked the chain the UI refused
+                # (owner audit 2026-10-26, finding 2).
+                _supersedes_guard(conn, supersedes)
+                self._insert_entry_row(conn, entry_id, supersedes, imported_by)
+                document = self._write_revision(conn, entry_id, 1, fields,
+                                                created_by=imported_by, supersedes=supersedes)
+                conn.commit()
         outcome = 'VERSIONED' if other_versions else 'CREATED'
         if outcome == 'VERSIONED':
             explanation = (
