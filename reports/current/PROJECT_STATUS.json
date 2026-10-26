@@ -8,28 +8,23 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-26T14:17:59+00:00",
+  "generatedAt": "2026-10-26T14:39:34+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "768f3fac7abdc6b7a0fbd20b3247272ad935bfaa",
+    "sha": "53cdc7eb5e8391b2796dff1bf1378e452f80dd32",
     "source_worktree_clean": false,
-    "tracked_files": 4010,
+    "tracked_files": 4011,
     "worktree_changes": [
       {
-        "content": "sha256:801ff703c48a68dc529278906c6acb59360d9e461f789bac3c5294ce1db43b06",
+        "content": "sha256:eb15490fa6fca47ed36c6bec4ed7a1231602a2531badfa19edf3e89d89a3760f",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:b8044a2e83aa9f78aa8b0cd08d9d1ebe4b8c52e078304d0f25c447e3d4e12c21",
+        "content": "sha256:18031c059eb876ba49da3b93879fd607aaddfb92b25f51d578e6d6ae94082424",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
-      },
-      {
-        "content": "sha256:669bf018bf0c537e270afacd9358b49bd9401ea5a2ea93a1e768a075119c1104",
-        "kind": "M",
-        "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
@@ -42,12 +37,12 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       },
       {
-        "content": "sha256:9b76ee3ce4fea106aa90f5f3e83dfa6cd02693c6d55072234347ba2738247e4a",
+        "content": "sha256:fcded1a2fd52279b5385f24783f5f364dbfa0dc14c4b5167a9f1ca94d79220ea",
         "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-exact-sha-ci-matrix-20261026.json"
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-ledger-artefact-must-be-tracked-20261026.json"
       }
     ],
-    "worktree_digest": "sha256:613e150c5212ed87088dd44422ddbc9190a2880232cd964a75b073da03a35a94"
+    "worktree_digest": "sha256:b399cdc541decd860ef2832d4ee528ea9491fc1a39febc7fdd3a7818875a59fc"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -63,7 +58,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "768f3fac7abdc6b7a0fbd20b3247272ad935bfaa",
+  "subjectSha": "53cdc7eb5e8391b2796dff1bf1378e452f80dd32",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -79,9 +74,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 3412,
+    "definedTestMethodCount": 3414,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:613e150c5212ed87088dd44422ddbc9190a2880232cd964a75b073da03a35a94"
+  "worktreeDigest": "sha256:b399cdc541decd860ef2832d4ee528ea9491fc1a39febc7fdd3a7818875a59fc"
 }

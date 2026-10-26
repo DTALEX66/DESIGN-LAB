@@ -3111,3 +3111,25 @@ DOM 那一侧同样不是在 Windows 上自说自话：`canonical-verify.yml:260
 状态码与 code 一致，差别只在后者少一个可操作信息。本轮**不在这趟推送里改产品字节**——§5.75 记的是
 已经过 CI 的那个 head，往里塞未验证的改动就是 §5.59 那次"引了变更之前的 SHA"的重演。
 下一刀：兜底路径补一次查询把后继写进 `detail`，并加一条真的抢锁输一次的用例。
+### 5.76 收口脚本自己造出的红：回执写进了账本，文件却没进提交
+
+**CI 是唯一的见证人，这本身就是缺陷。** run 40338742258（head `4dc59349`）红两个作业步骤，逐字是
+`VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=57 failures=1`、
+`ERROR: evidence-projection: NOTHING_TO_COMPARE … ROUTE_REFUSED /api/evidence-projection -> 500
+{'error': 'EVIDENCE_LEDGER_REJECTED', 'detail': ["[Errno 2] No such file or directory:
+'/home/runner/work/DESIGN-LAB/DESIGN-LAB/design-lab/evidence/current-execution/task-artifacts/
+kb-20261026/dl-final-t04-exact-sha-ci-matrix-20261026.json'"]}`、
+`CURRENT_EXECUTION=FAIL [Errno 2] …` 与 `VERIFY_DESIGN_LAB=FAIL total=77 failed=2`。
+
+**成因在工具，不在数据。** §5.75 那枚回执由收尾脚本与账本行同一次写出，但脚本暂存的是
+`git status` 里 ` M` 的路径——**新文件是 `??`**，于是账本行进仓、它指的文件留在工作树。
+本地永远看不出问题（文件就在盘上），干净 checkout 里它不存在。这条正是本仓闸门自己的读法：
+它们按账本重算 tracked 工件的摘要。修法三层：
+① 把 `??` 纳入收尾脚本的暂存集，并在推送前加一道"账本里每一条非 `.project-local` 工件必须
+在 git 索引里"的硬检查（本轮 316 条现数全在）；
+② 把这条检查落进测试：`test_evidence_artifact_presence` 新增两条——全量扫一遍账本、外加一枚
+植入（指一个不在索引里的工件路径必须被定罪，同时 `.project-local/**` 的豁免不许扩大成红）；
+③ 回执本身补提交在 `53cdc7eb`。**为什么不在本地先发现**：因为"存在"与"被交付"是两个不同的
+谓词，而我此前只测了前者。
+
+**本轮实测。** `Ran 7 tests in 5.662s OK`；聚合在最终字节上重跑见 §5.75 之后那一次推送的结论。
