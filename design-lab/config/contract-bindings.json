@@ -971,7 +971,7 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-library-readback-v1.schema.json",
       "version": "design-lab/knowledge-library/v1",
-      "emitter": "src/design_lab/knowledge_library.py:965",
+      "emitter": "src/design_lab/knowledge_library.py:1021",
       "reason": "DL-KB-02/04. The list is a search answer, not a table dump: a term of three characters or more is gated by the FTS5 trigram index, a shorter term or one the index answers with nothing runs the substring fallback, and `strategy` names the mechanisms that actually ran (BROWSE / TRIGRAM / SHORT_FALLBACK / MIXED). The canonical bytes still decide each row, so an index row left over from a superseded revision cannot resurrect a term the current revision dropped. Every row carries the fields and terms it matched computed from that row's own stored bytes, and an empty result carries `explanation` that says why it is empty instead of offering near-matches the search never made. Search lives on its own path so the collection path carries exactly one answer (POST creates); browsing is this route with no `q`. The route declares path_only so a present `?q=` reaches the handler rather than turning into a 404 -- the same declaration /api/task-preflight uses. `index` reports rows/indexed/rebuilt_at from the derived table, so a stale index is visible in the answer rather than assumed healthy. Refusals keep their codes: 400 KNOWLEDGE_TYPE_INVALID, KNOWLEDGE_FILTER_MALFORMED, KNOWLEDGE_OFFSET_INVALID, KNOWLEDGE_LIMIT_INVALID, KNOWLEDGE_QUERY_TOO_LONG (the declared MAX_QUERY bound is enforced rather than merely written down, so a pasted document cannot become an unbounded contains-scan over every stored revision)."
     },
     {
@@ -981,7 +981,7 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-entry-write-v1.schema.json",
       "version": "design-lab/knowledge-entry-write/v1",
-      "emitter": "src/design_lab/knowledge_library.py:553",
+      "emitter": "src/design_lab/knowledge_library.py:614",
       "reason": "DL-KB-02. The caller supplies inputs; the document is built and validated server-side (_document -> knowledge-entry-v1.schema.json) and the answer is the write envelope whose `entry` member is that stored document, not a re-built copy. `schemaVersion` is not one of the accepted request fields, so a stale client cannot choose the version the read path will have to understand. Every minimum field is present in the stored bytes: a field the caller left out is the literal UNKNOWN, never an omitted key. Refusals: 400 KNOWLEDGE_CONTENT_MISSING / KNOWLEDGE_TYPE_INVALID / KNOWLEDGE_AUTHOR_REQUIRED / KNOWLEDGE_FIELD_MALFORMED, 404 KNOWLEDGE_SUPERSEDES_UNKNOWN, 409 KNOWLEDGE_SUPERSESSION_CONFLICT, 409 KNOWLEDGE_ENTRY_CONCURRENT_UPDATE."
     },
     {
@@ -991,7 +991,7 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-entry-write-v1.schema.json",
       "version": "design-lab/knowledge-entry-write/v1",
-      "emitter": "src/design_lab/knowledge_library.py:588",
+      "emitter": "src/design_lab/knowledge_library.py:649",
       "reason": "DL-KB-02. A correction is a new revision: the previous row keeps its bytes and \"current\" is MAX(revision) at read time, because a mutable active pointer would be a second truth source. `expected_revision` is required, and a write prepared against a revision that has since moved answers 409 KNOWLEDGE_ENTRY_REVISION_CONFLICT naming the actual current revision instead of silently overwriting the other writer. An unknown id is 404 KNOWLEDGE_ENTRY_NOT_FOUND. The envelope is the same write contract as create, so one document shape has one schema."
     },
     {
@@ -1001,7 +1001,7 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-import-v1.schema.json",
       "version": "design-lab/knowledge-import/v1",
-      "emitter": "src/design_lab/knowledge_library.py:680",
+      "emitter": "src/design_lab/knowledge_library.py:736",
       "reason": "DL-KB-02. Import identity is sha256(sourceId + \"\\x00\" + version), so the same source and version land on the same entry id: re-importing identical bytes answers DUPLICATE with no write, the same version with different bytes answers 409 KNOWLEDGE_IMPORT_VERSION_CONFLICT, and a different version of the same source is kept beside the others as VERSIONED. A hand-created entry carrying the same source and version under a different id is reported as CREATED with an explanation that says the library now holds two records of that version -- calling it VERSIONED would claim a new version exists when one does not. source.verification stays UNVERIFIED: an import writes a record, it does not fetch or check the source."
     },
     {
@@ -1011,7 +1011,7 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-entry-readback-v1.schema.json",
       "version": "design-lab/knowledge-entry-readback/v1",
-      "emitter": "src/design_lab/knowledge_library.py:739",
+      "emitter": "src/design_lab/knowledge_library.py:795",
       "reason": "DL-KB-02, extended 2026-10-24 for DL-KB-05 D5. The detail read keeps three things separate that a single \"current\" field would blur: `latest_revision` (the newest bytes), `recommended_revision` (the revision a person last said to use) and `status` (ACTIVE or SUPERSEDED). A newer revision written with recommended:false makes the first two differ, and the answer renders the recommended document separately instead of pretending they agree. `revisions` lists every stored revision with its own digest and a `readable` flag, and `unreadable_count` counts rows whose JSON no longer parses rather than hiding them. `recommendation_basis` names which of the two possible owners decided `recommended_revision` (the flag written with the revision, or a later recorded judgement) so a reader can tell 'recommended when the bytes were written' from 'a person moved it back here later'; `recommendation_judgement` and `source_state` carry those recorded judgements and `judgements` is the whole trail. An unknown id is 404 KNOWLEDGE_ENTRY_NOT_FOUND.",
       "instances": [
         "design-lab/tests/test_knowledge_judgement.py"
@@ -1024,7 +1024,7 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-entry-readback-v1.schema.json",
       "version": "design-lab/knowledge-entry-readback/v1",
-      "emitter": "src/design_lab/knowledge_library.py:739",
+      "emitter": "src/design_lab/knowledge_library.py:795",
       "reason": "DL-KB-05 D5, added 2026-10-24. Recording a judgement is the only way the recommendation can move BACK: knowledge_entry_revision is append-only by trigger, so the flag written with a revision never changes, and a mutable pointer would be a second truth source. The answer is the same readback document the GET serves, so a caller sees the moved number rather than a receipt. `recorded_by_kind` must be 'HUMAN' with a named `recorded_by` (400 KNOWLEDGE_HUMAN_JUDGEMENT_REQUIRED) -- the owner ruling of 2026-10-21 keeps local acceptance human-only, so an agent cannot re-rank the library. A RECOMMENDATION must name a stored revision (404 KNOWLEDGE_JUDGEMENT_REVISION_REQUIRED) and a SOURCE_STATE that says INVALID must name a `replaced_by` entry (400 KNOWLEDGE_SOURCE_REPLACEMENT_REQUIRED); the field that does not belong to the kind is refused rather than ignored. `recorded_at` is stamped by the service, not accepted from the caller. Same body resent answers the same entry readback with one row written."
     },
     {
@@ -1034,7 +1034,7 @@
       "handler": "KnowledgeLibrary",
       "schema": "design-lab/schemas/knowledge-index-rebuild-v1.schema.json",
       "version": "design-lab/knowledge-index-rebuild/v1",
-      "emitter": "src/design_lab/knowledge_library.py:1066",
+      "emitter": "src/design_lab/knowledge_library.py:1122",
       "reason": "DL-KB-04. The rebuild is the index's proof of derivability: it deletes every FTS5 row and reconstructs them from knowledge_entry_revision, then answers with `indexed` (rows written during this rebuild) and `index` (the state the read routes will report from now on) as separate numbers, so a rebuild that indexed nothing is visible instead of reading as healthy. It never writes a canonical row -- an index that could change the entries would be a second truth source. The request body is an exact empty object: the route takes no parameter it would only pretend to honour."
     },
     {
