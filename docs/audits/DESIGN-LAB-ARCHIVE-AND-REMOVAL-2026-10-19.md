@@ -3019,9 +3019,10 @@ node 三套 `WORKBENCH SMOKE: all checks passed` / `APPSHELL REGRESSION: all che
 `HEAD=022c5a9b`。
 
 **仍未做完的（不作完成声明）。** 第 7 条前半（兼容 Python API 的会话关联响应与持久化来源是否 UI/HTTP
-可达）本轮只完成定位、未见结论；第 7 条后半的**容量**两项：本轮现数 `src/design_lab/http_service.py`
-里有 **17 个 `_list_*` 处理器**，其中哪几个真正无界、以及各被界面调用几次，读数在 §5.71
-那一节里（本轮没有重测那份逐路由计数，故不在此复述为"本轮实测"）；原图读取同样是容量风险。
+可达）本轮只完成定位、未见结论（这一句由 §5.74 取代）；第 7 条后半的**容量**两项：本轮现数 `src/design_lab/http_service.py`
+里有 **17 个 `_list_*` 处理器**，其中哪几个真正无界、以及各被界面调用几次，读数在 **§5.67** 那张
+`LISTROWS` 现读表里（`list_routes=18 bounded=10 without_limit=8`，逐路由给 `client_calls` 与不封页的
+理由；本节没有重测那份表，故不在此复述为"本轮实测"）；原图读取同样是容量风险。
 **CSV 安全模式属于待决策项**，不是工程缺口，等 owner 的一句话而不是我的实现。
 旧 34 项 `FROZEN_DEFERRED` 一字未改：本轮证据分别挂在语义主人 `DL-KB-02`（知识可写面）、
 `DL-KB-06`（三主入口外壳）与 `DL-FINAL-T04`（机器配置、生成器、校验和 CI 同步）下，

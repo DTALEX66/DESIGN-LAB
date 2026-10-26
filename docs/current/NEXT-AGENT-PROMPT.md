@@ -213,8 +213,9 @@ release／安装态分发／真实宿主 E3／真人 E4／ComfyUI／MiniMax H3�
 `_run_gate`"，全仓同类缺陷经枚举**只有这一处**）；会话关联出处（链接写一次，答复改读库里那行的
 `source_system`，矛盾的重新链接直接拒绝；可达性由 126 个文件的表面人口**断言**而非由话说，
 所以本轮等级只是模块级 E2）；仓外报告路径打印崩溃（新增 `scripts/report_paths.py`）。
-第 **7** 条剩余两项**未结且不是工程缺口**：无界列表与原图读取的容量项（逐条理由在 §5.71，
-`src/design_lab/http_service.py` 现数 17 个 `_list_*` 处理器）、以及 **CSV 安全模式=待 owner 决策**。
+第 **7** 条剩余两项**未结且不是工程缺口**：无界列表与原图读取的容量项（逐路由现读表在 **§5.67**：
+`LISTROWS list_routes=18 bounded=10 without_limit=8`，每个不封页的路由都带 `client_calls` 与理由；
+`src/design_lab/http_service.py` 本轮现数 17 个 `_list_*` 处理器）、以及 **CSV 安全模式=待 owner 决策**。
 **本轮还修掉了一处 CI 红**：`5d603fe6` 的 PR run 唯一失败是漂移登记面少一对——`d2dbeefc` 给
 `test_doctor.py` 加用例，使一条哈希它的旧记录变旧；补钉并 65→**66**，成因为什么红、逐名 delta 都写在测试注释里。
 旧 34 项状态一字未改：这些证据挂在语义主人
