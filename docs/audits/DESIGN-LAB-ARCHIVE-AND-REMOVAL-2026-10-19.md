@@ -3002,7 +3002,7 @@ python 与 mjs 两realm 的推导会先于任何断言炸在"少于 4 项"上。
 其中只有对比闸的反证会把回执写进 CI 上传的 evidence 目录（`test_capability_library_clean_install.py:247`
 与 `test_release_preflight.py:470` 判的是子进程退出码，不落回执）。
 motion / theme-affordance / theme-geometry 三个闸门共用"单一路径"的形状但**没有第二个写入者**
-（`test_workbench_motion_gate.py:100`、`..._theme_affordance_gate.py:106`、`..._theme_geometry_gate.py:103`），
+（`design-lab/tests/test_workbench_motion_gate.py:100`、`design-lab/tests/test_workbench_theme_affordance_gate.py:106`、`design-lab/tests/test_workbench_theme_geometry_gate.py:103`——三处各自现读到那一行写的就是`report_path = evidence / '<本闸门自己的报告名>.json'`，逐字核过才算点名到路径），
 本轮不改动它们，只登记。**教训记进记忆**：一条匹配不到的探针给出的"0/1 命中"不是证据，
 只是探针自己在说空话——这与 §5.71 那条"外部工具零发现不等于证明"同源。
 
@@ -3281,3 +3281,12 @@ failed=0`；同 head push run 40357121752 success 但 11 个重作业 skipped。
 都 `abort(..., 15)`，而 Python 侧断言的是子进程 0 退出与 `result=PASS` 摘要——所以这一段跑到末尾本身就是
 "逐步没有红"的证明，不需要我看不到的一行标记。**留给下一轮的边界照旧**：本节这几句所在的 head 不在
 `751df4a0` 那条 run 里，按同一条规矩由下一轮读回。
+
+**§5.73／§5.74 里的每一处 `path:line` 也被逐条回读了一遍（这是 owner 收口点名要核对的那两节）。**
+探针只扫这两节的正文、只从 `git ls-files` 解析文件名（从 `.` 起扫会走进 `.venv` 与 `node_modules`，
+第一版就是这么挂住的）：6 处指针，**越界 0 处、无法解析 2 处**——那两处写成
+`..._theme_affordance_gate.py:106` 与 `..._theme_geometry_gate.py:103`，用省略号开头的指针没法被任何机器
+认，所以已展开成全路径并逐字读到那一行（三处都正好是 `report_path = evidence / '<本闸门自己的报告名>.json'`，
+与那句话描述的"单一路径形状"对得上）。展开后重跑：**checked=6 unresolved=0 out_of_range=0**。
+`§5.74` 引用的 `design-lab/schemas/state/design-lab-state-creative-v1.sql:116-124` 也回读过：那 9 行正是
+`worklab_session_link` 的建表与 `UNIQUE (job_id, session_ref)`，也就是"写一次"的出处。
