@@ -46,6 +46,10 @@ import tempfile
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from report_paths import display_path  # noqa: E402
 from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parents[1]
@@ -158,7 +162,7 @@ def run_auditor(which: str, plugin: Path, node: str, env: dict[str, str]) -> dic
         print(f"DESIGN_REVIEW_{which.upper()}_NO_REPORT {destination}")
         return None
     payload = json.loads(destination.read_text(encoding="utf-8"))
-    payload["__reportPath"] = destination.relative_to(REPO).as_posix()
+    payload["__reportPath"] = display_path(destination, REPO)
     return payload
 
 
@@ -276,7 +280,7 @@ def main() -> int:
     dest = REPO / args.out
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print("DESIGN_REVIEW_PLUGIN=WRITTEN " + dest.relative_to(REPO).as_posix())
+    print("DESIGN_REVIEW_PLUGIN=WRITTEN " + display_path(dest, REPO))
     return 0
 
 
