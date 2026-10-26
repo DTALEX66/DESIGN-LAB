@@ -232,7 +232,11 @@ release／安装态分发／真实宿主 E3／真人 E4／ComfyUI／MiniMax H3�
 
 **两条被实测改写的台账说法**：①"唯一强调色 `#356B92` 待落"是**早已在仓**（stitch/light 块四个 token 全指它），不该再占施工单；②"`_list_prompt_results` 套 `PAGE_LIMIT` 是最成熟一刀"被**否掉后又真做完了**——`prompt-result-readback-v1.schema.json` 是 `additionalProperties:false` 闭集，所以这一刀**必须带上 schema**：六个信封键进 `properties`+`required`，`readback(project_id, offset, limit)` 默认 100/上限 200，**所有计数与 `newest`/`state`/`reviews` 在切片前取**（分页不可能把 400 条读成 100 条），`reviews` 明确永不翻页（截断签收记录＝隐藏决定），路由声明 `path_only` 后 `?limit=0/201/ten`、`?offset=-1` 各回具名 400，同轮从 `UNBOUNDED_REGISTER` 摘牌（现读 `list_routes=18 bounded=10 without_limit=8`）。`contracts.ts` 里没有这支读回的类型（先查后动），所以没碰任何 `.ts`。
 
-**下一轮入口（按此顺序，别重做已完成的）**：① 界面上的翻页 affordance——服务端默认页已是 100，前端调用点仍不传 `limit/offset`，要做的是"还有 N 条"这条可见线索（包明文：长列表分页或窗口化，初始最多 50 行——**注意包给的初始界是 50，本轮沿用的是本仓既有 PAGE 常量的 100**，两者不是一回事，要收口就按包的 50 或让 owner 裁定，别默认自己赢了）；② `particles=live` 的**动画过程**未做逐帧认证，只证了确定首帧；③ `audit_workbench_theme_geometry.mjs:56` 那份**硬编码**色板表仍缺 `stitch`，改它要把几何结论一起重读；④ 其余 7 条无界路由理由已逐条登记，不要套同一修法；⑤ 五份手写 CSS 花括号扫描器的收敛（每份豁免面不同，要逐个证明覆盖不丢）。
+**下一轮入口（按此顺序，别重做已完成的）**：⓪ 写"仓外路径"的测试**不要用 `tempfile`**——本仓 CI runner 把
+`TMPDIR` 设在工作区里面，那条红（run 40331019135，head `fc9c8b0d`，Python gate 分片 2/3 两条 FAIL）
+正是这么来的；要从 checkout 自己位置推，
+并把前提写成断言。另外 push run 只跑轻闸（11 个重作业 `skipped`），套件结论只在 PR run 上，而推新 head 会把它
+cancel 掉——结清一轮要在最终 head 上等它跑完；① 界面上的翻页 affordance——服务端默认页已是 100，前端调用点仍不传 `limit/offset`，要做的是"还有 N 条"这条可见线索（包明文：长列表分页或窗口化，初始最多 50 行——**注意包给的初始界是 50，本轮沿用的是本仓既有 PAGE 常量的 100**，两者不是一回事，要收口就按包的 50 或让 owner 裁定，别默认自己赢了）；② `particles=live` 的**动画过程**未做逐帧认证，只证了确定首帧；③ `audit_workbench_theme_geometry.mjs:56` 那份**硬编码**色板表仍缺 `stitch`，改它要把几何结论一起重读；④ 其余 7 条无界路由理由已逐条登记，不要套同一修法；⑤ 五份手写 CSS 花括号扫描器的收敛（每份豁免面不同，要逐个证明覆盖不丢）。
 
 **边界逐字重述（一条没动）**：只做**桌面端**，手机端是**排除项**——不是待办、不是缺口、不派工；**不部署模型、不自行下载权重**，不宣称推理已验证，选择成功／连接成功／返回文本／内容可用**四件事分别验**；候选**导出是读回不是发送**；验收与签字**只认具名真人**；编号由用户填写或显式选 `UNUSED`，代理不得自行铸造标识当来源证据；**E 盘不动**；旧 **34 项仍 `FROZEN_DEFERRED`**，解冻任何一项都要 owner 新的明确授权；release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3、外部软件自动化、AAOS 联调**继续冻结**；**不得靠改断言、删接口、硬改能力标记或把失败改成演示成功来通过**；新包配色做成可选主题、不覆盖既有配色，已实测地板值不改；不擅自升级框架或改全局配置；`.codebuddy/` 与 `.cursor/` **永不暂存**。
 

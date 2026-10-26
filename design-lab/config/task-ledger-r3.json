@@ -12676,6 +12676,18 @@
         "artifact_sha256": "a2f72bb5538fe56e974451494bd5fe732d06450060556e8a00ff8d54e09d64d9",
         "exit_code": 0,
         "command": "owner audit 2026-10-26, finding 7 of 7 (first half): the compatible Python API may answer session correlation from a different source than the one it persists, with UI/HTTP reachability unconfirmed"
+      },
+      {
+        "id": "dl-final-t04-exact-sha-ci-matrix-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "delivery",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T14:17:00Z",
+        "subject_sha": "768f3fac7abdc6b7a0fbd20b3247272ad935bfaa",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-exact-sha-ci-matrix-20261026.json",
+        "artifact_sha256": "9b76ee3ce4fea106aa90f5f3e83dfa6cd02693c6d55072234347ba2738247e4a",
+        "exit_code": 0,
+        "command": "closing the round: the exact-SHA CI matrix for the six fixes of owner audit 2026-10-26 (findings 2, 3, 5, 6, 7a, 7b), read from the run that carries those bytes"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

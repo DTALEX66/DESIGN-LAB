@@ -9,27 +9,27 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-26T12:56:42+00:00",
+  "generatedAt": "2026-10-26T14:17:59+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "f12931bf82e2985822d4420de89f3414cfaae1a6",
+    "sha": "768f3fac7abdc6b7a0fbd20b3247272ad935bfaa",
     "source_worktree_clean": false,
-    "tracked_files": 4004,
+    "tracked_files": 4010,
     "worktree_changes": [
       {
-        "content": "sha256:5620ee2fc3e8f82e9f8709653482710047a4f93c41308415605c4f6e56086d98",
+        "content": "sha256:801ff703c48a68dc529278906c6acb59360d9e461f789bac3c5294ce1db43b06",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:6cf34ae50fb8f46c13ef011d561ad756ab5bfa43fd457d82cb58582cf772afb2",
+        "content": "sha256:b8044a2e83aa9f78aa8b0cd08d9d1ebe4b8c52e078304d0f25c447e3d4e12c21",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
       {
-        "content": "sha256:e8a45e6e76c93bf33d86ded173ea8cb4b179461eb88b09530fc3a8865e7e1b75",
+        "content": "sha256:669bf018bf0c537e270afacd9358b49bd9401ea5a2ea93a1e768a075119c1104",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
@@ -44,43 +44,18 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       },
       {
-        "content": "sha256:0ceb063ff523859504cc36c96b2351cec6767ad1646a7e29f1292c3bff865594",
+        "content": "sha256:9b76ee3ce4fea106aa90f5f3e83dfa6cd02693c6d55072234347ba2738247e4a",
         "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-receipt-identity-and-separation-20261026.json"
-      },
-      {
-        "content": "sha256:94c9bf19a7a24be5a05687cfdc709ae88cd51ecb1518add2b657c649690893c8",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-report-path-outside-repo-20261026.json"
-      },
-      {
-        "content": "sha256:a2f72bb5538fe56e974451494bd5fe732d06450060556e8a00ff8d54e09d64d9",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-session-link-source-answered-from-the-row-20261026.json"
-      },
-      {
-        "content": "sha256:188f2de1830442318a706296ad9d333a59dedef475ca4eb73e78863c2d465170",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-02-supersedes-fork-refused-on-both-routes-20261026.json"
-      },
-      {
-        "content": "sha256:204dbcb839fed8eb8a4836fd750f32391e2883d5f75e8c532682af3fb59e13e9",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-06-body-phase-deadline-and-cancel-20261026.json"
-      },
-      {
-        "content": "sha256:ff5a9d7e94b9d7533884ec8695a133972397263d24df705119f88d295688367a",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-06-knowledge-form-one-refusal-per-field-20261026.json"
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-exact-sha-ci-matrix-20261026.json"
       }
     ],
-    "worktree_digest": "sha256:60497a282603d68ac7f298bb7b32ebccdfbe74e510da1efd945b2c6cb9d287b7"
+    "worktree_digest": "sha256:613e150c5212ed87088dd44422ddbc9190a2880232cd964a75b073da03a35a94"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "f12931bf82e2985822d4420de89f3414cfaae1a6",
+  "subjectSha": "768f3fac7abdc6b7a0fbd20b3247272ad935bfaa",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -95,5 +70,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:60497a282603d68ac7f298bb7b32ebccdfbe74e510da1efd945b2c6cb9d287b7"
+  "worktreeDigest": "sha256:613e150c5212ed87088dd44422ddbc9190a2880232cd964a75b073da03a35a94"
 }

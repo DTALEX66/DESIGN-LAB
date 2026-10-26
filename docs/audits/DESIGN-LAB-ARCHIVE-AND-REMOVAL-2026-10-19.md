@@ -3058,3 +3058,56 @@ node 三套 `WORKBENCH SMOKE: all checks passed` / `APPSHELL REGRESSION: all che
 
 **本轮实测。** 修复前 `Ran 10 tests in 1.107s FAILED (failures=1)`，失败原因逐字 `AssertionError: CreativeError not raised`；
 修复后 `Ran 10 tests in 0.997s OK`。反证走的是同一套用例打在 `022c5a9b` 的 worktree 上，跑完按 sha 还原。
+### 5.75 本轮的 CI 账：在承载这些字节的提交上读回，而不是借用前一次的绿
+
+**run 40334885313（event=pull_request，head `768f3fac`）conclusion=success。**
+非 skipped 的作业全部 success（10 个），逐字读数取作业自己的日志：
+
+```
+PYTHON_TESTS_SHARDS_START shards=3 expected_tests=3412 plan=none (index %% n)
+PYTHON_TESTS_SHARD_RESULT shard=1/3 exit=0 tests=1092 wall_seconds=555.422 outcomes={'PASS': 1080, 'SKIP': 12}
+PYTHON_TESTS_SHARD_RESULT shard=2/3 exit=0 tests=1100 wall_seconds=79.843 outcomes={'PASS': 1090, 'SKIP': 10}
+PYTHON_TESTS_SHARD_RESULT shard=3/3 exit=0 tests=1220 wall_seconds=374.739 outcomes={'PASS': 1215, 'SKIP': 5}
+PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=0 unexpected=0
+BROWSER_E2E ran=44 skipped=0 failed=0
+```
+
+`PYTHON_TESTS_UNION` 那条把"分片跑过的集合＝发现集合"钉住：`expected=3412`；相对 §5.72 那次记下的
+**3397**，本轮净增 **15 条**（知识分叉、对比闸静态尺、报告路径显示、会话关联四组），
+所以这些用例在 CI 里被执行过，不是只在我本机跑过。浏览器套件
+`BROWSER_E2E ran=44 skipped=0`——no-skip 是
+`verify_browser_e2e_ran.py` 的硬条件，任何 skipped 直接把作业判红，所以这一行的 skipped=0 才是
+"按字段拒绝那三条断言真的在真 Chromium 里量过"的证明。
+
+**为什么这一节值得单独写。** 本仓库 §5.59 曾经"CI 已绿"引的是变更**之前**的 SHA，被 §5.61 追正。
+本轮同样差点重犯：`83448333` 的 PR run 在我推最终 head 时被 cancel-in-progress 取消，
+而它的 push run 其实只跑了轻闸（11 个重作业全是 `skipped`）——**push run success 不等于套件通过**。
+所以结清的对象只能是 `fc9c8b0d`→`768f3fac` 这条 PR run。
+
+**第一次全量尝试是红的，红在我自己的测试里。** run `40331019135`（head `fc9c8b0d`）
+`conclusion=failure`：分片 1/3 与 3/3 绿，2/3 两条 FAIL，
+逐字 `PYTHON_TESTS_SHARD_RESULT shard=2/3 exit=1 tests=1100 wall_seconds=79.637 outcomes={'FAIL': 2, 'PASS': 1088, 'SKIP': 10}`，命中的用例是
+`test_report_path_display.ReportPathDisplayTests.test_an_out_of_repo_path_is_printed_absolutely_and_does_not_raise, test_report_path_display.ReportPathDisplayTests.test_the_expression_that_crashed_still_crashes_on_the_same_input`；并集本身仍然完整：`PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=0 unexpected=0`。
+成因不是产品：the two cases built their "outside the repository" path with `tempfile.TemporaryDirectory()`. The runner sets TMPDIR inside the workspace, so the fixture landed under the checkout, `display_path` correctly answered a relative path and the raw `relative_to` correctly did not raise. The product was right and the test premise about its environment was unverified.
+本地用 `TMPDIR=<仓内目录>` 复现出同样的两条红，修法是让"仓外路径"从 checkout 自己的位置推出来
+并把前提写进断言（前提一旦被环境破坏就在 setup 处响亮失败）；顺带把那句"有没有漏回仓库前缀"
+从**子串**比较改成**路径分量**比较——旧写法会被任何以仓库目录名开头的兄弟目录骗过，
+这正是一个能被拼写骗过的检查不该继续存在的理由。修后两种 TMPDIR 下都 `Ran 6 tests OK`。
+**同一 head 上的 browser E2E 作业是 `success`**，verify_browser_e2e_ran.py returns 1 on ANY skipped test and on any module that discovers 0 tests, so that job being green at the same head is proof that the contrast gate -- including walkKnowledgeFieldRefusals and the two new static guards -- ran with skipped=0 on the Linux runner, not that it quietly sat out.
+DOM 那一侧同样不是在 Windows 上自说自话：`canonical-verify.yml:260 runs `pnpm --filter @design-lab/workbench test:unit`, i.e. `vite build && node tests/unit.mjs && node tests/appshell.mjs && node tests/shape-notice-coverage.mjs`, inside job `workbench-gate` (display name "Workbench strict-TS product gate"). That is where the three body-phase watchdog cases and the per-field knowledge assertions execute off Windows.`
+该作业在同一 head 也是 `success`。
+
+**那一次红同时反过来证明了一件事：本轮新增的 15 条用例确实被 CI 跑到过。**
+`PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=0 unexpected=0`，而本会话早先在同一条作业读到的上一次并集是 **3397**
+（run 40315188651，head `5d603fe6`，就是那条红里读出来的同一行）——差额 **15** 正好等于
+知识分叉 5 + 报告路径 6 + 对比闸静态尺 2 + 会话关联 2。也就是说除那两条之外，
+其余 13 条（含 `BEGIN IMMEDIATE` 双写者并发、`git ls-files` 枚举出的"无人可达"断言、
+以及触发器绕过应用层直插）在 **Linux runner** 上也已经过一次绿，
+不只是我这台 Windows 机器上的读数。
+
+**自查出来的一处小不一致，登记而不是顺手改。** 同一条"一个条目只能有一个后继"的规则现在有两句话术：
+应用层共用校验（`src/design_lab/knowledge_library.py:516`）会**点名**当前那个后继编号，而给抢锁失败者的
+兜底（`:592`，把触发器的 `IntegrityError` 翻译成同一个 409）只说"已被另一条替代"、没把编号带出来。
+状态码与 code 一致，差别只在后者少一个可操作信息。本轮**不在这趟推送里改产品字节**——§5.75 记的是
+已经过 CI 的那个 head，往里塞未验证的改动就是 §5.59 那次"引了变更之前的 SHA"的重演。
+下一刀：兜底路径补一次查询把后继写进 `detail`，并加一条真的抢锁输一次的用例。
