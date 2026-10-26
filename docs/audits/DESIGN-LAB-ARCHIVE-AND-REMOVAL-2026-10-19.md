@@ -3149,3 +3149,85 @@ kb-20261026/dl-final-t04-exact-sha-ci-matrix-20261026.json'"]}`、
 
 这一条不新增尺子，只把上节自己记下的债还掉；容量项与 CSV 安全模式仍按 §5.73 的说法归 owner
 （那句"待决策"写在 §5.73 的「仍未做完的」段里，§5.76 谈的是回执未提交，没有做过这项归属）。
+
+### 5.78 收口面自己被人审了一遍：三处指错的节号、一个在散文里腐烂的数，和一次仪器冤枉无辜脚本
+
+**这轮新写的三处交叉引用全都指错了地方，全部按"读目标"改正（提交 `f493ad2f`）——其中一处是上一轮那次
+"已验证"的改正本身。** §5.73 把逐路由 `LISTROWS` 现读表写成在 §5.67，实际在 **§5.66**：那节正文就是
+`LISTROWS list_routes=18 bounded=10 without_limit=8` 加每条路由的 `client_calls`，而 §5.67 是几何那把尺的
+色板表；接续提示词抄了同一个错数。上一轮那条提交信息写着「Verified by reading the target: 5.67 holds the
+table」，**它读的是另一节**——凭印象的"已核验"比没有核验更危险，因为它让下一个读者不再检查。§5.75 把上一次
+并集读数写成"§5.72 那次记下的 3397"，而 §5.72 全文没有这个数；真实出处在 run 40315188651（head `5d603fe6`）
+Python gate 作业日志里逐字的 `PYTHON_TESTS_UNION=OK expected=3397 distinct=3397 ran=3397`，也正是同一次作业里
+`test_evidence_artifact_presence…test_tracked_artefacts_of_the_real_ledger_all_read_back` 定罪漂移钉 65→66 的
+那一次，所以现在引用点名到 run，不再挂在一节没有说过的话上。§5.77 把"容量项与 CSV 归 owner"推给 §5.76，
+而 §5.76 讲的是回执没提交，那句归属只在 §5.73 的「仍未做完的」段里。
+
+**一个数在散文里腐烂，而登记面对它的条目一直是对的。** `UNBOUNDED_REGISTER` 现在 8 条，仪器也报
+`without_limit=8`（`test_the_unbounded_set_is_exactly_the_register` 钉住这个等式），但 §5.66 与接续提示词都还
+写"其余 7 条"，`test_workbench_weight.py` 的类文档写"Nine of eighteen"——`_list_prompt_results` 套上信封那一刻，
+这三句就被留在原地，而**没有任何一把尺读这三句**。修法不是把 7 改成 8 了事：给
+`scripts/verify_documented_counts.py` 加 `unbounded_routes()`，用文本切 `UNBOUNDED_REGISTER = {` 到闭合 `}`
+之间的一级键（不 import——这条闸在 node 作业的步骤里跑，那里没有 Pillow，约束是 §5.57 那次红留下的），
+再加一条 CLAIMS，让提示词那句必须逐字等于 `**8 条无界路由**`。**先红后绿**：claim 加上、散文还说 7 的时候
+`DOCUMENTED_COUNTS=FAIL claims=21 failed=1`，定罪行逐字
+`FAIL docs/current/NEXT-AGENT-PROMPT.md: prose says nothing, measurement says 8`；散文跟上之后
+`DOCUMENTED_COUNTS=PASS claims=21 route_views=24 cli=24 adapters=30 routes=88`。类文档那句数字被删掉而不是
+改成 8——一个由闸负责现数的量，不需要第二份没人看的副本。复验：`Ran 22 tests in 2.821s OK`（weight 模块）、
+`Ran 6 tests in 4.987s OK`（claim honesty 闸）。
+
+**顺带纠了一处"把邻居的理由抄给这一条"。** §5.66 原来写 `_list_rights/_list_jury/_list_knowledge_candidates`
+"是 Human Gate 与读回面——截断即隐藏决定"，但登记面自己给 `_list_jury` 的理由只是
+`no bound and no measurement yet`：Human Gate 那句只属于 `_list_rights`，读回那句只属于
+`_list_knowledge_candidates`。**改写一张理由表要逐行回表，不能照邻居的措辞。**
+
+**owner 决策与工程项，这次按登记面逐条分开（提交 `2048cf2e`）。** 之前接续提示词把第 7 条剩余两项一句话推成
+"未结且不是工程缺口"，等于把混合面整块交给 owner。按 `UNBOUNDED_REGISTER` 的原文分：`_list_design_systems`
+由四名注册表天然有界（**没有活**）；`_list_or_read_assets` 成本在每行重校验（实测 199.59 ms 里 path+stat 59.0%、
+两次图像解码 30.5%、hash 2.4%），**分页修不了**，真修法是写入时物化 `width/height/media_type`，属带迁移＋
+precheck＋合同行的 state-schema 单独一刀；`_list_projects`（逐项目汇总）与 `_list_token_documents`
+（空值语义须保列表）是**修法各不同的工程项**；`_list_jury`、`_list_research` 标着 `NOT MEASURED`，
+**先补数再谈修法**；只有 `_list_rights`（分页即隐藏 Human Gate 决定）与 `_list_knowledge_candidates`
+（导出是读回，截断即误报曾经 offered 过什么）真的要 owner 裁"封不封页"。CSV 安全模式继续是待决策项，与容量无关。
+
+**仪器冤枉了一次无辜脚本，方向值得记。** 我在聚合闸（77 项）还在跑的时候编辑了同一份提示词，
+`verify_projection_freshness` 用"跑前跑后各取一次哈希"的比较看到字节变了，就把罪名给了它最后运行的那支脚本，
+逐字 `FRESHNESS-CHECK-WROTE scripts/deepseek_registry_ssot.py --check modified
+docs/current/NEXT-AGENT-PROMPT.md`。树静止后单独重跑同一把闸：
+`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21 receipts=7 excluded=0 findings=0`，且跑完 `git status`
+干净——既不是写侧缺陷也不是数据问题，是我在同一棵树上边跑边改，而**这把闸的归因方式（"最后跑的那支"）
+不足以定罪**。边界写清楚：并发期间看到的任何红都是未归因的，先让树静止再重测那一项。
+
+**§5.76 末句那个前指现在有了名字。** run 40346676032（event=pull_request，head `5580f184`）
+**conclusion=success**，逐字取作业自己的日志：
+
+```
+PYTHON_TESTS_SHARDS_START shards=3 expected_tests=3415 plan=none (index %% n)
+PYTHON_TESTS_SHARD_RESULT shard=1/3 exit=0 tests=1094 wall_seconds=412.772 outcomes={'PASS': 1082, 'SKIP': 12}
+PYTHON_TESTS_SHARD_RESULT shard=2/3 exit=0 tests=1101 wall_seconds=63.216 outcomes={'PASS': 1091, 'SKIP': 10}
+PYTHON_TESTS_SHARD_RESULT shard=3/3 exit=0 tests=1220 wall_seconds=298.104 outcomes={'PASS': 1215, 'SKIP': 5}
+PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0
+VERIFY_DESIGN_LAB=OK total=77 failed=0
+BROWSER_E2E ran=44 skipped=0 failed=0
+```
+
+相对 §5.75 记下的 3412 净增 **3** 条，逐条对得上：`53cdc7eb` 给"工件必须在 git 索引里"加了两条，
+`7b9a4f37` 给兜底话术加了一条。同一 head 的 push run 40346664251 是 success，但它只跑轻闸（11 个重作业
+`skipped`），所以本节只能引那条 PR run。**边界**：这条 run 承载到 `5580f184`，`2048cf2e` 的计数闸与本节的
+字节在它之后——那一段的结论按同一条规矩由下一轮读回，本节不替它宣称绿。
+
+**owner 点名要读的那两个 run（`83448333`）也已逐字节读完，答案与"有没有红"不同。** push run 40328665473
+success（只有轻闸）；PR run 40328675340 **cancelled**——8 个重作业已 success，但 `Python gate`、
+`Workbench browser E2E` 与 `CI artifact proof` 三个作业被后来的推送取消。按本仓自己的规矩（cancelled／skipped
+的必要作业不能算通过），**那个 head 上从来没有过套间结论**，不存在"就地修到它绿"这一步；结论只能在承载字节的
+后续 head 上补读，就是上面那条 `5580f184`。
+
+**收口面现数（不是引用）。** `currentExecution.evidence` 318 条（本节这条之前），其中 20261026 日期 21 条；
+21 条里每条 `artifact_path` 都在 git 索引里，且 `artifact_sha256` 与 HEAD blob 逐字节相等（不匹配 0 条）；
+`reports/current/DEEPSEEK-AUTHORITY-CHAIN.json` 现publish `evidence_receipts: 318`；直方图
+`34 FROZEN_DEFERRED / 13 DONE / 2 PARTIAL / 1 NOT_STARTED`，旧 34 项一字未动；
+`src/design_lab/http_service.py` 现数 `17` 个 `_list_*` 处理器（§5.73 引的就是这个数）。审计 7 条的六枚回执
+（`kb-02-supersedes-fork-refused-on-both-routes`、`kb-06-body-phase-deadline-and-cancel`、
+`kb-06-knowledge-form-one-refusal-per-field`、`dl-final-t04-receipt-identity-and-separation`、
+`dl-final-t04-report-path-outside-repo`、`dl-final-t04-session-link-source-answered-from-the-row`）
+逐条对回 `022c5a9b`／`f12931bf` 的 subject，全部 PASS。

@@ -241,6 +241,24 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 `conclusion=success`，10 个非 skipped 作业全绿，`PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=0 unexpected=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；相对 run 40315188651
 （head `5d603fe6`）读到的 **3397** 净增 **15** 条。**这条只覆盖 `768f3fac` 那批字节**——§5.77 的代码改动在其后，
 所以承载本轮全部字节的那个 head 的 run 必须单独读回（§5.76 末句留的就是这个前指），不要借用前一次的绿。
+**§5.78 收口面自审（卷宗最后一节）**：三处 § 引用是本轮自己写错的，已按"读目标而不是回忆"改正——
+`§5.67`→**§5.66**（`LISTROWS` 表在那节，§5.67 是几何色板表；上一轮那条"已验证"的改正本身也指错了）、
+"§5.72 记下的 3397"→run 40315188651 日志里那一行逐字、`§5.76`→**§5.73**（CSV/容量归 owner 那句只在 §5.73）。
+`UNBOUNDED_REGISTER` 是 8 条而散文还写"其余 7 条"、类文档还写"Nine of eighteen"——现在
+`scripts/verify_documented_counts.py` 的 `unbounded_routes()` 直接数那张表（文本切，不 import：这条闸跑在
+没有 Pillow 的 node 作业步骤里，§5.57 的约束），本提示词那句必须逐字等于 `**8 条无界路由**` 才过；
+先红 `DOCUMENTED_COUNTS=FAIL claims=21 failed=1`（`prose says nothing, measurement says 8`）、散文跟上后
+`PASS claims=21`，类文档那句数字被删掉而不是换一个新数。**那个 head 读到了：`5580f184`（承载 §5.77 的代码
+与本轮指针改正的第一批字节）run 40346676032（PR）`conclusion=success`**，逐字
+`PYTHON_TESTS_SHARDS_START shards=3 expected_tests=3415`、三片 `exit=0`（1094/1101/1220）、
+`PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`——相对 3412 净增 **3** 条
+（`53cdc7eb` 两条"工件必须在索引里"＋`7b9a4f37` 一条兜底话术）。同 head 的 push run 40346664251 只跑轻闸
+（11 个重作业 `skipped`），所以这条 PR run 才是能引的那一条。**owner 点名的 `83448333` 两个 run 也逐字节读完了，
+答案是那个 head 上从来没有过套间结论**：PR run 40328675340 被后续推送 cancel（`Python gate`／
+`Workbench browser E2E`／`CI artifact proof` 三个作业 `cancelled`，其余 8 个 success），push run 40328665473
+只有轻闸——按本仓规矩 cancelled 不算通过，不存在"就地修到它绿"这一步，那一格的账由 `5580f184` 这条补上。
+**仍未归本轮宣称的**：`2048cf2e`（计数闸＋散文）与本节的字节不在 `5580f184` 那条 run 里，按同一条规矩下一轮读回。
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
 不是把那些任务重新派工。
