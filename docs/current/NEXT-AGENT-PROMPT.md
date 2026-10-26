@@ -258,7 +258,12 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 答案是那个 head 上从来没有过套间结论**：PR run 40328675340 被后续推送 cancel（`Python gate`／
 `Workbench browser E2E`／`CI artifact proof` 三个作业 `cancelled`，其余 8 个 success），push run 40328665473
 只有轻闸——按本仓规矩 cancelled 不算通过，不存在"就地修到它绿"这一步，那一格的账由 `5580f184` 这条补上。
-**仍未归本轮宣称的**：`2048cf2e`（计数闸＋散文）与本节的字节不在 `5580f184` 那条 run 里，按同一条规矩下一轮读回。
+**承载 `2048cf2e`＋§5.78＋登记件重绑＋投影刷新的那一个 head 也已经读回**：`8190527d` 的 PR run 40350069509
+`conclusion=success`（10 个作业全绿，逐字 `expected_tests=3415`、`PYTHON_TESTS_UNION=OK … ran=3415`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；同 head 的 push run
+40350057037 success 但只跑轻闸）。人口仍是 3415 是预期的——这几提交只加登记件、回执与散文，没加断言。
+**同一条规矩对本句所在提交继续成立**：本句之后的那个 head 的 run 不在本轮宣称里，由下一轮读回；
+`main` 无分支保护，PR #277 合不合入是 owner 的决定，本轮没有合。
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
 不是把那些任务重新派工。

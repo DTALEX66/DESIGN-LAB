@@ -3231,3 +3231,12 @@ success（只有轻闸）；PR run 40328675340 **cancelled**——8 个重作业
 `kb-06-knowledge-form-one-refusal-per-field`、`dl-final-t04-receipt-identity-and-separation`、
 `dl-final-t04-report-path-outside-repo`、`dl-final-t04-session-link-source-answered-from-the-row`）
 逐条对回 `022c5a9b`／`f12931bf` 的 subject，全部 PASS。
+
+**本节写下之后，承载它的 head 也已经读回了。** run 40350069509（event=pull_request，head `8190527d`）
+**conclusion=success**，10 个作业全绿，逐字 `PYTHON_TESTS_SHARDS_START shards=3 expected_tests=3415`、
+`PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；同 head 的 push run
+40350057037 success，但只跑轻闸。**用例数与 `5580f184` 相同（3415）是预期而不是巧合**：这几提交加的是登记件、
+回执与散文，没有新增断言——所以这两条 run 的差别只在字节身份，不在测试人口。**同一条规矩对本句继续成立**：
+本节这一段所在的那个 head 的 run 不在本节里，由下一轮读回；`main` 无分支保护
+（`gh api .../branches/main/protection` → `Branch not protected`），所以合不合入完全是 owner 的决定，本轮没有合。
