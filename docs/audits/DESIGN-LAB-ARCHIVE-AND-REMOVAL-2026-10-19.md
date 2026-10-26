@@ -3332,7 +3332,14 @@ writes=5/5 confirmationRendered=false`。这一次实验同时钉住两件事：
 但成因如实记在这里：**管道吃掉退出码**这条教训本仓记忆里早已有一条（[[feedback-pipeline-exit-codes]]），
 这一轮我又踩了一次，而且踩在了"用来自证一句话"的那条命令上。
 
-**⑥ 这一节没有证明的东西。** 本机 `browser-e2e-summary.json` 里没有 `assistant` 字段，所以四态那一段
+**⑥ 新加的那把计数闸也被反证过人口方向，不只是散文方向。** 把一枚假的
+`'_list_planted_probe'` 加进 `UNBOUNDED_REGISTER`（登记面 8→9，提示词那句一字未动），
+`scripts/verify_documented_counts.py` 立刻 `exit=1`、`DOCUMENTED_COUNTS=FAIL claims=21 failed=1`；
+按 sha256 还原那份测试文件后再跑 `exit=0`、`PASS claims=21 route_views=24 cli=24 adapters=30 routes=88`，
+`git status --porcelain` 无跟踪改动。也就是说这条 claim 咬的是**人口**而不是我抄的那句话——
+把界悄悄改回无界、或新加一条无界路由而不改散文，两侧都会红。
+
+**⑦ 这一节没有证明的东西。** 本机 `browser-e2e-summary.json` 里没有 `assistant` 字段，所以四态那一段
 "在 Windows 本机被走过"不由该工件证明（§5.79 已写）；植入实验证明的是**这把闸的读法**，不是真实宿主
 E3、也不是真人 E4——两者仍是冻结项；`_list_rights` 与 `_list_knowledge_candidates` 封不封页、CSV 安全
 模式、初始界 50 还是 100、150 KB 上限、`DESIGN.md` 批准与合格模型裁定仍归 owner；本轮没有发现需要
