@@ -12580,6 +12580,18 @@
         "artifact_sha256": "0bb3f4ae37235565f9cacc460f8a34b398deff787252505408a0f4d1dec395b7",
         "exit_code": 0,
         "command": "知识那一族的拒绝态一直被点在不存在的 id 上：改成按真名与结构定位并量出距离，定罪面挪到\"消息与它点名的字段\" —— 读数见工件。"
+      },
+      {
+        "id": "dl-final-t05-sdist-wheel-roundtrip-20261026",
+        "task_id": "DL-FINAL-T05",
+        "axis": "delivery",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T11:13:00Z",
+        "subject_sha": "a7bd9a47266954b92a9be8218d917205ba4d8d1a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t05-sdist-wheel-roundtrip-20261026.json",
+        "artifact_sha256": "2608aee8a4d83e83736b4c4e855db62f210ca75846076189c3870f9af1028dfc",
+        "exit_code": 0,
+        "command": "按审计验收从源码发行包重建 wheel、装入干净环境并跑 GET/POST；两个来源的 wheel 逐字节相同。新增 sdist↔wheel 覆盖闸与 CI 的源码包路径 —— 读数见工件。"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

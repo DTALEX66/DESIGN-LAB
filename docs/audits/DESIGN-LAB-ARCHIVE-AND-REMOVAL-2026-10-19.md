@@ -2850,3 +2850,62 @@ python 与 mjs 两realm 的推导会先于任何断言炸在"少于 4 项"上。
 **未做（不写成已做）。** 知识那句仍是"一句管三个字段"；要真做到每个字段旁各说各话，
 得让校验器按字段返回问题，那是产品形态的一刀，本轮不替它猜形状。
 `.view-hint` 那一族仍不带 `role=alert`（§5.62 记的无障碍缺口），本节的修没有触碰它。
+### 5.71 owner 审计 7 条逐条对回字节：第 1 条（P1 源码包不能重建安装包）确证，而且比审计说的更大
+
+**审计说的是什么。** owner 于 2026-10-26 在版本 `7671ec70` 上发来 7 条，第 1 条 P1：
+"pyproject.toml 的 sdist 遗漏 wheel 所需资源，实测 sdist → wheel 因缺 domain-packs 失败"，
+验收要求"从源码发行包开始，在干净目录构建 wheel、安装，再验证 GET/POST 接口；不能只测直接从仓库构建"。
+
+**先把审计自己说的话坐实。** 本轮现场重跑复现，报错逐字是
+`FileNotFoundError: Forced include not found: …/design-lab/domain-packs`。
+但审计低估了规模：`[tool.hatch.build.targets.wheel.force-include]` 声明 **71** 条仓内路径，
+旧的 sdist `only-include` 只覆盖其中 **17** 条——**54 条**在源码包里根本不存在
+（`design-lab/schemas` 50 条、`config` 3 条、`domain-packs`、`production/profiles`、
+`readiness`、`scripts/verify_domain_pack_v2.py` 等）。CI 一直绿，是因为那个作业
+`uv build --wheel` 直接从 checkout 造 wheel，**从没碰过它自己发布出去的源码包**。
+
+**改法两处。** ① `only-include` 从"逐条抄 wheel 的清单"换成覆盖全部 force-include 源的**目录根**，
+并保留 2026-09-21 那条约束（`apps/workbench` 仍只列被服务的三个文件，node_modules 不进包）；
+`design-lab/tests` 也进包，因为验收用的三段链测试就住在那里——一个不能从自身跑验证的源码包不是源码包。
+② 新增 `design-lab/scripts/verify_sdist_packaging.py`：从 pyproject 自己重推"wheel 要的每条源都必须
+被 sdist 的某个根覆盖"，三种失败形状各自点名（wheel 指向仓库里没有的路径、sdist 列了不存在的根、
+列了又被 exclude 吃掉），另有 `--build` 模式真跑一遍 sdist→解包→wheel。这把闸进聚合。
+③ CI 的 `Clean wheel install + Workbench launch gate` 第一步改成
+**先造 sdist、解包、从解包树里造 wheel、装那个 wheel**，并把两个来源的 wheel 摘要当场比对。
+
+**本轮实测读数（这份 receipt 就是这次跑出来的）。** 源码包 `design_lab-0.1.0a0.tar.gz` 3,980,242 B；
+从源码包重建的 wheel **1,244,991 B、413 个成员、内容摘要 34e9969dd470d1e0**，
+从仓库直接造的 wheel **1,242,808 B、413 个成员、内容摘要 34e9969dd470d1e0**——
+**成员与每个成员的字节完全一致**，所以"从源码重建"不是第二次不同的构建。
+一句自我修正写在这里：我最初把断言写成"两个 .whl 文件的 sha256 必须相同"，实测**容器字节确实不同**
+（`c2382b42…` 对 `a9c86329…`），但逐成员比下来成员集合、每个成员的内容、zip 元数据全都一致——
+差的是压缩器的输出流。那条断言测的是"第二次构建用的 deflate 参数"，不是发行物，
+所以判据换成成员集合 + 内容摘要；这既没放松要求（内容照样逐成员比），也不再要求一个与语义无关的字节相等。
+闸的读数：`SDIST_PACKAGING=OK wheel_sources=71 covered=71 missing=0 sdist_roots=17 mode=static`；`SDIST_PACKAGING=OK wheel_sources=71 covered=71 missing=0 sdist_roots=17 mode=build`；`test_sdist_packaging` 九条用例 `Ran 9 tests in 0.092s OK`
+（其中四条是植入：删掉一个 sdist 根、wheel 指向不存在的路径、sdist 列了不存在的根、exclude 吃掉列出的源）。
+按验收口径对**已安装布局**的三段独立跑（现装现跑，读数直接来自这三段自己的输出）：
+{"test_workbench_launch": "Ran 3 tests in 1.935s OK", "test_standalone_chain_http": "Ran 6 tests in 5.926s OK | GET_SWEEP layout=installed routes=50 reads=54 answered=49 verdicts=5 unmeasured=2", "test_installed_write_surface": "Ran 6 tests in 4.888s OK | POST_SWEEP layout=installed rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1"}。
+
+**我自己在这条上踩到的一次假红，写下来免得下一轮误判。** 第一次我把三段合在**一条** `python -m unittest` 里跑，
+结果 12 条红——逐字是 `AssertionError: 'site-packages' not found in (…'src', 'design_lab', '__init__.py')`。
+那不是产品问题：`test_workbench_launch` 会把 checkout 的 `src` 放进 `sys.path`，
+后面两个模块的"必须跑在已安装布局"守卫因此正确地拒了。**CI 是把三段各跑一步的**，分开跑本机也全绿。
+一次调用方式造成的红，不能报成"修好了 12 条缺陷"。
+
+**其余六条的核验状态（未做完的不写成做完）。**
+第 2 条（supersedes 可分叉）读码确证：创建路径在 `knowledge_library.py:541-546` 以
+`KNOWLEDGE_SUPERSESSION_CONFLICT` 拒绝第二个后继，导入路径 `:647-658` 只做格式与存在性校验后无条件
+`INSERT`；库层无 UNIQUE/CHECK（`…knowledge-library-v1.sql:32-39`）；投影响应
+`superseded_by` 是 `string|null` 且 `setdefault` 取**第一条**（`:402-405`）；全仓无任何测试提到
+`KNOWLEDGE_SUPERSESSION_CONFLICT`。第 6 条确证：对比度闸的植入反例用例不带 `CT_OUT`，与基线共用
+`workbench-contrast-gate.json`（`test_workbench_contrast_gate.py:130/:449`），而 mjs 在失败退出前
+就 `writeFileSync`（`audit_workbench_contrast.mjs:1695` 早于 `:1800/:1848`），且报告里没有 mode/版本
+身份字段——归档到的可能就是那枚故意红的件。第 7 条的"打印路径崩"确证于
+`scripts/audit_workbench_ui.py:171`（`relative_to(REPO)` 对仓外目录抛 ValueError），
+同样形状还在 `scripts/run_design_review_plugin.py:279/:161`。
+第 3、4、5 条**本轮尚未复现**，不在此声明完成。
+
+**边界。** 旧 34 项状态一字未改：本行证据挂在语义主人 `DL-FINAL-T05`（"能力库安装资源与干净wheel核心链"）下，
+它的 `state` 仍是 `FROZEN_DEFERRED`——**owner 这份审计授权的是修这一处缺陷，不是把那张任务重新派工**；
+要改状态需要另一次明确授权。审计里"不能把本地 3294 通过／54 失败合并成全量复测通过"这条也照写在此：
+那 54 条失败本轮没有一并复现，本轮只声称上面点名的读数。

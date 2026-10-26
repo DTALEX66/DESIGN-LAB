@@ -199,6 +199,18 @@ hover 墨色，以及强调色最终收敛到哪一支（现在两支的 AA 代�
 release／安装态分发／真实宿主 E3／真人 E4／ComfyUI／MiniMax H3／外部软件自动化／AAOS 联调继续冻结、
 不得靠改断言或删接口或把失败改成演示成功来通过、`.codebuddy/` 与 `.cursor/` 永不暂存。
 
+**台账读数（2026-10-26 owner 审计摄入，7 条，逐条对回字节后的当下身份）**：第 **1** 条（P1 源码包不能
+重建安装包）已修并结清——见卷宗 §5.71 与回执 `dl-final-t05-sdist-wheel-roundtrip-20261026`
+（`evidence` 307→**308**，挂在语义主人 `DL-FINAL-T05`「能力库安装资源与干净wheel核心链」下，
+**它的 `state` 仍是 `FROZEN_DEFERRED`：审计授权的是修这处缺陷，不是把那张任务重新派工**）。
+第 **2、6、7(b)** 条已**确证但未修**，引用点逐条写在 §5.71 最后一段（导入路径少一道 `KNOWLEDGE_SUPERSESSION_CONFLICT`
+校验、库层无 UNIQUE/CHECK、投影 `superseded_by` 只能装一个且取第一条；对比度闸的植入反例与基线共用
+`workbench-contrast-gate.json` 且报告无身份字段；`audit_workbench_ui.py:171` 对仓外目录 `relative_to` 抛
+ValueError，同形还在 `run_design_review_plugin.py:279/:161`）。第 **3、4、5** 条本轮**未复现**，
+不得当作已知事实继续引用。另记两条我自己的陷阱：把三段已安装布局测试合在一条 `python -m unittest` 里会因
+`test_workbench_launch` 注入 `src` 而造出 12 条假红；而"两个 wheel 文件必须逐字节相同"是过度断言
+（同一批成员被两次构建压成不同字节流），判据是成员集合 + 每个成员的字节。
+
 **台账读数（2026-10-26 第二十五轮收口时现数，取代上面第二十四轮那一段的"当下"身份）**：本轮把上一轮欠的三件事全部落到"有实测读数"而不是"已实现"。① **精确 SHA 的 CI 矩阵读通了**：run 40211581088（PR，head `f9683930`）`conclusion=success`，10 个非 skipped 作业全绿，逐字 `PYTHON_TESTS_UNION=OK expected=3363 distinct=3363 ran=3363 duplicates=0 missing=0 unexpected=0`、`BROWSER_E2E ran=27 skipped=0 failed=0`。§5.59 那句"CI 已绿"曾被 §5.61 追正——它引的是换 logo **之前**的 SHA，教训写进记忆：**结清一轮的 CI 账必须点名叫到承载该变更的那个 SHA**。② **增强面对量过**：把 `.ambient` 的动画冻在关键帧每一档（0/3000/6000/9000/12000ms）后用同一个 `MEASURE` 谓词逐档量，`CT_MOTION_PASS poses=5 routes=24 checked=34170 belowAA=0 distinctTransforms=4`；四个不同变换（不是五个）恰因 0% 与 100% 同声明停靠点，这一条同时是"尺子在动"的反证。③ **`errors=0` 原来是空集**，且有两个不同成因：`.error[role=alert]` 那族（`#as-form-error`）选择器一直覆盖，缺的是**没人让界面拒绝一次**；`p.view-hint` 那族（知识/评审/权利/研究的 outcome 行）连 `role` 都没有，既是尺子盲区也是**读屏盲区**。现在闸门**自己点一次**空表单造出真失败（`CT_REFUSAL_PROVED … role=alert`），词表从 `shell.ts` 现数 6 个前缀经 `CT_REFUSAL_WORDS` 传入，**空词表时闸门拒绝开跑**；`RefusalPopulationIsGraded` 三条断言里有一条在它该红的时候红过（旧回执没有 `+refusal` 行）。
 
 **造出拒绝态的下一步就抓到一支不达标的红字**：珍珠白的 `--color-error` 继承 `:root` 为炭黑面选的 `#F05252`，压白 3.48:1、压 `#F4F6F8` 3.21:1，8 条 run 报红。修法是**重指到同仓已有的实测值** `--uif-light-danger #ab384d`（6.17 / 5.69 / 5.20），不新造红（包只逐字给了六个值，不含错误色），默认炭黑一字节不动。教训：**一个永不出现的状态永远不会失败**，所以"绿"必须先问"这一项被画出来过吗"。
