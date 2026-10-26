@@ -57,11 +57,25 @@ def link_session(conn, job_id: str, *, session_ref: str, source_system: str = "W
         raise CreativeError(f"unknown source system: {source_system!r}")
     note = _note(note)
     with transaction(conn):
-        row = conn.execute("SELECT link_id, note, linked_at FROM worklab_session_link "
+        row = conn.execute("SELECT link_id, note, linked_at, source_system "
+                           "FROM worklab_session_link "
                            "WHERE job_id=? AND session_ref=?", (job_id, session_ref)).fetchone()
         if row:
+            # The row is write-once (there is no UPDATE, and UNIQUE(job_id, session_ref) makes a
+            # second insert impossible), so an existing link answers with the source THAT ROW
+            # recorded. Answering with the call argument instead made the response and the
+            # persistence disagree: re-linking the same pair under another source reported
+            # `ArcheAxis` while the database kept `WORK-LAB` (owner audit 2026-10-26, finding 7).
+            # The disagreement is now refused rather than swallowed, because a caller that thinks
+            # it re-linked under a new source has a provenance question, not a no-op.
+            if row[3] != source_system:
+                raise CreativeError(
+                    f"{session_ref} is already linked to {job_id} by {row[3]}; this call asked for "
+                    f"{source_system}. A link records who correlated the job, and that is not "
+                    "rewritten by a second caller -- unlink the link or correlate under the source "
+                    "that made it")
             return {"link_id": row[0], "job_id": job_id, "session_ref": session_ref,
-                    "source_system": source_system, "note": row[1], "linked_at": row[2], "created": False}
+                    "source_system": row[3], "note": row[1], "linked_at": row[2], "created": False}
         link_id = new_id("lnk")
         stamp = now()
         conn.execute("INSERT INTO worklab_session_link VALUES (?,?,?,?,?,?)",
