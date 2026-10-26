@@ -12700,6 +12700,18 @@
         "artifact_sha256": "fcded1a2fd52279b5385f24783f5f364dbfa0dc14c4b5167a9f1ca94d79220ea",
         "exit_code": 0,
         "command": "self-caused during this round: CI run 40338742258 at 4dc59349 failed because the section 5.75 ledger row named a receipt that was never committed"
+      },
+      {
+        "id": "dl-kb-02-supersede-fallback-names-successor-20261026",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T14:47:00Z",
+        "subject_sha": "7b9a4f37d7382198db763501c69696b9243315c0",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-kb-02-supersede-fallback-names-successor-20261026.json",
+        "artifact_sha256": "12bcdae6e3a92cf29110c668d459971e01be37af36ec1a178a7aa010550eb6e0",
+        "exit_code": 0,
+        "command": "self-registered in section 5.76: the trigger-fallback refusal for the single-successor rule did not name the existing successor, while the application guard did"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
