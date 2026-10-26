@@ -4062,26 +4062,84 @@ function knowledgeFormPanel(
     };
   };
 
-  const missing = (): string => {
+  // One refusal per field, written under the field it blocks (owner audit 2026-10-26, finding 5).
+  // `missing()` used to return the FIRST problem as a single sentence, and that sentence named
+  // three boxes at once -- 「标题、一句话用途和正文都必须填写」 -- so filling in two of them got
+  // the identical words back, the notice sat at the bottom of the panel away from every box, and
+  // nothing moved the caret to the field that was still empty. The import route merged its two
+  // source boxes the same way.
+  interface FieldProblem { control: HTMLElement; label: string; message: string; }
+  const refusalLines: { line: HTMLElement; control: HTMLElement; }[] = [];
+  const clearRefusals = (): void => {
+    refusalLines.splice(0).forEach(({ line, control }) => {
+      // A removed line must also stop being referenced, or the field points at an id that is no
+      // longer in the document and an assistive reader announces an empty description forever.
+      control.removeAttribute('aria-describedby');
+      line.remove();
+    });
+  };
+  const fieldRefusals = (): FieldProblem[] => {
+    const problems: FieldProblem[] = [];
+    const blank = (input: { value: string }): boolean => !input.value.trim();
     if (!fields.entryType.value)
-      return '类型清单未读回（未连接本机服务）：先连接服务，类型选项才会从服务端读回。';
-    if (!fields.title.value.trim() || !fields.summary.value.trim() || !fields.body.value.trim())
-      return '标题、一句话用途和正文都必须填写；这三项在服务里也不能是 UNKNOWN。';
-    if (!fields.author.value.trim())
-      return kind === 'import' ? '导入人必填：服务不持有身份，页面不会替你铸造一个。'
-        : '记录人必填：服务不持有身份，页面不会替你铸造一个。';
-    if (kind === 'import'
-        && (!fields.sourceId.value.trim() || !fields.sourceVersion.value.trim()))
-      return '导入必须填写来源 ID 和来源版本：否则重复导入无法与"新版本"区分，服务也会拒绝。';
-    return '';
+      problems.push({ control: fields.entryType, label: '类型',
+        message: '类型清单未读回（未连接本机服务）：先连接服务，类型选项才会从服务端读回。' });
+    if (blank(fields.title))
+      problems.push({ control: fields.title, label: '标题',
+        message: '标题为空：服务把空标题写成 UNKNOWN，这条检索不到，也没法在列表里认出它。' });
+    if (blank(fields.summary))
+      problems.push({ control: fields.summary, label: '一句话用途',
+        message: '一句话用途为空：服务把空摘要写成 UNKNOWN，列表里只剩标题。' });
+    if (blank(fields.body))
+      problems.push({ control: fields.body, label: '正文',
+        message: '正文为空：方法、步骤或提示词本体还没有内容，服务不会存一条空条目。' });
+    if (blank(fields.author))
+      problems.push({ control: fields.author, label: '记录人',
+        message: '记录人为空：服务不持有身份，页面不会替你铸造一个，之后也没人能被找到。'
+          + (kind === 'import' ? '导入同样要署名——导入人就是这条的记录人。' : '') });
+    if (kind === 'import' && blank(fields.sourceId))
+      problems.push({ control: fields.sourceId, label: '来源 ID',
+        message: '来源 ID 为空：重复导入无法和"新版本"区分，服务会直接拒绝这条写入。' });
+    if (kind === 'import' && blank(fields.sourceVersion))
+      problems.push({ control: fields.sourceVersion, label: '来源版本',
+        message: '来源版本为空：没有版本 pin，同内容的第二次导入无法判定为 DUPLICATE。' });
+    return problems;
+  };
+  const paintRefusals = (problems: FieldProblem[]): void => {
+    clearRefusals();
+    problems.forEach((problem) => {
+      const line = el('p', { class: 'error' });
+      if (problem.control.id) {
+        line.id = `${problem.control.id}-refusal`;
+        line.setAttribute('data-for', problem.control.id);
+        // The field points at its own refusal, so a screen reader landing in the box hears why it
+        // blocks the write instead of only the form-level summary.
+        problem.control.setAttribute('aria-describedby', line.id);
+      }
+      line.textContent = problem.message;
+      // INTO the field's own row, not after it. `.field-row` is a one-column grid, so a line
+      // appended here renders directly under the input with the row's own 6px gap. The form
+      // container `.two-col` is a TWO-column grid, so a line inserted after the row would land in
+      // the next cell -- beside an unrelated field, which is the opposite of 错误紧邻字段.
+      const row = problem.control.closest('.field-row');
+      (row ?? problem.control.parentNode ?? problem.control).append(line);
+      refusalLines.push({ line, control: problem.control });
+    });
+    // One live region carries the announcement; the per-field lines are read through
+    // aria-describedby. Two role=alert nodes firing together is noise, not feedback.
+    notice.replaceChildren(el('p', { class: 'error' },
+      `${problems.length} 处拦住了这次写入：${problems.map((p) => p.label).join('、')}。`
+      + '每条说明写在它拦住的输入框下面。'));
+    problems[0]?.control.focus();
   };
 
   submit.onclick = (): void => {
-    const problem = missing();
-    if (problem) {
-      notice.replaceChildren(el('p', { class: 'error' }, problem));
+    const problems = fieldRefusals();
+    if (problems.length) {
+      paintRefusals(problems);
       return;
     }
+    clearRefusals();
     submit.disabled = true;
     notice.replaceChildren(el('p', { class: 'view-loading' }, '正在写入…'));
     void (async () => {

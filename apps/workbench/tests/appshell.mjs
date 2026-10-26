@@ -11,6 +11,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const bundlePath = join(here, '..', 'build', 'main.js');
 const source = readFileSync(bundlePath, 'utf8');
 
+let lastFocused = null;
+
 class MockElement {
   constructor(tag = 'div') {
     this.tagName = tag.toUpperCase();
@@ -22,6 +24,45 @@ class MockElement {
     this.value = '';
     this._text = '';
     this.attributes = new Map();
+    // `id` is an IDL attribute in the DOM: `node.id = 'x'` writes the attribute, and reading it
+    // returns '' when absent. Without the bridge here, product code that guards on `control.id`
+    // took the "no id" branch in this harness while taking the real branch in a browser -- which is
+    // exactly how a per-field refusal could be tested as "placed but unlabelled".
+    // Tree links, because the per-field refusal placement walks them. `el()` builds a document by
+    // calling `append`, and a shim that records only the children gives every node a `null`
+    // parentNode -- so `row.parentNode?.insertBefore(line, row.nextSibling)` silently does
+    // nothing, and a test of "the refusal lands under the field it names" would pass while the
+    // product put the line nowhere. Real DOM nodes know their parent; these now do too.
+    this.parentNode = null;
+  }
+  get id() { return this.attributes.get('id') ?? ''; }
+  set id(value) { this.attributes.set('id', String(value)); }
+  get nextSibling() {
+    const siblings = this.parentNode?.children ?? [];
+    return siblings[siblings.indexOf(this) + 1] ?? null;
+  }
+  appendChild(node) { this.append(node); return node; }
+  insertBefore(node, reference) {
+    // `reference == null` means "at the end", which is what the DOM does and what the last field's
+    // refusal depends on.
+    const at = reference == null ? this.children.length : this.children.indexOf(reference);
+    if (at < 0) throw new Error('insertBefore: reference is not a child of this node');
+    if (node.parentNode) node.parentNode.children.splice(node.parentNode.children.indexOf(node), 1);
+    this.children.splice(at, 0, node);
+    node.parentNode = this;
+    return node;
+  }
+  remove() {
+    const at = this.parentNode?.children.indexOf(this) ?? -1;
+    if (at >= 0) this.parentNode.children.splice(at, 1);
+    this.parentNode = null;
+  }
+  closest(selector) {
+    // Upward walk with the same four selector shapes `matches` understands. A no-op `closest()`
+    // would let the refusal land on the field itself and the adjacency test would still read green.
+    for (let node = this; node; node = node.parentNode)
+      if (node.matches?.(selector)) return node;
+    return null;
   }
   set textContent(value) {
     this._text = String(value ?? '');
@@ -36,8 +77,21 @@ class MockElement {
   // changed -- without this getter that read throws inside renderAnswer and the view shows
   // the route-level failure, i.e. the gate would be measuring the shim, not the page.
   get options() { return this.children.filter((child) => child?.tagName === 'OPTION'); }
-  append(...nodes) { this.children.push(...nodes); }
-  replaceChildren(...nodes) { this.children = nodes; this._text = ''; }
+  append(...nodes) {
+    this.children.push(...nodes);
+    nodes.forEach((node) => { if (node && typeof node === 'object') node.parentNode = this; });
+  }
+  replaceChildren(...nodes) {
+    // The old children are out of the document, so they must stop pointing here: `remove()` on a
+    // node that was already dropped has to be a no-op, not a splice against a parent it no longer
+    // has. Strings and raw text are not nodes and are skipped.
+    this.children.forEach((child) => {
+      if (child && typeof child === 'object' && child.parentNode === this) child.parentNode = null;
+    });
+    this.children = nodes;
+    this._text = '';
+    nodes.forEach((node) => { if (node && typeof node === 'object') node.parentNode = this; });
+  }
   // openForm() scrolls the new panel into view. Browsers have it, a div mock does not, and
   // the throw happened inside the click handler before any assertion could run.
   scrollIntoView() {}
@@ -46,9 +100,12 @@ class MockElement {
   // Ctrl+C works. Without these two no-ops the refusal path threw inside the handler and the
   // message a user would actually see was untestable here -- the same shape of harness gap as
   // the crypto.subtle and TextEncoder notes below.
-  focus() {}
+  focus() { lastFocused = this; }
   select() {}
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
+  // Returns null when absent, the way the DOM does: `''` would make "no association" and
+  // "associated with the empty string" read the same to a test that is checking the link exists.
+  getAttribute(name) { return this.attributes.has(name) ? this.attributes.get(name) : null; }
   removeAttribute(name) { this.attributes.delete(name); }
   addEventListener() {}
   // A stub with no `querySelector` does not fail loudly: the caller's `?.` returns undefined and
@@ -3891,15 +3948,53 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   if (typeof submitNew?.onclick !== 'function') throw new Error('㉓ 新增表单没有提交按钮');
   submitNew.onclick();
   expectQuiet('空表单');
-  if (!formText().includes('标题、一句话用途和正文都必须填写'))
-    throw new Error(`㉓ 空表单应被本地拒绝：${formText().slice(0, 200)}`);
+  // 一条拒绝一个字段，贴在它自己的行下面（owner 审计 2026-10-26 第 5 条）。以前这几个空字段
+  // 合并成一句「标题、一句话用途和正文都必须填写」，于是填掉两个之后屏幕上还是同一句话，而且
+  // 那条提示长在表单末尾，离任何输入框都有半屏。这里断言的是**形状**，不比对任何句子：
+  // 措辞以后可以再改，「说的是哪个框、就贴在那个框下面、并且带上那个框自己的标签词、光标交给
+  // 第一条」不能改。反过来也不许多拦：填好的字段不该还有拒绝挂着。
+  const kbRefusalOf = (id) => findIn(form(), (node) => node?.attributes?.get?.('data-for') === id);
+  const KB_GUARDED_FIELDS = ['kb-new-entry-type', 'kb-new-title', 'kb-new-summary', 'kb-new-body',
+    'kb-new-author', 'kb-new-source-id', 'kb-new-source-version'];
+  function expectFieldRefusals(ids, context, universe = KB_GUARDED_FIELDS) {
+    const missing = ids.filter((id) => !kbRefusalOf(id));
+    if (missing.length)
+      throw new Error(`㉓ ${context}：这些空字段没有各自的拒绝：${missing.join(' ')}`);
+    const extra = universe.filter((id) => !ids.includes(id) && kbRefusalOf(id));
+    if (extra.length)
+      throw new Error(`㉓ ${context}：已经填好的字段还被拦着：${extra.join(' ')}`);
+    ids.forEach((id) => {
+      const line = kbRefusalOf(id);
+      const field = byElementId(view, id);
+      const row = field.closest('.field-row');
+      if (!row) throw new Error(`㉓ ${context}：#${id} 不在任何一个 field-row 里`);
+      // 必须就在它自己的那一行里、排在这个输入框之后。两列布局下"下一格"不等于"这个框下面"，
+      // 所以只比对 DOM 父子关系，不比对"行之后"。
+      if (line.parentNode !== row)
+        throw new Error(`㉓ ${context}：#${id} 的拒绝不在它自己的 field-row 里，`
+          + `而是长在 ${line.parentNode === row.parentNode ? '表单容器' : '别处'}`);
+      if (row.children.indexOf(line) <= row.children.indexOf(field))
+        throw new Error(`㉓ ${context}：#${id} 的拒绝排在这个输入框之前，读起来不属于它`);
+      if (field.getAttribute('aria-describedby') !== line.id)
+        throw new Error(`㉓ ${context}：#${id} 没有指向拦住它的那条说明`);
+      const label = findIn(row, (node) => node?.className === 'field-label');
+      const word = text(label).replace(/（[^）]*）/g, '').trim();
+      if (!word || !line.textContent.includes(word))
+        throw new Error(`㉓ ${context}：#${id} 的说明没有出现这个字段自己的标签词「${word}」：`
+          + line.textContent.slice(0, 80));
+    });
+    if (lastFocused !== byElementId(view, ids[0]))
+      throw new Error(`㉓ ${context}：光标没有交给第一条被拦的字段，应停在 #${ids[0]}`);
+  }
+  expectFieldRefusals(['kb-new-title', 'kb-new-summary', 'kb-new-body', 'kb-new-author'],
+    '空新增表单');
   byElementId(view, 'kb-new-title').value = '分镜拆解三步法';
   byElementId(view, 'kb-new-summary').value = '把一场戏拆成可拍摄的镜头';
   byElementId(view, 'kb-new-body').value = '先定机位，再定景别，最后核对轴线。';
   submitNew.onclick();
   expectQuiet('缺记录人');
-  if (!formText().includes('记录人必填'))
-    throw new Error(`㉓ 缺记录人时应被本地拒绝：${formText().slice(0, 200)}`);
+  // 填掉的三个字段必须真的被放开：合并提示的年代，这里屏幕上的话和空表单时一模一样。
+  expectFieldRefusals(['kb-new-author'], '缺记录人');
   byElementId(view, 'kb-new-applicability').value = '实拍与动画分镜';
   byElementId(view, 'kb-new-limits').value = '不适用于纯文字脚本；镜头数超过 80 时先分层。';
   byElementId(view, 'kb-new-domains').value = 'film、animation';
@@ -4235,6 +4330,29 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   if (!outsideNote.includes('不在本次检索结果里'))
     throw new Error('㉓ 零结果时旧选中条目仍挂在右侧，却没有标明它不属于本次检索');
   expectQuiet('无命中');
+
+  // (6) 导入表单把剩下的分支也走一遍（owner 审计 2026-10-26 第 5 条点名的合并提示就在这条路上：
+  // 「导入必须填写来源 ID 和来源版本」一句话说两个框）。这里不比对措辞，只数拒绝、看它落在哪个框
+  // 下面。空表单这一发同时覆盖「类型清单未读回」分支：替身里的 select 没有浏览器那个"默认第一项"，
+  // 新打开的表单类型就是空 —— 正是服务没连上时用户在屏上看到的形状。
+  byElementId(view, 'kb-import').onclick();
+  const IMPORT_FIELDS = ['kb-import-entry-type', 'kb-import-title', 'kb-import-summary',
+    'kb-import-body', 'kb-import-author', 'kb-import-source-id', 'kb-import-source-version'];
+  const submitImport = findIn(form(), (node) => node?.className === 'primary-btn');
+  if (typeof submitImport?.onclick !== 'function') throw new Error('㉓ 导入表单没有提交按钮');
+  submitImport.onclick();
+  expectQuiet('空导入表单');
+  expectFieldRefusals(IMPORT_FIELDS, '空导入表单', IMPORT_FIELDS);
+  // 只留两个来源框为空：拒绝必须收窄到这两个，其余五条要跟着填好一起消失。
+  byElementId(view, 'kb-import-entry-type').value = 'PROMPT';
+  byElementId(view, 'kb-import-title').value = '油墨限定提示词';
+  byElementId(view, 'kb-import-summary').value = '把两色限制写成可复用的约束句';
+  byElementId(view, 'kb-import-body').value = '先列允许的两色，再写"除这两色外不使用任何油墨"。';
+  byElementId(view, 'kb-import-author').value = 'ALEX';
+  submitImport.onclick();
+  expectQuiet('缺来源版本');
+  expectFieldRefusals(['kb-import-source-id', 'kb-import-source-version'],
+    '缺来源 ID 与版本', IMPORT_FIELDS);
 }
 
 console.log('ok: ㉓ DL-KB-02/03/04 知识与提示词库：首屏一次检索且词表/许可状态来自读回、列表不带正文哈希路径、'
