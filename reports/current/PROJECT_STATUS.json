@@ -8,24 +8,14 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-26T14:47:42+00:00",
+  "generatedAt": "2026-10-26T15:07:21+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "7b9a4f37d7382198db763501c69696b9243315c0",
+    "sha": "b17a391cebfde731f087939e1fb5ca489ffba79b",
     "source_worktree_clean": false,
-    "tracked_files": 4012,
+    "tracked_files": 4013,
     "worktree_changes": [
-      {
-        "content": "sha256:86e03db637c95e18c188796923bf2a9939fe83d89dd958f1d5bd6e63700346b6",
-        "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:5e33ce010a89409b02ca02e0538d01f602f420e683d785d2a6f977724bbed8c0",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
-      },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
         "kind": "U",
@@ -35,14 +25,9 @@
         "content": "sha256:13c275506e946cc3df2e2a30250454ec64a88046c5b04ad2ffaeca601b692efe",
         "kind": "U",
         "path": ".cursor/rules/universal-agent-core.mdc"
-      },
-      {
-        "content": "sha256:12bcdae6e3a92cf29110c668d459971e01be37af36ec1a178a7aa010550eb6e0",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-kb-02-supersede-fallback-names-successor-20261026.json"
       }
     ],
-    "worktree_digest": "sha256:2ecab1b87d3015e8819a8cdc32b2f6f519d07a0e041b32fe954fc20ddc3d85fe"
+    "worktree_digest": "sha256:176e3830c368a464af1b70e0c4084e6bd9ddb4cfa307e893f0485619c6f97561"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -58,7 +43,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "7b9a4f37d7382198db763501c69696b9243315c0",
+  "subjectSha": "b17a391cebfde731f087939e1fb5ca489ffba79b",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -78,5 +63,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:2ecab1b87d3015e8819a8cdc32b2f6f519d07a0e041b32fe954fc20ddc3d85fe"
+  "worktreeDigest": "sha256:176e3830c368a464af1b70e0c4084e6bd9ddb4cfa307e893f0485619c6f97561"
 }
