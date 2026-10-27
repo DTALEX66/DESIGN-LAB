@@ -1511,6 +1511,7 @@ const ROUTE_VIEWS = [
   { hash: "#/states", view: "ui-states", label: "界面状态", entry: "设置与诊断" },
   { hash: "#/components", view: "ui-components", label: "组件规范", entry: "设置与诊断" }
 ];
+const NAV_DAILY_VIEWS = ["assistant", "knowledge", "projects", "settings"];
 function viewLabel(view) {
   return ROUTE_VIEWS.find((route) => route.view === view)?.label ?? view;
 }
@@ -11442,7 +11443,7 @@ function mountAppShell() {
     }, route.label)),
     el("span", { class: "app-nav-meta", id: "shell-connection" }, "未连接")
   );
-  const navDaily = ["assistant", "knowledge", "projects", "settings"];
+  const navDaily = NAV_DAILY_VIEWS;
   const navMore = el("button", {
     type: "button",
     class: "app-nav-more",
@@ -11589,6 +11590,27 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
       el("span", {}, n.label)
     ))
   );
+  function setSidebarFold(open) {
+    navList.classList.toggle("nav-open", open);
+    navFold.setAttribute("aria-expanded", String(open));
+    navFold.textContent = open ? "收起次要入口" : "全部功能";
+    for (const item of Array.from(navList.querySelectorAll("button[data-route]"))) {
+      item.classList.toggle(
+        "is-folded",
+        !open && NAV_DAILY_VIEWS.indexOf(item.dataset.route ?? "") === -1
+      );
+    }
+  }
+  const navFold = el("button", {
+    type: "button",
+    class: "nav-fold ghost-btn",
+    "aria-expanded": "false",
+    onclick: () => {
+      setSidebarFold(!navList.classList.contains("nav-open"));
+    }
+  }, "全部功能");
+  navList.append(navFold);
+  setSidebarFold(false);
   const sidebar = el(
     "aside",
     { class: "sidebar", id: "app-sidebar" },
@@ -11715,6 +11737,9 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
       const highlight = view === "project-detail" ? "projects" : view;
       const selected = item.dataset.route === highlight;
       item.classList.toggle("active", selected);
+      if (selected && NAV_DAILY_VIEWS.indexOf(highlight) === -1) {
+        setSidebarFold(true);
+      }
       if (selected) {
         item.setAttribute("aria-current", "page");
         if (typeof item.scrollIntoView === "function") {

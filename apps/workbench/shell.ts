@@ -364,6 +364,11 @@ export const ROUTE_VIEWS = [
 ] as const;
 export type RouteView = (typeof ROUTE_VIEWS)[number]['view'];
 
+// STITCH 一比一（2026-10-27）：14/14 块画板的左栏都是这三项 + 左下角设置，08 原文逐字
+// 「只保留三个日常导航」。一份名单，两条导航（`.app-nav` 与 B10 `#app-sidebar .nav`）共用——
+// 抄两份就是本仓反复判红的第二台账。`settings` 是画板左下角那一项，不算第四个日常入口。
+export const NAV_DAILY_VIEWS: readonly string[] = ['assistant', 'knowledge', 'projects', 'settings'];
+
 // Chinese page name for a view id. Headings must never expose the internal route
 // id (`research`, `preflight-qa`) where the operator clicked a Chinese label.
 export function viewLabel(view: string): string {
@@ -9548,7 +9553,7 @@ export function mountAppShell(): void {
   // 现数对象，删一项就是毁一处账。这里改的是**默认露出**：次要项留在 DOM 里只是折叠，
   // 「全部功能」可展开，且当前路由若被折叠就自动展开，所以「活动路由在侧栏可见」那条
   // 断言不会因为还原而失效。
-  const navDaily: readonly string[] = ['assistant', 'knowledge', 'projects', 'settings'];
+  const navDaily: readonly string[] = NAV_DAILY_VIEWS;
   const navMore = el('button', {
     type: 'button', class: 'app-nav-more', 'aria-expanded': 'false',
     onclick: () => foldNav(!(nav as HTMLElement).classList.contains('nav-open')),
@@ -9807,6 +9812,25 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       el('span', { class: 'nav-dot' }),
       el('span', {}, n.label))));
 
+  // 这条侧栏才是路由页上**看得见**的那条导航：`.app-nav` 在 B10 挂载后是隐藏的，所以 STITCH 的
+  // 左栏收口必须落在这里——只改 `.app-nav` 等于改了一个没人看的壳（本机 DOM 实测：路由页上
+  // `#app-sidebar .nav` 有 23 个按钮全露出）。语义与 `.app-nav` 那侧一致：日常三项 + 设置露出、
+  // 其余折叠、开关在列表末尾、组标题在折叠态隐藏。一条都不删：两边的条数都是断言对象。
+  function setSidebarFold(open: boolean): void {
+    navList.classList.toggle('nav-open', open);
+    navFold.setAttribute('aria-expanded', String(open));
+    navFold.textContent = open ? '收起次要入口' : '全部功能';
+    for (const item of Array.from(navList.querySelectorAll<HTMLElement>('button[data-route]'))) {
+      item.classList.toggle('is-folded',
+        !open && NAV_DAILY_VIEWS.indexOf(item.dataset.route ?? '') === -1);
+    }
+  }
+  const navFold = el('button', { type: 'button', class: 'nav-fold ghost-btn',
+    'aria-expanded': 'false',
+    onclick: () => { setSidebarFold(!navList.classList.contains('nav-open')); } }, '全部功能');
+  navList.append(navFold);
+  setSidebarFold(false);
+
   const sidebar = el('aside', { class: 'sidebar', id: 'app-sidebar' },
     el('div', { class: 'brand' },
       el('div', { class: 'brand-mark', 'aria-hidden': 'true' }),
@@ -9933,6 +9957,11 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       const highlight = view === 'project-detail' ? 'projects' : view;
       const selected = item.dataset.route === highlight;
       item.classList.toggle('active', selected);
+      if (selected && NAV_DAILY_VIEWS.indexOf(highlight) === -1) {
+        // 当前页落在折叠区里就先展开：不展开的话「侧栏保持活动路由可见」那条断言会在一个
+        // display:none 的按钮上找 aria-current，量到的是一扇关着的门。
+        setSidebarFold(true);
+      }
       if (selected) {
         item.setAttribute('aria-current', 'page');
         // At 1280x800 the sidebar scrolls; without this the current route can sit

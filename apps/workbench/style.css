@@ -784,6 +784,15 @@ html,body{margin:0}
   width:10px;height:10px;border-radius:50%;
   border:2px solid currentColor;opacity:.9;flex:0 0 auto;
 }
+/* STITCH 一比一（2026-10-27，基准 design_lab_2 的 screen-d01…d04）：路由页上**看得见**的导航是这条
+   侧栏——`.app-nav` 在 B10 挂载后隐藏，所以折叠规则两边都要有，只写 `.app-nav` 那侧等于改了个没人看的壳。
+   与那侧同一套语义：日常三项 + 设置露出、其余仅折叠不删除（两边的条数都是断言对象），组标题在折叠态隐藏。 */
+#app-sidebar .nav button.is-folded{display:none}
+.nav:not(.nav-open) .nav-group{display:none}
+/* 不试图把「系统设置」钉到轨道最底：实测那条 `margin-top:auto` 在这里解析成 0——`.nav` 是被内容
+   撑开的滚动区，自由空间归 `.sidebar-footer`（sticky 的 `.sidebar` 用 auto margin 把身份块压到底）。
+   画板左下角那个位置本来就归页脚；写一条不生效的规则只会留下"看着做了、其实没做"的装饰。 */
+.nav-fold{width:100%;text-align:left;font-size:var(--uif-font-micro)}
 .sidebar-footer{
   margin-top:auto;
   border-top:1px solid color-mix(in srgb,var(--border) 55%, transparent);
