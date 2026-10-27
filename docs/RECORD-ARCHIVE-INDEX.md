@@ -370,6 +370,14 @@ SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一
 
 **定态**：本包不是能力索引、不是第二账本。派工入口是 `DL-TP-20261023-DESKTOP-KB-R1` → `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`；落仓时观察 HEAD `efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823`，作者包内基线 `2d6ede51cd0f49e9b99c27f09924a0db29843b89` 保留为作者观察时点。当前 SHA 一律 `git rev-parse HEAD` 自读。
 
+## 2026-10-27 新增：STITCH 画板基准包（owner 2026-10-24 投递，2026-10-27 才登记）
+
+- 来源：`D:\All projects\Record\stitch_design_lab.zip`（5,115,919 B，sha256 `ae76e90307bfcc429b5b11e13502e2a739ad69f7a3bc96a5a86f0cdc941eee03`）与同批的 `DESIGN-LAB_QODER完整合并验证提示词_20261024.txt`（21,973 B，sha256 `89209168cbb81825c4396ccf095216bc680b537e419f4936cd4867a712bc2792`）。
+- 内容：**14 块画板**（每块 `code.html` + `screen.png`）+ `obsidian_studio/DESIGN.md`，共 31 个文件；解包 5,678,932 B。
+- 规范位置：原件与解包副本在 `.project-local/record-archive-2026-10-27/`（不随 Git 克隆，迁移须按摘要补齐）；逐成员 name/bytes/CRC32/SHA-256 登记在 `docs/history/record-archive-2026-10-27-stitch-boards/ARCHIVE-MANIFEST.json`。
+- 用途：**界面一比一还原的视觉基准**。本轮据此把左栏收成画板那三项 + 设置（提交 `cbaee463`）；与 `docs/taskpacks/20261023-ui-kb/source/08_STITCH完整提示词.txt` 逐字冲突处（标题、主按钮措辞）**以包内文本为权威**，画板是它的产物而不是相反。
+- 未登记就存在了三天，成因与教训记在 `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` 的 §5.81。
+
 ## 2026-10-19 新增：归档与移除波次的五份记录（owner 2026-10-19 指令）
 
 本节登记 2026-10-19 归档波次产出的**五份记录**本身。波次过程与逐条缺陷不在这里重述，读第 5 项那份交付报告；

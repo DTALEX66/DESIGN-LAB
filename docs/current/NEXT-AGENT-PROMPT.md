@@ -275,7 +275,30 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 `node --check` 干净、`test_e2e_script_is_lint_clean` 过、漂移钉 66 对未动；**但本机那份
 `browser-e2e-summary.json` 没有 `assistant` 字段，证明不了四态那一段在本机被走过**——逐段结论要从 CI 的
 `E2E step:` 序列里读；绿跑不打印那段序列（包装脚本只在失败时回显子进程 stdout），所以证明是「每一步失败都 exit 15 ＋ 子进程 0 退出且摘要 `result=PASS`」。**承载这次闸改动的 head 已读回**：`751df4a0` 的 PR run 40357134311 `success`，逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；同 head push run 40357121752 只跑轻闸。本句所在 head 的 run 仍由下一轮读回。
-**§5.80 对抗性审计（本轮自己）**：把刚修的那把闸打回红一次——`shell.ts:6236` 的确认措辞改成`复制完成 ` 后 `vite build`，同一条尺 `Ran 2 tests in 31.842s FAILED (failures=1)`，定罪行带`confirmationRendered=false` 且 `answer={"revision":1,"id":"aplan-ddb0c767…"}`、`writes=5/5`；复原按 sha256 校验后 `Ran 2 tests in 10.741s OK`、工作树干净。**所以 §5.79 的修法不是将闸改松，闸也确实会红**。另外三条自我纠正：§5.73／§5.74 的 6 处 `path:line` 已逐处读到内容并认账（含两条 `assertNotEqual` 的跨行/退出码形状）；提示词里 36 个 `§5.NN` 全部解析、悬挂 0；提交 `c46ef4b6` 曾宣称登记闸 PASS 而那条命令其实被 `| tail -1` 掩掉退出码没跑成——不加管道重跑才成立，教训是**自证的命令也不能走管道**。 §5.80 还把新计数闸朝**人口**方向反证了一遍：往 `UNBOUNDED_REGISTER` 里植一条假路由（8→9、散文不动）就 `DOCUMENTED_COUNTS=FAIL claims=21 failed=1`（exit 1），按 sha256 还原后 `PASS`（exit 0）——所以它咬的是人口，不是那句抄来的话。 **§5.80 之后重读 CI 的结论**：承载卷宗 §5.80 全部字节的 head `0331b68f` 的 PR run 40365602992 `conclusion=success`（push run 40365593987 只跑轻闸），逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`、`EVIDENCE_ARTIFACTS=WARN tracked_broken=0`；更早那条 `751df4a0` 的 PR run 也已读回 success，所以闸修复的代码字节被两条 run 各覆盖一次。**下一轮起手只做一件事**：把写这段读数的那次文档／登记件／投影提交的 run 读回（derived-only，预期同值），不要重跑套件以外的东西。
+**§5.80 对抗性审计（本轮自己）**：把刚修的那把闸打回红一次——`shell.ts:6236` 的确认措辞改成`复制完成 ` 后 `vite build`，同一条尺 `Ran 2 tests in 31.842s FAILED (failures=1)`，定罪行带`confirmationRendered=false` 且 `answer={"revision":1,"id":"aplan-ddb0c767…"}`、`writes=5/5`；复原按 sha256 校验后 `Ran 2 tests in 10.741s OK`、工作树干净。**所以 §5.79 的修法不是将闸改松，闸也确实会红**。另外三条自我纠正：§5.73／§5.74 的 6 处 `path:line` 已逐处读到内容并认账（含两条 `assertNotEqual` 的跨行/退出码形状）；提示词里 36 个 `§5.NN` 全部解析、悬挂 0；提交 `c46ef4b6` 曾宣称登记闸 PASS 而那条命令其实被 `| tail -1` 掩掉退出码没跑成——不加管道重跑才成立，教训是**自证的命令也不能走管道**。 §5.80 还把新计数闸朝**人口**方向反证了一遍：往 `UNBOUNDED_REGISTER` 里植一条假路由（8→9、散文不动）就 `DOCUMENTED_COUNTS=FAIL claims=21 failed=1`（exit 1），按 sha256 还原后 `PASS`（exit 0）——所以它咬的是人口，不是那句抄来的话。
+**§5.81（2026-10-27）STITCH 画板基准包登记 + 外壳第一次照画板改。** owner 问「为什么还是网页的」，查出两处漏：
+① **包到了三天没登记**——`D:\All projects\Record\stitch_design_lab.zip`（5,115,919 B，sha256 `ae76e90307bfcc429b5b11e13502e2a739ad69f7a3bc96a5a86f0cdc941eee03`，
+2026-10-24 19:31，**14 块画板** = 每块 `code.html`+`screen.png`，解包 31 文件 / 5,678,932 B）此前在 `docs/`、
+`design-lab/config`、`reports/` 里 **0 次命中**；② **我的检索面漏了投递目录**，把"我没搜到"写成了"它不存在"
+（同一卷宗 §5.73 刚为同类错误被追正）。现已登记：`docs/history/record-archive-2026-10-27-stitch-boards/ARCHIVE-MANIFEST.json`
+（逐成员 name/bytes/CRC32/SHA-256，摘要从 ZIP 内字节算）+ 固定资料索引 2026-10-27 日期节，
+**插在生成登记件那节标题之前**（那节标题到 EOF 归生成器）。原件与解包副本的 canonical 位置
+`.project-local/record-archive-2026-10-27/`，不随克隆走，迁移按摘要补齐。
+**画板与现界面的第一条差异是骨架不是配色**：14/14 块画板左栏都是「设计辅助／知识与提示词库／我的方案」+ 左下设置，
+08 原文逐字「只保留三个日常导航」，而现界面 24 项 4 组。已做（`cbaee463`，PR run 40509435322 success）：
+默认只露那三项 + 设置沉底、折叠时藏组标题、加「全部功能／收起次要入口」；**一条路由都没删**——
+`.app-nav-item` 条数是浏览器 E2E 与 DESIGN.md「导航 N 项」的现数对象；当前路由被折叠会自动展开。
+屏幕一补了画板的本地事实（`8895bea6`）：「清空 · N 字」「Shift+Return 换行」「已关联 N 项参考」，
+**两个计数在 `renderReferences()` 里重算**，因为载入已存方案（`shell.ts:6089`）与保存后清空（6236/6250）
+是程序改 `value`、不触发 input 事件。**两处故意不照抄**：画板「2 / 8 附件」的 8 不是合同上限，不报 `N / 8`；
+画板标题「这次想设计什么？」与按钮「整理设计方向」与 08 原话「你想完成什么设计？」「整理方案」不一致，
+**以包内文本为权威**（画板是生成物，不是第二份规格）。
+**下一轮接着做的顺序**：① 交付类型 chips——先定"谁是状态主人"（现值在 `#as-output-type` 这个由服务读回的 `<select>` 里），
+别造第二台账；② 附件 tile 的名称/大小（`references` 只有 kind+id，要联 `assets` 元数据）；
+③ **缩略图需要开静态资源路由并放宽 CSP，是 owner 的安全决定，不要顺手做**；④ 画板顶栏那三个 Windows 窗口按钮
+在浏览器标签里没有真实现，**不画装饰件**，真窗口壳属交付形态变更（要 owner 解除 release／安装态分发冻结）。
+**新增待 owner 裁**：左栏收口是否进一步扩到路由清单本身（会动 DESIGN.md 的「导航 N 项」与那把闸）；
+以及"STITCH 那套是否成为默认配色"（现行裁定是新配色只做可选主题、默认不动）。 **§5.80 之后重读 CI 的结论**：承载卷宗 §5.80 全部字节的 head `0331b68f` 的 PR run 40365602992 `conclusion=success`（push run 40365593987 只跑轻闸），逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`、`EVIDENCE_ARTIFACTS=WARN tracked_broken=0`；更早那条 `751df4a0` 的 PR run 也已读回 success，所以闸修复的代码字节被两条 run 各覆盖一次。**下一轮起手只做一件事**：把写这段读数的那次文档／登记件／投影提交的 run 读回（derived-only，预期同值），不要重跑套件以外的东西。
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
 不是把那些任务重新派工。

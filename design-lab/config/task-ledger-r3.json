@@ -12736,6 +12736,18 @@
         "artifact_sha256": "0c6517f4f1223cfe37afc75f3cc9a12182b9170f91c5e2cd45e1169475c741d7",
         "exit_code": 0,
         "command": "adversarial audit of this round on owner order: plant a missing copy-confirmation wording in apps/workbench/shell.ts, rebuild, and prove the repaired browser gate still convicts (FAILED failures=1 with confirmationRendered=false); restore from pre-plant copies by sha256 and prove green again"
+      },
+      {
+        "id": "dl-kb-06-stitch-board-baseline-registered-and-shell-folded-20261027",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-27T13:30:59Z",
+        "subject_sha": "8895bea6062bec86d8a50307f04b6b9e4ef8c614",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-stitch-board-baseline-registered-and-shell-folded-20261027.json",
+        "artifact_sha256": "53fa8e8cddd96bb5cadddc443932b553f80a522a6dd98945b695e724df8ab2a4",
+        "exit_code": 0,
+        "command": "register the 2026-10-24 STITCH board pack per owner 2026-10-23's material rule, then fold the nav rail and add screen-1's counters to match the boards' shell"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
