@@ -947,12 +947,22 @@ try {
       const controls = Array.from(form.querySelectorAll('select,input,textarea'));
       const chips = Array.from(
         document.querySelectorAll('#as-output-type input[type=radio]'));
+      // A chip whose label breaks into one CJK character per line is not "narrow", it is
+      // unreadable -- and every geometry gate stays green over it because the box still fits.
+      // So the label's own line boxes are counted, via the Range over its text node.
+      const labelBoxes = Array.from(
+        document.querySelectorAll('#as-output-type .as-chip span')).map((span) => {
+        const range = document.createRange();
+        range.selectNodeContents(span);
+        return range.getClientRects().length;
+      });
       return {
         selects: Array.from(form.querySelectorAll('select')).map((s) => s.id),
         toolish: controls.map((c) => c.id).filter((id) => /tool|model/i.test(id)),
         chips: chips.map((chip) => chip.value),
         chipGroup: document.querySelector('#as-output-type')?.getAttribute('role') ?? '',
         preselected: chips.filter((chip) => chip.checked).length,
+        multiLineLabels: labelBoxes.filter((boxes) => boxes > 1).length,
         canvases: document.querySelectorAll('#route-view canvas').length,
         logs: document.querySelectorAll('#route-view [role="log"]').length,
       };
@@ -966,6 +976,7 @@ try {
     // page deciding what the designer wants.
     if (initial.selects.length !== 2 || initial.toolish.length !== 0 ||
         initial.chipGroup !== 'radiogroup' || initial.preselected !== 0 ||
+        initial.multiLineLabels !== 0 ||
         initial.chips.length !== 6 || !initial.chips.includes('STORYBOARD')) {
       await abort('E2E_ASSISTANT_INITIAL_SURFACE: ' + JSON.stringify(initial), 15, ctx, b);
     }

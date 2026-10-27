@@ -2177,10 +2177,10 @@ body[data-local-session="auto"] #connect-form details { display: none; }
    999px 与 `.tag` 同一形制（那里已是字面量），不是新发明的圆角；其余全走既有令牌。
    `tabindex=-1` 在 shell.ts 那边给容器：字段拒绝会把焦点交给这个组，div 自己不可聚焦。 */
 .as-chips{display:flex;flex-wrap:wrap;gap:var(--uif-space-1)}
-.as-chip{display:inline-flex;align-items:center;gap:var(--uif-space-1);
+.as-chip{display:inline-flex;align-items:center;flex:0 0 auto;gap:var(--uif-space-1);
   padding:var(--uif-space-1) var(--uif-space-2);border:1px solid var(--line);
   border-radius:999px;font-size:var(--uif-font-micro);color:var(--text);cursor:pointer;
-  background:var(--surface-2)}
+  white-space:nowrap;background:var(--surface-2)}
 .as-chip:has(input:checked){color:var(--ink);border-color:var(--accent);background:var(--surface)}
 .as-chip input{accent-color:var(--accent);margin:0}
 .as-chips-empty{font-size:var(--uif-font-micro);color:var(--muted)}
