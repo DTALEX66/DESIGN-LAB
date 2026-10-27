@@ -301,6 +301,12 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 （把折叠改成什么都不隐藏，`E2E_NAV_FOLD_INERT … closed=total=23`，rc=13），它同时断言 `.app-nav` 在路由页不可见，
 所以 §5.81 那种"改了没人看的壳"再也过不了闸。交付类型按画板做成胶囊行（`0e3e5b5f`），
 词表仍全部来自服务：未读回时一个胶囊都不画、读回后一个都不预选。
+**收口顺序（本轮新钉，取代"想起来再重算"）**：文档与账本改完 → **先提交** → `generate_archive_record_register.py`
+→ `deepseek_authority_chain.py`（不带 `--check`，它把 `ledger.evidence_receipts` 记成一个字段，**每落一条回执都要重生成一次**）
+→ `generate_current_reports.py` → 跑闸（`verify_archive_record_register.py`、`verify_authority_gates.py --zero-spill`、
+`verify_projection_freshness.py`、`verify_documented_counts.py`）→ 再提交 → 推送 → 读 CI。
+登记件、权威链、现行投影都是**被绑定字节的派生物**，顺序错了就会出现本轮那样：每个闸在本地都各自绿过一次，
+CI 在承载全部字节的 head 上把它们一次跑红（§5.83 记了三条：登记件旧、权威链旧、复制种子竞态）。
 **下一轮接着做的顺序**：① 已完成——状态主人是被勾选的那颗 `radio`，`<select>` 整个删除，不留第二台账；
 基数按合同（`output_type` 单值）而不是画板那句"多选"，要做多选得改那份闭合的读回 schema，那是 owner／合同决定；
 ② 附件 tile 的名称/大小——**不是"没有数据"，是投影没带出来**：库里 `f.path` 与 `f.byte_size` 都在

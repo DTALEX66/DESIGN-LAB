@@ -3532,3 +3532,16 @@ PROBLEM row 5: SHA-256 prefix claim 6a24555e8a67c18f vs f6280583c8a0bc5b
 两条都能做，但都需要先把"第二份图形字节"的规矩定下来，**不该在一轮收口的尾巴上先塞进去再补闸**。
 下一步按第一条做：由 `render_brand_asset.py` 从同一份被跟踪的矢量派生 favicon 的字节、
 用同样的 `begin sha256=` 记号钉进 `index.html`，`--check` 同时覆盖 CSS 与 favicon 两处。
+
+**同一条 CI 里还有第三个绑定被我的落账动作挪动了：权威链记录。** `DeepSeek authority gate chain`
+作业红在本机可复现，逐字是 `AUTHORITY_CHAIN=DRIFT entries changed since generation:
+['design-lab/config/task-ledger-r3.json']`；把存的那条与现生成的那条逐键对比，动的只有
+`ledger.evidence_receipts = 321 -> 322`——**回执条数本身就是链记录的一个字段**，所以每落一条回执，
+链记录就必须重生成一次。`--check` 只豁免 `mutable_state` 条目的 `bytes`/`sha256` 两个键，
+嵌套的 `ledger` 子对象是逐字比的，这不是豁免漏了，而是"回执数"确实是一句要重新说的话。
+重生成后 `AUTHORITY_GATES=PASS gates=7 failed=none`。
+
+**这一轮因此把收口顺序钉成一句话**（写进接续提示词，不再靠记）：
+**卷宗/提示词改完先提交 → 重生成归档登记件 → 重生成权威链记录 → 重生成现行投影 → 跑闸 → 再提交 → 推送 → 读 CI**。
+登记件、权威链、投影三样都是**被绑定字节的派生物**，任何一处文档或账本动过，三样都要按这个次序重算；
+顺序错了就会像本轮一样：本地每个闸都各自绿过，CI 在承载全部字节的 head 上把它们一次跑红。
