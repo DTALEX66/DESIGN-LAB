@@ -8,36 +8,31 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-27T14:56:49+00:00",
+  "generatedAt": "2026-10-27T15:23:19+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "5e52fa974543a67c5f77ffd5092edcab87a58232",
+    "sha": "9e739f82b3baacc1e63431a89f5cdc02a91ae153",
     "source_worktree_clean": false,
     "tracked_files": 4018,
     "worktree_changes": [
       {
-        "content": "sha256:3e8bc99948c486d0d2bf3a0bff6445cc7e67db183aa7713d2e6a53c67d19d172",
-        "kind": "A",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json"
-      },
-      {
-        "content": "sha256:3170171a2e9cf6f105c191ef80d8bcc619b9d9b62e7c93f08d1e46435b70ce8b",
-        "kind": "M",
-        "path": "DESIGN.md"
-      },
-      {
-        "content": "sha256:8dd8606319929bd4b5beca8e6ee12a52dcf9c2da5c6aa16bd6a3fa4486e66a06",
+        "content": "sha256:ca3fae33cd6493e8cb4a323369032c6c1a31751c5a5b9a44fc56ebcdc2c9223f",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:f6280583c8a0bc5b4d321f89e477962d0c1786dfa6529a65c96815333797bcd2",
+        "content": "sha256:494f1671f603c1659e211b6b4b91c3a34c14d08b76ed6de520757cad05032a96",
+        "kind": "M",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json"
+      },
+      {
+        "content": "sha256:b78808974cc5cdbf5f1863abbd6e04d775bc174a8fb4e127bdd2f9d01b9f5781",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
       {
-        "content": "sha256:6bed4b3d6ac8a211249c82cf93c2d1100f1ce3acfecb4587e21f2668fc6347e2",
+        "content": "sha256:2e71059cf03604ba071f3e73ee67244ec57938da2941391c82274b94ec89763b",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
@@ -52,7 +47,7 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:c2d858d398ddef4f64a1941453123cd95b18a04a6d466ca773e079c7d0a09e66"
+    "worktree_digest": "sha256:c93f8cb0c38c2e97c974f217da4a592ba8a5438774ff935346921703f6a8e9e9"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -68,7 +63,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "5e52fa974543a67c5f77ffd5092edcab87a58232",
+  "subjectSha": "9e739f82b3baacc1e63431a89f5cdc02a91ae153",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -88,5 +83,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:c2d858d398ddef4f64a1941453123cd95b18a04a6d466ca773e079c7d0a09e66"
+  "worktreeDigest": "sha256:c93f8cb0c38c2e97c974f217da4a592ba8a5438774ff935346921703f6a8e9e9"
 }

@@ -1,35 +1,30 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-27T14:56:49+00:00",
+  "generatedAt": "2026-10-27T15:23:19+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "5e52fa974543a67c5f77ffd5092edcab87a58232",
+    "sha": "9e739f82b3baacc1e63431a89f5cdc02a91ae153",
     "source_worktree_clean": false,
     "tracked_files": 4018,
     "worktree_changes": [
       {
-        "content": "sha256:3e8bc99948c486d0d2bf3a0bff6445cc7e67db183aa7713d2e6a53c67d19d172",
-        "kind": "A",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json"
-      },
-      {
-        "content": "sha256:3170171a2e9cf6f105c191ef80d8bcc619b9d9b62e7c93f08d1e46435b70ce8b",
-        "kind": "M",
-        "path": "DESIGN.md"
-      },
-      {
-        "content": "sha256:8dd8606319929bd4b5beca8e6ee12a52dcf9c2da5c6aa16bd6a3fa4486e66a06",
+        "content": "sha256:ca3fae33cd6493e8cb4a323369032c6c1a31751c5a5b9a44fc56ebcdc2c9223f",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:f6280583c8a0bc5b4d321f89e477962d0c1786dfa6529a65c96815333797bcd2",
+        "content": "sha256:494f1671f603c1659e211b6b4b91c3a34c14d08b76ed6de520757cad05032a96",
+        "kind": "M",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json"
+      },
+      {
+        "content": "sha256:b78808974cc5cdbf5f1863abbd6e04d775bc174a8fb4e127bdd2f9d01b9f5781",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
       },
       {
-        "content": "sha256:6bed4b3d6ac8a211249c82cf93c2d1100f1ce3acfecb4587e21f2668fc6347e2",
+        "content": "sha256:2e71059cf03604ba071f3e73ee67244ec57938da2941391c82274b94ec89763b",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
@@ -44,9 +39,9 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:c2d858d398ddef4f64a1941453123cd95b18a04a6d466ca773e079c7d0a09e66"
+    "worktree_digest": "sha256:c93f8cb0c38c2e97c974f217da4a592ba8a5438774ff935346921703f6a8e9e9"
   },
-  "inputDigest": "sha256:d870fd0b9bfe41cd6b09414e10755197b98b4a7225f5e1e18192b6d7afc1dc56",
+  "inputDigest": "sha256:a32119ec5683253484c0ed922cc14d6dd4543a2bacd4b8bdd843c7fe6bd137b4",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "cb333d746f0647a6c9bf9a928304d9af6db6e32b5f8f53d9735aa4930e5dd361",
@@ -73,7 +68,7 @@
     "design-lab/config/object-model.json": "1ec285aa9a003b067830354bdc010feae63feb5fc3d90103e4e229e161c0f404",
     "design-lab/config/product-manifest.json": "309e1133a84cd0c8ec2b7120038d5e5a0bbf68f97bcf4342249794a8b2856789",
     "design-lab/config/state-vocabularies.json": "d13d55431358171770384f5fcb211089e398766df281f1d4ea3c6438a16746a6",
-    "design-lab/config/task-ledger-r3.json": "8dd8606319929bd4b5beca8e6ee12a52dcf9c2da5c6aa16bd6a3fa4486e66a06",
+    "design-lab/config/task-ledger-r3.json": "ca3fae33cd6493e8cb4a323369032c6c1a31751c5a5b9a44fc56ebcdc2c9223f",
     "design-lab/domain-packs/audio-design/handoff-contract.json": "95d62def98e8eb71f36c06496edce4705c6bf22d17eda762acf846642ea6ba6c",
     "design-lab/domain-packs/audio-design/manifest.json": "5460b5287c74237cb8780b5eb5ff47e02b37b655ea453c03f1e99230cd70c171",
     "design-lab/domain-packs/audio-design/preflight.json": "a423b34d800c239cdab47df245f72e15f2ecca0402a10158fa06a6d2f187d0e8",
@@ -264,7 +259,7 @@
     "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-02-supersedes-fork-refused-on-both-routes-20261026.json": "188f2de1830442318a706296ad9d333a59dedef475ca4eb73e78863c2d465170",
     "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-06-body-phase-deadline-and-cancel-20261026.json": "204dbcb839fed8eb8a4836fd750f32391e2883d5f75e8c532682af3fb59e13e9",
     "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-06-knowledge-form-one-refusal-per-field-20261026.json": "ff5a9d7e94b9d7533884ec8695a133972397263d24df705119f88d295688367a",
-    "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json": "3e8bc99948c486d0d2bf3a0bff6445cc7e67db183aa7713d2e6a53c67d19d172",
+    "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json": "494f1671f603c1659e211b6b4b91c3a34c14d08b76ed6de520757cad05032a96",
     "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-stitch-board-baseline-registered-and-shell-folded-20261027.json": "53fa8e8cddd96bb5cadddc443932b553f80a522a6dd98945b695e724df8ab2a4",
     "design-lab/evidence/current-execution/task-artifacts/ui-first-20261009/b20-20261011/overflow-gate.json": "08548677d83ca422ac169886dab82cc93023d03a3aa553b819c9aee807b404a9",
     "design-lab/evidence/current-execution/task-artifacts/ui-first-20261009/b20-20261011/pixel-digest-comparison.json": "be44ba737b2e3c1104d6981595e399412358d83263f80a45c7c80dce80138703",
@@ -849,15 +844,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "16f99badbdd6395fc13474526e8aa2ec24c3fd86c03ac7665bc5dae71f716c5d",
-    "CLOUD_BASELINE.json": "2abae595f20b54941e74c2a960501ef8853235f17fa8fa8c8c5ebc0a73bffd2c",
-    "CLOUD_BASELINE.md": "f8f5353a74d8c49494824ecd644082acd9d8ae2b4a7ede6185b861366da66304",
-    "DOMAIN_PACK_READINESS.json": "5dd5c76c026f67d65d943e3ae966f7944ac3497f6bc28ba18395f88141a103e4",
-    "KNOWLEDGE_INVENTORY.json": "959ab39476af186d6a5cdad8d7d8d4787c7cf43de7e08824811b6a018d797cd9",
-    "PROJECT_STATUS.json": "3dc8a81385ae4c84de84fa7eaff9620e9fc166db463c9be3a1e221639a249a67",
-    "PROJECT_STATUS.md": "a014eb1ca1558d4b1269641bb1f5e6f61243893a2dbb98900e3bf59db300e09f",
-    "RELEASE_READINESS.json": "8f185a6596c31e8e9b98c1cb51c5a11def5a2854c7e74d8674b9cafd04e33c20",
-    "TASK_PROGRESS.json": "1d8701790495379eb8d44ea625285d22a98988fe11cf15aeef5ae4a485140cd7"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "04c92c10a2a117b33a2bfe43e5e24d87906827295576292a8948aaef8ccd374f",
+    "CLOUD_BASELINE.json": "13e44f5a6e765407ff51bb1a8b6edb643fea7a5056930c977326b31ecdab951a",
+    "CLOUD_BASELINE.md": "2c15c81a2739109fe8b2fabcddaafb95dc0e250975b61a478b3aec2b88f20bda",
+    "DOMAIN_PACK_READINESS.json": "a5cf451de3425241c91b57a6974ee6fbc8ecf3e72496c31f67554b674e129a70",
+    "KNOWLEDGE_INVENTORY.json": "a61c16e700dc8bffe2f9ab3c6fee5fe042479a49ff392183c80364ec5104fb4e",
+    "PROJECT_STATUS.json": "4d275fa775cb5a9ca3577b88f988c65fb99304bae149a49459562b99433480b8",
+    "PROJECT_STATUS.md": "9846e1a02d3254047dd143db2b60ee8973c3965848d0f5cd987d313fd0c0dc49",
+    "RELEASE_READINESS.json": "a8e3a3826ae4da77b94e222a0b80b393f250a7787df2f858c93f548b6a86bdc2",
+    "TASK_PROGRESS.json": "52b4da323f57a8a193a917e00e7ee857d1471018da90050c93063a8d38dff87f"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -873,5 +868,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "5e52fa974543a67c5f77ffd5092edcab87a58232"
+  "subjectSha": "9e739f82b3baacc1e63431a89f5cdc02a91ae153"
 }

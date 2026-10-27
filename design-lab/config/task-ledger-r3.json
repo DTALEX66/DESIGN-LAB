@@ -12754,10 +12754,10 @@
         "task_id": "DL-KB-06",
         "axis": "implementation",
         "outcome": "PASS",
-        "observed_at": "2026-10-27T14:55:45Z",
-        "subject_sha": "5e52fa974543a67c5f77ffd5092edcab87a58232",
+        "observed_at": "2026-10-27T15:19:40Z",
+        "subject_sha": "9e739f82b3baacc1e63431a89f5cdc02a91ae153",
         "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json",
-        "artifact_sha256": "3e8bc99948c486d0d2bf3a0bff6445cc7e67db183aa7713d2e6a53c67d19d172",
+        "artifact_sha256": "494f1671f603c1659e211b6b4b91c3a34c14d08b76ed6de520757cad05032a96",
         "exit_code": 0,
         "command": "close the two gate-found defects left by the STITCH fold (the cue that kept claiming nothing was hidden, and the guard that measured the wrong rail), then land the boards' output-type chip row with the radio as its only state owner"
       }

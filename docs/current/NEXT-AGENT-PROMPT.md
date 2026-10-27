@@ -303,7 +303,11 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 词表仍全部来自服务：未读回时一个胶囊都不画、读回后一个都不预选。
 **下一轮接着做的顺序**：① 已完成——状态主人是被勾选的那颗 `radio`，`<select>` 整个删除，不留第二台账；
 基数按合同（`output_type` 单值）而不是画板那句"多选"，要做多选得改那份闭合的读回 schema，那是 owner／合同决定；
-② 附件 tile 的名称/大小（`references` 只有 kind+id，要联 `assets` 元数据）；
+② 附件 tile 的名称/大小——**不是"没有数据"，是投影没带出来**：库里 `f.path` 与 `f.byte_size` 都在
+（`src/design_lab/native_assets.py:25,37` 就 SELECT 了它们），而 workbench 读的那一行 `AssetRecord`
+（`apps/workbench/contracts.ts:37-47`）只有 id/kind/version/media_type/width/height/rights/sha256。
+所以这一步是**加宽那份读回投影并补它的路由合同行**，不是新数据源；在加宽之前，tile 只能显示
+`media_type · W×H`，画板那行「2.4 MB · 字体排印样张」不能照抄；
 ③ **缩略图需要开静态资源路由并放宽 CSP，是 owner 的安全决定，不要顺手做**；④ 画板顶栏那三个 Windows 窗口按钮
 在浏览器标签里没有真实现，**不画装饰件**，真窗口壳属交付形态变更（要 owner 解除 release／安装态分发冻结）。
 **新增待 owner 裁**：左栏收口是否进一步扩到路由清单本身（会动 DESIGN.md 的「导航 N 项」与那把闸）；
