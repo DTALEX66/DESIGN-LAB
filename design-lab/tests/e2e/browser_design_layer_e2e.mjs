@@ -1484,6 +1484,22 @@ try {
     const planCreatePost = page.waitForResponse((r) => r.request().method() === 'POST'
       && /\/assistance-plans$/.test(r.url()), { timeout: 25000 });
     await page.locator('#as-duplicate').click();
+    // 「复制一份」is an async read: the source's own words have to be IN the form before the
+    // submit, or the submit saves whatever was there a moment ago and the advisory lands after
+    // the confirmation. CI run 40526168978 (head 5388b62f) is exactly that race lost -- the plan
+    // was created (revision 1, fresh id, detail rendered) while the cell still read the advisory,
+    // so the wait below could never see the sentence it asserts. Locally the seed wins the race,
+    // which is why four local runs said OK. Wait for the seeded state, not for the click.
+    const seeded = await page.waitForFunction(() => {
+      const field = document.getElementById('as-objective');
+      const status = document.getElementById('as-form-status');
+      return !!field && (field.value || '').trim() !== ''
+        && /以上内容取自 /.test(((status && status.textContent) || '').trim());
+    }, null, { timeout: 25000 }).then(() => true).catch(() => false);
+    if (!seeded) {
+      await abort('E2E_ASSISTANT_DUPLICATE_NOT_SEEDED: the copy read never put the source '
+                  + 'content into the form, so any submit from here is not a copy', 15, ctx, b);
+    }
     await page.locator('#as-author').fill('E2E Copier');
     await page.locator('#as-submit').click();
     const copied = await planCreatePost.then((r) => r.json()).catch(() => null);
