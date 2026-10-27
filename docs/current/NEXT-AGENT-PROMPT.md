@@ -322,7 +322,13 @@ CI 在承载全部字节的 head 上把它们一次跑红（§5.83 记了三条�
 `test_workbench_brand_asset.py` 跟着扩一条"两处字节同源"的断言；④ 画板顶栏那三个 Windows 窗口按钮
 在浏览器标签里没有真实现，**不画装饰件**，真窗口壳属交付形态变更（要 owner 解除 release／安装态分发冻结）。
 **新增待 owner 裁**：左栏收口是否进一步扩到路由清单本身（会动 DESIGN.md 的「导航 N 项」与那把闸）；
-以及"STITCH 那套是否成为默认配色"（现行裁定是新配色只做可选主题、默认不动）。 **§5.80 之后重读 CI 的结论**：承载卷宗 §5.80 全部字节的 head `0331b68f` 的 PR run 40365602992 `conclusion=success`（push run 40365593987 只跑轻闸），逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`、`EVIDENCE_ARTIFACTS=WARN tracked_broken=0`；更早那条 `751df4a0` 的 PR run 也已读回 success，所以闸修复的代码字节被两条 run 各覆盖一次。**下一轮起手只做一件事**：把写这段读数的那次文档／登记件／投影提交的 run 读回（derived-only，预期同值），不要重跑套件以外的东西。
+以及"STITCH 那套是否成为默认配色"（现行裁定是新配色只做可选主题、默认不动）。 **本轮重读 CI 的结论（§5.84）**：承载本轮全部字节的 head `19ffd0d1` 的 PR run 40537819918
+`conclusion=success`，10 个非 skipped 作业全绿，逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`。
+更早 `924af2fb` 的 run 只剩两条红（权威链旧 + 它从测试面的那次复现），`5388b62f` 的 run 四条红里
+三条都是同一个"派生物没跟着字节重算"，只有浏览器 E2E 那条是真的测试竞态，并在 `924af2fb` 单独转绿。
+**下一轮起手不要重跑套件**：本轮的收口提交（回执第 323 行 + 三份派生物重绑）自己会触发一条 run，
+读它就行；`3a2b6565`…`5e52fa97` 没有各自的 run，别把它们说成"每个 SHA 都单独验过"。
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
 不是把那些任务重新派工。

@@ -3545,3 +3545,30 @@ PROBLEM row 5: SHA-256 prefix claim 6a24555e8a67c18f vs f6280583c8a0bc5b
 **卷宗/提示词改完先提交 → 重生成归档登记件 → 重生成权威链记录 → 重生成现行投影 → 跑闸 → 再提交 → 推送 → 读 CI**。
 登记件、权威链、投影三样都是**被绑定字节的派生物**，任何一处文档或账本动过，三样都要按这个次序重算；
 顺序错了就会像本轮一样：本地每个闸都各自绿过，CI 在承载全部字节的 head 上把它们一次跑红。
+
+### 5.84 承载全部字节的 head 上，CI 一次跑绿：逐字读数与"哪两条红是同一个根"
+
+**`19ffd0d1` 的 PR run 40537819918 `conclusion=success`**，10 个非 skipped 作业全绿
+（`Branch light gate` 与 `CI artifact proof` 按设计 skipped）。逐字：
+
+```
+PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0
+VERIFY_DESIGN_LAB=OK total=77 failed=0
+BROWSER_E2E ran=44 skipped=0 failed=0
+  BROWSER_E2E[test_workbench_design_layer_e2e] ran=2 skipped=0 failed=0
+  BROWSER_E2E[test_workbench_ui_audit_gate]    ran=1 skipped=0 failed=0
+  BROWSER_E2E[test_workbench_overflow_gate]    ran=4 skipped=0 failed=0
+  BROWSER_E2E[test_workbench_contrast_gate]    ran=31 skipped=0 failed=0
+```
+
+**四条红其实只有两个根，而且三个是同一个自己造成的类。** `5388b62f` 那次四作业红里：
+登记件旧（§5.83 其一）、权威链旧（§5.83 其二，从测试面看就是
+`test_language_boundary_check_mode.ChainEncodingTests.test_the_chain_completes_on_a_gbk_console_and_writes_no_tracked_file`
+这条红——**同一个陈旧派生物从两个面各报一次**）、Python 作业红也是同一条链记录；
+只有浏览器 E2E 那条是真的产品测试竞态（复制种子），它在 `924af2fb` 上单独转绿——
+那两个 head 之间该作业唯一变化的就是这一处等待，所以**修复被 CI 自己证明了，不是我说的**。
+
+**回执 `dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027`（账本第 323 行）**
+钉的就是这一轮读回所依据的字节。它同时把"哪些不是本轮交付"写进 `not_claimed`：
+`3a2b6565`…`5e52fa97` 没有各自推送过，因此没有各自的 run——它们的字节由 `924af2fb` 与 `19ffd0d1`
+两条 run 覆盖，这句话不许被读成"每个 SHA 都单独验过"。
