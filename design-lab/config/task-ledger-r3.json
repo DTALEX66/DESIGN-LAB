@@ -12760,6 +12760,18 @@
         "artifact_sha256": "494f1671f603c1659e211b6b4b91c3a34c14d08b76ed6de520757cad05032a96",
         "exit_code": 0,
         "command": "close the two gate-found defects left by the STITCH fold (the cue that kept claiming nothing was hidden, and the guard that measured the wrong rail), then land the boards' output-type chip row with the radio as its only state owner"
+      },
+      {
+        "id": "dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027",
+        "task_id": "DL-FINAL-T04",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-27T16:37:02Z",
+        "subject_sha": "19ffd0d164dc9c67a1fb529c90d6e9b510a46291",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027.json",
+        "artifact_sha256": "111636810c631a1f79e47b7ff8565c510aeac2e0ae028a6021e0c172405d092a",
+        "exit_code": 0,
+        "command": "read the Canonical Verify runs at 924af2fb and 19ffd0d1 verbatim, and rebind the three derived bindings (archive register, authority chain, current reports) that landing receipts had moved"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
