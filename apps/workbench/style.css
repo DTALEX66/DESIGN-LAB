@@ -2156,6 +2156,12 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .as-row .input{width:100%;min-width:0}
 .as-row .ghost-btn{align-self:end;justify-self:start}
 .as-refs{margin-top:var(--uif-space-1)}
+/* 屏幕一（STITCH 基准 design_lab_2 / screen-d01）的字段下沿：清空 + 字数 + 换行提示。
+   全部走既有令牌，不新增字面 px——债闸数的是字面量，这里没有需要重钉的理由。 */
+.as-field-meta{display:flex;align-items:center;gap:var(--uif-space-2);
+  margin-top:var(--uif-space-1)}
+.as-count,.as-hint{font-size:var(--uif-font-micro);color:var(--muted)}
+.as-field-meta .ghost-btn{padding:var(--uif-space-1) var(--uif-space-2)}
 .as-ref .value-mono{flex:1 1 16ch}
 .as-ref-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
 .as-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}

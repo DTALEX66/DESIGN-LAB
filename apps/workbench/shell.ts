@@ -4746,6 +4746,23 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   // ---- 初始态：需求、参考附件、输出类型 -------------------------------------
   const objective = el('textarea', { id: 'as-objective', class: 'input', rows: '4',
     placeholder: '例如：为秋季新品做一张克制的主视觉海报，给标题留出大面积空白。' });
+  // 画板 `design_lab_2` 的 screen-d01 在需求框下面挂了「清空 · N 字」与「Shift+Return 换行」。
+  // 字数读的是 textarea 自己的 `value.length`，不假装是服务算出来的；**不写上限**——合同里
+  // 没有字数上限，画板那行「2 / 8 附件」是示例位而不是产品约束，抄成规格就是把样例内容当需求。
+  const objectiveCount = el('span', { class: 'as-count', id: 'as-objective-count' }, '0 字');
+  const objectiveClear = el('button', { type: 'button', class: 'ghost-btn',
+    id: 'as-objective-clear' }, '清空');
+  const objectiveMeta = el('div', { class: 'as-field-meta' }, objectiveClear, objectiveCount,
+    el('span', { class: 'as-hint' }, 'Shift+Return 换行'));
+  const syncObjectiveMeta = (): void => {
+    objectiveCount.textContent = `${objective.value.length} 字`;
+  };
+  objective.addEventListener('input', syncObjectiveMeta);
+  objectiveClear.addEventListener('click', () => {
+    objective.value = '';
+    syncObjectiveMeta();
+    objective.focus();
+  });
   const outputType = el('select', { id: 'as-output-type', class: 'input' },
     el('option', { value: '' }, '输出类型未读回'));
   const workspace = el('select', { id: 'as-workspace', class: 'input' });
@@ -4759,6 +4776,10 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   const addReference = el('button', { type: 'button', class: 'ghost-btn',
     id: 'as-reference-add' }, '添加参考');
   const referenceList = el('ul', { class: 'list as-refs', id: 'as-references' });
+  // 画板在参考行右上角给「N / 8 附件」。这里只报**已关联条数**：8 是示例位、不是合同里的上限，
+  // 报成 `N / 8` 就是让界面宣称一个不存在的产品约束。
+  const referenceCount = el('span', { class: 'as-count', id: 'as-reference-count' },
+    '已关联 0 项参考');
   const submit = el('button', { type: 'submit', class: 'primary-btn', id: 'as-submit' },
     '整理方案');
   const cancelEdit = el('button', { type: 'button', class: 'ghost-btn as-hidden',
@@ -4945,11 +4966,12 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
       '写下目标就能保存一条方案。保存的是方案本身，不是一次模型运行；'
       + '工具与模型不在这里选，稍后在工具交接里补。'),
     el('label', { class: 'field-row' }, el('span', {}, '需求'), objective),
+    objectiveMeta,
     el('div', { class: 'as-row' },
       el('label', { class: 'field-row' }, el('span', {}, '工作区'), workspace),
       workspaceNameRow),
     el('label', { class: 'field-row' }, el('span', {}, '参考附件'),
-      el('div', { class: 'as-row' }, assetSelect, addReference)),
+      el('div', { class: 'as-row' }, assetSelect, addReference, referenceCount)),
     referenceList,
     el('div', { class: 'as-row' },
       el('label', { class: 'field-row' }, el('span', {}, '输出类型'), outputType),
@@ -5184,6 +5206,13 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
       ...projectChoices.map((choice) => `${choice.kind}:${choice.id}`),
       ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)]);
     const kindLabel = (kind: string): string => REFERENCE_KIND_LABELS[kind] ?? kind;
+    // Both counters are re-derived here rather than only on `input`: loading a stored plan
+    // (6089) and clearing after a save (6236/6250) set `objective.value` programmatically, which
+    // fires no input event, so a listener-only counter would keep showing the previous text's
+    // length -- the same "read the state, not the last event" rule the browser gate learned the
+    // hard way this round.
+    syncObjectiveMeta();
+    referenceCount.textContent = `已关联 ${references.length} 项参考`;
     referenceList.replaceChildren(...(references.length
       ? references.map((reference) => el('li', { class: 'list-item as-ref' },
           el('span', { class: 'tag neutral' }, kindLabel(reference.kind)),

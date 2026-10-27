@@ -6081,6 +6081,28 @@ async function renderDesignAssistant(target) {
     rows: "4",
     placeholder: "例如：为秋季新品做一张克制的主视觉海报，给标题留出大面积空白。"
   });
+  const objectiveCount = el("span", { class: "as-count", id: "as-objective-count" }, "0 字");
+  const objectiveClear = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "as-objective-clear"
+  }, "清空");
+  const objectiveMeta = el(
+    "div",
+    { class: "as-field-meta" },
+    objectiveClear,
+    objectiveCount,
+    el("span", { class: "as-hint" }, "Shift+Return 换行")
+  );
+  const syncObjectiveMeta = () => {
+    objectiveCount.textContent = `${objective.value.length} 字`;
+  };
+  objective.addEventListener("input", syncObjectiveMeta);
+  objectiveClear.addEventListener("click", () => {
+    objective.value = "";
+    syncObjectiveMeta();
+    objective.focus();
+  });
   const outputType = el(
     "select",
     { id: "as-output-type", class: "input" },
@@ -6112,6 +6134,11 @@ async function renderDesignAssistant(target) {
     id: "as-reference-add"
   }, "添加参考");
   const referenceList = el("ul", { class: "list as-refs", id: "as-references" });
+  const referenceCount = el(
+    "span",
+    { class: "as-count", id: "as-reference-count" },
+    "已关联 0 项参考"
+  );
   const submit = el(
     "button",
     { type: "submit", class: "primary-btn", id: "as-submit" },
@@ -6335,6 +6362,7 @@ async function renderDesignAssistant(target) {
       "写下目标就能保存一条方案。保存的是方案本身，不是一次模型运行；工具与模型不在这里选，稍后在工具交接里补。"
     ),
     el("label", { class: "field-row" }, el("span", {}, "需求"), objective),
+    objectiveMeta,
     el(
       "div",
       { class: "as-row" },
@@ -6345,7 +6373,7 @@ async function renderDesignAssistant(target) {
       "label",
       { class: "field-row" },
       el("span", {}, "参考附件"),
-      el("div", { class: "as-row" }, assetSelect, addReference)
+      el("div", { class: "as-row" }, assetSelect, addReference, referenceCount)
     ),
     referenceList,
     el(
@@ -6619,6 +6647,8 @@ async function renderDesignAssistant(target) {
       ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)
     ]);
     const kindLabel = (kind) => REFERENCE_KIND_LABELS[kind] ?? kind;
+    syncObjectiveMeta();
+    referenceCount.textContent = `已关联 ${references.length} 项参考`;
     referenceList.replaceChildren(...references.length ? references.map((reference) => el(
       "li",
       { class: "list-item as-ref" },
