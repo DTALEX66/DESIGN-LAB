@@ -9943,7 +9943,7 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       el('section', { class: 'content', id: 'content', tabindex: '-1' }, offlineNotice, routeView)));
   document.body.append(app);
 
-  // The sidebar nav is `overflow:auto`, and the 21 destinations in ROUTE_VIEWS need far more
+  // The sidebar nav is `overflow:auto`, and the destinations in ROUTE_VIEWS need far more
   // than a short window shows, so the last ones fall below the edge with nothing to say so.
   // No figure is quoted here on purpose: the overflow gate now drives this at a 620px-tall
   // window and records the amount itself in `report.navCue[width]`, and the value is

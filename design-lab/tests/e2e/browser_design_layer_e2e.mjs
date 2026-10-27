@@ -973,6 +973,8 @@ try {
       await abort('E2E_ASSISTANT_CHAT_SURFACE: the route rendered a canvas or a message log: '
                   + JSON.stringify(initial), 15, ctx, b);
     }
+    // Printed on the way through, so a green run leaves the shape it accepted behind.
+    console.log('E2E_ASSISTANT_INITIAL: ' + JSON.stringify(initial));
 
     const objectiveText = '为秋季新品写一条可读的分镜目标，给标题留白';
     await page.locator('#as-output-type input[value="STORYBOARD"]').check();
