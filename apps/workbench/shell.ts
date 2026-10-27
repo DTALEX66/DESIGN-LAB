@@ -4768,8 +4768,21 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     syncObjectiveMeta();
     objective.focus();
   });
-  const outputType = el('select', { id: 'as-output-type', class: 'input' },
-    el('option', { value: '' }, '输出类型未读回'));
+  // 画板 `design_lab_2` 把这一排选择画成胶囊（「希望准备的材料（多选胶囊，非强制全部）」），
+  // 08 的原话是「输出类型选择」——胶囊就是"选择"的一种形态，两边不冲突，所以按画板做。
+  // 但**基数按合同来，不按画板来**：合同里的 `output_type` 是单值，画板那排是多选。改成多选
+  // 要么一次点提交发 N 个请求，要么改那份闭合的读回 schema，两件都不是页面能自己决定的事，
+  // 所以这里是一组 radio（一组里选一个），不是 checkbox。控件用真 input 而不是可点的 div：
+  // 键盘方向、无障碍名和触控目标尺寸闸门量的都是这个原生元素，藏掉它就等于三样一起丢。
+  const outputType = el('div', { class: 'as-chips', id: 'as-output-type',
+    role: 'radiogroup', 'aria-label': '输出类型', tabindex: '-1' });
+  const chosenOutputType = (): string =>
+    (outputType.querySelector('input:checked') as HTMLInputElement | null)?.value ?? '';
+  const chooseOutputType = (value: string): void => {
+    for (const chip of Array.from(outputType.querySelectorAll<HTMLInputElement>('input'))) {
+      chip.checked = chip.value === value;
+    }
+  };
   const workspace = el('select', { id: 'as-workspace', class: 'input' });
   const workspaceName = el('input', { id: 'as-workspace-name', class: 'input',
     maxlength: '160', placeholder: '工作区名称（留空则取需求前 20 字）' });
@@ -4979,7 +4992,9 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
       el('div', { class: 'as-row' }, assetSelect, addReference, referenceCount)),
     referenceList,
     el('div', { class: 'as-row' },
-      el('label', { class: 'field-row' }, el('span', {}, '输出类型'), outputType),
+      // A <label> cannot wrap a group of labelled chips (label inside label), and the group
+      // carries its own accessible name, so this row is a plain .field-row container.
+      el('div', { class: 'field-row' }, el('span', {}, '输出类型'), outputType),
       el('label', { class: 'field-row' }, el('span', {}, '记录人'), author)),
     more,
     formError,
@@ -6099,7 +6114,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     selected = doc.project_id;
     fillWorkspaces();
     objective.value = doc.objective;
-    outputType.value = doc.output_type;
+    chooseOutputType(doc.output_type);
     creative.value = doc.neutral_creative === ASSIST_UNKNOWN ? '' : doc.neutral_creative;
     brand.value = doc.brand_constraints.join('、');
     role.value = doc.role_constraints.join('、');
@@ -6190,7 +6205,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
       showFieldRefusal(author, '记录人不能为空：方案要写明是谁写的。');
       return;
     }
-    if (!outputType.value) {
+    if (!chosenOutputType()) {
       showFieldRefusal(outputType,
         '输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。');
       return;
@@ -6224,7 +6239,7 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
       }
       const body = {
         objective: text,
-        output_type: outputType.value,
+        output_type: chosenOutputType(),
         neutral_creative: creative.value.trim() || null,
         brand_constraints: assistanceWords(brand.value),
         role_constraints: assistanceWords(role.value),
@@ -6353,11 +6368,14 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
   outputTypes = types.output_types;
   materials = types.export_formats ?? [];
   fillPlanTypeFilter();
+  // 词表读回来才画胶囊：一条都不读回就一个胶囊都不画，只说这一句，不拿页面自己的词填空。
+  // 一个都不预选——上一次读回的词表可能已经换了一版，替用户选一项就是替服务做决定。
   outputType.replaceChildren(
     ...(outputTypes.length
-      ? [el('option', { value: '' }, '选择输出类型'),
-         ...outputTypes.map((option) => el('option', { value: option.value }, option.label))]
-      : [el('option', { value: '' }, '输出类型未读回')]));
+      ? outputTypes.map((option) => el('label', { class: 'as-chip' },
+        el('input', { type: 'radio', name: 'as-output-type', value: option.value }),
+        el('span', {}, option.label)))
+      : [el('span', { class: 'as-chips-empty' }, '输出类型未读回')]));
   submit.disabled = outputTypes.length === 0;
 
   const listing = await loadWorkspaces();

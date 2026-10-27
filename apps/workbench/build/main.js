@@ -6104,11 +6104,19 @@ async function renderDesignAssistant(target) {
     syncObjectiveMeta();
     objective.focus();
   });
-  const outputType = el(
-    "select",
-    { id: "as-output-type", class: "input" },
-    el("option", { value: "" }, "输出类型未读回")
-  );
+  const outputType = el("div", {
+    class: "as-chips",
+    id: "as-output-type",
+    role: "radiogroup",
+    "aria-label": "输出类型",
+    tabindex: "-1"
+  });
+  const chosenOutputType = () => outputType.querySelector("input:checked")?.value ?? "";
+  const chooseOutputType = (value) => {
+    for (const chip of Array.from(outputType.querySelectorAll("input"))) {
+      chip.checked = chip.value === value;
+    }
+  };
   const workspace = el("select", { id: "as-workspace", class: "input" });
   const workspaceName = el("input", {
     id: "as-workspace-name",
@@ -6380,7 +6388,9 @@ async function renderDesignAssistant(target) {
     el(
       "div",
       { class: "as-row" },
-      el("label", { class: "field-row" }, el("span", {}, "输出类型"), outputType),
+      // A <label> cannot wrap a group of labelled chips (label inside label), and the group
+      // carries its own accessible name, so this row is a plain .field-row container.
+      el("div", { class: "field-row" }, el("span", {}, "输出类型"), outputType),
       el("label", { class: "field-row" }, el("span", {}, "记录人"), author)
     ),
     more,
@@ -7715,7 +7725,7 @@ async function renderDesignAssistant(target) {
     selected = doc.project_id;
     fillWorkspaces();
     objective.value = doc.objective;
-    outputType.value = doc.output_type;
+    chooseOutputType(doc.output_type);
     creative.value = doc.neutral_creative === ASSIST_UNKNOWN ? "" : doc.neutral_creative;
     brand.value = doc.brand_constraints.join("、");
     role.value = doc.role_constraints.join("、");
@@ -7812,7 +7822,7 @@ async function renderDesignAssistant(target) {
       showFieldRefusal(author, "记录人不能为空：方案要写明是谁写的。");
       return;
     }
-    if (!outputType.value) {
+    if (!chosenOutputType()) {
       showFieldRefusal(
         outputType,
         "输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。"
@@ -7846,7 +7856,7 @@ async function renderDesignAssistant(target) {
       }
       const body = {
         objective: text,
-        output_type: outputType.value,
+        output_type: chosenOutputType(),
         neutral_creative: creative.value.trim() || null,
         brand_constraints: assistanceWords(brand.value),
         role_constraints: assistanceWords(role.value),
@@ -7969,10 +7979,12 @@ async function renderDesignAssistant(target) {
   materials = types.export_formats ?? [];
   fillPlanTypeFilter();
   outputType.replaceChildren(
-    ...outputTypes.length ? [
-      el("option", { value: "" }, "选择输出类型"),
-      ...outputTypes.map((option) => el("option", { value: option.value }, option.label))
-    ] : [el("option", { value: "" }, "输出类型未读回")]
+    ...outputTypes.length ? outputTypes.map((option) => el(
+      "label",
+      { class: "as-chip" },
+      el("input", { type: "radio", name: "as-output-type", value: option.value }),
+      el("span", {}, option.label)
+    )) : [el("span", { class: "as-chips-empty" }, "输出类型未读回")]
   );
   submit.disabled = outputTypes.length === 0;
   const listing = await loadWorkspaces();

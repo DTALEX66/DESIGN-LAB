@@ -945,21 +945,28 @@ try {
     const initial = await page.evaluate(() => {
       const form = document.getElementById('as-form');
       const controls = Array.from(form.querySelectorAll('select,input,textarea'));
+      const chips = Array.from(
+        document.querySelectorAll('#as-output-type input[type=radio]'));
       return {
         selects: Array.from(form.querySelectorAll('select')).map((s) => s.id),
         toolish: controls.map((c) => c.id).filter((id) => /tool|model/i.test(id)),
-        types: Array.from(document.querySelectorAll('#as-output-type option'))
-          .map((o) => o.value).filter(Boolean),
+        chips: chips.map((chip) => chip.value),
+        chipGroup: document.querySelector('#as-output-type')?.getAttribute('role') ?? '',
+        preselected: chips.filter((chip) => chip.checked).length,
         canvases: document.querySelectorAll('#route-view canvas').length,
         logs: document.querySelectorAll('#route-view [role="log"]').length,
       };
     });
     // The task says the initial screen exposes requirement, reference attachment
-    // and output type; tools and models are chosen later. Three selects is the
-    // rendered shape of that sentence, and an id naming a tool/model would mean
-    // the deferred picker had crept back in.
-    if (initial.selects.length !== 3 || initial.toolish.length !== 0 ||
-        initial.types.length !== 6 || !initial.types.includes('STORYBOARD')) {
+    // and output type; tools and models are chosen later. Two selects is the
+    // rendered shape of that sentence (workspace + reference picker), and an id naming a
+    // tool/model would mean the deferred picker had crept back in. The output type is the
+    // chip row the board draws, so its shape is asserted as a radiogroup carrying the six
+    // served words with nothing preselected -- a chip the page chose itself would be the
+    // page deciding what the designer wants.
+    if (initial.selects.length !== 2 || initial.toolish.length !== 0 ||
+        initial.chipGroup !== 'radiogroup' || initial.preselected !== 0 ||
+        initial.chips.length !== 6 || !initial.chips.includes('STORYBOARD')) {
       await abort('E2E_ASSISTANT_INITIAL_SURFACE: ' + JSON.stringify(initial), 15, ctx, b);
     }
     if (initial.canvases !== 0 || initial.logs !== 0) {
@@ -968,8 +975,10 @@ try {
     }
 
     const objectiveText = '为秋季新品写一条可读的分镜目标，给标题留白';
-    await page.locator('#as-output-type').selectOption('STORYBOARD');
-    const outputTypeLabel = await page.locator('#as-output-type option:checked').innerText();
+    await page.locator('#as-output-type input[value="STORYBOARD"]').check();
+    const outputTypeLabel = await page.evaluate(() => (
+      document.querySelector('#as-output-type label:has(input:checked) span')?.textContent ?? ''
+    ).trim());
     await page.locator('#as-objective').fill(objectiveText);
     await page.locator('#as-author').fill('E2E Assistant Author');
     await page.locator('#as-submit').click();
@@ -1565,7 +1574,7 @@ try {
     // Then the edit is really saved: the draft must go with it, otherwise the next plan opens with
     // this one's text pasted back in. The type is picked here on purpose -- a draft never stores it,
     // so this is the served word list doing the choosing, the same as the designer would do.
-    await page.locator('#as-output-type').selectOption('MOTION');
+    await page.locator('#as-output-type input[value="MOTION"]').check();
     await page.locator('#as-author').fill('E2E Assistant Draft Author');
     await page.locator('#as-submit').click();
     const draftSaved = await page.waitForFunction(() => {
@@ -1677,7 +1686,7 @@ try {
     const plansBeforeRefusal = await page.locator('#as-list .as-plan-row').count();
     await page.locator('#as-objective').fill('把同一份镜头行写给一张海报方案，看服务怎么拒绝');
     await page.locator('#as-author').fill('E2E State Tester');
-    await page.locator('#as-output-type').selectOption('IMAGE');
+    await page.locator('#as-output-type input[value="IMAGE"]').check();
     await openDetails('#as-advanced');
     await page.locator('#as-add-shot').click();
     // The row's inputs are 序号(只读) / 时长 / 要完成什么 / 镜头运动 / 声音 / 参考角色.
@@ -1889,7 +1898,7 @@ try {
     // STORYBOARD, not IMAGE: this page session still carries the shot rows an earlier
     // lane step left in the form, and the store refuses shots on a print plan with
     // ASSISTANCE_PLAN_SHOTS_NOT_APPLICABLE -- a correct refusal the walk must not fight.
-    await page.locator('#as-output-type').selectOption('STORYBOARD');
+    await page.locator('#as-output-type input[value="STORYBOARD"]').check();
     await page.locator('#as-objective').fill('把刚读回的拆解法用进一条秋季主视觉');
     await page.locator('#as-author').fill('E2E Plan Author');
     const planSaved = page.waitForResponse((r) => /\/assistance-plans$/.test(r.url())

@@ -2171,6 +2171,19 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   margin-top:var(--uif-space-1)}
 .as-count,.as-hint{font-size:var(--uif-font-micro);color:var(--muted)}
 .as-field-meta .ghost-btn{padding:var(--uif-space-1) var(--uif-space-2)}
+/* 屏幕一的输出类型胶囊行（STITCH 基准 design_lab_2 把这一排画成胶囊）。词表来自服务，
+   一颗胶囊一条读回的词；基数按合同（`output_type` 单值）而不是画板那句"多选"。
+   radio 保持可见——藏掉它就同时丢掉键盘方向、无障碍名，和触控目标尺寸闸能量到的那个盒子。
+   999px 与 `.tag` 同一形制（那里已是字面量），不是新发明的圆角；其余全走既有令牌。
+   `tabindex=-1` 在 shell.ts 那边给容器：字段拒绝会把焦点交给这个组，div 自己不可聚焦。 */
+.as-chips{display:flex;flex-wrap:wrap;gap:var(--uif-space-1)}
+.as-chip{display:inline-flex;align-items:center;gap:var(--uif-space-1);
+  padding:var(--uif-space-1) var(--uif-space-2);border:1px solid var(--line);
+  border-radius:999px;font-size:var(--uif-font-micro);color:var(--text);cursor:pointer;
+  background:var(--surface-2)}
+.as-chip:has(input:checked){color:var(--ink);border-color:var(--accent);background:var(--surface)}
+.as-chip input{accent-color:var(--accent);margin:0}
+.as-chips-empty{font-size:var(--uif-font-micro);color:var(--muted)}
 .as-ref .value-mono{flex:1 1 16ch}
 .as-ref-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
 .as-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
