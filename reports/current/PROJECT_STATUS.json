@@ -8,16 +8,16 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-26T17:26:11+00:00",
+  "generatedAt": "2026-10-27T13:33:41+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "473b776748d8f1fd44faa7fe97572d04b7dbd8d6",
+    "sha": "9633029a87b10f2a1cbfe406a69ebf7a38ce9cd1",
     "source_worktree_clean": false,
-    "tracked_files": 4015,
+    "tracked_files": 4017,
     "worktree_changes": [
       {
-        "content": "sha256:1a6a24ea8fd08cc89380e13b0fcacb8355127b09ddc87ab4927629a592a042c4",
+        "content": "sha256:ac22f700b2497ff95da9842b86517209f7f77659ba84809c763b2ef53c69b20a",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
@@ -32,7 +32,7 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:5cbfa0a56f9d1d6ce8b13f02475860c6d526ad47b4da5a1858416a6c6582e442"
+    "worktree_digest": "sha256:189f5d02ac808dd4ac9a20d47677f9c434b6918e9024d2fcd1e14e02dd97691d"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -48,7 +48,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "473b776748d8f1fd44faa7fe97572d04b7dbd8d6",
+  "subjectSha": "9633029a87b10f2a1cbfe406a69ebf7a38ce9cd1",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -68,5 +68,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:5cbfa0a56f9d1d6ce8b13f02475860c6d526ad47b4da5a1858416a6c6582e442"
+  "worktreeDigest": "sha256:189f5d02ac808dd4ac9a20d47677f9c434b6918e9024d2fcd1e14e02dd97691d"
 }
