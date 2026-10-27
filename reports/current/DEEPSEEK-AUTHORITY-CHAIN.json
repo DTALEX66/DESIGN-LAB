@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-27T16:37:09+00:00",
+  "generated_at": "2026-10-27T17:02:42+00:00",
   "subject": {
-    "base_sha": "54e1937e433294cbd7734bc5c84ca8efd07abee1",
+    "base_sha": "df2d7bae93f8cee2286a95622d22a658cd1a17c7",
     "branch": "qoder/designlab-backup-consistency-20261007",
     "worktree_clean": false
   },
