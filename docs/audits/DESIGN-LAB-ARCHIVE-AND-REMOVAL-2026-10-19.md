@@ -3568,7 +3568,14 @@ BROWSER_E2E ran=44 skipped=0 failed=0
 只有浏览器 E2E 那条是真的产品测试竞态（复制种子），它在 `924af2fb` 上单独转绿——
 那两个 head 之间该作业唯一变化的就是这一处等待，所以**修复被 CI 自己证明了，不是我说的**。
 
-**回执 `dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027`（账本第 323 行）**
+****这条 run 之后还有两条同码的收口 run，也都读回了。** `28a14b93`（第 323 行回执 + 三份派生物重绑）
+的 PR run 40542844974 `conclusion=success`，逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；
+它之后的 `c5c77889` 只动接续提示词里那一句"待 owner 裁"的清单。
+**留给下一轮的第一件事**：读 `c5c77889` 之后那一条 run（承载本段读数的字节由它自己带，
+本轮不能把某条 run 的结论写进它自己承载的字节里）。
+
+回执 `dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027`（账本第 323 行）**
 钉的就是这一轮读回所依据的字节。它同时把"哪些不是本轮交付"写进 `not_claimed`：
 `3a2b6565`…`5e52fa97` 没有各自推送过，因此没有各自的 run——它们的字节由 `924af2fb` 与 `19ffd0d1`
 两条 run 覆盖，这句话不许被读成"每个 SHA 都单独验过"。
