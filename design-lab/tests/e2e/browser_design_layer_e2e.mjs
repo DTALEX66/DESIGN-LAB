@@ -642,6 +642,56 @@ try {
   // scrollport if the column itself moved (scrollTop > 0), never because the
   // item happened to be on screen.
   // ------------------------------------------------------------------------
+  await step('the rail users actually see is the folded one', async () => {
+    // 2026-10-27: the first STITCH fold landed on `.app-nav`, which mountB10Shell hides on every
+    // routed screen -- the change was gated, green, and invisible. This step is the guard for that
+    // class: it measures the element the operator actually sees, and it fails if the legacy rail is
+    // the visible one, so a fold applied only there can never pass again.
+    // The viewport is set here because `offsetParent` is null for the whole rail below 840px (the
+    // sidebar becomes an off-canvas drawer there); the first run of this step proved that by
+    // reporting 23 buttons and 0 visible -- a precondition of the measurement, not a product defect.
+    // The hash matters for the same reason: on the legacy workbench view (empty hash) the B10
+    // sidebar is the thing that hides, so the step must be standing on a routed screen to measure
+    // the rail an operator sees.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.evaluate(() => { window.location.hash = '#/knowledge'; });
+    await page.locator('#app-sidebar .nav button[data-route="knowledge"]')
+      .waitFor({ state: 'visible', timeout: 15000 });
+    const reading = await page.evaluate(() => {
+      const nav = document.querySelector('#app-sidebar .nav');
+      const legacy = document.querySelector('.app-nav');
+      const all = nav ? [...nav.querySelectorAll('button[data-route]')] : [];
+      const shown = () => all.filter((b) => b.offsetParent !== null).map((b) => b.dataset.route);
+      const fold = nav ? nav.querySelector('.nav-fold') : null;
+      const closedFirst = shown().length;
+      if (fold) fold.click();
+      const opened = shown().length;
+      if (fold) fold.click();
+      const closed = shown().length;
+      return {
+        total: all.length, closedFirst, opened, closed, hasFold: !!fold,
+        legacyVisible: !!legacy && legacy.offsetParent !== null,
+        groupsShown: nav ? [...nav.querySelectorAll('.nav-group')]
+          .filter((g) => g.offsetParent !== null).length : -1,
+      };
+    });
+    if (!reading.hasFold || reading.legacyVisible) {
+      await abort('E2E_NAV_FOLD_SURFACE: the fold must live on the visible sidebar and the legacy '
+                  + 'rail must stay hidden on a routed screen: ' + JSON.stringify(reading), 13, ctx, b);
+    }
+    // `closedFirst` may already be the full list when the current route is a folded one -- sync()
+    // opens the rail so the active item is visible -- so the assertion is on the toggle's two ends,
+    // not on what the page happened to show first.
+    if (!(reading.closed < reading.total) || reading.opened !== reading.total) {
+      await abort('E2E_NAV_FOLD_INERT: folding hides nothing, or 全部功能 does not restore every '
+                  + 'route: ' + JSON.stringify(reading), 13, ctx, b);
+    }
+    if (reading.groupsShown !== 0) {
+      await abort('E2E_NAV_FOLD_GROUPS: the boards carry no group headings in the rail, and the '
+                  + 'fold is supposed to hide them: ' + JSON.stringify(reading), 13, ctx, b);
+    }
+    console.log('E2E_NAV_FOLD: ' + JSON.stringify(reading));
+  });
   await step('desktop sidebar keeps the active route visible', async () => {
     if (!routeInventory) {
       await abort('E2E_NAV_ACTIVE_NO_INVENTORY: route inventory step did not run', 13, ctx, b);
