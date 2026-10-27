@@ -3572,8 +3572,9 @@ BROWSER_E2E ran=44 skipped=0 failed=0
 的 PR run 40542844974 `conclusion=success`，逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、
 `VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；
 它之后的 `c5c77889` 只动接续提示词里那一句"待 owner 裁"的清单。
-**留给下一轮的第一件事**：读 `c5c77889` 之后那一条 run（承载本段读数的字节由它自己带，
-本轮不能把某条 run 的结论写进它自己承载的字节里）。
+`c5c77889`（只动"待 owner 裁"那一句清单）的 PR run 40546651758 同样 `conclusion=success`。
+**留给下一轮的第一件事**：读 `cf5b0203` 之后那一条 run——本轮已经把能读的都读回并写在这里，
+而某条 run 的结论不可能住进它自己承载的那段字节里，这是这套绑定方式的固有形状，不是欠账。
 
 回执 `dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027`（账本第 323 行）**
 钉的就是这一轮读回所依据的字节。它同时把"哪些不是本轮交付"写进 `not_claimed`：
