@@ -9824,6 +9824,14 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       item.classList.toggle('is-folded',
         !open && NAV_DAILY_VIEWS.indexOf(item.dataset.route ?? '') === -1);
     }
+    // The cue reads geometry, and folding changes that geometry without firing a `scroll`
+    // or `resize` event, so it has to be refreshed here. The UI audit gate caught the
+    // omission on the first run after this fold landed: opening the rail on a secondary
+    // route at 1280x500 hid 1217px of destinations while the class still claimed there was
+    // nothing below, which is exactly the "hidden with no cue" failure the cue exists to
+    // prevent. `syncNavCue` is a hoisted declaration for this reason -- calling it from the
+    // mount-time fold above would hit a `const` arrow in its temporal dead zone.
+    syncNavCue();
   }
   const navFold = el('button', { type: 'button', class: 'nav-fold ghost-btn',
     'aria-expanded': 'false',
@@ -9925,11 +9933,13 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
   // typed into a comment would be a stale measurement pretending to be a real one.
   // The cue is the same form the legacy bottom bar uses -- a sticky ::after inside the
   // scroll container, which is the only form that survives scrolling there.
-  const syncNavCue = (): void => {
+  // A declaration, not a `const` arrow: `setSidebarFold` above calls this from the mount,
+  // which is before this line runs, so an arrow here would throw on the temporal dead zone.
+  function syncNavCue(): void {
     const more = navList.scrollHeight > navList.clientHeight + 1
       && navList.scrollTop + navList.clientHeight < navList.scrollHeight - 1;
     navList.classList.toggle('has-scroll-more', more);
-  };
+  }
   navList.addEventListener('scroll', syncNavCue, { passive: true });
   window.addEventListener('resize', syncNavCue);
   syncNavCue();

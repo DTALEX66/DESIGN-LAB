@@ -11600,6 +11600,7 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
         !open && NAV_DAILY_VIEWS.indexOf(item.dataset.route ?? "") === -1
       );
     }
+    syncNavCue();
   }
   const navFold = el("button", {
     type: "button",
@@ -11716,10 +11717,10 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
     )
   );
   document.body.append(app);
-  const syncNavCue = () => {
+  function syncNavCue() {
     const more = navList.scrollHeight > navList.clientHeight + 1 && navList.scrollTop + navList.clientHeight < navList.scrollHeight - 1;
     navList.classList.toggle("has-scroll-more", more);
-  };
+  }
   navList.addEventListener("scroll", syncNavCue, { passive: true });
   window.addEventListener("resize", syncNavCue);
   syncNavCue();
