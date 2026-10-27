@@ -9,34 +9,19 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-27T15:23:19+00:00",
+  "generatedAt": "2026-10-27T15:56:10+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "9e739f82b3baacc1e63431a89f5cdc02a91ae153",
+    "sha": "6cfb9a8bf6914a023c43a9ce7ba84cf24297179a",
     "source_worktree_clean": false,
     "tracked_files": 4018,
     "worktree_changes": [
       {
-        "content": "sha256:ca3fae33cd6493e8cb4a323369032c6c1a31751c5a5b9a44fc56ebcdc2c9223f",
+        "content": "sha256:7e89ae3f4aec6b0f71e8d74c4c2dec85d268b6ab81e22ddf5d4128913fb77de1",
         "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:494f1671f603c1659e211b6b4b91c3a34c14d08b76ed6de520757cad05032a96",
-        "kind": "M",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json"
-      },
-      {
-        "content": "sha256:b78808974cc5cdbf5f1863abbd6e04d775bc174a8fb4e127bdd2f9d01b9f5781",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md"
-      },
-      {
-        "content": "sha256:2e71059cf03604ba071f3e73ee67244ec57938da2941391c82274b94ec89763b",
-        "kind": "M",
-        "path": "docs/current/NEXT-AGENT-PROMPT.md"
+        "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
@@ -49,13 +34,13 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:c93f8cb0c38c2e97c974f217da4a592ba8a5438774ff935346921703f6a8e9e9"
+    "worktree_digest": "sha256:af8efc71a1508edfd17410766c89892d004f8e828e1034880e9a93563152b01b"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "9e739f82b3baacc1e63431a89f5cdc02a91ae153",
+  "subjectSha": "6cfb9a8bf6914a023c43a9ce7ba84cf24297179a",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -70,5 +55,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:c93f8cb0c38c2e97c974f217da4a592ba8a5438774ff935346921703f6a8e9e9"
+  "worktreeDigest": "sha256:af8efc71a1508edfd17410766c89892d004f8e828e1034880e9a93563152b01b"
 }
