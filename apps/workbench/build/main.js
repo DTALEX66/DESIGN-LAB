@@ -11412,6 +11412,26 @@ function mountAppShell() {
     }, route.label)),
     el("span", { class: "app-nav-meta", id: "shell-connection" }, "未连接")
   );
+  const navDaily = ["assistant", "knowledge", "projects", "settings"];
+  const navMore = el("button", {
+    type: "button",
+    class: "app-nav-more",
+    "aria-expanded": "false",
+    onclick: () => foldNav(!nav.classList.contains("nav-open"))
+  }, "全部功能");
+  const navMeta = nav.querySelector(".app-nav-meta");
+  if (navMeta) nav.insertBefore(navMore, navMeta);
+  else nav.append(navMore);
+  function foldNav(open) {
+    const host = nav;
+    host.classList.toggle("nav-open", open);
+    navMore.setAttribute("aria-expanded", String(open));
+    navMore.textContent = open ? "收起次要入口" : "全部功能";
+    for (const item of Array.from(host.querySelectorAll(".app-nav-item"))) {
+      item.classList.toggle("is-folded", !open && !navDaily.includes(item.dataset.route ?? ""));
+    }
+  }
+  foldNav(false);
   const syncLegacyNavCue = () => {
     const mobile = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 760px)").matches;
     const hasMore = mobile && nav.scrollWidth > nav.clientWidth && nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1;

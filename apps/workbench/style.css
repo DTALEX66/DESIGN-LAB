@@ -435,7 +435,22 @@ body > footer{
   border-color:var(--line);
   box-shadow:inset 3px 0 0 var(--accent);
 }
-.app-nav-meta{font-size:12px;color:var(--muted);padding:0 4px;margin-top:auto}
+.app-nav-meta{font-size:12px;color:var(--muted);padding:0 4px;margin-top:8px}
+/* STITCH 一比一（2026-10-27，基准 `design_lab_2` 的 screen-d01…d04）：画板左栏只露
+   「设计辅助／知识与提示词库／我的方案」三项，设置钉在左下角。次要路由**不删**——
+   `.app-nav-item` 的条数是浏览器 E2E 与 DESIGN.md 那句「导航 N 项」的现数对象，
+   所以折叠只改显示：DOM、路由与可达性一条不少，「全部功能」一键展开，
+   当前路由若被折叠则由 shell.ts 自动展开，侧栏「活动路由可见」那条断言继续成立。 */
+.app-nav-item.is-folded{display:none}
+.app-nav:not(.nav-open) .nav-group{display:none}
+.app-nav-item[data-route="settings"]{margin-top:auto}
+.app-nav-more{
+  display:block;width:100%;text-align:left;background:transparent;
+  border:1px dashed var(--line);color:var(--muted);
+  font-size:12px;font-weight:600;padding:7px 10px;cursor:pointer;
+  border-radius:var(--radius-md);
+}
+.app-nav-more:hover{color:var(--ink);background:var(--surface-2)}
 /* B10 1:1 shell host. The authoritative B10 `.app` grid (280px sidebar + 1fr
    main, defined in the B10 block below) is the ONLY route shell: `main.main`
    carries the 78px `.topbar` and the flex-1 `.content` view slot. The legacy

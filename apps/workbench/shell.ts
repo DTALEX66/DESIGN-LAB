@@ -9513,6 +9513,29 @@ export function mountAppShell(): void {
       onclick: () => { window.location.hash = route.hash === '' ? '' : route.hash; },
     }, route.label)),
     el('span', { class: 'app-nav-meta', id: 'shell-connection' }, '未连接'));
+  // STITCH 一比一（2026-10-27，基准 `design_lab_2` 的 screen-d01…d04）：画板左栏只有
+  // 「设计辅助／知识与提示词库／我的方案」三项，加左下角一个「设置」。旧 24 项 IA 不删——
+  // ROUTE_VIEWS 的条数是浏览器 E2E 的 `.app-nav-item` 计数与 DESIGN.md 那句「导航 N 项」的
+  // 现数对象，删一项就是毁一处账。这里改的是**默认露出**：次要项留在 DOM 里只是折叠，
+  // 「全部功能」可展开，且当前路由若被折叠就自动展开，所以「活动路由在侧栏可见」那条
+  // 断言不会因为还原而失效。
+  const navDaily: readonly string[] = ['assistant', 'knowledge', 'projects', 'settings'];
+  const navMore = el('button', {
+    type: 'button', class: 'app-nav-more', 'aria-expanded': 'false',
+    onclick: () => foldNav(!(nav as HTMLElement).classList.contains('nav-open')),
+  }, '全部功能');
+  const navMeta = nav.querySelector('.app-nav-meta');
+  if (navMeta) nav.insertBefore(navMore, navMeta); else nav.append(navMore);
+  function foldNav(open: boolean): void {
+    const host = nav as HTMLElement;
+    host.classList.toggle('nav-open', open);
+    navMore.setAttribute('aria-expanded', String(open));
+    navMore.textContent = open ? '收起次要入口' : '全部功能';
+    for (const item of Array.from(host.querySelectorAll<HTMLElement>('.app-nav-item'))) {
+      item.classList.toggle('is-folded', !open && !navDaily.includes(item.dataset.route ?? ''));
+    }
+  }
+  foldNav(false);
   // The legacy Workbench still has a separate shell while the D-6 product
   // direction remains open. On narrow screens its bottom navigation is wider
   // than the viewport; keep a visible continuation cue only while more items
