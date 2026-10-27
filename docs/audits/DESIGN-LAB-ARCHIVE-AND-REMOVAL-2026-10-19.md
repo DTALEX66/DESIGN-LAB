@@ -3518,3 +3518,17 @@ PROBLEM row 5: SHA-256 prefix claim 6a24555e8a67c18f vs f6280583c8a0bc5b
 **顺带记一张图**：CI 的 `fail.png` 里所有中文都是豆腐块（□□□），因为 runner 上没装 CJK 字体。
 这不影响断言（断言读的是 DOM 文本，不是像素），但它说明**CI 截图不能当视觉验收的证据**，
 也不能反过来用本机截图替 CI 作证——两边量的是不同的东西。
+
+**还有一处 LOGO 是真的没有：浏览器标签页。** 把三个面都渲染出来量了一遍（`.project-local/task-runtime/nav5-brand.txt`）：
+冷启动页 `.app-nav-mark` 22x22 在画、路由页 `.brand-mark` 48x48 在画，两处的字标都是文本 `DESIGN-LAB`；
+但三个面的 `link[rel~="icon"]` 读数都是 `NONE`——**标签页上没有任何图标**，只有 `tab:"DESIGN-LAB · 工作台"` 这行标题。
+这一条不在"画板与现界面的差异"里，因为画板是桌面壳、根本没有标签页；它是**交付形态是浏览器**才暴露出来的缺口。
+
+**为什么这一轮没有顺手补上**：图标必须自己带一份图形字节。仓库里那枚字标是 `style.css` 中按
+`brand-mark:begin sha256=…` 钉住的两份编码，同步由 `render_brand_asset.py --check` 这一把闸管着
+（`test_workbench_brand_asset.py` 的文档串写明"若哪天加了资产路由，这把闸要说话"）。
+标签图标要么再嵌一份 SVG（第二份字节的出处与漂移检查得并进同一把闸），要么开静态资源路由
+（正是那把闸现在会拒绝的方向，且与缩略图同一族：要动 CSP 与 `workbench.py` 的三路径白名单）。
+两条都能做，但都需要先把"第二份图形字节"的规矩定下来，**不该在一轮收口的尾巴上先塞进去再补闸**。
+下一步按第一条做：由 `render_brand_asset.py` 从同一份被跟踪的矢量派生 favicon 的字节、
+用同样的 `begin sha256=` 记号钉进 `index.html`，`--check` 同时覆盖 CSS 与 favicon 两处。

@@ -308,7 +308,12 @@ run 40338742258（head `4dc59349`）逐字 `VERIFY_DESIGN_LAB=FAIL total=77 fail
 （`apps/workbench/contracts.ts:37-47`）只有 id/kind/version/media_type/width/height/rights/sha256。
 所以这一步是**加宽那份读回投影并补它的路由合同行**，不是新数据源；在加宽之前，tile 只能显示
 `media_type · W×H`，画板那行「2.4 MB · 字体排印样张」不能照抄；
-③ **缩略图需要开静态资源路由并放宽 CSP，是 owner 的安全决定，不要顺手做**；④ 画板顶栏那三个 Windows 窗口按钮
+③ **缩略图需要开静态资源路由并放宽 CSP，是 owner 的安全决定，不要顺手做**；
+③.5 **浏览器标签页没有图标**（实测：冷启动／旧工作台／路由页三面 `link[rel~="icon"]` 全是 `NONE`，
+`§5.83` 末段）。做法不是往 `index.html` 里手贴一份 SVG——那会造出第二份没有出处的图形字节。
+要由 `design-lab/scripts/render_brand_asset.py` 从**同一份被跟踪的矢量**派生 favicon 字节、
+用同一族 `begin sha256=` 记号钉进 `index.html`，并让 `--check` 同时覆盖 CSS 与 favicon 两处，
+`test_workbench_brand_asset.py` 跟着扩一条"两处字节同源"的断言；④ 画板顶栏那三个 Windows 窗口按钮
 在浏览器标签里没有真实现，**不画装饰件**，真窗口壳属交付形态变更（要 owner 解除 release／安装态分发冻结）。
 **新增待 owner 裁**：左栏收口是否进一步扩到路由清单本身（会动 DESIGN.md 的「导航 N 项」与那把闸）；
 以及"STITCH 那套是否成为默认配色"（现行裁定是新配色只做可选主题、默认不动）。 **§5.80 之后重读 CI 的结论**：承载卷宗 §5.80 全部字节的 head `0331b68f` 的 PR run 40365602992 `conclusion=success`（push run 40365593987 只跑轻闸），逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`、`EVIDENCE_ARTIFACTS=WARN tracked_broken=0`；更早那条 `751df4a0` 的 PR run 也已读回 success，所以闸修复的代码字节被两条 run 各覆盖一次。**下一轮起手只做一件事**：把写这段读数的那次文档／登记件／投影提交的 run 读回（derived-only，预期同值），不要重跑套件以外的东西。
