@@ -321,7 +321,10 @@ CI 在承载全部字节的 head 上把它们一次跑红（§5.83 记了三条�
 用同一族 `begin sha256=` 记号钉进 `index.html`，并让 `--check` 同时覆盖 CSS 与 favicon 两处，
 `test_workbench_brand_asset.py` 跟着扩一条"两处字节同源"的断言；④ 画板顶栏那三个 Windows 窗口按钮
 在浏览器标签里没有真实现，**不画装饰件**，真窗口壳属交付形态变更（要 owner 解除 release／安装态分发冻结）。
-**新增待 owner 裁**：左栏收口是否进一步扩到路由清单本身（会动 DESIGN.md 的「导航 N 项」与那把闸）；
+**新增待 owner 裁（界面这一支的交付形态，全部不是工程缺口）**：左栏收口是否进一步扩到路由清单本身（会动 DESIGN.md 的「导航 N 项」与那把闸）；
+画板顶栏那三个 Windows 窗口控制件要不要真做（=桌面壳/安装态分发，需解除 release 冻结）；缩略图（静态资源路由 + CSP 放宽）；
+**输出类型是否允许多选**（画板那句是"多选胶囊"，合同 `output_type` 是单值——现做的一组 radio 是照合同来的，改多选要改那份闭合的读回 schema）；
+**浏览器标签页图标**（三面实测 `link[rel~="icon"]` 全为 `NONE`；补法见 §5.83 末段，要先定"第二份图形字节"的出处规矩）；
 以及"STITCH 那套是否成为默认配色"（现行裁定是新配色只做可选主题、默认不动）。 **本轮重读 CI 的结论（§5.84）**：承载本轮全部字节的 head `19ffd0d1` 的 PR run 40537819918
 `conclusion=success`，10 个非 skipped 作业全绿，逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、
 `VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`。
