@@ -3367,3 +3367,82 @@ E3、也不是真人 E4——两者仍是冻结项；`_list_rights` 与 `_list_k
 **验证（本机，全部改完之后再跑）。** `tsc --noEmit` 干净；`npm run test:unit` exit 0（appshell 仍数到全部导航项）；债闸 9/9 OK——左栏那几条带来 4 处字面 px，DESIGN.md §4 是**按闸自己的读数重钉 521→525**（先红，报出它要的那句原话，再改文档，不手点数字），屏幕一这一片只用既有令牌，px 数没再动；对比闸 31/31 OK（新墨色 `--muted` + `--uif-font-micro`，珍珠白与炭黑两侧都量过）；主题几何闸 3/3 OK；溢出闸 4/4 OK（`Ran 4 tests in 390.858s`）；设计层浏览器 E2E 2/2 OK（四态与"复制为新的方案"那条链仍走通）。
 
 **本节没有做的，别当已做。** 交付类型 chips（画板 5 枚；现控件是由服务读回填的 `<select>`，把同一个值做成第二个控件之前要先定"谁是状态主人"，否则就是本仓反复判红的第二台账）；附件 tile 的名称与大小（`references` 只有 kind+id，要联 `assets` 的元数据）；**缩略图**要开静态资源路由并放宽 CSP，那是 owner 的安全决定；画板顶栏那三个 Windows 窗口控制按钮在浏览器标签里没有真实现，**不画装饰件**——要真窗口壳就是交付形态变更，需要 owner 解除 release／安装态分发冻结。
+
+### 5.82 折叠改了几何却没改提示：UI 审计闸抓到的第二条，与交付类型胶囊落地
+
+**读数（本机，2026-10-27）。** 承载 `3a2b6565` 的那批慢闸里，溢出 4/4、对比 31/31、动效 1/1 都是绿的，
+只有 UI 审计闸红，报三条：
+
+```
+nav-overflow: short: 1217px of nav hidden with no cue
+nav-overflow: short: cue claims false but paints content=none at static
+nav-drawer: narrow: 873px of drawer nav hidden with no cue
+```
+
+**根因是 §5.81 那条折叠的第二条后果，不是画板改动本身。** 提示（`.nav.has-scroll-more::after`）由
+`syncNavCue()` 算，它只挂在 `scroll` 与 `resize` 两个事件上；折叠开合改变的是 `scrollHeight`，
+**既不发 scroll 也不发 resize**，于是 `sync()` 把导航展开到 23 项之后，类名还停在折叠态算出来的
+"下面没有东西"。1280x500 量到 1217px 被藏、380x844 抽屉里量到 873px 被藏——两条都是这一句
+"提示说没有，其实有一屏"。这条缺陷在折叠之前不可能出现：那时 `scrollHeight` 只在挂载和窗口变化时变。
+
+**修法**：`apps/workbench/shell.ts` 的 `setSidebarFold()` 末尾自己调一次 `syncNavCue()`，
+并把 `syncNavCue` 从 `const` 箭头改成函数声明——挂载时那次 `setSidebarFold(false)` 发生在
+定义之前，箭头会撞 temporal dead zone。两条都在代码注释里写明为什么是这个形状。
+
+**这条红是有用的，别只当它被修好了。** 它证明 UI 审计闸确实量的是**看得见**的那条侧栏：
+§5.81 把折叠挪到 `#app-sidebar .nav` 之前，这条闸在旧字节上是绿的（旧状态下折叠项全部露出，
+提示与几何一致）。同一把闸先绿后红，说明它跟着真实几何走，不是跟着类名走。
+
+**新增的守卫与它的反证。** `design-lab/tests/e2e/browser_design_layer_e2e.mjs` 加了
+`the rail users actually see is the folded one` 一步，量 `#app-sidebar .nav` 的可见按钮数、
+开合两次、并断言 `.app-nav` 在路由页仍然不可见。绿的时候的读数：
+
+```
+E2E_NAV_FOLD: {"total":23,"closedFirst":4,"opened":23,"closed":4,"hasFold":true,
+ "legacyVisible":false,"groupsShown":0}
+```
+
+这一步自己先错过两次：前两次跑在窄视口（上一步是手机布局）与空 hash 的旧工作台视图上，
+量到 `closedFirst:0`——`offsetParent` 在离屏抽屉里就是 null。那是**测量的前置条件**，不是产品缺陷，
+所以这一步现在自己把视口设成 1280x800、把 hash 设成 `#/knowledge`、并等 `knowledge` 那颗按钮真的可见。
+把折叠改成"什么都不隐藏"（`is-folded` 永远 false）之后，这一步按预期变红：
+
+```
+E2E_NAV_FOLD_INERT: folding hides nothing, or 全部功能 does not restore every route:
+ {"total":23,"closedFirst":23,"opened":23,"closed":23,"hasFold":true,"legacyVisible":false,"groupsShown":0}
+```
+
+还原后同一把闸回到上面那条绿读数。守卫不是"跑过了"，是**能打回的**。
+
+**交付类型胶囊（§5.81 留下的第一条）。** 画板 `design_lab_2` 把这一排画成胶囊，
+标题是「希望准备的材料（多选胶囊，非强制全部）」；08 第 9 行的原话是「输出类型选择」。
+两条不冲突——胶囊就是"选择"的一种控件形态——所以按画板做。冲突的是**基数**：合同里
+`output_type` 是单值，画板那排是多选。改成多选要么一次提交发 N 个请求，要么动那份闭合的读回
+schema，两件都不是页面能自己决定的，所以这里是一组 `radio`（一组选一个），并把画板那句
+"多选"留在本节而不是实现里。§5.81 问的"谁是状态主人"就此回答：**DOM 里被勾选的那颗 radio 是唯一的
+状态主人**，`<select>` 整个删掉，不留第二台账。词表仍全部来自服务：一条都没读回时一个胶囊都不画，
+只写「输出类型未读回」，主按钮照旧禁用；读回后一个都不预选。控件用真 `input[type=radio]`
+而不是可点的 `div`：键盘方向、无障碍名、以及触控目标尺寸闸量的都是这个原生元素。
+
+**跟着改的断言。** `#as-output-type` 从 `select` 变成 `radiogroup`，E2E 里所有
+`selectOption(...)` 改成勾选对应胶囊；首屏形状那条从"三个 select"改成"两个 select + 一组六个胶囊、
+`role=radiogroup`、预选数 0"——这条断言原来就是 08 那句"只展开本次必要字段"的渲染形状，
+改的是形状不是意图。
+
+**胶囊落地后的读数（本机 `0e3e5b5f`）。** 五把浏览器闸一次跑完：设计层 E2E `Ran 2 tests OK`、
+UI 审计 `OK`、对比 31/31、溢出 4/4、主题几何 3/3，全部 EXIT=0。首屏形状这一步现在把**它接受的那个形状**
+打出来，绿跑不再只留一个 OK：
+
+```
+E2E_ASSISTANT_INITIAL: {"selects":["as-workspace","as-reference-select"],"toolish":[],
+ "chips":["IMAGE","UI","MOTION","STORYBOARD","AUDIO","CAMPAIGN"],"chipGroup":"radiogroup",
+ "preselected":0,"canvases":0,"logs":0}
+```
+
+`preselected` 这一条不是装饰：在挂载处补一句"默认选第一项"（一个看起来很合理的改动）之后，
+同一步按预期变红，读数里是 `"preselected":1`。也就是说"一个都不预选"是**能被反证的断言**，
+不是一句写在注释里的愿望。词表那六个值也是这一次量出来的：它们来自服务读回，页面一个都没抄。
+
+**顺手清掉的一处旧注释**：`syncNavCue` 上面那段本来写着"ROUTE_VIEWS 里的 21 个目的地"，
+而同一段下一句就说"这里故意不写数字，任何手点的数字都会变成假装是实测的旧读数"。
+真实条数由路由闸现数（`route_views=24`），注释里那个 21 已经不对，所以把它去掉而不是改成 24。
