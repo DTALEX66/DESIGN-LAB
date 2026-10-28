@@ -12904,6 +12904,18 @@
         "artifact_sha256": "6c1ca667918a7654478e94247a158b40e3a70d18d2448bac41ed723e96dc19bc",
         "exit_code": 0,
         "command": "gh run view 40729083013 --log; gh api runs/40729083013/jobs"
+      },
+      {
+        "id": "dl-kb-06-first-screen-two-columns-recent-plans-right-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "e5a930b5bb8792766cde2885c9599c2b80383bca",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-first-screen-two-columns-recent-plans-right-20261028.json",
+        "artifact_sha256": "157ac88b8c4a23a139340a50616f0622c06188c0ee58f45e18200e21acd7568d",
+        "command": "vite build + tsc --noEmit + unit/appshell/shape-notice; unittest test_workbench_first_screen_columns test_workbench_overflow_gate test_workbench_css_single_definition test_workbench_route_calls test_workbench_weight test_workbench_contrast_gate; run_structure_contracts.py; design_debt_baseline.py --check; verify_documented_counts.py; seed 7 real plans and measure the landing at 1440/1280/1100/700 in real Chromium",
+        "exit_code": 0,
+        "observed_at": "2026-10-28T18:38:46Z"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

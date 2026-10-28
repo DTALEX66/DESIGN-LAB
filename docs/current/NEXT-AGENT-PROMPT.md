@@ -522,7 +522,10 @@ helper 的 docstring 已把这句话写在那里，不再声称"一处读"。
 ④ 提示词读回的界面翻页线索、其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type`
 写入时物化（带迁移＋precheck＋合同行）这些旧账照原顺序。
 ⑤ ~~浏览器标签图标~~ —— **已由 §5.88 做完**（`--sync-favicon` 派生 + `--check` 双覆盖 + 8 条可红用例 + 真 Chromium 16/32/48 看过，两张判定渲染随回执入仓）；
-⑥ 首屏双列（最近方案进右列）**未做**，动 `flex-wrap` 后必须重量常驻页脚与窄窗行框。
+⑥ ~~首屏双列（最近方案进右列）**未做**，动 `flex-wrap` 后必须重量常驻页脚与窄窗行框~~ ——
+**已由 §5.89 做完**（改的是默认路由 `''` 那一面，不是早已双列的 `#/assistant`；右列真读
+`?limit=5` 的方案列表，三条"没读到"与一条"读到 0 条"分开写；本轮没有新增 `flex-wrap`，
+页脚与窄窗仍按那句要求重量了，读数在 §5.89）。
 本轮四刀里 ①③④ 已交（① 是把前提证伪后改的字面：`byte_size` 本来就在发，页面读的是从未发出的字段），② 与 ④ 中的双列一屏见上条 ⑤⑥，均为 NOT_STARTED，不是缺口被抹平。
 
 **逐字基线**（本轮最终 head 的 CI 读数由下一轮自己读，不要抄这里的数字）：
@@ -539,6 +542,75 @@ AAOS 不是依赖、门或待排期联调项；release、安装态分发、真�
 不进指令面、prompt、工具发现或能力计数；不得靠改断言、删接口、硬改能力标记或把失败改成演示成功来通过；
 `.codebuddy/` 与 `.cursor/` 永不暂存；**#277 的合并与分支收口由 owner 2026-10-28 明确授权并已在本轮执行**，
 之后任何新的合并、推送、发布仍分别判断授权。
+
+**§5.89（2026-10-28 续）首屏双列：最近方案进右列——先把"哪一屏"量出来再动手。**
+owner 那一刀的原文是"首屏双列（最近方案进右列）"，入口记为未做。但仓里 `#/assistant` **早就是**
+双列且方案在右列（`.split as-split` 由 `2d9372fb` 于 2026-10-24 引入，`git log -S` 核过，早于这条
+"未做"的读数），所以照字面再改一遍就是重复施工。真 Chromium 对照两面才定下主语：默认路由 `''`
+（应用打开时的第一面，遗留工作台）的 `.grid` 只有 01 导入与 02 读回预览，两栏 512/692 各剩约
+250px 空白，右栏那块是一个从未导入过东西的棋盘占位，03 执行历史在 900px 折叠线以下。**这一刀改的是
+那一面**，回执 `dl-kb-06-first-screen-two-columns-recent-plans-right-20261028`。
+
+**改法**：`.grid` 的两个面板包进左 `.col`（导入 → 读回预览仍上下相邻），右 `.col` 是新的
+最近方案面板（eyebrow `RECENT PLANS`，**不占 01–05 编号**——那条序列是导入→读回→记录→产物→
+设计层，方案列不在其中）。CSS 只加 `.grid>.col{display:grid;gap:inherit;align-content:start;min-width:0}`
+与 `.plan-line`：`gap` 用 `inherit` 而不是再写一遍数值（列间距是 `.grid` 的财产，写两份下次只改到
+一份），所以债闸读数一字未动（`literal_px` 仍 526、`literal_colors` 仍 26）。新列读
+`GET /api/projects/{id}/assistance-plans?limit=5`——**有界**，`「8 条无界路由」` 那句逐字未动，
+`DOCUMENTED_COUNTS=PASS claims=21 route_views=25 cli=24 adapters=41 routes=89`。
+
+**说法是三条不是一条**：未选项目 / 读被拒 / 响应缺 `plans` 字段各有一句，只说"这一列没读到"；
+只有服务真发回 0 条才说"这个项目共 0 条"。排序写成"服务按写入时间倒序发回"，因为
+`assistance_plan.py::AssistancePlans.list` 自己就是 `ORDER BY r.created_at DESC` 取每计划的最新
+修订——"最近"是服务的读数，页面不替它下结论；`total/returned/一页之外` 三个数逐字挂在读回上。
+第二个读者出现时，方案列表信封的 TS 形状不能留两份：`AssistancePlanRow`/`AssistancePlanListView`
+从 `shell.ts` 的局部声明**移进** `contracts.ts`，`shell.ts` 改从 `contracts.js` 导入。
+
+**证伪**：新增 `design-lab/tests/test_workbench_first_screen_columns.py`（14 条，其中 8 条植入
+各自定罪：第三个面板被直接加进 `.grid`、方案面板被搬进左列、id 丢失、`.grid>.col` 出现第二份
+或被改写死长度、`.plan-line` 被降级、未读态说成"没有方案记录"、初始句两处写手漂移、目的地不在
+`ROUTE_VIEWS` 里、读回失去界限、信封长出第二份声明）。几何那半在 overflow 闸里加 `firstScreen`
+读数（列数/轨道数/是否并排/面板是否真在第二列/那句话是否真被画出来/文档是否变宽），
+`_assert_first_screen_columns` 在三套主题下都读它，并配 6 个植入方向证明它不是无条件通过。
+**这条断言在上线前被真实运行判红过一次**：第一版写死"折叠线上必须说没读过"，而闸的夹具在交互步骤
+里建了一条真方案，首屏读到的是 1 条不是 0 条——改成与状态无关的一致性检查（画出行数 N 就必须印
+"读到 N 条"，没有行才允许说没读到），它才既管得住谎也管得住自己的假设。
+
+**读数**：`tsc --noEmit` 干净、`vite build` 632344B（服务出去的字节与工作树逐字节同摘要
+`aff3697ca5c9e609515c3c73cbbe5dd6b99ef60a932c1313d67a6171469cbb7a`）、unit/appshell/shape-notice
+全过（seam 仍 62 处且每处有报告）；`test_workbench_css_single_definition` 17 OK（`.plan-line` 与
+`.plan-line small` 不算重复定义）、`test_workbench_route_calls` 23 OK、`test_workbench_weight`
+22 OK、`STRUCTURE_CONTRACTS=PASS tests=31`（这一步不在聚合那 77 条里）、
+`Ran 5 tests in 406.417s OK`（overflow 闸，三套主题各一次真 Chromium，报告
+`dcefafc669ed3f5b1e6bf54a1f109e8ef492463aa03aefd3aae0a20ba8307392`）、
+`Ran 32 tests in 303.413s OK`（对比度闸：新行的正文与 `--muted` 小字三套配色都过——**本地是
+Windows，云上 Linux 的读数仍要由承载本 head 的 PR run 自己说**）、`VERIFY_DESIGN_LAB=OK total=77
+failed=0`（在记录入仓前跑的，收口后须复跑）。
+
+**看过**：播种 7 条真方案（`limit=5` 所以必然出现"还有 2 条在这一页之外"），1440/1280/1100 三档
+两列并排、方案面板在第二列、底边 862/862/882 均在 900 折叠线内；700 档（≤760 媒体查询）自动落回
+一列；每档 `docScrollWidth` 等于视口宽、`consoleErrors=0`；点「在设计辅助中查看全部方案」确实换到
+`#/assistant` 并读到 7 行。**页脚这条按 owner 的要求重量了**：本轮**没有新增 `flex-wrap`**，
+量到的事实是——首屏那面 `.sidebar-footer` 画的是 `0×0`（B10 侧栏在遗留工作台路由不画），随内容
+下移的是 `body > footer`（静态、非吸附，1440 档实测 `y=3090`、700 档 `y=4659` 且 `wrap` 生效时
+仍是一行）；改动前的同一点没量过，所以这里只报改后读数，不给差值。侧栏页脚与导航切线的 6px
+底线仍由 overflow 闸在三种主题下量着。渲染件按 `DL-AST-001` 不入仓（品牌标志 sidecar 写着
+`redistributable:false`，本轮会话不能替 owner 签那份具名批准），九张图以 sha256+bytes 在回执里点名。
+
+**顺手抓到并修掉的一处旧缺陷**：起手 `git status` 露出 `apps/workbench/brand/index-synthetic.html`
+——`test_workbench_brand_asset.py` 的夹具每次运行往**受跟踪素材目录**写文件且从不删，派生投影还把
+它登记成证据主体路径（`reports/current/PROJECT_STATUS.json`、`CLOUD_BASELINE.json`、
+`current-report-index.json` 都点名一个 clone 里不存在的文件）。这正是"存在不等于交付"那一类：
+记录指向的东西必须按 `git ls-files` 核，不是按 `Path.exists()`。夹具改到忽略根并跑完即删
+（`8a4f37771e4e06a161fa95120e55a7100991e27a`），24 条仍全绿。
+
+**下一轮按此顺序**：① LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
+按"冻结原件原字节不动、只换指针与取代关系"执行并重绑登记件/权威链/投影；
+② 其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type` 写入时物化
+（带迁移＋precheck＋合同行）、提示词读回的界面翻页线索，照原顺序；
+③ owner 原本四刀**至此全部交完**（① 磁贴名称/大小、③ 浏览器标签图标、④ 首屏双列已落，
+② 缩略图与静态资源路由＋CSP 放宽仍是 owner 的安全决定，不顺手做）；
+④ 真宿主第一次 probe 仍默认 `NOT_PROBED`，要 owner 明确授权探测才做。
 
 **台账读数（2026-10-26 第二十五轮收口时现数，取代上面第二十四轮那一段的"当下"身份）**：本轮把上一轮欠的三件事全部落到"有实测读数"而不是"已实现"。① **精确 SHA 的 CI 矩阵读通了**：run 40211581088（PR，head `f9683930`）`conclusion=success`，10 个非 skipped 作业全绿，逐字 `PYTHON_TESTS_UNION=OK expected=3363 distinct=3363 ran=3363 duplicates=0 missing=0 unexpected=0`、`BROWSER_E2E ran=27 skipped=0 failed=0`。§5.59 那句"CI 已绿"曾被 §5.61 追正——它引的是换 logo **之前**的 SHA，教训写进记忆：**结清一轮的 CI 账必须点名叫到承载该变更的那个 SHA**。② **增强面对量过**：把 `.ambient` 的动画冻在关键帧每一档（0/3000/6000/9000/12000ms）后用同一个 `MEASURE` 谓词逐档量，`CT_MOTION_PASS poses=5 routes=24 checked=34170 belowAA=0 distinctTransforms=4`；四个不同变换（不是五个）恰因 0% 与 100% 同声明停靠点，这一条同时是"尺子在动"的反证。③ **`errors=0` 原来是空集**，且有两个不同成因：`.error[role=alert]` 那族（`#as-form-error`）选择器一直覆盖，缺的是**没人让界面拒绝一次**；`p.view-hint` 那族（知识/评审/权利/研究的 outcome 行）连 `role` 都没有，既是尺子盲区也是**读屏盲区**。现在闸门**自己点一次**空表单造出真失败（`CT_REFUSAL_PROVED … role=alert`），词表从 `shell.ts` 现数 6 个前缀经 `CT_REFUSAL_WORDS` 传入，**空词表时闸门拒绝开跑**；`RefusalPopulationIsGraded` 三条断言里有一条在它该红的时候红过（旧回执没有 `+refusal` 行）。
 
