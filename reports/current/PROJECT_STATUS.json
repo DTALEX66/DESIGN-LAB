@@ -8,23 +8,23 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-28T12:45:44+00:00",
+  "generatedAt": "2026-10-28T13:03:15+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "af3ae3e69cbdc622e4334f01b6c3de1757c51c0d",
+    "sha": "2aab189d77461af39bc7e366291f458310127f81",
     "source_worktree_clean": false,
     "tracked_files": 4029,
     "worktree_changes": [
       {
-        "content": "sha256:44d03f2dbb893944d79bab8269ec75bf84c16803147c1f4453e76843feff8d49",
-        "kind": "A",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-menu-rendered-and-rail-reachable-20261028.json"
+        "content": "sha256:6f101502959425ed7ab5610b9b47ba695aba4870faf288fd753bd0785f31f86e",
+        "kind": "M",
+        "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
       {
-        "content": "sha256:c32dfdf2541cd447b788e28c85c10bc1440241c574c37ee953903f6a4de3656a",
+        "content": "sha256:7a6656bc501147bf3ff5374a2236d66b5e87314308d1fcbeb4f0832be90d59c2",
         "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
+        "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json"
       },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
@@ -37,7 +37,7 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:4f6a90714c6d6b52ae50b4d7358ab448b1a4e4cb8905a30841dfce3db7fb339f"
+    "worktree_digest": "sha256:3875145b2be862fe3dd9e1ade5f04ca61ea7dd76b36dc4ca45c156855ae76b36"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -53,7 +53,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "af3ae3e69cbdc622e4334f01b6c3de1757c51c0d",
+  "subjectSha": "2aab189d77461af39bc7e366291f458310127f81",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -73,5 +73,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:4f6a90714c6d6b52ae50b4d7358ab448b1a4e4cb8905a30841dfce3db7fb339f"
+  "worktreeDigest": "sha256:3875145b2be862fe3dd9e1ade5f04ca61ea7dd76b36dc4ca45c156855ae76b36"
 }
