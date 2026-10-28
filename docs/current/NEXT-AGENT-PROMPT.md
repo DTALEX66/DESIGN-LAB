@@ -668,9 +668,30 @@ owner 目标 ② 那句"冻结原件原字节、只换指针与取代关系"在�
 
 **边界**：一个冻结字节都没动（回执里那条断言是从 `git show --name-only 32ac0bd5` 现读的：4 个路径，
 落在 `docs/history/` 下 0 个）。这不是"历史归档已合并"。旧 34 项仍 `FROZEN_DEFERRED`，`docs/audits`
-那一半仍待 owner 裁，release/E3/E4/真宿主/手机端/E 盘一律不动。新模块让 union 人口从 3453 涨到 3466
-（+13）——这是**预测不是读数**：写这一节时承载 `32ac0bd5` 的 PR run（40763980787）还在跑，
-逐字读数只在它结束后由 `dl-final-t04-pr-run-read-at-32ac0bd5-*` 那份回执落笔，本节不替它预填。
+那一半仍待 owner 裁，release/E3/E4/真宿主/手机端/E 盘一律不动。
+
+**这一刀自己发了一条 CI 红，读数与归因逐字写在回执
+`dl-kb-06-ci-red-orphaned-crosswave-gate-run-20261028` 里**：承载 `32ac0bd5` 的 PR run 40763980787
+`conclusion=failure`，12 个作业 **9 success / 2 skipped / 1 failed**，红的是
+`STRUCTURE_CONTRACTS=FAIL tests=31 failures=1 errors=0` 那一步的
+`test_gate_reachability.ReadOnlyModeTests.test_every_read_only_form_is_invoked_or_declared_with_its_measured_verdict`，
+断言行 `AssertionError: Lists differ: ['verify_record_archive_crosswave.py'] != []`。
+**根因**：我写了一个声明 `--check` 的新闸，却没有把它接到任何 CI 步骤上——这个仓里有一条专门管这件事的测试
+（"一个没人调用的 `--check` 只是纸面闸门"）。同一条 by-name 规则**没有**报警，因为我自己那份新测试提到了这个脚本，
+所以抓住它的只有"模式级"那条规则。这也是为什么**不能靠加豁免修**：豁免等于登记"这闸在 CI 里不可要求"，
+而它其实有一个干净、便宜、只依赖标准库的家——就在隔壁那条 `Archive-wave record register gate` 后面。
+修法：`.github/workflows/canonical-verify.yml` 的 `top-authority-gate` 作业加一步
+`python design-lab/scripts/verify_record_archive_crosswave.py --check`，本地按 CI 原样复跑
+`scripts/run_structure_contracts.py` 读回 `STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`。
+
+**两轮连续两条 CI 红是同一个形状，这条比红本身更该传下去**：我跑的都是**给我这次改动打分的那些闸**，
+没跑**我这次改动会扰动的全仓不变量**。上一轮是驱动共享函数的那个 vm 合同套件，这一轮是审计闸门的那条测试。
+推送前清单应该是后者——尤其这四条治理级测试：`test_gate_reachability`、`test_path_ref_gate`、
+`test_documented_counts`（经 `verify_documented_counts.py`）、以及任何按 `glob==EXPECTED` 钉人口的清单测试。
+另记两条诚实的边界：这条红停在 Early structure contracts 那一步，所以**这一轮 union 根本没跑**，
+人口 3453 → 3466 仍只是预测，要等修好的 head 读回；我在本地起了整轮 union 复现，跑到 40 分钟仍未出读数，
+而且中途我改了 `canonical-verify.yml`（正是那条测试要读的文件），那份读数的树已经不是我起步的树，
+**判为不可引用后停掉了进程**，没有拿它当证据，也没有拿"本地没红"当"云上会绿"。
 
 **下一轮按此顺序**：① `docs/audits` 的字节去重仍**待 owner 裁**，工程上没有第二件可做的事——现数：
 842 个受跟踪文件 / 8,141,995 字节（按 blob 计，不按工作树），其中逐字节相同的只有 77 组 / 牵涉 256 个文件 /
@@ -1381,6 +1402,17 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 `test_record_import_fidelity`。改前先 `python scripts/record_import_verify.py --head` 看这一行动没动；
 红了用 `declare_record_evolution.py` 走登记机制，别改断言。2026-10-19 这一轮就两次踩它：
 先是 `BOUNDARY_CONTRACT.md`，后是 `LOCAL_ENVIRONMENT.md`——两次都不是内容缺陷，是清单没跟上。
+
+**"相关闸"这个词两轮都把我带偏了，按下面这句理解**：它不止指给我这次改动打分的那些闸，还包括
+**我这次改动会扰动的全仓不变量**。2026-10-28 两条 CI 红同源于此——上一轮漏了驱动被我改动的共享函数的
+vm 合同套件，这一轮漏了审计闸门可达性的 `test_gate_reachability`（新写一个带 `--check` 的闸必须同刀
+给它一个 CI 步骤，加豁免等于谎报"这闸不可要求"）。代价最小的兜底是把 CI 那几步便宜的检查原样跑一遍，
+每条都是现读过的命令与读数：
+`python scripts/run_structure_contracts.py`（现读 `modules=3 tests=31`，它按名字枚举
+`test_workbench_css_single_definition`、`test_workbench_stage_nav_reachability`、
+`test_gate_reachability`——注意它**不含** `test_path_ref_gate`，所以那条要单独跑
+`python scripts/verify_path_refs.py`）与 `python scripts/verify_documented_counts.py`。
+这四条不能替代全量套件，只是不让"少跑了一个模块"再变成一次云上红。
 
 **本地结论永远不是 CI 结论。** 读 CI 时按作业读，不要只看总结论。
 上一轮 owner 明确要求：不要无限跑各类全量测试和大型闸门；需要显式授权时先申请。
