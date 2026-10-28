@@ -386,7 +386,13 @@ CI 抓到 `no-undeclared-task-document`（`VERIFY_DESIGN_LAB=FAIL total=77 faile
 ③ 前端一旦真调用该路由，先前挂的 `BACKEND_ONLY` 豁免就成了反向谎报
 （`STALE_BACKEND_ONLY`，闸两个方向都查）；④ `same_named_project_adapters` 会把 `adapter-delivery-*`
 自己那行也 join 进来→恒真，已排除并加断言；⑤ 回执 `exit_code` 被我写成字符串，成因是**看格式化回显而不是原文件**，
-`verify_task_ledger_contract.py` 判红 `'0' is not of type 'integer'`。
+`verify_task_ledger_contract.py` 判红 `'0' is not of type 'integer'`；
+⑥ 重绑导入行时把 `evolvedBy` 写成裸 sha（它是 `{commit, subject}` 对象，直接把校验器 `AttributeError` 崩掉），
+又把 `repoSha256AfterImport` 写成裸 hex（既有每行都带 `sha256:` 前缀，于是 crc 与 size 都对、只有摘要不对）；
+⑦ **`scripts/run_structure_contracts.py` 不在聚合那 77 条里**：本地聚合 `VERIFY_DESIGN_LAB=OK total=77 failed=0`
+而 CI 的 `Early structure contracts` 步骤红——`test_workbench_css_single_definition.py` 钉着
+`el('ul', { class: 'list'` 的调用数 73，新增一屏变 74。**推送前的本地检查必须包含这一步**，
+抬数按该钉的既有惯例：具名说出新增的那个容器，并说明为什么空态不占一个列表。
 
 **下一轮按此顺序**：① 把 `integrations/adapter-registry.json` 与本轮登记件纳入 wheel 的 force-include
 并在干净 venv 里证明——现在装好的 wheel 会诚实报 `registry_state=MISSING`，这是可接受的降级，

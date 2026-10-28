@@ -481,7 +481,13 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # judgement trail (`kb-judgements`). It is emitted only when the readback carries rows --
         # "nobody has recorded a judgement yet" is a sentence (`<p class="muted">`), not an empty
         # list that would read as "asked and answered with nothing".
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 73)
+        # 2026-10-28 (owner automation unfreeze) again: 73 -> 74. One new container, named: the
+        # automation connector roster (`#/automation`, one row per registered connector read from
+        # GET /api/automation-connectors). Its sibling panels are `<p class="view-hint">` and the
+        # `items-stack` list of owner-closed capabilities, which this exact substring does not
+        # count; an empty connector table would have read as "nothing is registered" rather than
+        # "the record could not be read", so the unread case stays on the status line.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 74)
 
 
 if __name__ == "__main__":
