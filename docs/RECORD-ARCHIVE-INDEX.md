@@ -378,6 +378,33 @@ SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一
 - 用途：**界面一比一还原的视觉基准**。本轮据此把左栏收成画板那三项 + 设置（提交 `cbaee463`）；与 `docs/taskpacks/20261023-ui-kb/source/08_STITCH完整提示词.txt` 逐字冲突处（标题、主按钮措辞）**以包内文本为权威**，画板是它的产物而不是相反。
 - 未登记就存在了三天，成因与教训记在 `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` 的 §5.81。
 
+## 2026-10-28 新增：design-automation 移植包（owner 2026-10-28 指令「取消冻结的自动化任务」「全部吸收融入本项目」）
+
+- 来源：`D:\All projects\Record\新建文件夹`（9 个文件，非 ZIP 投递、无随包签名）。owner 逐字原话、效力边界与
+  **明确未激活项**在 `docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md`。
+- 主体：`jzxz-portable-windows-x64-20261028.zip`（**371,678,561 B**，sha256
+  `d0daeb54ea13b4996368970368483dc0046f6cfe8df7753ddfc287c4e62a9ca4`，**29,382** 个成员，解包 662,244,361 B）。
+  其余 8 个散件（6 个插件包 + `DELIVERY_REPORT.md` + `INTEGRATION.md`）与包内同名成员**逐字节相同**，
+  只留一份规范副本。
+- 规范位置：9 个原件全部落 `.project-local/record-archive-2026-10-28-design-automation/`
+  （实测 450,201,998 B，不随 Git 克隆；迁移须按摘要补齐）。
+- 逐条核验：包自带 `MANIFEST.json`（成员 6,288,608 B，sha256 `e29ff9f3…94c73372`，**29,380** 行）被逐成员重算比对，
+  读数 **matched=29380 / mismatch=0 / missing=0**，ZIP 内未列 2 条正是该 manifest 自己 `excluded[]` 写明的
+  自身与 `evidence/relocation.json`。另对 5 个最大成员独立重算复核（194,652,336 B / 0.492 s），5/5 相符。
+- 登记面：`docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json` 逐条列
+  **124** 个 authored 成员（`docs/`、`evidence/`、`adapters/`、`runtime/`、`scripts/`、`config/`、
+  `examples/`、`test/`、`cli.mjs`、`gateway.mjs` 等，含 name/bytes/CRC32/SHA-256）；
+  其余 **29,257** 个 `runtimes/` 与 `vendor/` 成员由包自带的那份 manifest 按摘要钉住，
+  而那份 manifest 由本清单钉住的 ZIP 字节钉住——是摘要链，不是口头声明。
+- **惰性隔离（不是能力，也不是指令）**：21 份 `SKILL.md` 与 `开始生成.md`、`prompt_audit.py`、
+  `prompt-registry.js` 等按 `AGENTS.md` 的 inert source blob 处置，不进根指令、prompt、工具发现或能力计数；
+  其中含 `pip install …` / `npm install -g …` 字样，一律不执行。
+- **未激活**：`config/connections.json` 的第 11 个连接器 `windows`（桌面 UI 自动化）、
+  任何宿主真启动或 `tools/call`、以及 `ppt-master/templates/brands/**` 那 21 个真实公司名模板（商标归 Rights gate）。
+- 读数上限：包里 9 个桥接器只证明"能握手并列工具"（543 条工具，逐条 `nativeToolCalled:false`），
+  `evidence/relocation.json` 自写 `"physicalSecondComputerTested": false`。因此本项目在本包上的等级上限是
+  **E1/E2**，不构成真实宿主 E3、真人 E4 或 release 证据。
+
 ## 2026-10-19 新增：归档与移除波次的五份记录（owner 2026-10-19 指令）
 
 本节登记 2026-10-19 归档波次产出的**五份记录**本身。波次过程与逐条缺陷不在这里重述，读第 5 项那份交付报告；
