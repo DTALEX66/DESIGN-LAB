@@ -340,7 +340,11 @@ const ROUTES = ['', '#/dashboard', '#/projects', `#/projects/${projectId}`, '#/t
                 '#/prompts', '#/models', '#/knowledge', '#/assistant',
                 // DL-KB-10 (2026-10-24): 目标组合选择面板。五条 /api/target-profile* 路由的第一
                 // 次上屏；两栏对照、最多两条路线与五个选择框都在这一面，不进来就等于从没被量过。
-                '#/target-profiles'];
+                '#/target-profiles',
+                // owner 2026-10-28 解冻自动化能力类后的自动化连接器屏。不进这几份清单
+                // 就等于从没被这把闸渲染过，也就永远不会让它失败——这个覆盖洞
+                // 2026-10-07 与本仓 §5.83 各记过一次。
+                '#/automation'];
 
 for (const width of widths) {
   const { ctx, page } = await connect(width);

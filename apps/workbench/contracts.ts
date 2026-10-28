@@ -63,6 +63,43 @@ export interface NativeAssetRecord {
   verification: string;
 }
 
+export interface AutomationConnectorRow {
+  // Key set measured against the live route (src/design_lab/automation_connectors.py::build).
+  // `design_lab_state` is NOT_PROBED for every row: it is this project's own reading, and the
+  // pack's MCP_READY/UNAVAILABLE words are reported separately as its evidence, never adopted.
+  id: string;
+  transport: string | null;
+  handshaked_in_pack_evidence: boolean;
+  tools_listed_in_pack_evidence: number | null;
+  native_tool_called_in_pack_evidence: boolean | null;
+  design_lab_state: string;
+  design_lab_enabled: boolean;
+  activation: string;
+  same_named_project_adapters: string[];
+  rights: string;
+}
+
+export interface AutomationConnectorsView {
+  meaning: string;
+  unprobedMeans: string;
+  registry_state: string;
+  pack_state: string;
+  counts: {
+    connectors: number; handshaked_in_pack_evidence: number;
+    tools_listed_total_in_pack_evidence: number; native_tool_calls_executed: number;
+    probed_by_design_lab: number; enabled: number; project_adapters: number;
+  };
+  connectors: AutomationConnectorRow[];
+  pack: {
+    zip_bytes: number | null; zip_sha256: string | null;
+    declared_connections: number | null; verification: Record<string, number> | null;
+  };
+  not_activated: string[];
+  inert_instruction_blobs: number | null;
+  evidence_ceiling: string;
+  claims_not_made: string[];
+}
+
 export interface ProjectSummary {
   id: string;
   name: string;

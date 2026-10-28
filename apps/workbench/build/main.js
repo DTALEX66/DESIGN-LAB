@@ -1297,6 +1297,34 @@ const OFFLINE = {
     counts: { packs: 0, byValidation: {} },
     packs: []
   },
+  // 自动化连接器登记的诚实空载荷：两个来源都"未读回"，不是"没有连接器"。计数全部为 0 且
+  // evidence_ceiling 留空，因为离线时任何等级说法都不是从读回来的。
+  automationConnectors: {
+    meaning: "未连接本机设计服务",
+    unprobedMeans: "未读回，因此不说明任何连接器的状态",
+    registry_state: "NOT_READ",
+    pack_state: "NOT_READ",
+    counts: {
+      connectors: 0,
+      handshaked_in_pack_evidence: 0,
+      tools_listed_total_in_pack_evidence: 0,
+      native_tool_calls_executed: 0,
+      probed_by_design_lab: 0,
+      enabled: 0,
+      project_adapters: 0
+    },
+    connectors: [],
+    pack: {
+      zip_bytes: null,
+      zip_sha256: null,
+      declared_connections: null,
+      verification: null
+    },
+    not_activated: [],
+    inert_instruction_blobs: null,
+    evidence_ceiling: "",
+    claims_not_made: []
+  },
   tasks: { tasks: [], next_cursor: null },
   // DL-UI-U06: every section is NOT_READ, never ABSENT. "This service never recorded a native
   // attempt" is a claim about the database's table list, and a page that never reached the
@@ -1507,6 +1535,9 @@ const ROUTE_VIEWS = [
   // 路由。放在「模型选择」旁边而不是合并进去，是因为 08 line 9 那句「方案助手模型是另一种
   // 配置，不混进同一菜单」——两个菜单各管一件事：一处配助手模型，一处选外部制作目标。
   { hash: "#/target-profiles", view: "target-profiles", label: "目标组合", entry: "设置与诊断" },
+  // owner 2026-10-28「取消冻结的自动化任务」「前端也同步上去自动化的菜单导航等」。次级入口，
+  // 不加进画板钉住的那三个日常项；屏上只有读回，没有任何启动动作。
+  { hash: "#/automation", view: "automation-connectors", label: "自动化连接器", entry: "设置与诊断" },
   { hash: "#/collaboration", view: "collaboration", label: "团队协作", entry: "设置与诊断" },
   { hash: "#/states", view: "ui-states", label: "界面状态", entry: "设置与诊断" },
   { hash: "#/components", view: "ui-components", label: "组件规范", entry: "设置与诊断" }
@@ -4461,6 +4492,146 @@ function domainDrawer(packs, openId, join = null) {
     if (event.key === "Escape") window.location.hash = "#/domains";
   });
   return panel;
+}
+async function renderAutomationConnectors(target) {
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读回自动化连接器登记…"));
+  const answer = await apiOrEmpty(
+    "/automation-connectors",
+    OFFLINE.automationConnectors
+  );
+  const notice = shapeNotice(answer);
+  const rows = answer.connectors ?? [];
+  const counts = answer.counts;
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
+    el(
+      "div",
+      {},
+      el("h2", {}, "自动化连接器"),
+      el(
+        "p",
+        { class: "muted" },
+        answer.meaning,
+        "两个来源分别标记为 ",
+        el("span", { class: "value-mono" }, `注册表 ${answer.registry_state}`),
+        " 与 ",
+        el("span", { class: "value-mono" }, `投递包 ${answer.pack_state}`),
+        "。",
+        answer.unprobedMeans
+      )
+    ),
+    el("div", { class: "page-actions" })
+  );
+  const kpis = el(
+    "div",
+    { class: "kpi-grid" },
+    kpiCard(String(rows.length), "已登记连接器", "本项目注册表与投递包登记的条数"),
+    kpiCard(String(counts.probed_by_design_lab), "本项目已探测", "为零就是说从未探测过，不是探测失败"),
+    kpiCard(String(counts.enabled), "已启用", "owner 2026-10-28 未授权启用任何一个"),
+    kpiCard(
+      String(counts.native_tool_calls_executed),
+      "原生工具调用",
+      "本轮为零；包里逐条 nativeToolCalled:false"
+    )
+  );
+  const table = el("ul", { class: "list" }, ...rows.map((row) => el(
+    "li",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, row.id),
+      el("small", {}, [
+        row.transport ?? "传输未声明",
+        row.design_lab_state,
+        row.design_lab_enabled ? "已启用" : "未启用",
+        row.activation === "NOT_ACTIVATED_BY_OWNER" ? "owner 明确不启用" : "未申请启用",
+        row.handshaked_in_pack_evidence ? `包内证据：握手过，列得 ${row.tools_listed_in_pack_evidence ?? 0} 条工具` : "包内证据：未握手",
+        row.same_named_project_adapters.length ? `同名既有注册行 ${row.same_named_project_adapters.length} 条（仅同名，未判定同一上游）` : "本项目此前没有同名注册行",
+        `权利 ${row.rights}`
+      ].join(" · "))
+    ),
+    el(
+      "div",
+      { class: "actions" },
+      el(
+        "span",
+        { class: `tag ${row.design_lab_enabled ? "info" : "warn"}` },
+        row.design_lab_enabled ? "已启用" : "未启用"
+      )
+    )
+  )));
+  const closed = el(
+    "section",
+    { class: "panel" },
+    el("p", { class: "eyebrow" }, "NOT ACTIVATED"),
+    el("h3", {}, "留在关闭位的"),
+    el(
+      "ul",
+      { class: "items-stack" },
+      el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "windows 桌面 UI 自动化"),
+          el("small", {}, "受控 UI 自动化这一档本轮不启用；启用需要 owner 另给明确授权。")
+        )
+      ),
+      el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "真启动宿主软件 / 调用任何工具"),
+          el("small", {}, "逐次的 Human Gate 决定；这一屏不提供该动作。")
+        )
+      ),
+      el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "包内 21 个真实公司名品牌模板"),
+          el("small", {}, "商标与许可归属仍待 Rights gate，本轮只逐字节登记。")
+        )
+      )
+    ),
+    el(
+      "p",
+      { class: "view-hint" },
+      `惰性隔离的第三方指令体（SKILL.md 等）读数：${answer.inert_instruction_blobs ?? "未读回"}；`,
+      " 它们不进入本项目的指令面、prompt、工具发现或能力计数。"
+    )
+  );
+  const claims = el(
+    "section",
+    { class: "panel" },
+    el("p", { class: "eyebrow" }, "这一屏没有说的事"),
+    el("ul", { class: "items-stack" }, ...(answer.claims_not_made ?? []).map((line) => el(
+      "li",
+      { class: "list-item" },
+      el("div", {}, el("small", {}, line))
+    ))),
+    el(
+      "p",
+      { class: "view-hint" },
+      "证据等级上限：",
+      answer.evidence_ceiling || "未读回，因此本页不下等级结论。"
+    )
+  );
+  target.replaceChildren(
+    pageHead,
+    kpis,
+    ...notice ? [el("p", { class: "error", role: "alert" }, `未读回：${notice}`)] : [],
+    table,
+    closed,
+    claims
+  );
 }
 async function renderDomains(target, opts = {}) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回域包…"));
@@ -11369,6 +11540,11 @@ async function renderRoute(view, target) {
       return;
     case "design-domains":
       await renderDomains(target);
+      return;
+    // owner 2026-10-28: the automation surface reads GET /api/automation-connectors and offers
+    // no action, so nothing on this screen can be mistaken for a host being connected.
+    case "automation-connectors":
+      await renderAutomationConnectors(target);
       return;
     // R2 §2: the same registry addressed at one pack. The list stays rendered so the
     // detail is read inside its context instead of replacing it.

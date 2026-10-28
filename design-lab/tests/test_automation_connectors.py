@@ -83,8 +83,43 @@ class ProjectionFollowsTheRegisteredRoster(unittest.TestCase):
         self.assertIn('adapter-photoshop-mcp', joined['photoshop'])
         self.assertIn('adapter-illustrator-mcp', joined['illustrator'])
         self.assertEqual(joined['revit'], [])
+        self.assertEqual(joined['sketchup'], [])
+        # The rows this pack itself registered must not count as independent evidence: if
+        # adapter-delivery-* were included, all eleven connectors would report a join and the
+        # field would be true by construction.
+        for row_join in joined.values():
+            self.assertFalse([a for a in row_join if a.startswith('adapter-delivery-')],
+                             f'the join includes its own registration row: {joined}')
         # The join is a name match, not an identity finding, and says so where it is read.
         self.assertNotIn('同一上游实现', json.dumps(self.view, ensure_ascii=False))
+
+    def test_the_registered_rows_are_declared_and_never_available(self):
+        """Absorption lands in the project's own registry, at a status it can defend."""
+        registry = json.loads((REPO / 'integrations/adapter-registry.json').read_text(
+            encoding='utf-8'))
+        delivery = [row for row in registry['adapters']
+                    if str(row.get('adapter_id', '')).startswith('adapter-delivery-')]
+        self.assertEqual(len(delivery), 11)
+        for row in delivery:
+            self.assertEqual(row['status'], 'declared', row['adapter_id'])
+            self.assertNotEqual(row['status'], 'available', row['adapter_id'])
+            self.assertEqual(row['evidence']['level'], 'E1', row['adapter_id'])
+            self.assertTrue([c for c in row['capabilities'] if not c['supported']],
+                            f"{row['adapter_id']} presents an unsupported capability as there")
+            self.assertIn('called no tool', row['evidence']['note'])
+            # Only a bridge the pack actually handshook can be quoted as having listed tools;
+            # grasshopper and windows never completed a handshake, so their notes must not
+            # carry a listing claim.
+            if 'the pack handshook this bridge' in row['evidence']['note']:
+                self.assertIn('nativeToolCalled:false', row['evidence']['note'])
+            else:
+                self.assertIn('did not handshake', row['evidence']['note'])
+        # Blender is a large tool: the registry gate refuses to let it read as available and
+        # requires process isolation, so the row must satisfy both.
+        blender = [row for row in delivery if row['adapter_id'] == 'adapter-delivery-blender'][0]
+        self.assertEqual(blender['mode'], 'process-isolated')
+        windows = [row for row in delivery if row['adapter_id'] == 'adapter-delivery-windows'][0]
+        self.assertIn('NOT ACTIVATED', windows['evidence']['note'])
 
 
 class AbsenceIsStatedNotInvented(unittest.TestCase):

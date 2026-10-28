@@ -73,6 +73,7 @@ const ROUTES = [
   // 小号说明行是这一面的全部弱色文本；两栏对照如果只靠颜色区分而颜色本身掉 AA，「看得出区别」
   // 就是一句没有几何支撑的话，所以这条必须和知识屏、辅助屏一样逐条量过。
   ['target-profiles', '#/target-profiles'],
+  ['automation', '#/automation'],
 ];
 
 const MEASURE = () => {

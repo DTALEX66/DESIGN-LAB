@@ -765,6 +765,369 @@
         "note": "MCP server for Eagle (tuki0918, MIT); manages local media files"
       },
       "rollback": "no host mutation"
+    },
+    {
+      "adapter_id": "adapter-delivery-sketchup",
+      "tool": "SketchUp MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-local-api",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 8 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-grasshopper",
+      "tool": "Grasshopper MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-local-api",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack did not handshake this connector in its run evidence; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-autocad",
+      "tool": "AutoCAD MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 7 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-rhino",
+      "tool": "Rhino MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 38 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-blender",
+      "tool": "Blender MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 28 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-3dsmaxMCP",
+      "tool": "3ds Max MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 151 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-indesign",
+      "tool": "InDesign MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 27 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-revit",
+      "tool": "Revit MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 138 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-photoshop",
+      "tool": "Photoshop MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 80 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-illustrator",
+      "tool": "Illustrator MCP (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 66 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
+    },
+    {
+      "adapter_id": "adapter-delivery-windows",
+      "tool": "Windows desktop automation (delivery pack)",
+      "hostAdapter": null,
+      "capabilities": [
+        {
+          "name": "connect",
+          "supported": false
+        },
+        {
+          "name": "native-tool-call",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
+        "task_ids": [
+          "DL-KB-06"
+        ],
+        "artifact_paths": [
+          "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+          "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+          "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
+        ],
+        "note": "registered from the delivery pack's own records: the pack did not handshake this connector in its run evidence; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here. This connector is desktop UI automation and is NOT ACTIVATED by owner 2026-10-28."
+      },
+      "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
     }
   ],
   "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."

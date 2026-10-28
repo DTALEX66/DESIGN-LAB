@@ -1007,7 +1007,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 `design-lab/config/ui-off-palette-colours.json` 实测为准，本文件不复述数字）、品牌 `#316CFF` 能否承载白字——owner 原话「我现在看不见」，属**挂起项而非开工前提**，不要为它们反复请示；本轮按「设计规范按照网上最专业的先收入库里」把业界规范作为参考素材入库，落地验收由 owner 自行测试。
 - **"保留标准通用的接入接口"具体保留到哪一层（2026-10-19 逐层实测，别把"有合同"读成"能接入"）**：
   官方 API/SDK 层有代码（`adapters/photoshop_com.py`、`adapters/illustrator_com.py`、`adapters/spi.py`、`interop/penpot.py`、`generators/comfy_*.py`），等级以 E0/E1 为主，ComfyUI 的 E2/E3 证据是 2026-08 的、未在当前树复验；
-  原生插件层有注册表与清单（`integrations/adapter-registry.json` 30 条、`integrations/hosts|generators/*/adapter.manifest.json`），闸门 `ADAPTER_REGISTRY=PASS`、`ADAPTER_MATRIX=PASS matrix=9`、`ADAPTER_LOCATOR_AUDIT=PASS`；
+  原生插件层有注册表与清单（`integrations/adapter-registry.json` 41 条（2026-10-28 由 30 增至 41：投递包 11 个连接器按 `declared` 登记，闸门 `ADAPTER_REGISTRY=PASS`；每一行都写明 DESIGN-LAB 未探测、未启用、未调用任何工具，`adapter-delivery-*` 是这批行的前缀），`integrations/hosts|generators/*/adapter.manifest.json`），闸门 `ADAPTER_REGISTRY=PASS`、`ADAPTER_MATRIX=PASS matrix=9`、`ADAPTER_LOCATOR_AUDIT=PASS`；
   脚本/CLI 层有 24 个子命令（`src/design_lab/cli.py` 的 `add_parser` 实数）；
   **MCP 层只有合同没有服务**——`schemas/contracts/design-control-mcp.schema.json` 与 contract-bindings 那一行在，但 `docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md` 记它 `state=NO_STATE_COUNTERPART`、`route_references=[]`、`table_readers=[]`、`table_writers=[]`；
   **受控 UI 自动化层在 `src/` 内没有任何模块**（`ui_automation|controlled.ui|accessibility tree|屏幕坐标` 全 0 命中），它只作为策略分层出现在本文件 §上一行。

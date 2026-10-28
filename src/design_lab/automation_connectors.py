@@ -64,13 +64,19 @@ def build(root: Path | None = None) -> dict:
     adapters = (registry or {}).get('adapters') or []
     # Token match on the project's own adapter ids. This says "a row of the same name is
     # registered here", not "this is the same upstream implementation" -- that identity has
-    # not been adjudicated, and a boolean would have claimed it anyway. Measured against the
-    # 30 committed rows: blender, photoshop and illustrator have same-named rows; sketchup,
-    # autocad, rhino, 3dsmaxMCP, indesign, revit, grasshopper and windows have none.
+    # not been adjudicated, and a boolean would have claimed it anyway.
+    #
+    # Rows this very registration added (adapter-delivery-*) are excluded: joining a
+    # connector to its own row would make the field true for all eleven and tell a reader
+    # nothing. Measured against the pre-existing rows: blender, photoshop and illustrator
+    # have same-named adapters; sketchup, autocad, rhino, 3dsmaxMCP, indesign, revit,
+    # grasshopper and windows have none.
     def same_named_adapters(ident: str) -> list[str]:
         token = str(ident).lower().removesuffix('mcp')
         return sorted(str(row.get('adapter_id', '')) for row in adapters
-                      if token and token in str(row.get('adapter_id', '')).lower())
+                      if token and not str(row.get('adapter_id', '')).startswith(
+                          'adapter-delivery-')
+                      and token in str(row.get('adapter_id', '')).lower())
 
     connector_block = (pack or {}).get('connectors') or {}
     rows = []

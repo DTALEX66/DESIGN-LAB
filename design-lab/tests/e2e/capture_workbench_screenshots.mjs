@@ -259,6 +259,7 @@ const PAGES = [
   { key: 'target-profiles', hash: '#/target-profiles' },
   // R2 §9 (DL-FINAL-T08): 分组全局搜索是浮层，只能靠真实点击打开后才有可审阅的一张图。
   { key: 'search-groups', hash: '#/capabilities', click: '#openPalette' },
+  { key: 'automation', hash: '#/automation' },
 ];
 
 // --- route coverage gate: runs before the browser launches, so a gap costs no PNGs ------

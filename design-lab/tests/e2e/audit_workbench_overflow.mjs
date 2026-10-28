@@ -110,6 +110,7 @@ const ROUTES = [
   // （「MiniMax H3（ComfyUI 集成）」）与档案正文的长句是这一屏最容易在该档被切到的东西
   // ——02:150 / 06:48 要验的就是这三档桌面视口下的它。
   ['target-profiles', '#/target-profiles'],
+  ['automation', '#/automation'],
 ];
 
 // Deliberate clip: the screen-reader-only route-change announcer.
