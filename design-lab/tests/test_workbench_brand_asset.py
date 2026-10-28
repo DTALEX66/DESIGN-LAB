@@ -63,8 +63,14 @@ def _check(png: Path, css: Path, html: Path | None = None) -> tuple[int, str]:
     """
     import contextlib
     out = io.StringIO()
+    synthetic = None
     if html is None:
-        synthetic = png.parent / 'index-synthetic.html'
+        # The scratch page goes to the git-ignored runtime root, not beside the tracked mark:
+        # writing it into apps/workbench/brand/ left an untracked file in a governed directory,
+        # and a generated report then named a path the clone does not carry.
+        scratch = REPO / '.project-local' / 'task-runtime' / 'brand-asset-scratch'
+        scratch.mkdir(parents=True, exist_ok=True)
+        synthetic = scratch / ('index-synthetic-%s.html' % png.stem)
         try:
             synthetic.write_text('<html><head>' + rba.favicon_block(rba.favicon_svg(png.read_bytes()))
                                  + '</head><body></body></html>', encoding='utf-8')
@@ -80,6 +86,8 @@ def _check(png: Path, css: Path, html: Path | None = None) -> tuple[int, str]:
             code = rba.main(['--check'])
     finally:
         (rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH, rba.HTML_PATH) = real
+        if synthetic is not None:
+            synthetic.unlink(missing_ok=True)
     return code, out.getvalue().strip()
 
 
