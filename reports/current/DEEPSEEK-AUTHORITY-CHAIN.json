@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-27T17:47:35+00:00",
+  "generated_at": "2026-10-28T12:03:23+00:00",
   "subject": {
-    "base_sha": "50792cba986f1cf2e66483a1d3ff881fd1598616",
+    "base_sha": "de40395f1c5f5804fbca2ac1ffdaf2b95d4aa362",
     "branch": "qoder/designlab-backup-consistency-20261007",
     "worktree_clean": false
   },
@@ -122,7 +122,7 @@
     "CURRENT_TASK_LEDGER": 1,
     "GOVERNANCE_TRUTH": 2,
     "HISTORICAL": 119,
-    "REFERENCE": 23
+    "REFERENCE": 24
   },
   "entries": [
     {
@@ -141,8 +141,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 876384,
-      "sha256": "sha256:7b787bb19aa54b516cbb9d4911e66c827ccb71c03b5efc5a0acfb8b0c11d719a",
+      "bytes": 878668,
+      "sha256": "sha256:4988c5795a9c756ccf245b5406f5932146493e935819ee45495f575f5da7f168",
       "authority_class": "CURRENT_TASK_LEDGER",
       "basis": "currentExecution dispatch; frozen R5 evidence partition",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
@@ -152,7 +152,7 @@
         "current_partition": "currentExecution",
         "tasks": 50,
         "frozen_legacy_tasks": 28,
-        "evidence_receipts": 323
+        "evidence_receipts": 326
       }
     },
     {
@@ -1720,6 +1720,13 @@
       "path": "docs/taskpacks/20261023-ui-kb/source/示例/三类交接场景.md",
       "bytes": 3177,
       "sha256": "sha256:2a415ea9e40af9773f5790ffb5c3c50b4d5d000bdf307a64cbfd59888c1f0c24",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+      "bytes": 7831,
+      "sha256": "sha256:43f58a5c056b84bb6d1470bdbe62326a7e63b37254842c8554a840f87335e892",
       "authority_class": "REFERENCE",
       "basis": "taskpack retained for reference; not a current dispatch entry"
     },
