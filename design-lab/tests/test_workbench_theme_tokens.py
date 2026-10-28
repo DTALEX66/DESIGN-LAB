@@ -94,6 +94,14 @@ DOCUMENTED_DEVIATIONS = {
                   "declares 64. Either side moving changes landed layout, so this is owner ruling B "
                   "in DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md, not a transcription error.",
     },
+    "--uif-font-micro": {
+        "spec": "typography.size_css_px.micro",
+        "reason": "the 20261023 pack states 元数据至少 12px, and the contrast ruler grades that floor "
+                  "on the painted document (CT_SPEC below12, asserted 0 under the pack theme): 119 "
+                  "text runs measured under 12px before the raise. So the 20261009 registration of 11 "
+                  "is refused on measured legibility grounds, not re-typed silently -- putting 11 back "
+                  "turns the themed contrast gate red and this entry becomes the thing to delete.",
+    },
 }
 
 #: Tokens allowed to sit unread, each with a reason. The register can only shrink.
@@ -284,6 +292,63 @@ class WorkbenchThemeTokenContract(unittest.TestCase):
         self.assertNotEqual(planted, self.css, "the plant moved no bytes")
         failures = provenance_failures(planted, self.spec)
         self.assertIn("--uif-sidebar-compact claims pack provenance but is not declared", failures)
+
+
+    #: Every custom property the sheet declares, not just the pack's own `--uif-*` family.
+    #: `declarations()` above is deliberately scoped to `--uif-` because it serves the
+    #: provenance check; borrowing it for a whole-sheet census returns [] for anything else,
+    #: so the guard would have been a green that could not fail. Comments are stripped first:
+    #: a name written inside an explanatory comment is not a declaration.
+    ALL_DECL_RE = re.compile(r'(--[A-Za-z0-9]+[A-Za-z0-9-]*)\s*:\s*[^;\n]+')
+
+    def all_declared(self, css: str) -> list:
+        bare = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
+        seen = []
+        for name in self.ALL_DECL_RE.findall(bare):
+            if name not in seen:
+                seen.append(name)
+        return seen
+
+    def unconsumed(self, css: str) -> list:
+        counts = consumer_counts(css, self.all_declared(css))
+        provenanced = set(SPEC_PROVENANCE)
+        return sorted(name for name, count in counts.items()
+                      if count == 0 and name not in provenanced)
+
+    def test_no_custom_property_is_declared_and_never_read(self) -> None:
+        """A stylesheet that declares tokens nobody reads is not a design system; it is a
+        vocabulary that says the system exists.
+
+        Swept 2026-10-25: 24 of 133 declared custom properties were read by no `var()` in the
+        sheet and by no product source, gate, test or package file at all. They came from the
+        absorbed B07 `shared-ui-core/base-tokens.css` reference set, and the only places their
+        names still appeared were that reference corpus and a design-debt listing recording
+        them as unused. The pre-existing CONSUMPTION check missed them because its population is
+        the pack's own named fields -- a coverage gate only ever proves the list it carries.
+
+        So this extends the population to EVERY declared property and lets `SPEC_PROVENANCE`
+        decide the exception, rather than hand-writing an allowlist: a token may sit unread if
+        it exists to carry a pack value into the provenance check, and that reason has to be
+        registered in the map that already states it.
+        """
+        dead = self.unconsumed(self.css)
+        self.assertEqual(
+            dead, [],
+            'declared but read by nothing, and not registered as carrying pack provenance: %s'
+            % ', '.join(dead))
+
+    def test_a_dead_declaration_is_convicted(self) -> None:
+        """The guard above must be able to fail, or it is decoration on a clean-looking sheet."""
+        planted = self.css.replace("  --motion-fast:120ms;",
+                                   "  --motion-fast:120ms;\n  --space-dead-99:4px;", 1)
+        self.assertNotEqual(planted, self.css, "the plant moved no bytes")
+        self.assertIn('--space-dead-99', self.all_declared(planted),
+                      'the census does not even see the planted declaration')
+        self.assertEqual(self.unconsumed(planted), ['--space-dead-99'],
+                         'the population check accepted an unconsumed declaration')
+        # And the real sheet is clean, so the conviction is about the plant, not about noise
+        # that would make the assertion impossible to satisfy.
+        self.assertEqual(self.unconsumed(self.css), [])
 
 
 if __name__ == "__main__":

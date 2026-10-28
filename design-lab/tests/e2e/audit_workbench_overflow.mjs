@@ -35,7 +35,12 @@ const serviceUrl = process.env.E2E_SERVICE_URL;
 const token = process.env.E2E_TOKEN;
 const nmDir = process.env.E2E_NODE_MODULES;
 const browserPath = process.env.E2E_BROWSER || undefined;
-const widths = (process.env.OV_WIDTHS || '1440,1280,1920')
+// 1536 is not a fourth "random laptop": it is 1920 physical at Windows 125% display scaling, the
+// same mapping the zoom receipts use (100% / 125% / 150% of a 1920-wide panel = 1920 / 1536 / 1280
+// CSS px). 1280 was already swept, so before 1536 was added this gate measured two of the three
+// zoom cases and skipped the middle one. Height stays the gate's own budget (900 nominal, 620
+// short) rather than a scaled one: the claim being made here is about width-driven clipping.
+const widths = (process.env.OV_WIDTHS || '1440,1280,1536,1920')
   .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
 const outPath = process.env.OV_OUT || '';
 const strict = process.env.OV_STRICT === '1';
@@ -99,6 +104,13 @@ const ROUTES = [
   ['records', '#/records'],
   // DL-KB-03/06: 知识与提示词库是本批新增的读面，搜索框、meta 行与两栏详情都在几何闸里。
   ['knowledge', '#/knowledge'],
+  // DL-KB-08: 设计辅助。成对字段行（.as-row）与四态药丸在窄一档的桌面窗口里最先溢出。
+  ['assistant', '#/assistant'],
+  // DL-KB-10: 目标组合选择面板。五个选择框、两栏对照与最多两条路线都在这一面；长中文型号名
+  // （「MiniMax H3（ComfyUI 集成）」）与档案正文的长句是这一屏最容易在该档被切到的东西
+  // ——02:150 / 06:48 要验的就是这三档桌面视口下的它。
+  ['target-profiles', '#/target-profiles'],
+  ['automation', '#/automation'],
 ];
 
 // Deliberate clip: the screen-reader-only route-change announcer.
@@ -158,7 +170,16 @@ const MEASURE = () => {
     }
     return false;
   };
-  const out = { docOverflowX: 0, clipped: [], stray: [], scrollOk: 0, tiny: [] };
+  // Geometry is a claim about what a person can see, and a closed `<details>` is the one place
+  // where Chromium's layout boxes and its paint disagree: `::details-content` is
+  // `content-visibility: hidden` with `overflow: clip`, so every box below would be measured while
+  // nothing is drawn. Open the panels first so CLIPPED / STRAY / TINY describe the state a designer
+  // actually reaches, and report how many closed panels that took: a run that says 0 on a screen
+  // known to have them means the expansion was removed and the numbers are invisible layout again.
+  const expanded = document.querySelectorAll('details:not([open])').length;
+  for (const host of document.querySelectorAll('details:not([open])')) host.open = true;
+  const out = { docOverflowX: 0, clipped: [], stray: [], scrollOk: 0, tiny: [],
+                detailsExpanded: expanded };
   const de = document.documentElement;
   out.docOverflowX = de.scrollWidth - de.clientWidth;
   const vw = window.innerWidth;
@@ -203,9 +224,14 @@ const MEASURE = () => {
   // answering. Hit-test the affordances that must always be reachable. An element that is
   // absent or has no box on this route is skipped (the legacy workbench chrome hides the
   // B10 topbar), because "not on screen" is not the same claim as "covered by something".
-  const CRITICAL = [['#topNotice', '顶栏通知'], ['#openDrawer', '顶栏工作区'],
+  const CRITICAL = [['#openSettings', '顶栏设置'], ['#openDrawer', '顶栏工作区'],
     ['#openPalette', '顶栏搜索入口']];
   out.occluded = [];
+  // A centre point that is not inside the viewport is not "covered by something": the file's own
+  // rule says the two claims differ. Scrolling a long detail out of the header's reach shows up
+  // here, so it gets its own bucket with the numbers, instead of being reported as an occlusion
+  // the reader would go looking a z-index bug for.
+  out.notInView = [];
   // A modal overlay is *supposed* to cover the page behind it -- that is not the defect this
   // check guards. When one is open the hit-test is skipped, and the report says so instead of
   // going silently quiet.
@@ -218,8 +244,13 @@ const MEASURE = () => {
     if (!e) continue;
     const r = e.getBoundingClientRect();
     if (!r.width || !r.height) continue;
-    const hit = document.elementFromPoint(Math.round(r.left + r.width / 2),
-      Math.round(r.top + r.height / 2));
+    const cx = Math.round(r.left + r.width / 2), cy = Math.round(r.top + r.height / 2);
+    if (cx < 0 || cy < 0 || cx > innerWidth || cy > innerHeight) {
+      out.notInView.push({ sel, label, centre: [cx, cy], viewport: [innerWidth, innerHeight],
+                           top: Math.round(r.top), bottom: Math.round(r.bottom) });
+      continue;
+    }
+    const hit = document.elementFromPoint(cx, cy);
     if (!hit) { out.occluded.push({ sel, label, by: 'elementFromPoint returned null' }); continue; }
     if (hit !== e && !e.contains(hit)) {
       out.occluded.push({ sel, label,
@@ -328,6 +359,179 @@ const brandProblems = [];
 // width below, because the nav is global chrome and repeats on every route.
 const navEdges = [];
 
+// The entry detail is measured as its own named state (see the knowledge step in the sweep), and
+// a state needs something in it: one synthetic entry, written through the same service the page
+// reads and discarded with the temp state root. Marked synthetic in created_by so nobody can read
+// it as design work.
+async function seedKnowledgeEntryForAudit(prefix) {
+  const body = {
+    entry_type: 'METHOD', title: '镜头拆解三步法（合成）',
+    summary: '把一段脚本拆成镜头表：先定节拍，再定景别，最后只标必要的转场。',
+    domain_tags: ['film'], task_tags: ['storyboard'], target_tools: ['storyboarder'],
+    body: '第一步按段落切节拍。第二步给每个节拍选景别。第三步只标必要的转场，'
+      + '并留下"引号"、逗号, 与一段较长的说明文字，用来量这块面板在窄一侧的换行与溢出。',
+    applicability: '适合 30-90 秒短片的分镜前置。', limits: '不适用于需要精确口型对位的动画。',
+    source: { sourceId: 'UNUSED', origin: 'UNKNOWN', author: 'UNKNOWN', license: 'UNKNOWN',
+              licenseStatus: 'unknown', allowedUsage: 'UNKNOWN', citationScope: 'UNKNOWN',
+              version: 'UNKNOWN', observedAt: 'UNKNOWN', contentHash: 'UNKNOWN',
+              verification: 'UNVERIFIED' },
+    related_capability_ids: [], recommended: true,
+    created_by: `${prefix} 脚手架（合成，不是真人）`, supersedes: null,
+  };
+  const res = await fetch(serviceUrl.replace(/\/$/, '') + '/api/knowledge-entries', {
+    method: 'POST', headers: { Authorization: `Bearer ${token}`,
+                               'Content-Type': 'application/json' },
+    body: JSON.stringify(body) });
+  const json = await res.json().catch(() => ({}));
+  if (res.status !== 201) {
+    fail(`OV_SEED_KNOWLEDGE_REFUSED ${JSON.stringify(json).slice(0, 200)}`);
+  }
+  return { entry: json.entry.knowledge_entry_id };
+}
+
+// The mirror image of the knowledge gap: the contrast ruler has opened a plan detail for a while,
+// the geometry ruler never has. So the shot table, the export panel and the feedback block inside a
+// plan have had no claim about 1280, 1536 or 1920 -- which is exactly where a long Chinese
+// objective or a wide table would have gone sideways without anyone noticing.
+async function seedAssistancePlanForAudit(prefix) {
+  const base = serviceUrl.replace(/\/$/, '');
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const post = async (path, body) => {
+    const res = await fetch(base + path, { method: 'POST', headers,
+      body: JSON.stringify(body) });
+    return { status: res.status, json: await res.json().catch(() => ({})) };
+  };
+  const project = await post('/api/projects', { name: `${prefix}-audit` });
+  if (project.status !== 201) {
+    fail(`OV_SEED_PROJECT_REFUSED ${JSON.stringify(project.json).slice(0, 200)}`);
+  }
+  const pid = project.json.project.id;
+  const plan = {
+    objective: '为秋季新品做一条 15 秒主视觉动效，标题落在大面积留白里，副标题带上说明文字',
+    output_type: 'MOTION',
+    neutral_creative: '两束交叉光缓慢推移，标题以一次落定收束。',
+    brand_constraints: ['只用两种油墨', '标题不使用描边'],
+    role_constraints: [],
+    lens: '俯拍整张桌面', sound: '低频垫底，无对白', references: [],
+    shots: [
+      { index: 1, duration_s: 4, purpose: '开场：侧光落在纸纤维上', camera: '缓推',
+        sound: null, reference_role: '主参考' },
+      { index: 2, duration_s: null, purpose: '收束：标题落定，副标题带"引号"、逗号, 与一段较长的说明',
+        camera: '固定', sound: '低频收干', reference_role: null },
+    ],
+    external_steps: [{ step: '在宿主里手动导出 MP4', tool: 'After Effects',
+                       job_id: null, operation_id: null }],
+    known_gaps: ['目标平台码率未定'],
+    limits: ['不含多语言字幕', '不产出可编辑源文件'],
+    created_by: `${prefix} 脚手架（合成，不是真人）`,
+  };
+  const created = await post(`/api/projects/${pid}/assistance-plans`, plan);
+  if (created.status !== 201) {
+    fail(`OV_SEED_PLAN_REFUSED ${JSON.stringify(created.json).slice(0, 200)}`);
+  }
+  const planId = created.json.plan.plan_id;
+  // A second revision so the comparison panel has two documents to line up -- the state whose
+  // twelve side-by-side rows are most likely to break a layout at the narrow end.
+  const second = await post(`/api/projects/${pid}/assistance-plans/${planId}/revisions`,
+    { ...plan, objective: '第二版：把标题落点改成右下方留白，副标题缩短一行',
+      expected_revision: 1 });
+  if (second.status !== 201) {
+    fail(`OV_SEED_REVISION_REFUSED ${JSON.stringify(second.json).slice(0, 200)}`);
+  }
+  return { project: pid, plan: planId, revision: second.json.revision };
+}
+
+// Settle on the panel's own words: the rows landed and the status line stopped saying 正在读回
+// and is not a failure. Text alone is not the mark -- an honest empty answer has text too.
+async function openPlanCompare(page, key, problems) {
+  await page.evaluate(() => {
+    const details = document.getElementById('as-compare');
+    if (details) details.open = true;
+  });
+  await page.selectOption('#as-compare-from', '1');
+  await page.selectOption('#as-compare-to', '2');
+  await page.click('#as-compare-run');
+  const settled = await page.waitForFunction(() => {
+    const body = document.getElementById('as-compare-body');
+    const status = document.getElementById('as-compare-status');
+    return !!body && body.querySelectorAll('li').length >= 12 && !!status
+      && !/正在读回|失败/.test(status.textContent || '');
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 两案对照没有把十二个字段读回来（按不动、读回失败或行数不足），`
+      + '这一态的几何无人认领');
+  }
+  return settled;
+}
+
+// Choose a target the way the screen asks. The settled mark is the panel's own state flag
+// (#tp-combination's data-mode reaches 'target' only when a real profile resolves), not "some text
+// appeared" -- an honest empty answer also has text.
+// The last "only exists after an action" panel here: one recorded piece of external feedback and
+// its read-back row. Fewest fields the form accepts, and a name that says out loud it is
+// scaffolding -- a gate row is not a human sign-off and must not be able to read like one later.
+async function openFeedbackState(page, key, problems) {
+  const word = await page.locator('#as-fb-outcome option').nth(1).getAttribute('value');
+  await page.selectOption('#as-fb-outcome', word ?? '');
+  await page.fill('#as-fb-target', '闸门合成：秋季主视觉在客户会上放过一次');
+  await page.fill('#as-fb-actor', '审计脚手架（合成，不是真人签署）');
+  await page.click('#as-fb-save', { timeout: 20000 });
+  const settled = await page.waitForFunction(() => {
+    const history = document.getElementById('as-fb-history');
+    const status = document.getElementById('as-fb-status');
+    return !!history && history.querySelectorAll('li').length >= 1 && !!status
+      && !/正在|失败/.test(status.textContent || '');
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 记录一条合成外部反馈后没有读回历史行（按钮按不动、被拒或列表为空），`
+      + '这一态的几何无人认领');
+  }
+  return settled;
+}
+
+async function openCombinationState(page, key, problems) {
+  for (const id of ['tp-software', 'tp-agent', 'tp-entry', 'tp-model', 'tp-task-mode']) {
+    const select = page.locator('#' + id);
+    if (await select.count() !== 1) continue;
+    if (await page.locator('#' + id + ' option').count() < 2) continue;
+    if (await select.inputValue() !== '') continue;
+    await select.selectOption({ index: 1 });
+  }
+  const settled = await page.waitForFunction(() => {
+    const line = document.getElementById('tp-combination');
+    return !!line && line.dataset.mode === 'target';
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!settled) {
+    problems.push(`${key}: 依次选了软件／Agent／接入方式之后仍未解析到一份目标档案，`
+      + '这一态的几何无人认领');
+  }
+  return settled;
+}
+
+const planSeed = await seedAssistancePlanForAudit('几何审计');
+report.auditSeed = { kind: 'synthetic-assistance-plan', project: planSeed.project,
+  plan: planSeed.plan, product_data: false,
+  note: '只为让方案详情能被几何测量而写进本次临时状态；创建人标明是合成的，随状态目录一起丢弃' };
+const kbSeed = await seedKnowledgeEntryForAudit('几何审计');
+report.auditKnowledgeSeed = { kind: 'synthetic-knowledge-entry', entry: kbSeed.entry,
+  product_data: false,
+  note: '只为让知识条目详情能被几何测量而写进本次临时状态，随状态目录一起丢弃' };
+
+// One sink for every panel this sweep opens by clicking. Accumulating in two places would give the
+// same counters two owners, and the route loop's own accumulation cannot see a row added out here:
+// without this, an opened panel is reported but never graded, which is a coverage claim that
+// protects nothing.
+function absorbPanel(key, m) {
+  report.routes[key] = m;
+  interactionStates.push(`${key}=${m.state}`);
+  clippedTotal += m.clipped.length;
+  strayTotal += m.stray.length;
+  tinyTotal += m.tiny.length;
+  for (const o of m.occluded) {
+    specProblems.push(`${key} ${o.label} (${o.sel}) covered by ${o.by}`);
+  }
+}
+
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: mainHeight } });
   await paintTheme(page);
@@ -338,8 +542,105 @@ for (const w of widths) {
   for (const [name, hash] of ROUTES) {
     await page.evaluate((h) => { window.location.hash = h; }, hash);
     await page.waitForTimeout(1000);
+    // A route that is still awaiting its reads renders a `.view-loading` paragraph and no headings,
+    // and a fixed sleep cannot prove that has stopped: on a loaded CI runner this measured
+    // `1440:capabilities` mid-mount and the heading assertion convicted the screen of having no
+    // headings when the truth was "not mounted yet". Wait for the mount to finish before judging
+    // it; a route that never settles is reported as such rather than measured as an empty shell.
+    const settled = await page.waitForFunction(() => {
+      const host = document.getElementById('route-view');
+      return !!host && !host.querySelector('.view-loading');
+    }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+    if (!settled) {
+      console.log(`OV_UNSETTLED ${w}:${name} still shows a loading placeholder after 20s`);
+      interactionMissing.push(`${w}:${name} never finished mounting, so its geometry is unclaimed`);
+    }
     const m = await page.evaluate(MEASURE);
     report.routes[`${w}:${name}`] = m;
+    if (name === 'knowledge') {
+      // The entry detail is the panel this sweep used to stop short of, so the judgement trail's
+      // small print, both judgement forms and the refused-clipboard fallback box were never
+      // geometry-checked -- a fallback textarea wider than its panel is exactly the kind of thing
+      // no clip check on the list screen can see. Open it as a person does and measure it as its
+      // own named state; a detail that never assembled is recorded as unclaimed, not measured empty.
+      await page.locator('#kb-results .kb-open').first().click();
+      const detailSettled = await page.waitForFunction(() => {
+        const host = document.getElementById('kb-detail');
+        if (!host || host.querySelector('.view-loading')) return false;
+        if (!document.getElementById('kb-copy-body')) return false;
+        if (!document.getElementById('kb-judge-reason')) return false;
+        return (document.getElementById('kb-detail-content')?.textContent ?? '').trim().length >= 8;
+      }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+      if (!detailSettled) {
+        interactionMissing.push(`${w}:knowledge+entry-detail 的详情面板在 20s 内没有装配完，`
+          + '它的几何无人认领');
+      } else {
+        const panel = await page.evaluate(MEASURE);
+        // The panel's own verdict, read off what is painted: a detail that came back with the
+        // served body is a read, one that says 未读回 is a named refusal. The wrapper asserts every
+        // button-gated panel settled on one or the other, so this cannot be left unset.
+        panel.state = await page.evaluate(() => (
+          /未读回/.test((document.getElementById('kb-detail')?.textContent ?? ''))
+            ? 'refused' : 'read'));
+        absorbPanel(`${w}:knowledge+entry-detail`, panel);
+      }
+    }
+    if (name === 'assistant') {
+      // Same rule for the plan detail: open it, wait for the reads that only land once the panel is
+      // assembled (the shot rows and the served material formats -- not "every status line has
+      // text", which an honest empty note would fail forever), then measure it as its own state.
+      // A missing row is a fact the report states, not a crash the run dies on: an uncaught
+      // timeout here hides what the screen said and makes the next reader re-instrument the gate.
+      const planRow = page.locator('#as-list .as-plan-open').first();
+      if (await planRow.count() !== 1) {
+        const said = await page.locator('#as-list-meta').innerText().catch(() => '(读不到 #as-list-meta)');
+        interactionMissing.push(`${w}:assistant+plan-detail 的方案清单里没有可点开的行，`
+          + `屏上写的是「${said}」`);
+      } else {
+      await planRow.click();
+      const planSettled = await page.waitForFunction(() => {
+        const host = document.getElementById('as-plan');
+        if (!host || host.querySelector('.view-loading')) return false;
+        if (host.querySelectorAll('#as-shots li').length < 1) return false;
+        return host.querySelectorAll('#as-material option').length >= 4;
+      }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+      if (!planSettled) {
+        interactionMissing.push(`${w}:assistant+plan-detail 的方案详情在 20s 内没有把镜头表与`
+          + '材料格式读回来，它的几何无人认领');
+      } else {
+        const panel = await page.evaluate(MEASURE);
+        panel.state = await page.evaluate(() => (
+          /未读回/.test((document.getElementById('as-plan')?.textContent ?? ''))
+            ? 'refused' : 'read'));
+        absorbPanel(`${w}:assistant+plan-detail`, panel);
+      }
+      if (await openPlanCompare(page, `${w}:assistant+plan-compare`, interactionMissing)) {
+        const panel = await page.evaluate(MEASURE);
+        panel.state = await page.evaluate(() => (
+          /失败|没有可读的修订/.test(document.getElementById('as-compare-status')?.textContent ?? '')
+            ? 'refused' : 'read'));
+        absorbPanel(`${w}:assistant+plan-compare`, panel);
+      }
+      if (await openFeedbackState(page, `${w}:assistant+plan-feedback`, interactionMissing)) {
+        const panel = await page.evaluate(MEASURE);
+        panel.state = await page.evaluate(() => (
+          /失败|未读回/.test(document.getElementById('as-fb-status')?.textContent ?? '')
+            ? 'refused' : 'read'));
+        absorbPanel(`${w}:assistant+plan-feedback`, panel);
+      }
+      }
+    }
+    if (name === 'target-profiles') {
+      // Selecting a target is the state where the two truth columns and the combination sentence
+      // actually fill, so the layout claim belongs to that state and not to the empty screen.
+      if (await openCombinationState(page, `${w}:target-profiles+combination`, interactionMissing)) {
+        const panel = await page.evaluate(MEASURE);
+        panel.state = await page.evaluate(() => (
+          document.getElementById('tp-combination')?.dataset.mode === 'target'
+            ? 'read' : 'refused'));
+        absorbPanel(`${w}:target-profiles+combination`, panel);
+      }
+    }
     if (m.navEdge && m.navEdge.overflow > 0) {
       navEdges.push({ key: `${w}:${name}`, ...m.navEdge });
     }
@@ -542,6 +843,9 @@ for (const w of widths) {
     if (!nav) return { present: false };
     const foot = document.querySelector('.sidebar-footer');
     const read = () => ({
+      // scrollHeight is viewport-independent, so DESIGN.md can quote the list's own height
+      // instead of re-deriving it from (hiddenPx + clientHeight) at one window size.
+      contentPx: nav.scrollHeight,
       hiddenPx: nav.scrollHeight - nav.clientHeight,
       atEnd: nav.scrollTop + nav.clientHeight >= nav.scrollHeight - 1,
       cue: nav.classList.contains('has-scroll-more'),
@@ -583,52 +887,71 @@ for (const w of widths) {
     console.log(`w=${String(w).padEnd(5)} nav-cue     hiddenPx=${String(cue.top.hiddenPx).padStart(4)} `
       + `atTop=${cue.top.cue} atEnd=${cue.end.cue} gap${shortHeight}=${cue.top.gap}`);
   }
-  // The brand tile is the owner's logo inlined into the stylesheet as a data URI, so
-  // "is the logo showing?" cannot be answered from the CSS text: the declaration survives
-  // a malformed URI, and the vm harness never mounts the shell at all (its MockElement has
-  // no querySelector, which is the shell's own capability guard). This measures the painted
-  // tile -- the ::after background resolved to a data URI the browser decoded to the
-  // expected bitmap, the tile carries no text, and the wordmark beside it is the name.
+  // The brand mark is the owner's vector, inlined into the stylesheet as a data URI (the service
+  // serves a fixed three-path allowlist under `img-src data:`), so "is the logo showing?" cannot
+  // be answered from the CSS text: the declaration survives a malformed URI, and the vm harness
+  // never mounts the shell at all (its MockElement has no querySelector, which is the shell's own
+  // capability guard).
+  //
+  // This probe measured the superseded bitmap tile until 2026-10-25 and went red on the exact-SHA
+  // cloud run: it decoded a `data:image/png` and required 144x144 with a 48x48 box and a bloom.
+  // The shipped surface is now `.app-nav-mark` -- 22px, an SVG encoding that flips to the theme's
+  // ink, and no filter (a drop-shadow on a masked glyph is clipped away by paint order anyway).
+  // So the assertions are about the vector: the URI decodes to an svg carrying path geometry and
+  // the ink the token claims, the figure paints at its declared size, it stays out of the
+  // accessible name, and the name itself is still text next to it.
   const brand = await page.evaluate(() => {
-    const tile = document.querySelector('.brand-mark');
+    const tile = document.querySelector('.app-nav-mark');
     if (!tile) return { present: false };
-    const after = getComputedStyle(tile, '::after');
+    const style = getComputedStyle(tile);
     const rect = tile.getBoundingClientRect();
-    const match = /url\("?(data:image\/png;base64,[A-Za-z0-9+/=]+)"?\)/
-      .exec(after.backgroundImage || '');
+    const match = /url\("?(data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+)"?\)/
+      .exec(style.backgroundImage || '');
+    const brand = document.querySelector('.app-nav-brand');
     return {
       present: true,
       text: (tile.textContent || '').trim(),
       ariaHidden: tile.getAttribute('aria-hidden'),
       size: [Math.round(rect.width), Math.round(rect.height)],
-      glow: (after.filter || 'none') !== 'none',
       uri: match ? match[1] : '',
-      name: (document.querySelector('.brand h1') || {}).textContent || '',
+      name: brand ? (brand.textContent || '').trim() : '',
     };
   });
+  // Decoding inside the page proves the URI is loadable by a real SVG decoder, and reading the
+  // bytes back out proves which artwork it is -- an image that decodes is not yet the right image.
   const decode = brand.uri
-    ? await page.evaluate((uri) => new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(`${img.naturalWidth}x${img.naturalHeight}`);
-      img.onerror = () => resolve('decode-failed');
-      img.src = uri;
-    }), brand.uri)
-    : 'no-data-uri';
+    ? await page.evaluate(async (uri) => {
+      const ok = await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = uri;
+      });
+      const text = atob(uri.split(',')[1]);
+      return { loads: ok, svg: text.startsWith('<svg'), paths: (text.match(/<path /g) || []).length,
+        fills: ['#EEF2F5', '#17212B'].filter((f) => text.includes(f)) };
+    }, brand.uri)
+    : { loads: false, svg: false, paths: 0, fills: [] };
   const seen = { ...brand, uriChars: brand.uri.length, decode };
   delete seen.uri; // 6.6 KB of base64 does not belong in a report a human reads.
   report.brand[w] = seen;
   if (!brand.present) {
-    brandProblems.push(`${w}: no .brand-mark in the mounted shell`);
+    brandProblems.push(`${w}: no .app-nav-mark in the mounted shell`);
   } else {
-    if (brand.text) brandProblems.push(`${w}: the tile carries text "${brand.text}"`);
-    if (brand.ariaHidden !== 'true') brandProblems.push(`${w}: the tile is not aria-hidden`);
-    if (!brand.glow) brandProblems.push(`${w}: the mark has no bloom (::after filter is none)`);
-    if (brand.uriChars < 1000) brandProblems.push(`${w}: the inlined uri is ${brand.uriChars} chars`);
-    if (decode !== '144x144') brandProblems.push(`${w}: the mark decoded as ${decode}, not 144x144`);
-    if (!brand.name.includes('DESIGN-LAB')) brandProblems.push(`${w}: no wordmark beside the tile`);
-    // A collapsed sidebar (the 760px breakpoint) legitimately has no box to measure.
-    if (brand.size[0] > 0 && brand.size.join('x') !== '48x48')
-      brandProblems.push(`${w}: the tile is ${brand.size.join('x')}, not 48x48`);
+    if (brand.text) brandProblems.push(`${w}: the figure carries text "${brand.text}"`);
+    if (brand.ariaHidden !== 'true') brandProblems.push(`${w}: the figure is not aria-hidden`);
+    if (brand.uriChars < 500) brandProblems.push(`${w}: the inlined uri is ${brand.uriChars} chars`);
+    if (!decode.loads) brandProblems.push(`${w}: the data uri did not decode in the browser`);
+    if (!decode.svg) brandProblems.push(`${w}: the uri is not an svg document`);
+    if (decode.paths < 1) brandProblems.push(`${w}: the svg carries no path geometry`);
+    if (decode.fills.length !== 1) {
+      brandProblems.push(`${w}: the mark should carry exactly one of the two brand inks, `
+        + `got ${JSON.stringify(decode.fills)}`);
+    }
+    if (!brand.name.includes('DESIGN-LAB')) brandProblems.push(`${w}: no wordmark beside the mark`);
+    // A collapsed rail legitimately has no box to measure.
+    if (brand.size[0] > 0 && brand.size.join('x') !== '22x22')
+      brandProblems.push(`${w}: the mark is ${brand.size.join('x')}, not 22x22`);
   }
   await page.close();
 }

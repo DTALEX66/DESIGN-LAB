@@ -63,6 +63,23 @@ KNOWLEDGE_ENTRY = {
     'created_by': 'sweep', 'supersedes': None,
 }
 
+#: DL-KB-07 (batch K). One neutral plan, its second revision and a named human's choice. The
+#: reference names only `{kind, id}`: the store resolves the revision and digest from the live
+#: object, so the body states neither. External ids are left out (the store writes UNUSED) or
+#: supplied literally, never minted here.
+ASSISTANCE_PLAN = {
+    'objective': '为秋季新品做一张克制的主视觉海报',
+    'output_type': 'IMAGE',
+    'neutral_creative': '一束侧光穿过纸纤维，留出大面积空白承载标题。',
+    'brand_constraints': ['只用两种油墨'], 'role_constraints': [],
+    'lens': None, 'sound': None,
+    'references': [{'kind': 'ASSET', 'id': '{asset}'}],
+    'external_steps': [{'step': '手动导出印刷 PDF', 'tool': 'Illustrator',
+                        'job_id': None, 'operation_id': 'op-sweep-1024'}],
+    'known_gaps': ['目标纸张未定'], 'limits': ['未包含多语言排版'],
+    'created_by': 'sweep',
+}
+
 _SLOT = re.compile(r'\{(\w+)\}')
 
 
@@ -362,6 +379,65 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
         {'route': '/api/knowledge-entries/index-rebuild', 'label': 'knowledge-index-rebuild',
          'status': 200, 'path': '/api/knowledge-entries/index-rebuild', 'body': {},
          'check': 'check_knowledge_index_rebuild'},
+        # DL-KB-05 D5: a named person's later judgement about the entry the sweep already wrote.
+        # Revision 2 arrived with recommended:false, so this POST is the only way the recommendation
+        # can move at all -- the revision rows are append-only by trigger.
+        {'route': '/api/knowledge-entries/(kentry-[0-9a-f]{32})/judgements',
+         'label': 'knowledge-judgement', 'status': 201,
+         'path': '/api/knowledge-entries/{kentry}/judgements',
+         'body': {'kind': 'RECOMMENDATION', 'revision': 2, 'value': None, 'replaced_by': None,
+                  'reason': '复核后确认修订版的景别更好用。', 'recorded_by': '张工',
+                  'recorded_by_kind': 'HUMAN'},
+         'check': 'check_knowledge_judgement'},
+        # DL-KB-07 (batch K): the plan object's create, revise and human choice. The revise row
+        # carries `expected_revision` -- the revision it was prepared against -- so a second
+        # writer is answered with a conflict instead of silently overwriting the first.
+        {'route': '/api/projects/([0-9a-f]{32})/assistance-plans',
+         'label': 'assistance-plan', 'status': 201,
+         'path': '/api/projects/{project}/assistance-plans', 'body': ASSISTANCE_PLAN,
+         'capture': {'aplan': 'plan.plan_id'}, 'check': 'check_assistance_plan'},
+        {'route': ('/api/projects/([0-9a-f]{32})/assistance-plans'
+                   '/(aplan-[0-9a-f]{32})/revisions'),
+         'label': 'assistance-revise', 'status': 201,
+         'path': '/api/projects/{project}/assistance-plans/{aplan}/revisions',
+         'body': {key: value for key, value in ASSISTANCE_PLAN.items()
+                  if key != 'created_by'}
+                 | {'neutral_creative': '两束交叉光，标题压在右下角的留白里。',
+                    'created_by': 'sweep', 'expected_revision': 1},
+         'check': 'check_assistance_revision'},
+        {'route': '/api/projects/([0-9a-f]{32})/assistance-plans/(aplan-[0-9a-f]{32})/choose',
+         'label': 'assistance-choose', 'status': 200,
+         'path': '/api/projects/{project}/assistance-plans/{aplan}/choose',
+         'body': {'actor': 'dtalex66', 'actor_kind': 'human', 'revision': 2},
+         'check': 'check_assistance_choose'},
+        # DL-KB-09 (batch K4): a user draft, then one validation asked of it. The draft is the only
+        # way a combination that is not in the tracked config can exist at all, and the validation is
+        # the write-shaped POST that must never be able to grant executability -- so the checks below
+        # read `executable` back rather than trusting the route to be honest.
+        {'route': '/api/target-profiles', 'label': 'target-profile-draft', 'status': 201,
+         'path': '/api/target-profiles',
+         'body': {'software': 'Illustrator', 'agent': None, 'model': None, 'provider': None,
+                  'version': None, 'entry': 'DESKTOP_CLIENT', 'task_mode': '导出分镜表 CSV',
+                  'actor': 'sweep', 'source_ref': None, 'fields': {}},
+         'capture': {'tprof_draft': 'profile.profile_id'},
+         'check': 'check_target_profile_draft'},
+        {'route': '/api/target-profiles/(tprof-[0-9a-f]{32})/validate',
+         'label': 'target-profile-validate', 'status': 200,
+         'path': '/api/target-profiles/{tprof_draft}/validate',
+         'body': {'dimensions': {'modality': 'text', 'aspect': '16:9'}},
+         'check': 'check_target_profile_validate'},
+        # DL-KB-16: the voluntary external-use report. Its proof is that the report lands AND the plan
+        # it describes does not move -- those are two different claims and the card depends on both.
+        {'route': ('/api/projects/([0-9a-f]{32})/assistance-plans'
+                   '/(aplan-[0-9a-f]{32})/feedback'),
+         'label': 'plan-feedback', 'status': 201,
+         'path': '/api/projects/{project}/assistance-plans/{aplan}/feedback',
+         'body': {'outcome': 'PARTIALLY_MATCHES', 'target_key': 'elevenlabs--web-app--music',
+                  'actor': 'dtalex66', 'note': '标题落点可用，时长要手改',
+                  'source_ref': None, 'revision': 2, 'target_model': None,
+                  'dimensions': [{'name': '画幅', 'verdict': 'PARTIALLY_MATCHES', 'note': None}],
+                  'issue_timecodes': ['00:03-00:05']},
+         'check': 'check_plan_feedback'},
     )
 
     # -- the walk ---------------------------------------------------------------------
@@ -726,6 +802,131 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
                                 'entries this sweep wrote: the derived index was rebuilt empty')
         self.assertEqual(payload['rebuilt_at'], listed['index']['rebuilt_at'],
                          'the read reports an index state the rebuild did not write')
+
+    def check_knowledge_judgement(self, row, payload, slots):
+        detail = self.read_back(row, '/api/knowledge-entries/{kentry}')
+        self.assertEqual(2, detail['recommended_revision'],
+                         'a recorded judgement did not move the recommendation the page reads')
+        self.assertEqual('recorded-judgement', detail['recommendation_basis'],
+                         'the answer could not say who decided the recommendation')
+        self.assertEqual(2, detail['latest_revision'],
+                         'recording a judgement wrote a revision; it is a statement, not content')
+        self.assertEqual([1, 2], [item['revision'] for item in detail['revisions']])
+        self.assertEqual(1, len(detail['judgements']),
+                         'the sweep sent one judgement and the trail answers more than that')
+        self.assertEqual('张工', detail['judgements'][0]['recorded_by'],
+                         'the trail lost the name of the person who decided')
+        self.assertIsNone(detail['source_state'],
+                          'a source nobody has judged read back as though it had been cleared')
+        self.assertEqual(detail, payload,
+                         'the write answered a different document than the read route serves')
+
+    def check_assistance_plan(self, row, payload, slots):
+        read = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')
+        self.assertEqual(1, read['latest_revision'])
+        self.assertEqual(payload['plan'], read['current'],
+                         'the bytes the read answers are not the ones the create route stored')
+        self.assertEqual({'saved': True, 'provided': True, 'chosen': False,
+                          'externally_verified': False}, read['states'],
+                         'a saved plan with a creative is saved and provided, and nothing more: '
+                         'no human has chosen it and no external step was verified')
+        status = read['reference_status'][0]
+        self.assertEqual('CURRENT', status['state'])
+        self.assertEqual(slots['asset_sha256'], status['recorded_sha256'],
+                         'the digest the plan pinned is not the one the asset read answers')
+        # The `reverse` row above stored a reversal for this exact asset digest, so the plan's
+        # reference must read ANALYZED -- the evidence is looked up, not inferred from the mention.
+        self.assertEqual('ANALYZED', status['analysis'])
+        self.assertEqual({'analyzed': 1, 'linked_only': 0}, read['analysis_summary'])
+        self.assertFalse(read['external']['verified'])
+        self.assertEqual(1, read['external']['steps'])
+        self.assertEqual(['op-sweep-1024'], read['external']['supplied_ids'],
+                         'only the label the caller supplied may be echoed as a supplied id')
+        self.assertEqual('UNUSED', read['current']['external_steps'][0]['job_id'],
+                         'the id nobody supplied must stay the literal UNUSED')
+
+    def check_assistance_revision(self, row, payload, slots):
+        read = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')
+        self.assertEqual(2, read['latest_revision'], 'the revision did not become the newest bytes')
+        self.assertEqual([1, 2], [item['revision'] for item in read['revisions']],
+                         'the revision replaced its parent instead of appending to it')
+        self.assertEqual(payload['plan'], read['current'])
+        self.assertEqual('两束交叉光，标题压在右下角的留白里。',
+                         read['current']['neutral_creative'])
+        self.assertEqual(slots['asset_sha256'], read['reference_status'][0]['recorded_sha256'],
+                         'the second revision lost the digest it was built from')
+
+    def check_assistance_choose(self, row, payload, slots):
+        read = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')
+        self.assertTrue(read['states']['chosen'],
+                        'the human choice was answered but the readback does not show it')
+        self.assertEqual('dtalex66', read['choice']['actor'])
+        self.assertEqual('human', read['choice']['actor_kind'])
+        self.assertEqual(2, read['choice']['revision'])
+        self.assertTrue(read['choice']['is_latest'], 'revision 2 is still the head')
+        self.assertFalse(read['states']['externally_verified'],
+                         'recording a choice is not external verification')
+
+    def check_target_profile_draft(self, row, payload, slots):
+        listed = self.read_back(row, '/api/target-profiles')
+        self.assertIn(slots['tprof_draft'], [entry['profile_id'] for entry in listed['profiles']],
+                      'the draft this sweep wrote is not in the list the selection panel reads')
+        stored = self.read_back(row, '/api/target-profiles/{tprof_draft}')
+        self.assertEqual('USER_DRAFT', stored['support_state'],
+                         'a draft somebody wrote does not come back as a draft')
+        # The owner's rule on identifiers: an absent one stays the literal UNUSED. A stored draft
+        # that came back with an invented source would be the page showing a provenance nobody gave.
+        self.assertEqual('UNUSED', stored['source_ref'],
+                         'a blank external identifier was replaced by something this module made up')
+        self.assertFalse(stored['executable'],
+                         'a stored draft reports itself executable -- nothing in this repository runs')
+
+    def check_target_profile_validate(self, row, payload, slots):
+        from design_lab.target_profile import VERDICTS
+        stored = self.read_back(row, '/api/target-profiles/{tprof_draft}')
+        self.assertEqual(stored['profile_id'], payload['profile_id'],
+                         'the validation answered about a profile other than the one stored')
+        self.assertTrue(payload['verdicts'], 'two contracted dimensions were asked and nothing answered')
+        for verdict in payload['verdicts']:
+            self.assertIn(verdict['verdict'], VERDICTS,
+                          'a verdict outside the closed vocabulary: ' + str(verdict))
+            # The per-row flag is the real guard: a validation that answered SUPPORT for a
+            # dimension must still not be able to say the combination can be executed.
+            self.assertFalse(verdict['grants_execution'],
+                             'a verdict granted execution: ' + json.dumps(verdict,
+                                                                          ensure_ascii=False))
+            self.assertTrue(verdict['reason'], 'a verdict with no stated reason: ' + str(verdict))
+        self.assertFalse(payload['executable'],
+                         'a verdict granted executability; the contract says a validation never may')
+        self.assertIn('没有', payload['execution_note'],
+                      'the execution note stopped saying what the validation does not answer')
+
+    def check_plan_feedback(self, row, payload, slots):
+        history = self.read_back(
+            row, '/api/projects/{project}/assistance-plans/{aplan}/feedback')
+        self.assertEqual(1, len(history['records']),
+                         'the voluntary report is not the single row the sweep wrote: '
+                         + str(len(history['records'])))
+        record = history['records'][0]
+        self.assertEqual('PARTIALLY_MATCHES', record['outcome'])
+        self.assertEqual('部分符合', record['outcome_label'],
+                         'the served label does not match the served outcome word')
+        self.assertEqual('UNUSED', record['source_ref'],
+                         'a blank 外部编号 must stay the literal, not become an invented one')
+        self.assertEqual('画幅', record['dimensions'][0]['name'])
+        self.assertEqual('00:03-00:05', record['issue_timecodes'][0])
+        # The other half of the card: a report about a plan is not a change to the plan.
+        plan = self.read_back(row, '/api/projects/{project}/assistance-plans/{aplan}')
+        self.assertTrue(payload['plan_states_unchanged'],
+                        'the write envelope claims the plan did not move; the readback must agree')
+        self.assertEqual(2, len(plan['revisions']),
+                         'a feedback record appended a revision to the plan')
+        self.assertEqual('dtalex66', plan['choice']['actor'],
+                         'the named choice the sweep recorded was rewritten by a feedback write')
+        self.assertFalse(plan['states']['externally_verified'],
+                         'a person saying 部分符合 is not the system verifying an external run')
+        self.assertEqual(1, history['outcome_histogram']['PARTIALLY_MATCHES'])
+        self.assertEqual(0, history['outcome_histogram']['MATCHES'])
 
     # -- machinery the table depends on -----------------------------------------------
     def prepare_candidate(self, slots):

@@ -38,6 +38,15 @@ SANCTIONED = {
                        "chrome only.",
     "body > main p": "F-3 block, same reason as body > header p.",
     "body > footer p": "F-3 block, same reason as body > header p.",
+    # The 20261023 pack states 圆角输入/按钮 as 6-10px, and its colours ship as an additive
+    # theme (standing owner ruling: a new pack's values become a selectable theme, never an
+    # override of what is already shipped). So the radius is re-declared ONLY inside
+    # :root[data-palette="stitch"][data-scheme="light"]; the default theme keeps 12/14px.
+    # Measured before the block, one width: 474 of 501 graded form controls over 10px.
+    ".primary-btn": "20261023 pack theme sets the control radius band for the pack palette "
+                    "only; the override is the point of that block.",
+    ".soft-btn": "20261023 pack theme, same reason as .primary-btn.",
+    "select": "20261023 pack theme, same reason as .primary-btn.",
 }
 
 # The D-2 split: these names must exist exactly once each, and the overloaded
@@ -445,7 +454,40 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # search results container is not one of the six: it replaced the pre-existing list
         # in the same position, so only a first-screen form and empty-state paragraph vary
         # around it. Empty states on this screen stay <p>/emptyLi(), as above.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 59)
+        # 2026-10-24 (DL-KB-08) again: 59 -> 66. The assistant screen's seven containers, all
+        # named: the project's plan records (as-list), the 目标与方向 value rows, the external
+        # steps that the service explicitly does not dispatch, the 参考与依据 status rows, the
+        # 已知缺口 rows, the 修订历史 chain, and the does_not_say sentences. Its attached-
+        # reference container is `class: 'list as-refs'` and is therefore NOT one of these --
+        # the exact-substring count is deliberate, so a container that shares the tag but not
+        # the class does not silently inflate it. Empty states here stay <p>/emptyLi() too:
+        # "no plan yet" must not be drawn as a list with zero members.
+        # 2026-10-24 (DL-KB-10) again: 66 -> 70. The 目标组合选择面板's four containers, all named:
+        # the 官方支持 column (tp-official-list), the 本项目未测试 column (tp-untested-list), the
+        # validate answer's verdict rows (tp-verdict-list), and the 更多设置 block's 13-field
+        # readback of one profile. The screen's route cards are <article class="row-card">, the
+        # dimension rows and the histogram are <div class="grid-stack">, and every empty state is
+        # <p> or emptyLi() — so none of those add a container. Again the inventory grew by four
+        # verified columns, the threshold did not move.
+        # 2026-10-24 (DL-KB-16) again: 70 -> 71. One new container, named: the plan detail's
+        # voluntary-feedback history (`as-fb-history`). Its empty and unreadable states stay on the
+        # <p class="view-hint"> status line above it -- a list of zero rows would read as "checked
+        # and empty", which is a different claim from "the service refused" or "nothing recorded".
+        # 2026-10-24 (DL-KB-12) again: 71 -> 72. One new container, named: the revision comparison's
+        # field rows (`as-compare-body`). The 镜头表 read back in the plan body is
+        # `'list as-shot-list'`, which the exact substring deliberately does not count, and the
+        # comparison's "cannot read, so nothing is compared" case stays on the status <p>.
+        # 2026-10-24 (DL-KB-05 D5) again: 72 -> 73. One new container, named: the entry detail's
+        # judgement trail (`kb-judgements`). It is emitted only when the readback carries rows --
+        # "nobody has recorded a judgement yet" is a sentence (`<p class="muted">`), not an empty
+        # list that would read as "asked and answered with nothing".
+        # 2026-10-28 (owner automation unfreeze) again: 73 -> 74. One new container, named: the
+        # automation connector roster (`#/automation`, one row per registered connector read from
+        # GET /api/automation-connectors). Its sibling panels are `<p class="view-hint">` and the
+        # `items-stack` list of owner-closed capabilities, which this exact substring does not
+        # count; an empty connector table would have read as "nothing is registered" rather than
+        # "the record could not be read", so the unread case stays on the status line.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 74)
 
 
 if __name__ == "__main__":

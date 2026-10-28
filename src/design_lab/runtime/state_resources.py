@@ -55,6 +55,29 @@ _NAMES = frozenset({
     # src/design_lab/knowledge_library.py). Additive: one new immutable resource name, no existing
     # file renamed or re-versioned.
     'design-lab-state-knowledge-library-v1.sql',
+    # 2026-10-24 DL-KB-05 D5 reachability: recorded judgements about an entry -- rolling the
+    # recommendation back to an older revision, and marking a source invalid with its replacement
+    # (design-lab/schemas/state/design-lab-state-knowledge-judgement-v1.sql, applied by
+    # src/design_lab/knowledge_library.py). Additive: the revision rows stay append-only, so a
+    # later judgement is a new row rather than an UPDATE of a stored document.
+    'design-lab-state-knowledge-judgement-v1.sql',
+    # 2026-10-24 DL-KB-07 assistance-plan reachability: the neutral design intent, its append-only
+    # revisions and the named human's adoption record
+    # (design-lab/schemas/state/design-lab-state-assistance-plan-v1.sql, applied by
+    # src/design_lab/assistance_plan.py). Additive: one new immutable resource name, no existing
+    # file renamed or re-versioned.
+    'design-lab-state-assistance-plan-v1.sql',
+    # 2026-10-24 DL-KB-09 target-profile reachability: the drafts a person adds at the selection
+    # panel, append-only (design-lab/schemas/state/design-lab-state-target-profile-v1.sql, applied
+    # by src/design_lab/target_profile.py). The five seeded profiles are NOT stored here -- they
+    # are served from the tracked config, so one byte has one owner. Additive: one new immutable
+    # resource name, no existing file renamed or re-versioned.
+    'design-lab-state-target-profile-v1.sql',
+    # 2026-10-24 DL-KB-16 plan-feedback reachability: the voluntary reports about taking a plan's
+    # material to an external tool (design-lab/schemas/state/design-lab-state-plan-feedback-v1.sql,
+    # applied by src/design_lab/plan_feedback.py). Additive: one new immutable resource name, no
+    # existing file renamed or re-versioned.
+    'design-lab-state-plan-feedback-v1.sql',
 })
 
 

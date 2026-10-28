@@ -11,6 +11,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const bundlePath = join(here, '..', 'build', 'main.js');
 const source = readFileSync(bundlePath, 'utf8');
 
+let lastFocused = null;
+
 class MockElement {
   constructor(tag = 'div') {
     this.tagName = tag.toUpperCase();
@@ -22,6 +24,45 @@ class MockElement {
     this.value = '';
     this._text = '';
     this.attributes = new Map();
+    // `id` is an IDL attribute in the DOM: `node.id = 'x'` writes the attribute, and reading it
+    // returns '' when absent. Without the bridge here, product code that guards on `control.id`
+    // took the "no id" branch in this harness while taking the real branch in a browser -- which is
+    // exactly how a per-field refusal could be tested as "placed but unlabelled".
+    // Tree links, because the per-field refusal placement walks them. `el()` builds a document by
+    // calling `append`, and a shim that records only the children gives every node a `null`
+    // parentNode -- so `row.parentNode?.insertBefore(line, row.nextSibling)` silently does
+    // nothing, and a test of "the refusal lands under the field it names" would pass while the
+    // product put the line nowhere. Real DOM nodes know their parent; these now do too.
+    this.parentNode = null;
+  }
+  get id() { return this.attributes.get('id') ?? ''; }
+  set id(value) { this.attributes.set('id', String(value)); }
+  get nextSibling() {
+    const siblings = this.parentNode?.children ?? [];
+    return siblings[siblings.indexOf(this) + 1] ?? null;
+  }
+  appendChild(node) { this.append(node); return node; }
+  insertBefore(node, reference) {
+    // `reference == null` means "at the end", which is what the DOM does and what the last field's
+    // refusal depends on.
+    const at = reference == null ? this.children.length : this.children.indexOf(reference);
+    if (at < 0) throw new Error('insertBefore: reference is not a child of this node');
+    if (node.parentNode) node.parentNode.children.splice(node.parentNode.children.indexOf(node), 1);
+    this.children.splice(at, 0, node);
+    node.parentNode = this;
+    return node;
+  }
+  remove() {
+    const at = this.parentNode?.children.indexOf(this) ?? -1;
+    if (at >= 0) this.parentNode.children.splice(at, 1);
+    this.parentNode = null;
+  }
+  closest(selector) {
+    // Upward walk with the same four selector shapes `matches` understands. A no-op `closest()`
+    // would let the refusal land on the field itself and the adjacency test would still read green.
+    for (let node = this; node; node = node.parentNode)
+      if (node.matches?.(selector)) return node;
+    return null;
   }
   set textContent(value) {
     this._text = String(value ?? '');
@@ -36,12 +77,35 @@ class MockElement {
   // changed -- without this getter that read throws inside renderAnswer and the view shows
   // the route-level failure, i.e. the gate would be measuring the shim, not the page.
   get options() { return this.children.filter((child) => child?.tagName === 'OPTION'); }
-  append(...nodes) { this.children.push(...nodes); }
-  replaceChildren(...nodes) { this.children = nodes; this._text = ''; }
+  append(...nodes) {
+    this.children.push(...nodes);
+    nodes.forEach((node) => { if (node && typeof node === 'object') node.parentNode = this; });
+  }
+  replaceChildren(...nodes) {
+    // The old children are out of the document, so they must stop pointing here: `remove()` on a
+    // node that was already dropped has to be a no-op, not a splice against a parent it no longer
+    // has. Strings and raw text are not nodes and are skipped.
+    this.children.forEach((child) => {
+      if (child && typeof child === 'object' && child.parentNode === this) child.parentNode = null;
+    });
+    this.children = nodes;
+    this._text = '';
+    nodes.forEach((node) => { if (node && typeof node === 'object') node.parentNode = this; });
+  }
   // openForm() scrolls the new panel into view. Browsers have it, a div mock does not, and
   // the throw happened inside the click handler before any assertion could run.
   scrollIntoView() {}
+  // focus()/select() arrived with the copy fallback: when the browser refuses a clipboard write
+  // the page puts the exact bytes in a read-only textarea, focuses it and selects the text so
+  // Ctrl+C works. Without these two no-ops the refusal path threw inside the handler and the
+  // message a user would actually see was untestable here -- the same shape of harness gap as
+  // the crypto.subtle and TextEncoder notes below.
+  focus() { lastFocused = this; }
+  select() {}
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
+  // Returns null when absent, the way the DOM does: `''` would make "no association" and
+  // "associated with the empty string" read the same to a test that is checking the link exists.
+  getAttribute(name) { return this.attributes.has(name) ? this.attributes.get(name) : null; }
   removeAttribute(name) { this.attributes.delete(name); }
   addEventListener() {}
   // A stub with no `querySelector` does not fail loudly: the caller's `?.` returns undefined and
@@ -115,6 +179,12 @@ function makeContext() {
           createHash('sha256').update(Buffer.from(bytes)).digest(),
       },
     },
+    // A navigator with no clipboard: the copy paths in shell.ts ask `navigator.clipboard?.writeText`
+    // and fall back to a selected read-only textarea when the browser will not grant the write.
+    // Without this global the click threw before either branch, so the fallback -- the message a
+    // user actually sees when the clipboard is denied -- was an untested line. The granted path is
+    // proven in Chromium by design-lab/tests/e2e/browser_design_layer_e2e.mjs, not here.
+    navigator: {},
     // TextEncoder came with the same key change: contentKey() encodes the joined intent
     // before hashing, so a context without it threw on that line instead of reaching
     // fetch -- the same failure mode as the missing crypto.subtle above.
@@ -1079,8 +1149,12 @@ console.log('ok: ⑬ 输入与目标的简报写入：构建零 POST、空标题
 // ⑭ DL-UI-U05 · 目标生成包的拒绝种类。U05 的验收把 error / forbidden / conflict / timeout
 // 列为不同状态，而 native_submissions.py 确实用五个代码、三种状态码回答。此前 #/plan 把它们
 // 全画成一张"未受理"卡片，读者无法判断该重试、该换键还是该换素材。
+// The fixture carries the key set the live route serves (contracts.ts::AssetRecord, measured
+// 2026-10-28): byte_size and version_id are in it, `kind` and `version_no` never were -- a
+// fixture that keeps the phantom keys lets the page pass on fields no response can produce.
 const PLAN_ASSET = { assets: [{ id: 'img-' + 'a'.repeat(62), media_type: 'image/png',
-  width: 1080, height: 1920, rights: 'UNVERIFIED', version_no: 1 }] };
+  width: 1080, height: 1920, rights: 'UNVERIFIED', byte_size: 2411520,
+  version_id: 'v-' + 'b'.repeat(32), sha256: 'sha256:' + 'c'.repeat(64) }] };
 const byAria = (root, label) => {
   let hit = null;
   walkNodes(root, (node) => {
@@ -3547,10 +3621,85 @@ console.log('ok: ㉒ 知识回执与反馈：构建只读一次零写、状态/�
   if (!shell.pending.pop().init.signal) throw new Error('默认写请求没有装截止信号');
   shell.context.cancelPendingReads();
   await defaultedWrite;
+
+  // (6) 正文阶段也必须被截止时间与取消管住（owner 审计 2026-10-26 第 3 条）。以前头部一到就
+  // `clearTimeout` 并摘掉监听，于是"答得快、正文慢慢滴"能无限越过预算。浏览器的契约是 signal 在
+  // 正文期间触发会让 `response.json()` 以 AbortError 落定——替身必须照做，否则这段测不到。
+  // 每一条等待都带看门狗：无人管辖的实现要**判红**，而不是把测试挂死——挂死既测不出回归，
+  // 也会让 CI 把它当成超时环境噪声。三条的失败先收下、最后一起报：第一条就 throw 的话，后两条
+  // 在拿旧实现跑反证时根本没被执行过，那就只证明了三分之一的修正。
+  const bodyPhaseFailures = [];
+  const expectBody = (label, ok, detail) => {
+    if (!ok) bodyPhaseFailures.push(`${label}（${detail}）`);
+  };
+  const withWatchdog = (promise, ms, label) => Promise.race([
+    promise,
+    new Promise((_resolve, reject) => setTimeout(() => reject(
+      new Error(`${label}：${ms}ms 内没有落定，说明截止时间或取消根本没有管到正文`)), ms)),
+  ]);
+  const bodyHang = (signal) => ({
+    ok: true, status: 200,
+    json: () => new Promise((_resolve, reject) => {
+      const onAbort = () => {
+        const error = new Error('The operation was aborted.');
+        error.name = 'AbortError';
+        reject(error);
+      };
+      if (signal.aborted) onAbort();
+      else signal.addEventListener('abort', onAbort, { once: true });
+    }),
+  });
+
+  const slowBodyRead = capture(withWatchdog(
+    api('/projects/slow-body', undefined, { timeoutMs: 20 }), 3000, '正文慢过预算后读请求无人收尾'));
+  await flush();
+  const bodyRead = shell.pending.pop();
+  bodyRead.resolve(bodyHang(bodyRead.init.signal));
+  const bodyReadError = await slowBodyRead;
+  expectBody('正文慢过预算要按读超时落定',
+    Boolean(bodyReadError) && /读取超时/.test(bodyReadError.message),
+    bodyReadError ? bodyReadError.message : '承诺一直没有落定');
+  expectBody('正文超时不许报成连接或解析问题',
+    Boolean(bodyReadError) && !/无法连接|无法解析/.test(bodyReadError.message),
+    bodyReadError ? bodyReadError.message : '没有错误可查');
+
+  // (7) 正文没读完就切页：读要按「页面已切换」落定，而不是变成一条无类错误
+  const midBodyRead = capture(withWatchdog(
+    api('/projects/aborted-body', undefined, { timeoutMs: 5000 }), 3000,
+    '正文期间切页却收不到取消'));
+  await flush();
+  const midBodyRequest = shell.pending.pop();
+  midBodyRequest.resolve(bodyHang(midBodyRequest.init.signal));
+  await flush();
+  shell.context.cancelPendingReads();
+  const midBodyError = await midBodyRead;
+  expectBody('正文期间切页要收到取消',
+    Boolean(midBodyError) && /页面已切换/.test(midBodyError.message),
+    midBodyError ? midBodyError.message : '承诺一直没有落定');
+
+  // (8) 写：头部到了、正文丢了，仍然是"结果待核对"，不许被说成失败
+  const lostBodyWrite = capture(withWatchdog(
+    api('/projects/x/briefs', { title: 'd' }, { timeoutMs: 20 }), 3000,
+    '正文期丢答复的写无人收尾'));
+  await flush();
+  const bodyWrite = shell.pending.pop();
+  bodyWrite.resolve(bodyHang(bodyWrite.init.signal));
+  const lostWriteError = await lostBodyWrite;
+  expectBody('正文期丢答复的写要落到结果待核对',
+    Boolean(lostWriteError) && lostWriteError.outcomeUnknown === true,
+    lostWriteError ? lostWriteError.message : '承诺一直没有落定');
+  expectBody('正文期丢答复的写不许说成失败',
+    Boolean(lostWriteError) && !/(已失败|提交失败|写入失败)/.test(lostWriteError.message),
+    lostWriteError ? lostWriteError.message : '没有错误可查');
+
+  if (bodyPhaseFailures.length)
+    throw new Error(`㉑ 正文阶段无人管辖，${bodyPhaseFailures.length} 项判红：`
+      + bodyPhaseFailures.join(' | '));
 }
 
 console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试）与写超时（结果待核对、禁止盲目重发）'
-  + '彼此可辨，切页只取消读不取消写，401 仍清会话，默认预算读 15s / 写 45s');
+  + '彼此可辨，切页只取消读不取消写，401 仍清会话，默认预算读 15s / 写 45s，'
+  + '且截止时间与取消管到正文本身（慢正文按读超时、正文期切页按已取消、正文期丢答复的写按待核对）');
 
 // ㉓ DL-KB-02/03/04 · 知识与提示词库。这一块要证明的不是"页面存在"：搜索是主入口、类目词表
 // 来自读回、列表不带正文/哈希/路径、详情按需读回、新增与修订都是真实 POST 且一次点击只发一次、
@@ -3716,6 +3865,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     knowledge_entry_id: 'kentry-1', status: 'ACTIVE', latest_revision: 2,
     recommended_revision: 1, current: entryView(), recommended: entryView({ revision: 1 }),
     superseded_by: null,
+    recommendation_basis: 'written-flag', recommendation_judgement: null,
+    source_state: null, judgements: [],
     revisions: [
       { revision: 2, content_sha256: 'sha256:' + 'a'.repeat(64), entry_type: 'METHOD',
         title: '分镜拆解三步法', recommended: false, created_at: '2026-10-23T09:00:00+00:00',
@@ -3753,6 +3904,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     current: entryView({ knowledge_entry_id: 'kentry-2', entry_type: 'PROMPT',
       title: '粒子光效提示词模板' }),
     recommended: null, superseded_by: null,
+    recommendation_basis: 'written-flag', recommendation_judgement: null,
+    source_state: null, judgements: [],
     revisions: [
       { revision: 2, content_sha256: 'sha256:' + 'b'.repeat(64), entry_type: 'PROMPT',
         title: '粒子光效提示词模板', recommended: true,
@@ -3787,20 +3940,65 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     throw new Error(`㉓ 新增表单的类型选项应来自同一份读回词表，实际 ${newType?.options.length}`);
   if (!formText().includes('编号由服务生成') || !formText().includes('UNVERIFIED'))
     throw new Error(`㉓ 新增表单没有说明编号来源与核验状态：${formText().slice(0, 200)}`);
+  // A fresh form used to open with the vocabulary's first state selected, so an untouched 新增
+  // claimed 许可状态=reviewed while 许可 was still empty -- and the store refused that pair
+  // with KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION (found by the browser walk, 2026-10-24).
+  // The default now has to be the state that says nobody has looked.
+  if (byElementId(view, 'kb-new-license-status').value !== 'unknown')
+    throw new Error('㉓ 新增表单替用户预选了许可状态：'
+      + byElementId(view, 'kb-new-license-status').value);
   newType.value = 'METHOD';
   const submitNew = findIn(form(), (node) => node?.className === 'primary-btn');
   if (typeof submitNew?.onclick !== 'function') throw new Error('㉓ 新增表单没有提交按钮');
   submitNew.onclick();
   expectQuiet('空表单');
-  if (!formText().includes('标题、一句话用途和正文都必须填写'))
-    throw new Error(`㉓ 空表单应被本地拒绝：${formText().slice(0, 200)}`);
+  // 一条拒绝一个字段，贴在它自己的行下面（owner 审计 2026-10-26 第 5 条）。以前这几个空字段
+  // 合并成一句「标题、一句话用途和正文都必须填写」，于是填掉两个之后屏幕上还是同一句话，而且
+  // 那条提示长在表单末尾，离任何输入框都有半屏。这里断言的是**形状**，不比对任何句子：
+  // 措辞以后可以再改，「说的是哪个框、就贴在那个框下面、并且带上那个框自己的标签词、光标交给
+  // 第一条」不能改。反过来也不许多拦：填好的字段不该还有拒绝挂着。
+  const kbRefusalOf = (id) => findIn(form(), (node) => node?.attributes?.get?.('data-for') === id);
+  const KB_GUARDED_FIELDS = ['kb-new-entry-type', 'kb-new-title', 'kb-new-summary', 'kb-new-body',
+    'kb-new-author', 'kb-new-source-id', 'kb-new-source-version'];
+  function expectFieldRefusals(ids, context, universe = KB_GUARDED_FIELDS) {
+    const missing = ids.filter((id) => !kbRefusalOf(id));
+    if (missing.length)
+      throw new Error(`㉓ ${context}：这些空字段没有各自的拒绝：${missing.join(' ')}`);
+    const extra = universe.filter((id) => !ids.includes(id) && kbRefusalOf(id));
+    if (extra.length)
+      throw new Error(`㉓ ${context}：已经填好的字段还被拦着：${extra.join(' ')}`);
+    ids.forEach((id) => {
+      const line = kbRefusalOf(id);
+      const field = byElementId(view, id);
+      const row = field.closest('.field-row');
+      if (!row) throw new Error(`㉓ ${context}：#${id} 不在任何一个 field-row 里`);
+      // 必须就在它自己的那一行里、排在这个输入框之后。两列布局下"下一格"不等于"这个框下面"，
+      // 所以只比对 DOM 父子关系，不比对"行之后"。
+      if (line.parentNode !== row)
+        throw new Error(`㉓ ${context}：#${id} 的拒绝不在它自己的 field-row 里，`
+          + `而是长在 ${line.parentNode === row.parentNode ? '表单容器' : '别处'}`);
+      if (row.children.indexOf(line) <= row.children.indexOf(field))
+        throw new Error(`㉓ ${context}：#${id} 的拒绝排在这个输入框之前，读起来不属于它`);
+      if (field.getAttribute('aria-describedby') !== line.id)
+        throw new Error(`㉓ ${context}：#${id} 没有指向拦住它的那条说明`);
+      const label = findIn(row, (node) => node?.className === 'field-label');
+      const word = text(label).replace(/（[^）]*）/g, '').trim();
+      if (!word || !line.textContent.includes(word))
+        throw new Error(`㉓ ${context}：#${id} 的说明没有出现这个字段自己的标签词「${word}」：`
+          + line.textContent.slice(0, 80));
+    });
+    if (lastFocused !== byElementId(view, ids[0]))
+      throw new Error(`㉓ ${context}：光标没有交给第一条被拦的字段，应停在 #${ids[0]}`);
+  }
+  expectFieldRefusals(['kb-new-title', 'kb-new-summary', 'kb-new-body', 'kb-new-author'],
+    '空新增表单');
   byElementId(view, 'kb-new-title').value = '分镜拆解三步法';
   byElementId(view, 'kb-new-summary').value = '把一场戏拆成可拍摄的镜头';
   byElementId(view, 'kb-new-body').value = '先定机位，再定景别，最后核对轴线。';
   submitNew.onclick();
   expectQuiet('缺记录人');
-  if (!formText().includes('记录人必填'))
-    throw new Error(`㉓ 缺记录人时应被本地拒绝：${formText().slice(0, 200)}`);
+  // 填掉的三个字段必须真的被放开：合并提示的年代，这里屏幕上的话和空表单时一模一样。
+  expectFieldRefusals(['kb-new-author'], '缺记录人');
   byElementId(view, 'kb-new-applicability').value = '实拍与动画分镜';
   byElementId(view, 'kb-new-limits').value = '不适用于纯文字脚本；镜头数超过 80 时先分层。';
   byElementId(view, 'kb-new-domains').value = 'film、animation';
@@ -3861,6 +4059,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     recommended_revision: 1, current: entryView({ knowledge_entry_id: NEW_ID, revision: 1 }),
     recommended: entryView({ knowledge_entry_id: NEW_ID, revision: 1 }),
     superseded_by: null,
+    recommendation_basis: 'written-flag', recommendation_judgement: null,
+    source_state: null, judgements: [],
     revisions: [{ revision: 1, content_sha256: 'sha256:' + 'a'.repeat(64),
       entry_type: 'METHOD', title: '分镜拆解三步法', recommended: true,
       created_at: '2026-10-23T09:00:00+00:00', created_by: 'ALEX', readable: true }],
@@ -3885,6 +4085,12 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   if (byElementId(view, 'kb-revise-author').value !== '')
     throw new Error('㉓ 修订人不得预填：服务不持有身份，读回里也没有「现在的操作者」');
   byElementId(view, 'kb-revise-body').value = '先定机位，再定景别，最后核对轴线与视线高度。';
+  // 适用场景 and 边界与反例 read as optional in this form, and the store does turn an empty
+  // one into the literal UNKNOWN -- but the route demands the key, so the page must still send
+  // it. Clearing both here is the control: a `|| undefined` in collect() drops the key and
+  // the reader gets a bare INVALID_PROJECT_FIELDS (the other defect the browser walk found).
+  byElementId(view, 'kb-revise-applicability').value = '';
+  byElementId(view, 'kb-revise-limits').value = '';
   byElementId(view, 'kb-revise-author').value = 'ALEX';
   findIn(form(), (node) => node?.className === 'primary-btn').onclick();
   await flush();
@@ -3893,6 +4099,9 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     || reviseWrites[0].path !== `/api/knowledge-entries/${NEW_ID}/revisions`)
     throw new Error(`㉓ 修订打到了 ${reviseWrites.map((r) => r.path).join(' ')}`);
   const reviseBody = JSON.parse(reviseWrites[0].init.body);
+  if (reviseBody.applicability !== '' || reviseBody.limits !== '')
+    throw new Error('㉓ 留空的可选字段没有作为空串送出，而是被丢掉了键：'
+      + JSON.stringify([reviseBody.applicability, reviseBody.limits]));
   if (reviseBody.expected_revision !== 1 || reviseBody.created_by !== 'ALEX')
     throw new Error(`㉓ 修订没有带读到的 expected_revision：${JSON.stringify(reviseBody)}`);
   if ('schemaVersion' in reviseBody || 'supersedes' in reviseBody)
@@ -3926,6 +4135,8 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
     recommended: entryView({ knowledge_entry_id: NEW_ID, revision: 2,
       body: '先定机位，再定景别，最后核对轴线与视线高度。' }),
     superseded_by: null,
+    recommendation_basis: 'written-flag', recommendation_judgement: null,
+    source_state: null, judgements: [],
     revisions: [
       { revision: 2, content_sha256: 'sha256:' + 'b'.repeat(64), entry_type: 'METHOD',
         title: '分镜拆解三步法', recommended: true,
@@ -3943,6 +4154,149 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   if (!text(byElementId(view, 'kb-detail')).includes('r1 · 分镜拆解三步法'))
     throw new Error('㉓ 修订后旧版本必须仍在修订历史里');
   expectQuiet('修订读回');
+
+  // (4b) DL-KB-05 D5：把推荐退回旧版本只能靠一条真人记下的判断——修订行是只追加的。
+  // 表单必须把 kind/revision/reason/recorded_by 原样送出，写后按服务读回上屏。
+  const judgedDetail = (basis, judgements, extra) => ({
+    schemaVersion: 'design-lab/knowledge-entry-detail/v1',
+    knowledge_entry_id: NEW_ID, status: 'ACTIVE', latest_revision: 2,
+    recommended_revision: 1,
+    current: entryView({ knowledge_entry_id: NEW_ID, revision: 2,
+      body: '先定机位，再定景别，最后核对轴线与视线高度。' }),
+    recommended: entryView({ knowledge_entry_id: NEW_ID, revision: 1,
+      body: '先定机位，再定景别。' }),
+    superseded_by: null,
+    recommendation_basis: basis,
+    recommendation_judgement: judgements.find((item) => item.kind === 'RECOMMENDATION') ?? null,
+    source_state: judgements.find((item) => item.kind === 'SOURCE_STATE') ?? null,
+    judgements,
+    revisions: [
+      { revision: 2, content_sha256: 'sha256:' + 'b'.repeat(64), entry_type: 'METHOD',
+        title: '分镜拆解三步法', recommended: true,
+        created_at: '2026-10-23T10:00:00+00:00', created_by: 'ALEX', readable: true },
+      { revision: 1, content_sha256: 'sha256:' + 'a'.repeat(64), entry_type: 'METHOD',
+        title: '分镜拆解三步法', recommended: false,
+        created_at: '2026-10-23T09:00:00+00:00', created_by: 'ALEX', readable: true },
+    ],
+    unreadable_count: 0, index: { rows: 3, indexed: 3, rebuilt_at: null },
+    does_not_say: ['保存不等于核验'],
+    ...extra,
+  });
+  const RECOMMEND_ROW = {
+    judgement_id: 'kjudge-' + 'd'.repeat(32), kind: 'RECOMMENDATION', revision: 1,
+    value: 'RECOMMENDED', replaced_by: null, reason: '旧版本那三步在实际项目里更稳。',
+    recorded_by: '张工', recorded_at: '2026-10-24T11:00:00+00:00',
+  };
+  byElementId(view, 'kb-judge-revision').value = '1';
+  byElementId(view, 'kb-judge-name').value = '张工';
+  byElementId(view, 'kb-judge-submit').onclick();
+  await flush();
+  if (shell.pending.length !== 0)
+    throw new Error('㉓ 没有理由时页面把判断发给了服务：服务会拒绝，但这一页不该先问一次');
+  if (!text(byElementId(view, 'kb-detail')).includes('判断必须写出理由'))
+    throw new Error('㉓ 缺理由时页面没有就地说明缺什么');
+  byElementId(view, 'kb-judge-reason').value = RECOMMEND_ROW.reason;
+  byElementId(view, 'kb-judge-name').value = '';
+  byElementId(view, 'kb-judge-submit').onclick();
+  await flush();
+  if (shell.pending.length !== 0 || !text(byElementId(view, 'kb-detail')).includes('必须填上记录人'))
+    throw new Error('㉓ 缺记录人时页面没有拒绝并说明验收只接受具名真人');
+  byElementId(view, 'kb-judge-name').value = '张工';
+  byElementId(view, 'kb-judge-submit').onclick();
+  await flush();
+  const judgeWrites = shell.pending.splice(0, shell.pending.length);
+  if (judgeWrites.length !== 1
+    || judgeWrites[0].path !== `/api/knowledge-entries/${NEW_ID}/judgements`
+    || judgeWrites[0].init.method !== 'POST')
+    throw new Error(`㉓ 判断没有打到 judgements 路由：${judgeWrites.map((r) => `${r.init.method} ${r.path}`).join(' ')}`);
+  const judgeBody = JSON.parse(judgeWrites[0].init.body);
+  if (judgeBody.kind !== 'RECOMMENDATION' || judgeBody.revision !== 1
+    || judgeBody.recorded_by !== '张工' || judgeBody.recorded_by_kind !== 'HUMAN'
+    || judgeBody.replaced_by !== null || 'recorded_at' in judgeBody)
+    throw new Error(`㉓ 判断体不对：${JSON.stringify(judgeBody)}`);
+  judgeWrites[0].resolve(response(judgedDetail('recorded-judgement', [RECOMMEND_ROW])));
+  await flush();
+  const judgeSearch = shell.pending.splice(0, shell.pending.length);
+  if (judgeSearch.length !== 1 || !judgeSearch[0].path.startsWith('/api/knowledge-entries/search?'))
+    throw new Error('㉓ 记完判断没有重搜：列表的推荐标记必须跟着读回变');
+  judgeSearch[0].resolve(response(libraryView({
+    total: 3, returned: 3,
+    entries: [rowView({ knowledge_entry_id: NEW_ID, revision: 2, latest_revision: 2,
+      recommended_revision: 1, recommended_is_latest: false }), ...libraryView().entries],
+  })));
+  await flush();
+  const judgeDetail = shell.pending.splice(0, shell.pending.length);
+  if (judgeDetail.length !== 1 || judgeDetail[0].path !== `/api/knowledge-entries/${NEW_ID}`)
+    throw new Error('㉓ 记完判断没有按编号读回详情');
+  judgeDetail[0].resolve(response(judgedDetail('recorded-judgement', [RECOMMEND_ROW])));
+  await flush();
+  const judgedText = text(byElementId(view, 'kb-detail'));
+  for (const needle of ['判断与来源状态', '推荐 r1', '张工', RECOMMEND_ROW.reason,
+    '来自一次后来记下的判断', '来源状态没有人说过'])
+    if (!judgedText.includes(needle))
+      throw new Error(`㉓ 判断读回没有上屏「${needle}」：${judgedText.slice(0, 300)}`);
+  expectQuiet('判断读回');
+
+  // 来源失效必须带替代条目：一个打不开的替代不是替代，页面先问清再发。
+  byElementId(view, 'kb-source-value').value = 'INVALID';
+  byElementId(view, 'kb-source-reason').value = '原稿下架。';
+  byElementId(view, 'kb-source-name').value = '张工';
+  byElementId(view, 'kb-source-submit').onclick();
+  await flush();
+  if (shell.pending.length !== 0)
+    throw new Error('㉓ 没有替代条目编号时不能把失效判断发给服务');
+  if (!text(byElementId(view, 'kb-detail')).includes('替代条目的编号'))
+    throw new Error('㉓ 失效判断缺替代时页面没有说明缺什么');
+  const SOURCE_ROW = {
+    judgement_id: 'kjudge-' + 'e'.repeat(32), kind: 'SOURCE_STATE', revision: null,
+    value: 'INVALID', replaced_by: 'kentry-' + '9'.repeat(32), reason: '原稿下架。',
+    recorded_by: '张工', recorded_at: '2026-10-24T11:30:00+00:00',
+  };
+  byElementId(view, 'kb-source-replacement').value = SOURCE_ROW.replaced_by;
+  byElementId(view, 'kb-source-submit').onclick();
+  await flush();
+  const sourceWrites = shell.pending.splice(0, shell.pending.length);
+  if (sourceWrites.length !== 1
+    || sourceWrites[0].path !== `/api/knowledge-entries/${NEW_ID}/judgements`)
+    throw new Error('㉓ 来源判断没有打到 judgements 路由');
+  const sourceBody = JSON.parse(sourceWrites[0].init.body);
+  if (sourceBody.kind !== 'SOURCE_STATE' || sourceBody.value !== 'INVALID'
+    || sourceBody.revision !== null
+    || sourceBody.replaced_by !== SOURCE_ROW.replaced_by)
+    throw new Error(`㉓ 来源判断体不对：${JSON.stringify(sourceBody)}`);
+  sourceWrites[0].resolve(response(judgedDetail('recorded-judgement',
+    [RECOMMEND_ROW, SOURCE_ROW])));
+  await flush();
+  shell.pending.splice(0, shell.pending.length)
+    [0].resolve(response(libraryView({
+      total: 3, returned: 3,
+      entries: [rowView({ knowledge_entry_id: NEW_ID, revision: 2, latest_revision: 2,
+        recommended_revision: 1, recommended_is_latest: false }), ...libraryView().entries],
+    })));
+  await flush();
+  shell.pending.splice(0, shell.pending.length)
+    [0].resolve(response(judgedDetail('recorded-judgement', [RECOMMEND_ROW, SOURCE_ROW])));
+  await flush();
+  const sourcedText = text(byElementId(view, 'kb-detail'));
+  for (const needle of ['已失效', `替代条目 ${SOURCE_ROW.replaced_by}`, '原稿下架。'])
+    if (!sourcedText.includes(needle))
+      throw new Error(`㉓ 来源判断读回没有上屏「${needle}」：${sourcedText.slice(0, 300)}`);
+  expectQuiet('来源判断读回');
+
+  // A5 的最后一格：复制。屏上的正文必须逐字进剪贴板；剪贴板被拒时，拒的就是那段正文，
+  // 而不是页面另拼一份。这里量的是回退面（沙箱里没有 clipboard），真实 clipboard 由浏览器走查量。
+  const copiedBody = '先定机位，再定景别，最后核对轴线与视线高度。';
+  byElementId(view, 'kb-copy-body').onclick();
+  const copyStatus = byElementId(view, 'kb-copy-status');
+  const fallbackArea = findIn(copyStatus, (node) => String(node?.className ?? '')
+    .includes('as-copy-fallback'));
+  if (!fallbackArea || fallbackArea.value !== copiedBody)
+    throw new Error('㉓ 剪贴板被拒时，页面没有把服务返回的正文原样交给用户复制：'
+      + JSON.stringify({ found: !!fallbackArea, value: fallbackArea?.value }));
+  if (!text(copyStatus).includes('浏览器没有允许写入剪贴板'))
+    throw new Error('㉓ 复制回退没有说明是浏览器拒绝了写入：' + text(copyStatus).slice(0, 160));
+  if (!text(copyStatus).includes('这只是复制，不是选用'))
+    throw new Error('㉓ 复制回退没有把"这只是复制"说清楚：' + text(copyStatus).slice(0, 160));
 
   // (5) 无命中只解释，不编造：两字检索词走子串回退，答案为空时列表里只有一行解释。
   const searchForm = findIn(view, (node) => node?.tagName === 'FORM');
@@ -3980,10 +4334,35 @@ console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试�
   if (!outsideNote.includes('不在本次检索结果里'))
     throw new Error('㉓ 零结果时旧选中条目仍挂在右侧，却没有标明它不属于本次检索');
   expectQuiet('无命中');
+
+  // (6) 导入表单把剩下的分支也走一遍（owner 审计 2026-10-26 第 5 条点名的合并提示就在这条路上：
+  // 「导入必须填写来源 ID 和来源版本」一句话说两个框）。这里不比对措辞，只数拒绝、看它落在哪个框
+  // 下面。空表单这一发同时覆盖「类型清单未读回」分支：替身里的 select 没有浏览器那个"默认第一项"，
+  // 新打开的表单类型就是空 —— 正是服务没连上时用户在屏上看到的形状。
+  byElementId(view, 'kb-import').onclick();
+  const IMPORT_FIELDS = ['kb-import-entry-type', 'kb-import-title', 'kb-import-summary',
+    'kb-import-body', 'kb-import-author', 'kb-import-source-id', 'kb-import-source-version'];
+  const submitImport = findIn(form(), (node) => node?.className === 'primary-btn');
+  if (typeof submitImport?.onclick !== 'function') throw new Error('㉓ 导入表单没有提交按钮');
+  submitImport.onclick();
+  expectQuiet('空导入表单');
+  expectFieldRefusals(IMPORT_FIELDS, '空导入表单', IMPORT_FIELDS);
+  // 只留两个来源框为空：拒绝必须收窄到这两个，其余五条要跟着填好一起消失。
+  byElementId(view, 'kb-import-entry-type').value = 'PROMPT';
+  byElementId(view, 'kb-import-title').value = '油墨限定提示词';
+  byElementId(view, 'kb-import-summary').value = '把两色限制写成可复用的约束句';
+  byElementId(view, 'kb-import-body').value = '先列允许的两色，再写"除这两色外不使用任何油墨"。';
+  byElementId(view, 'kb-import-author').value = 'ALEX';
+  submitImport.onclick();
+  expectQuiet('缺来源版本');
+  expectFieldRefusals(['kb-import-source-id', 'kb-import-source-version'],
+    '缺来源 ID 与版本', IMPORT_FIELDS);
 }
 
 console.log('ok: ㉓ DL-KB-02/03/04 知识与提示词库：首屏一次检索且词表/许可状态来自读回、列表不带正文哈希路径、'
   + '详情按需读回、空表单与缺记录人本地拒绝、新增 14 键 POST（无 schemaVersion/created_at、留空来源不编造）、'
-  + '修订带 expected_revision 且旧版本留在历史、写后按返回编号读回、两字检索词走子串回退且无命中只解释不编造');
+  + '修订带 expected_revision 且旧版本留在历史、写后按返回编号读回、两字检索词走子串回退且无命中只解释不编造、'
+  + '推荐退回旧版本只能靠一条真人判断（缺理由与缺记录人都本地拒绝、七键 POST 不带 recorded_at）、'
+  + '来源失效必须带一个打得开的替代条目');
 
 console.log('APPSHELL REGRESSION: all checks passed');

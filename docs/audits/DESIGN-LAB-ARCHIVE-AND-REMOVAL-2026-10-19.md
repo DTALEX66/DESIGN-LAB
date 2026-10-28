@@ -1196,3 +1196,2387 @@ adapter 数、两跳链、冻结/派工两个分母——都不受本轮改动�
 第一刀之后的 20 份新件（第二轮 19 份 + 第三轮 1 份 delivery 回执）由账本 `artifact_sha256`
 逐条绑定，不并入那个索引。读证据时以账本为准，
 不要把索引当成"证据包全量清单"。
+
+### 5.35 第四刀 K3：方案对象与设计辅助（`2d9372fb` 实现 → `103a6680` 收口）
+
+**落地形状。** 实现提交 `2d9372fb` 新增六条路由：`GET /api/assistance-plan-output-types`、
+`GET /api/projects/(id)/assistance-plans`、`GET /api/projects/(id)/assistance-plans/(aplan-…)`、
+`POST /api/projects/(id)/assistance-plans`、`POST …/assistance-plans/(aplan-…)/revisions`、
+`POST …/assistance-plans/(aplan-…)/choose`。实测 ROUTES 72 → **78**（42 GET + 36 POST）；合同账本
+74 → **80 行**（BOUND_SCHEMA 66 / SCHEMA_LESS 14；方法分布 44 GET + 35 POST + 1 GET+POST）；live
+载荷绑定 41 → **47**（`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=47 failures=0`）；`ROUTE_VIEWS`
+22 → **23**，`DESIGN.md` 导航 22 → 23。新增五份 plan schema（plan / write / readback / list /
+output-types）与一张 94 行的 state 表。
+
+**`DL-KB-07`（中立方案对象 + 一份创意意图）收口。** `test_assistance_plan` 18 项：
+"已保存／方案已提供／用户选用／外部未验证"是四条独立读回路径，复制不写任何一条；修订追加、
+不改旧链；带过期 `expected_revision` 的写被拒并点名实际版本；只有具名真人能做选用；未接回执的
+选用保持 `LINKED_ONLY`，直到存储里出现反转；缺号一律 `UNUSED` 字面量。路由注册、合同行与 wheel
+打包由 77 项（`test_route_payload_contracts`、`test_ledger_schema`、
+`test_packaged_contract_resources`）复核。
+
+**`DL-KB-08`（设计辅助初始态 + 方案详情屏）收口。** 浏览器实跑 `result PASS`、`consoleErrors 0`：
+保存后 `saved=true` 而 `providedAfterSave`／`chosenAfterSave`／`externalVerified` 全为 `false`；
+复制成功且 `copyCarriedHonesty`、`copyWroteNothing`、`copyChoseNothing` 均为 `true`——复制既不改状态、
+也不代替选用；空目标被拒（`emptyObjectiveRefused`）；手工补创意可行（`suppliedCreative`）；
+`providerPrimary` 是 `as-choose`，选用后 `chosen=true` 且 `chosenActorShown=true`；`revisionRows=2`；
+重载读回一致（`reloadReadback`）；无聊天面（`noChatSurface`）。工作台 node 30 项（含
+`㉔ B10_NAV` 从 `ROUTE_VIEWS` 派生）与 Python 44 项同绿。
+
+**视觉与闸门。** 截图 manifest 绑 `2d9372fb`：81 张（assistant 在 1280/1440/1920），
+视觉复核另存四张（`detail@1440-saved` 378,639 B、`detail@1440-chosen` 455,730 B、
+`detail@1280-chosen` 437,580 B、`list@1280` 214,538 B），逐张 sha256 在收据里。UI audit
+`ok=true`、`violations=[]`；溢出量 1100/900/750/620 四档；对比度 3 项双 palette；设计审查插件
+第一次覆盖 `#/assistant`：27 屏 axe 扫描 0 findings（自动扫描，不是 WCAG 认证），设计债
+713 条（630 minor / 52 major / 31 debt）与助手屏出现前条数、严重度与文件分布相同，
+`(file, rule, severity)` 的 713 条多重集完全一致；差异是 28 条行号随 `shell.ts` 增长而位移，
+不是新增债务。新界面没有新增字面 px 或硬编码颜色。收口树九门 `VERIFY_DESIGN_LAB=OK total=76 failed=0`，并带
+`VERIFY_RESULT 549` / `VERIFY_PRODUCT_MANIFEST_V3 493` / `VERIFY_RUNTIME_CONTRACTS_V3 239` /
+`VERIFY_VISUAL_SCORING_V3 10`；投影新鲜度 0 findings；authority gates 7 项 PASS。账本追加 13 条
+回执（KB-07 两条、KB-08 十一条）后共 **249** 条全部 PASS，直方图
+`FROZEN_DEFERRED 34 / DONE 6 / PARTIAL 2 / NOT_STARTED 8`。本目录现有 86 个受跟踪文件：
+索引仍只覆盖第一刀 47 份，其余 39 份（本轮新增 15 份）由账本 `artifact_sha256` 逐条绑定。
+
+**CI 第一次读数与修复。** PR #277 的首个完整矩阵（run `40048178001`，SHA `142e7efe`）是 9 个作业
+success、Python gate 红，`Branch light` 与 `CI artifact proof` 按规则跳过。shard 3/3 共 1026 项里
+唯一失败是 `test_backup_watches_written_tables.CoverageTests.test_every_written_table_is_watched_by_the_proof`：
+KB-07 新增的 `assistance_plan`、`assistance_plan_revision`、`assistance_plan_choice` 三张表由 store
+直接提交、不持写锁，却没有进 `project_backup.py` 的 `COUNTER_QUERIES`——备份窗口吞掉一次修订或一次
+选用，仍会报 `PROVED_QUIESCENT`。这条规则住在单元测试里，`verify_design_lab.py` 的 76 项不含单元测试，
+所以本机九门全绿也没拦住它。修复是在 `COUNTER_QUERIES` 追加三行 `rowid` 计数并写明理由；复验是
+`test_backup_watches_written_tables` 5 项、`test_project_backup` 加 `test_evidence_artifact_presence`
+48 项（1 skip），本机三 shard 并集 `3213 PASS / 5 SKIP / 0 FAIL`（shard 1108/1084/1026 项，
+用时 408.5 / 1487.1 / 140.4 秒）。同一条并集在 CI 上的分布是 `3195 PASS / 22 SKIP / 1 FAIL`——两边总数
+同为 3218，SKIP 差 17 项来自 runner 与本机的宿主环境差异，不是同一批用例被换掉。修复提交 `dbdee924`
+的复跑 run `40076707359`：见本节末尾的逐作业读数。
+
+**未证与未修。** `1440×900` 与 `1280×800` 下详情屏的主操作落在首屏折叠线以下
+（`1920×1080` 可见）；它不违反任何验收句，但属体验缺陷，留给版式轮次，本轮不为此重排布局——
+重排会让整条刚量好的证据链失效。收据里的选用人写作「示例审阅人」，是**示例**不是真人验收；
+E2E 自己的 `subjectSha` 写的是 `local`，工件身份靠 bundle sha 与截图 manifest 的 commit 绑定，
+账本回执里照实写明。a11y 的 0 是自动扫描。`DL-KB-02` 的 A5 仍无直接断言；`DL-KB-05` 的 D5
+在 KB-07 收口后需要重新量，不能因依赖项 DONE 就写成已证。下一刀是 K4：
+`DL-KB-09`（目标档案：软件×模型×入口）与 `DL-KB-10`（目标组合选择面板屏）。
+
+**复跑逐作业读数（run `40076707359`，`dbdee924`）。** 10 个作业 success，`Branch light` 与
+`CI artifact proof` 按规则跳过——前者只在非 main 的 push 上跑，后者只在 main 的 push 上跑，所以 PR 上
+本来就不该出现它们。三个 shard 分别是 1108 项 `1103 PASS / 5 SKIP`、1084 项 `1071 PASS / 13 SKIP`、
+1026 项 `1022 PASS / 4 SKIP`，合计 `3196 PASS / 22 SKIP / 0 FAIL`；与本机并集同为 3218 项，FAIL 归零，
+`test_every_written_table_is_watched_by_the_proof` 这次在两张表都计数的代码上绿。
+
+### 5.36 第五刀 K4／K5／K6：材料、目标、反馈与复用闭成一条链（实现 `36addfd5`）
+
+**这一刀把七段链接上了。** 真实需求与参考 → 可编辑方案（DL-KB-07/08 已有）→ 按需生成或编辑材料 →
+按材料选择目标 → 实际复制或导出 → 用户自愿记录外部使用反馈 → 方案与适用经验再次查找复用。本轮新增的
+是后四段：`src/design_lab/plan_export.py` 用**一个** `_intent()` 构建器渲染 markdown／txt／json／分镜
+CSV 四种形态，CSV 的转义是在吐出的字节上证的（引号、逗号、换行各一条），没有镜头行的方案**拒绝**出
+CSV 而不是吐一张空表；`src/design_lab/target_profile.py` 把软件×模型×入口做成五条路由加一份
+`design-lab/config/target-profiles.json`，未知入口保留 UNKNOWN、校验永不发放执行权；
+`src/design_lab/plan_feedback.py` 记自愿的外部结果反馈，写完方案的四个状态一个字都不动、修订历史
+仍在、结论词由服务给出；「我的方案」这一面补了页内检索与筛选（说明句写清"筛选只在这 M 条里做，
+不是全库搜索"）、两份**真实修订**的逐字段对照、由服务铸号的复制一份，以及一份活过重载的未完成编辑
+（本机存储、24 小时过期、超长不写、结构不对就当没有、保存成功即清除）。路由面从 86 涨到 **87**
+（48 GET + 39 POST），写侧扫描表 `rows=39 walked=38 written=38 read_backs=47 refused=0 excluded=1`。
+
+**两道闸门被这一刀量出两个真缺陷，都是先红给我看才改的。** 对比度闸报过一条 `1.31:1` 的
+`p.view-hint`，查下去是**假失败**：闭合的 `<details>` 在 Chromium 里仍保留真实布局盒
+（`::details-content` 是 `content-visibility: hidden`），`display`/`visibility`/`opacity`/矩形四道
+过滤都放行，于是"没人看得见的那行字"被按它像素位置上那块兄弟面板的颜色判了分。修法是量之前先把
+所有 `<details>` 展开，并把带进来的行数报成 `collapsedOpened`，同时埋一条**闭合的**白底白字对照件
+——只有真的展开了它才会被报出，所以这条修正不可能悄悄变成少量。同一轮还暴露 `oklab(...)`
+（`color-mix(in oklab, …)` 的序列化形式）这道闸读不懂，按它自己的家规"扩解析器而不是降阈值"补上，
+并且用 CSS Color 4 规范里那四组 sRGB↔OKLab 对照值判分，不是用文件里另一个函数自证。改完两档主题各
+量 50 个面、`checked=14002`、`belowAA=0`、`collapsedOpened=6228`、`unparsable=0`、`colourBad=0`，
+最紧的一对是 4.11:1（深色）与 4.14:1（浅色）。截图闸的等待条件也错过一次：它要求每条
+`[role="status"]` 都有文字，而材料回执那句在人不点"复制"时**本就该是空的**，于是方案详情三档宽度
+全部 `settle-timeout`；改成只等"没有还在读回"，内容由脚手架自己的读回断言保证。
+
+**一处真实超标，所以 `DL-KB-13` 是 PARTIAL。** 交付方案 §14 写的是"首屏 JavaScript gzip 不超过
+150KB"，本轮实测 `apps/workbench/build/main.js` 原始 593,796 字节、gzip **155,787** 字节，超过上限；
+样式表 110,904／gzip 40,530，远程引用 0。不能靠改构建解决：`vite.config.ts` 顶上的合同写明这个包
+**故意不压缩**，因为原生 UI 契约测试要读顶层函数名与界面文字，压缩会让契约静默失效；也不该为凑数字
+删必要内容或换栈（同一节的原话）。搜索与操作延迟达标且余量很大：1,000 条按真实结构生成的样本、
+30 次查询，`search p95=28.89ms`、`create p95=8.14ms`、`detail p95=8.94ms`（阈值分别是 300ms 与
+100ms），推理延迟单独报、不混进界面指标。几何面这轮补了 1536 CSS px——1920 物理屏在 Windows 125%
+下的宽度，100/125/150 三档里此前**没人量过中间那一档**，现在溢出闸扫 `1440,1280,1536,1920`。
+§14 还要求"安排至少 3 位目标用户做无指导任务"，那不是我能替的验收，所以这一行停在 PARTIAL。
+
+**账本读数（`36addfd5` 上现测，21 条新回执，`kb-20261024` 目录）。** `DL-KB-09`、`DL-KB-10`、
+`DL-KB-11`、`DL-KB-12`、`DL-KB-14` 记 DONE（各自 `evidence_requirements` 的轴都有 PASS 回执）；
+`DL-KB-13` PARTIAL（体积超标 + 真人无指导任务未做）；`DL-KB-16` PARTIAL（实现与单元都 PASS，
+`human_review` 只认具名真人，代理不签）；`DL-KB-15` 仍 NOT_STARTED，它的前置是"用户在本机实际可用的
+推理服务与硬件余量"，本轮不部署模型、不自行下载权重。全量门禁 `VERIFY_DESIGN_LAB=OK total=76
+failed=0`，UI 审计闸与截图采集（带合成方案种子）都是 0 退出，受影响的十个 Python 模块单独跑全绿。
+
+**这一轮自己追正的一处：上面那段"留给下一轮的覆盖洞"已经在本轮补掉了。** 写下它之后紧接着就动手了：
+几何闸与 UI 审计闸现在都在量之前先展开闭合的 `<details>`，并各自报出展开了多少个面板——几何闸在 112
+个路由量测里展开 **1200** 个（单路由最多 98 个，在 research／capability／capabilities 那三面），UI 审计闸
+在 54 个 scope 里展开 **324** 个。两道闸的包装各加一条断言：这个计数为 0 就红，所以"展开这一步被删掉"
+不可能悄悄变成一次绿色。改完两道闸都全绿——**没有新增任何一条几何或可读性违规**，也就是说这些折叠面板
+打开后的版式本来就是好的，此前那句"数说的是布局盒不是像素"是断言范围的问题，不是被掩盖的缺陷。剩下的
+真问题反过来：闭合态自己的裁剪行为现在不再被这两道闸声称，谁要声称得另立一把尺。另两处未闭环的账不变：
+`DL-KB-02` 的 A5 仍无直接断言，`DL-KB-05` 的 D5 需要重新量（回退要事件表，本轮没有加）。
+
+边界不变：桌面端 only，手机端仍是排除项；不部署模型、不宣称推理已验证；导出与复制是**读回**不是
+发送，页面上那句"这只是把材料交出去，不是选用，也不是发送"是服务给的词；编号仍由人填或显式选
+UNUSED；三方素材与字库在范围外；E 盘不动；旧 34 项仍 `FROZEN_DEFERRED`；release、装机分发、真实宿主
+E3、真人 E4、ComfyUI、MiniMax H3 与外部软件自动操作继续冻结。
+
+**CI 把本机量不到的四件事顶了出来（逐提交读数）。** 收口提交 `d33b8e1c`/`64ad6f9b` 的首轮矩阵红了三个
+作业，逐个查因，没有一条靠改断言糊过去：
+① `test_gate_reachability` 报 `measure_workbench_weight.py` 声明了 `--check` 却没有任何表、链条或测试
+调用它——这正是"闸门可达性"家规该抓的东西，已把它作为一步接进 Workbench 作业（`7a6ab695`）：它现在
+守的是"不许有远程引用"这半条已经成立的规则，体积那半条只发布读数不判分；
+② 21 条新回执绑进账本之后 `AUTHORITY_CHAIN=DRIFT`，因为那份记录钉的就是账本自己的字节，重生成
+`reports/current/DEEPSEEK-AUTHORITY-CHAIN.json` 才是对的（同一提交内付清）；
+③ 登记册第 5 行钉的审计件字节因 §5.36 而变，按 `git cat-file` 重钉，不手抄；
+④ 几何闸在 CI 上判 `1440:capabilities`"这一屏一个标题都没有"，本地怎么都复现不出来——真相是它按固定
+1 秒 sleep 量路由，把"还在读回"当成了"没有标题"。现在先等 `#route-view` 的占位消失再量，等不到就进
+`OV_INTERACTION_UNMEASURED` 红（`9cba9f11`）。同一类问题在方案对照用例里又抓到一次：等待条件只看
+"选用"徽章，而被比较的修订数与反馈数来自两次独立读回，CI 读到 `feedback: 0` 就误判"复制动了源"——
+修订数没变恰恰说明产品是对的，错的是等待（`7925efca`）。
+**最终 `7925efca` 的 PR 矩阵 `completed success`**：11 个作业里 Branch light 与 CI artifact proof 按规则
+跳过（前者只在非 main 的 push 上跑，后者只在 main 上跑），其余全绿。这一串的价值不在"最后绿了"，
+在于这四条只有换一台机器才会暴露——本机此前全绿了整整一天。
+
+### 5.37 第六刀 K2 补口：DL-KB-05 D5 的判断存储（实现 `52961f49`，收口同轮）
+
+**这一刀补的是什么。** `currentExecution` 里 DL-KB-05 的验收第三条写着
+「回退知识推荐版本后旧方案仍可读；失效来源可标记并替换」。上一轮实测的结论是这句话**说不出来**：
+`knowledge_entry_revision.recommended` 是随版本一起写入的、被 append-only 触发器锁死的字段，
+所以推荐要么永远等于写入那一刻，要么就得改那个字段——改它就等于拆掉这个条目全部历史的保证。
+没有路由、没有字段、没有界面，状态只能停在 PARTIAL。
+
+**现在的形状。** 判断是它自己的一行，追加进 `knowledge_judgement`
+（`design-lab/schemas/state/design-lab-state-knowledge-judgement-v1.sql`）：同一条目同一 `kind`
+的最新一行是答案，下面的行是"答案是怎么走到这里的"。`POST /api/knowledge-entries/{id}/judgements`
+回答的是条目自己的 readback（`recommendation_basis`／`recommendation_judgement`／`source_state`／
+`judgements` 四个字段是这一轮加进 `knowledge-entry-readback-v1` 的），所以调用者看到的是被挪动后的
+那个数，而不是一张回执。写入面拒绝的四件事各有其代码：`recorded_by_kind != 'HUMAN'` →
+`KNOWLEDGE_HUMAN_JUDGEMENT_REQUIRED`（owner 2026-10-21：本机验收只接受具名真人）；没有 `reason` →
+`REASON_REQUIRED`；推荐了一个没存过的修订 → `KNOWLEDGE_REVISION_NOT_FOUND`；标记失效却没给出
+**库里真的存在的**替代条目 → `KNOWLEDGE_SOURCE_REPLACEMENT_REQUIRED`／`_SELF`／`_UNKNOWN`，
+而 `replaced_by` 同时是外键，绕过写入面直接 INSERT 也一样进不来。`recorded_at` 由服务盖，不接受调用方自填。
+
+**为什么这句话现在成立了。** 13 条单元测试里最关键的一条是
+`test_moving_the_recommendation_rewrites_no_stored_bytes`：推荐从 r2 挪回 r1 之后，逐条比对
+`detail()['revisions']` 的 `content_sha256` 与 `created_at`，**一个字节都没动**。这正是
+"旧方案仍可读"的机制面——方案钉住的是修订号与摘要，摘要不变，读到的就是当初那份。重启后同一份判断
+还在（`test_a_judgement_survives_a_restart_and_still_outranks_the_written_flag`），所以没有第二张
+真值表，也没有引入第二张修订表：`latest_revision` 与写入标记仍只从 `knowledge_entry_revision` 算。
+
+**同一刀里必须说的另一半。** 界面跟着落了：条目详情里"判断与来源状态"这一块带轨迹与两个表单
+（`apps/workbench/shell.ts` 的 `kbJudgementPanel`），缺理由与缺记录人都在本地拒绝、不发请求，
+`recorded_at` 不在请求体里。`apps/workbench/tests/appshell.mjs` 用**出货的那份 bundle** 走完了两个
+表单、两次本地拒绝与写后重搜＋重读回。
+
+**这条验收还差什么，所以行不升 DONE。** `src/design_lab/assistance_plan.py` 的
+`REFERENCE_KINDS = ('ASSET','BRIEF','DIRECTION','PROMPT_RESULT')` 里**没有 KNOWLEDGE**：
+方案今天无法钉住一个知识条目，所以"旧方案仍可读"只能在条目层面被证明（字节与摘要不变），
+产品里并不存在一条"从方案读某条知识某个修订"的路径。补这一格要动方案 schema 的 `kind` 枚举、
+`_resolve_references()` 那个以 `else: # PROMPT_RESULT` 收尾的分支、导出材料如何呈现引用，
+以及读回里 `verification` 的取值——是一次独立的改动，登记成缺口而不是顺手糊过去。
+
+**本轮门禁读数（都取自己那行输出）。** `VERIFY_CONTRACT_BINDINGS=PASS schemas=32 routes=90
+dispatched=90 bound=76`；`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=57 failures=0`，其中
+`knowledge-entry-judgement cases=2 object locations compared=22` 是两条真判断经真 socket 比过合同；
+`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=138 routes=88 matched=77 backend_only=11`（新增这一条路由
+是被界面真的调用到的，不是又一条 BACKEND_ONLY）；`DOCUMENTED_COUNTS=PASS claims=20 route_views=24
+routes=88`；写侧扫描 `POST_SWEEP layout=source rows=40 walked=39 written=39 read_backs=48 refused=0
+excluded=1`，`knowledge-judgement` 在 written 名单里；浏览器侧对比度 50 个面 `checked=14002
+belowAA=0 unparsable=0`、几何 112 个面（1440/1280/1536/1920）`docOverflowX=0 clipped=0 stray=0
+detailsExpanded=1200`，两者都绑在 bundle `sha256 4df788c3…`（602,549 B）上。
+
+**顺带修掉的两个自己的缺陷。** 一是 `contract-bindings.json` 里六条 emitter 行号被这次插入挪走，
+`EMITTER_POINTER_NOT_THE_VERSION` 逐条点名——行号会烂，闸门会喊，别抄数字；二是新界面上线后
+`el('ul', { class: 'list'` 的存量从 72 变 73，这一条按老规矩写明新增的是哪一个容器再动数字。
+重量：bundle gzip 从上一轮记录的 155,787 B 到本轮 `WORKBENCH_WEIGHT_GATE=OK remote=0
+bundle_gzip=157739`（同一把尺、同一份文件），KB-13 的 150 KB 预算仍然是 owner 的决定，本轮不代做。
+### 5.38 第一次真点开一条知识条目：两个一直存在的表单缺陷（`38bb48d8`）
+
+**为什么要做这一刀。** §5.37 记下了一条边界：没有任何浏览器门禁点开过一条知识条目。这条边界不是
+"细节没顾上"，它意味着**整个条目详情面从来没被真实浏览器画过**，而详情面背后的新增／修订表单同样
+没有——`apps/workbench/tests/appshell.mjs` 那个 DOM 桩件走得很细，但它的 fixture 把该填的格子都
+填了、把许可状态也选了，所以它绿着，而真用户不一定走得通。
+
+**真点一次，立刻红两次。** 新加的这一步（`design-lab/tests/e2e/browser_design_layer_e2e.mjs` 的
+`knowledge detail and judgement walk`）在真 Chromium 里点「新增条目」，故意**不填**「适用场景」和
+「边界与反例」，然后提交：
+
+1. 服务答 `400 INVALID_PROJECT_FIELDS`。`collect()` 里写的是
+   `applicability: value.trim() || undefined`，空串被 `JSON.stringify` 直接丢键；而
+   `POST /api/knowledge-entries` 与 `…/revisions` 要的是**精确键集合**（`http_service.py` 的
+   `body(fields=…)`：少一个键就拒，多一个键也拒）。界面把两个看起来可选的格子当成可省略的字段，
+   服务却要求它们必须在。用户看到的是一句读不懂的代码，而且**只要不填这两格就永远写不进去**。
+   修法是键永远在，值留空串——存储本来就把空串写成字面量 `UNKNOWN`（`knowledge_library._text`）。
+2. 补完第一条再点，服务答 `400 KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION`。许可状态那个 `select`
+   没有"未选"这一档，选项来自服务词表、**第一项默认中选**，而本机词表第一项是 `reviewed`：
+   一张谁都没碰过的新表单，打开就在替用户声明"这份许可被审过了"，同时许可格子还是空的。存储的
+   规则（`license == UNKNOWN` 时状态必须是 `unknown`）是对的，错的是界面把词表顺序当成了默认值。
+   现在空表单默认落在 `unknown`，也就是"没人看过"这句实话。
+
+**这条闸现在长什么样。** 走查断言八件事，全部要真值：条目写进去并按编号读回、两格留空仍存成
+`UNKNOWN`、空轨迹说的是"还没有人记下"、缺理由与缺记录人各自被本地拒绝且**一个请求都没发**
+（按阶段计数的 `posts.afterReasonClick/afterNameClick/afterJudgeClick/afterSourceClick`，
+读数 `[0,0,1,1]`）、判断只发一次、屏上的轨迹行数与 POST 返回的 readback 逐字段对得上、
+来源失效没替代条目时不发请求。两条表单缺陷另外在 `appshell.mjs` 里各有一条**不需要浏览器**的断言
+（新表单默认必须是 `unknown`；修订清空两格后键仍在），两条都在修之前的字节上红过。
+
+**顺带说清一件事。** DOM 桩件不是浏览器的替身：这次是桩件全绿、真浏览器连红两次。反过也一样成立——
+所以两边各留了什么断言，写在这段里，别拿一边的绿去声称另一边。
+### 5.39 方案终于能引用知识条目：D5 的方案侧补齐（`2c47e359`）
+
+**为什么上一轮只能停在 PARTIAL。** §5.37 把判断存储建起来了，但验收那句话的主语是**旧方案**，而
+`src/design_lab/assistance_plan.py` 的 `REFERENCE_KINDS` 只有
+`('ASSET','BRIEF','DIRECTION','PROMPT_RESULT')`——方案根本引用不了知识条目，
+所以"回退推荐版本后旧方案仍可读"在产品里没有一条走得通的路。上一轮把它登记成缺口，这一轮补。
+
+**加了什么。** `KNOWLEDGE` 成为可引用类型：id 形状用条目自己的 `^kentry-[0-9a-f]{32}$`，
+钉的是**该条目当前最大修订**与那一行的 `content_sha256`（不是推荐版本——推荐是另一个答案），
+并且因为知识库是全局的、`knowledge_entry` 没有 `project_id` 列，跨项目检查这一支改为**每个分支各自
+写明 owner**：知识分支显式写 `owner = None` 并说明为什么，而不是"列不存在就跳过检查"——
+后者会让下一个新增类型悄悄关掉一道安全闸。四个 schema 里的 kind 枚举与 Python 那个元组现在由
+`test_the_reference_kind_list_is_one_list_across_the_schemas` 钉在一起；在此之前，
+只往一边加词不是任何人的失败。
+
+**顺手拆掉的一个真缺陷。** 表单原来把引用存成**光 id**，提交时一律贴回 `kind: 'ASSET'`。
+于是一份引用了 brief 或知识条目的方案，一旦在界面上点"修订"，就会把自己原来的引用改标成 ASSET
+交给服务，得到 `ASSISTANCE_PLAN_REFERENCE_ID_MALFORMED`——**这类方案在界面上根本改不动**。
+现在选择器带类型（一个控件、两组 `<optgroup>`：本工作区素材 / 知识与提示词库），
+列表每行显示它是哪一类，选择器给不出的类型在修订时**原样保留**而不是被改名。
+
+**量到什么。** `design-lab/tests/test_assistance_plan.py` 34 条全过，其中
+`test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes`
+是真 HTTP 路由上的整条链：建条目 r1 → 修订出 r2 → 方案引用（钉住 r2 与它的摘要）→
+记一条真人判断把推荐退回 r1 → 再读方案，`references[0]` 与判断之前**逐字段相同**，
+`reference_status[0].state` 仍是 `CURRENT`。另有一条写 r3 的用例量的是相反方向：
+链接变 `CHANGED`、摘要与钉住的修订号不动。浏览器那侧走查从 8 件加到 **10 件全真**，
+新增的两件是 `pickerOffersBothSources` 与 `planCitesTheKnowledgeEntry`。
+途中被服务正确拒过一次 `ASSISTANCE_PLAN_SHOTS_NOT_APPLICABLE`（表单里留着上一段的分镜行，
+而我选了平面类型）——那是走查自己的错，拒得对，改成 `STORYBOARD` 后通过，没有动服务的规则。
+
+**于是这一行升到 DONE。** `currentExecution` 直方图从 `DONE 11／PARTIAL 4` 到
+**`DONE 12／PARTIAL 3`／`NOT_STARTED 1`**，`evidence` 277 条。升的依据是定义里三条验收
+（A2、D5、重启一致且不引入第二张修订表）都各有实测回执，`evidence_requirements` 要的两个轴
+（implementation／unit）都 PASS，另加 browser 轴两条。没做的仍然写着：
+`DL-KB-13` 的体积裁定与 3 位真人无指导任务、`DL-KB-16` 的具名真人签字、`DL-KB-15` 的本机推理前置，
+以及 `DL-KB-02` 的 A5 直接断言——那几条不是工程缺口，是要 owner 或真人点头的账。
+
+### 5.40 A5 直接量一遍，顺手补上那条一直缺失的复制（`72710b7f`）
+
+**上一轮欠的是什么。** `DL-KB-02` 的 A5 那句话有四个动词——写入、检索、编辑、复制。前三个在
+`test_knowledge_library.py`／`test_knowledge_http.py` 里各有真路由回执；第四个没有，因为
+**条目详情里根本没有复制这个控件**：正文读得回、显示得出，用户要带走只能自己选中再抄。
+上一轮把这格留着不写，是对的——留着是欠账，写成"离线可复制"就是假账。这一轮先补控件，再补断言。
+
+**"模型关闭"怎么量才算数。** 只写一句"这条测试没配模型"不够：模块可能在 import 时就把
+provider 拉起来了，而测试恰好没走到那支。所以 `test_knowledge_library.py` 里加的是一个
+**读 AST 的扫描**：`MODEL_FACING` 是一串模型／供应商／网络方向的模块名，
+`_reached_names()` 把 `knowledge_library` 模块（含它自己的 import 图）里出现的名字取出来，
+`_model_facing_hits()` 按**点号分段**比对——`openai.chat` 这种写法要能被抓住，只比首段就漏了。
+紧接着 `test_the_offline_scanner_notices_a_model_import` 往源码里种一条假的 `import`，
+要求扫描器必须报出来，同时留一个负对照：种回原字节后必须报 0。
+**一把量不出错的尺不能当证据**，这条规则也适用于它自己。
+最后一条 `test_writing_searching_editing_and_copying_answer_with_no_model_configured`
+先断言 `model_selection` 表**行数为 0**（"没配"而不是"配了没用"），再依次建条目、检索、修订、
+读回，并钉 `revised['body'] == detail['current']['body']`。
+
+**界面上加的那一格。** `kb-copy-body` 按钮 + `kb-copy-status` 说明；有
+`navigator.clipboard` 就直接写，被拒（非安全上下文／用户没给权限）时退化成**一段只读且已全选**
+的 `as-copy-fallback` 文本框，配一句"浏览器拒绝写入剪贴板，请手动复制"——两条路给的都是
+**服务答应的同一批字节**，页面不自己拼引用、标题或格式。为了让退化那支在 DOM 桩件里也可测，
+补了桩件缺的三个能力（`navigator`、`focus()`、`select()`）：**桩件缺能力不是测试的失败，
+是产品的盲区**——那一支代码本来每天都在真浏览器里跑，只是没人能在离线桩件里点它。
+
+**浏览器走查到 11 件。** 新增 `clipboardHoldsTheServedBody`：Chromium 拿到剪贴板权限后点
+复制，再读回剪贴板，和**创建路由的应答**逐字节比，而不是和走查自己打的字符串比。
+各阶段发请求数仍是 `[0,0,1,1]`：两次"没填理由／没填记录人"的本地拒答**没有真的发出请求**。
+
+**两把静态尺为什么读数一模一样。** 这一轮 `build/main.js` 从 603,048 涨到 605,670 字节，
+但对比度仍是 `checked=14002 belowAA=0 unparsable=0 controlMisses=0`（两套主题各 50 个面）、
+几何仍是 112 个面 `docOverflowX=0 clipped=0 stray=0`。这不是尺坏了：两把尺的路由清单里
+都有 `#/knowledge`（`audit_workbench_contrast.mjs:68`、`audit_workbench_overflow.mjs:106`），
+**但它们只走到列表，从不点开一条条目**，新控件在详情面板里，落在它们的行走路径之外。
+所以这块界面的证据来自走查和 `appshell`，不来自这两把尺——这句话写下来，是为了下一轮
+不要把"读数没变"误读成"改动没被量到所以没风险"。
+
+**于是这一行升到 DONE。** 新增 2 条回执（unit／browser，逐条绑 `72710b7f04b9` 与 bundle
+sha256 `3fdb4f636b5c`），`currentExecution.evidence` 277→**279**，直方图
+**`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**。剩下的两格仍然不是工程缺口：`DL-KB-13` 要 owner
+对 150 KB 上限表态（同一把尺现在读 gzip **158,722** 字节），`DL-KB-16` 要具名真人；
+`DL-KB-15` 的前置是本机可用的推理服务，本轮不部署、不自行下载权重。
+
+**已经看清的下一刀。** 方案的参考选择器现在只给得出 5 种类型里的 2 种（`ASSET`、`KNOWLEDGE`），
+`BRIEF`／`DIRECTION`／`PROMPT_RESULT` 服务收得下、界面上选不到。三条读路由
+（`/api/projects/<id>/briefs`、`/directions`、`/prompt-results`）都已经存在且各有合同行，
+所以这一刀不需要新路由，只把选择器补全并把"这一页读到几条、还有更早的没读到"说清楚。
+### 5.41 选择器补齐五种类型：闭环的第一环在界面上接上了（`f6ec0fa0`＋`e172e33e`）
+
+**缺口是怎么留在那里的。** 上一轮写完 §5.40 的"下一刀"就动手做了。做完发现这件事的形状很典型：
+服务收五种 `REFERENCE_KINDS`，三份 schema 的四个枚举位置都写着五种，解析器五种都会钉版本与摘要，
+三条读路由存在、各有合同行、也各有载荷比对——**只有选择器只列了两组**。
+每一侧各自都自洽，所以没有任何一条单元测试能看出中间断了一截：这是**跨侧缺口**，
+不是某一侧的缺陷。
+
+**补了什么。** `loadProjectChoices()` 一次 `Promise.all` 读三条项目内清单，
+选择器从两组变成五组 `<optgroup>`：本工作区素材／需求 Brief／方向／提示词结果／知识与提示词库。
+`result_id` 在服务里按修订存多行，所以清单里一个编号只列一次（取最大修订那一行）。
+分页不诚实就是页面替服务说话，所以 `next_cursor` 不是 null 时明说
+"这一页之后还有更早的需求 Brief、方向没有读到"。换工作区时 `refreshAssets()` 改名
+`refreshReferenceSources()`——它现在重读的是"这份方案能引用什么"，不只是素材。
+**一条读失败会怎样**：`apiOrEmpty` 在被拒时是**拒**，不是退回空载荷（只有没 token 的开发态才给空），
+所以 `Promise.all` 的失败走到调用方已有的那个 `catch`，屏上说"工作区读数失败：…"。
+它不会把一次被拒的读写成"这个工作区还没有需求 Brief"——那句是关于库的断言，不是关于失败的。
+
+**顺手修掉一个一直存在的悬挂 promise。** 首屏那行
+`void (async () => { await loadKnowledgeChoices(); })()` 没有 `catch`：库的路由一旦被拒，
+这里就是一个未处理的 rejection，而选择器还挂着"库里还没有条目"那句话——同样是把失败说成了关于库的事实。
+现在它把拒接住写成 `库未读回：<服务的理由>` 再重画一次。§5.40 已经立过这条规则
+（"空的回答是'库里还没有'，被拒的回答是'没读回'"），当时漏掉的是**发起读的那一行**。
+
+**闸门自己报了一次自己的旧账。** 删掉 `verify_workbench_route_calls.py` 里
+`GET .../directions` 的 `BACKEND_ONLY` 豁免，不是我改口：门禁先判红
+`STALE_BACKEND_ONLY … the frontend now calls it; the exemption is no longer true`。
+那句话原先是真的（界面确实只从 design-layer 投影里取方向），现在界面真的分页调它了，
+豁免就成了假账，所以删的是豁免而不是断言。
+
+**加了什么牙齿。** `test_the_workbench_picker_labels_exactly_the_kinds_the_store_accepts`
+把界面上 `REFERENCE_KIND_LABELS` 的键与 `REFERENCE_KINDS` 逐一比对，并要求每种都有一个
+`referenceGroup('KIND', …)`。这条测试如果上一轮就存在，KNOWLEDGE 那一刀不会留下这个缺口——
+**它不是给已经修好的东西补分数，是把上一轮真正踩到的那类断裂写进闸门口子**。
+浏览器走查 11 件→**12 件**：`pickerOffersBothSources` 改名 `pickerOffersAllFiveKinds`，
+另加 `planCitesEveryKind`——走查在同一次保存里挂上 KNOWLEDGE／BRIEF／DIRECTION／PROMPT_RESULT
+四种引用，要求**服务**回一个 `revision >= 1` 与一条摘要（页面只发类型和编号，
+任何一种钉不住就是这里红，而不是悄悄存一条没法核对的引用）。
+§5.39 与第七轮读数里出现的 `pickerOffersBothSources` 是当时的状态名，随断言加宽在本轮改名。
+
+**三把尺与"读数没变"。** 收口 bundle 609,452 字节 / gzip **159,775**（同一把尺，第八轮记录 158,722）。对比度仍
+`checked=14002 belowAA=0 unparsable=0 controlMisses=0`（50 个面），几何仍 112 个面
+`docOverflowX=0 clipped=0 stray=0 tiny=0`。这次读数不变的原因和上一轮不同，也更该写清楚：
+**`<option>` 的文字不是被画的文本 run**——`<select>` 收起时只画当前一项，所以五组选项不会新增
+对比度样本；界面真正新增可见文字的是引用列表里每一行的类型标签，而那要先有引用才画得出来，
+这条路径由走查覆盖（`citedRow` 断言含"知识条目"），不由这两把尺覆盖。
+路由级 UI 审计在提交后的字节上重跑：`ok=true violations=0`，宽度 `1280,1920,2048`，
+它的 `environment.commit` 字段直接记了 `e172e33e964b`——**这一条回执绑的是提交号本身**，
+不是靠旁边的文件推断。
+
+**账本动了两格记录，没动状态。** `DL-KB-08` 仍是 DONE，回执 11→13（unit／browser，
+逐条绑 `e172e33e`）；`currentExecution.evidence` 279→**281**。直方图仍是
+**`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**——本轮没有可升的行：剩下两格 `DL-KB-13`（体积上限裁定＋
+3 位真人无指导任务）与 `DL-KB-16`（具名真人签字）要的是 owner 与真人点头，`DL-KB-15` 要的是
+本机可用的推理前置，本轮不部署模型、不自行下载权重，也不把"选了模型"写成"推理已验证"。
+
+### 5.42 CI 抓到一次我自己的红：证据清单在本地根本不执行（PR run `40140337003`）
+
+**读数。** 推送 `5041b8f5` 之后：push run `40140333553` success（light gate），
+同 SHA 的 pull_request run `40140337003` **failure**，逐作业看只有一个红——
+`Workbench browser E2E (exact-SHA controlled-runtime, no-skip)`，其余 10 个作业 success
+（`gh api …/runs/40140337003/jobs`）。红的那条断言是：
+
+```
+AssertionError: Lists differ: ['bla…', 'clipboardHoldsTheServedBody', 'emptyTrail…]',
+                            != ['bla…', 'emptyTrailSaidNotAskedAndAnswered', …, '…ody']
+```
+
+**根因不是产品，是我写的断言。** `assertEqual(sorted(kb_states), [字面表])` 里那张字面表
+是我按浏览器驱动的**写入顺序**抄的，`clipboardHoldsTheServedBody` 被我加在末尾——
+左边永远是字母序，右边不是，**两边不可能相等**。这一条从它被提交的那一刻起就只有一种结果。
+
+**为什么本地看不见。** `test_workbench_design_layer_e2e.py` 的整段证据断言包在
+`if os.environ.get('E2E_REQUIRED') == '1':` 里，那个变量只有 CI 的 no-skip 作业设。
+本地跑的是同一个测试、真的启动了同一个 Chromium、真的重写了同一份 summary，
+`Ran 2 tests / OK` 也是真的——**但它验的是驱动自己那条 `E2E_OK`，那十二件事实的清单比较一次都没执行**。
+所以我把"本地浏览器走查全绿"当成过这一条的凭据，而它当时并不能为这句话作证。
+
+**两边都补了，不是把断言删掉。** `b90aaf66`：
+① 条件改为 `E2E_REQUIRED == '1' or summary.is_file()`——走到这一行的运行必然有工具链，
+驱动失败会以非零退出先红，所以**只要 summary 存在就把它验掉**；required 而没有 summary 仍然是硬失败。
+② 两张清单（六态与十二件）都包进 `sorted(...)`，把"顺序打错"从一种可写出来的错误改成写不出来的。
+③ 牙齿按老规矩双向验：改完之后本地跑 `Ran 2 tests / OK`；再往清单里种一个 `'bogusStateName'`，
+**本地立刻** `AssertionError: Lists differ … 'bogusStateName'`——同一种错，这次不用等 CI。
+种完即还原（`git checkout --` 只还原了这个文件，还原前它没有别的未提交改动；
+我随后重放的两处 `sorted()` 包裹也是当场补回来的）。
+
+**这条要给下一轮的口径。** 本地 `test_workbench_design_layer_e2e … OK` 这句话**不再**等于
+"清单事实已验"，它的含义由本段起改变：现在它确实包含那十二件，因为条件不再只认 CI。
+在它之前写的每一句"本地浏览器走查全绿"，验的是驱动侧的 `E2E_OK` 与 summary 里的
+`allAsserted`，**不是** Python 侧的清单比对——这两件事以前不是一回事，以后才是。
+
+### 5.43 尺子开进详情面板，第一件事就是量出一个真的 AA 缺陷（`a7c43891`）
+
+**为什么这一刀值得做。** §5.40 与 §5.41 连着两轮写了同一句话：两把静态尺走到 `#/knowledge`
+就停了，从不点开一条条目，所以判断轨迹的小字、两个判断表单、剪贴板被拒时的退化框
+**从来没被对比度与几何量过**——只被走查点过，而走查断言的是"话有没有说对"，不是"这行字够不够黑"。
+一句被写两次的覆盖盲区，就是下一刀。
+
+**做法照已有的先例。** 方案详情早就是这张尺的一个具名状态（`assistant+plan-detail`：先用服务
+写一条合成方案，再点开，等镜头表与材料格式读回来才量）。这一轮给知识条目做了同一件事：
+`seedKnowledgeEntryForAudit()` 走真路由 POST 一条合成条目（`created_by` 写明"合成，不是真人"，
+随临时状态目录一起丢），点开 `.kb-open`，等 `kb-copy-body`、判断表单与正文都画上（20s 上限，
+**没装配完就说"无人认领"，不量空壳**），量成 `knowledge+entry-detail`。对比度与几何两侧都加，
+两份闸门的测试各自要求这个状态在**每个宽度**都出现在报告里——不然"少量一块面板"会变成一次安静的绿。
+
+**它第一次跑就量到一个缺陷。** 逐字读数（控制跑，改动前的样式表、同一个 bundle、同一份种子）：
+
+```
+LOWCONTRAST 1440:knowledge+entry-detail 4.08:1 need>=4.5:1 16px bold opacity=1
+  fg=rgb(49, 108, 255) :: strong :: 镜头拆解三步法（合成）
+```
+
+**为什么列表屏从没报过它**：这行字是 `.kb-open:hover` 的色——鼠标停在哪儿，哪儿才换色。
+点开详情时指针正好还压在刚点开那一行的标题上，于是量到的就是 hover 态。`--accent` 是品牌蓝
+`#316CFF`，在这块表面上只有 **4.08:1**，16px 粗体按 AA 要 4.5:1，深色与浅色两套主题各红一次
+（那一轮 `Ran 3 tests … FAILED (failures=2)`）。这条控制与修复后的对照都进了回执：
+`kb-03-contrast-prefix-control.log`。
+
+**改的是字色选择，不是品牌。** 三条 hover 墨色（`.kb-open:hover`、`.as-plan-open:hover`、
+`.capability-chip-x:hover`）改用 `--secondary`——这个 token 正是本项目为"小号有色文字"准备的
+按主题走的那一支（`ui2026/light` 的覆盖块就是重指它，"而不是让浅色主题带着读不清的小标签上线"）。
+`--accent` 本体一个字没动：品牌蓝能不能承载正文级白字仍是要 owner 裁的账，
+**闸门量出一个缺陷不等于拿到了改品牌的许可**。
+
+**量的面确实变大了。** 对比度 50→**52** 个面、`checked` 14,002→**14,278** 条文本 run，
+`belowAA=0 unparsable=0 controlMisses=0`；几何 112→**116** 个面，
+`docOverflowX=0 clipped=0 stray=0 tiny=0`，四个宽度的条目详情都报到 `state=read`。
+**计数上升就是"伸手够得更远"的证据**，这不是把阈值放宽换来的一次绿。
+
+**账本。** `DL-KB-03`（知识与提示词库界面）加一条 `visual_review` 回执，
+10→11 条，状态仍 DONE；`currentExecution.evidence` 281→**282**。
+本轮没有行需要升：可机器证明的面上一轮已经升完，剩下的 `DL-KB-13`／`DL-KB-16`／`DL-KB-15`
+仍是 owner、真人与本机推理前置的账。
+
+### 5.44 几何尺也开进方案详情：先量到"报了但没算"这个洞（`7d97ac8d`）
+
+**不对称在哪里。** §5.43 给知识条目补了几何之后，剩下的形状就看清楚了：对比度尺**早就**会点开一份
+方案（`assistant+plan-detail`，先经服务写一条合成方案），而几何尺从来不点。也就是说
+**镜头表、导出面板、反馈块**这几块界面，在 1280／1536／1920 三个宽度上从来没有几何断言——
+一条长中文需求会不会把面板顶宽、镜头表会不会在窄一侧挤断，没人量过。
+
+**照先例做，但先掉进自己的坑。** 第一版把两个面板行塞进 `report.routes` 就结束了。看起来是对的：
+报告里有这两行，测试也要求它们出现。**但闸门累计量的那几行（`clippedTotal` 等）与
+`occluded → specProblems` 只在路由循环和原有的交互态分支里做**，我新加的行既没进计数器也没进
+失败清单——**面板一旦被点开，它的 clip／stray／occlusion 是打印出来给人看、然后被忽略的**。
+这正是"报了"与"算了"不是一件事。改成一个 `absorbPanel(key, m)` 单入口（和对比度尺里 `absorb`
+同一句话：两处累计会让同一批计数有两个主人），并给测试加一条硬断言：
+`OV_SUMMARY interactions=` 的数量**必须等于**报告里带 `+` 的行数。少一行就是红。
+
+**第二个洞是这把尺自己的措辞。** 新行进来之后 `occluded=3`：顶栏的设置／工作区／搜索三个入口
+"被遮住"。逐字读数是 `by:"elementFromPoint returned null"`，rect 的 `top≈-1814`、视口高 900——
+它们不在"被什么东西盖住"，它们在**视口上方 1.8k 像素处**：设计辅助这一屏很长，点开方案详情时
+浏览器把整份文档滚了下去。而这个探测块自己的注释写着"不在屏上"与"被盖住"是两件事，
+代码却没遵守——`!r.width || !r.height` 只挡住了没有盒子的情况。现在多加一个 `notInView` 桶，
+带上中心点、视口尺寸与 `top`／`bottom`，`occluded` 只留给真的被别的元素盖住的情况
+（那仍然会进 `specProblems` 把闸门判红）。
+
+**要不要把顶栏吸顶？** 查了采纳包：`02_完整产品方案.md` 只在"玻璃用在哪儿"这一句里提到顶栏，
+**没有任何一条要求它常驻可见**。所以这一条按"实测到的现象＋留给 owner 的打磨问题"记账，
+不擅自加 `position:sticky` 去补一个规格里没有的要求——那是替 owner 做设计决定。
+`notInView` 现在 12 条（3 个入口 × 4 个宽度），全部来自 `assistant+plan-detail` 这四行。
+
+**读数。** 几何尺这一提交 116→**120** 个面（四个宽度各加一行方案详情；§5.43 已经把 112 加到 116，
+对比度尺停在 52 面／14,278 run），
+`docOverflowX=0 clipped=0 stray=0 tiny=0 occluded=0`；四个宽度的方案详情都落到 `state=read`、
+`detailsExpanded=6`。账本加 1 条 browser 回执（`DL-KB-08` 13→14 条，状态仍 DONE），
+`currentExecution.evidence` 282→**283**。直方图不变：**`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`**。
+
+**剩下还没被尺子碰过的面**（下一刀的清单，都是"点开才有"的那一类）：目标组合面板的展开态、
+我的方案里两条方案的对照态、以及反馈块写入后的读回态。做法已经现成：种子 → 点开 → 等真实状态
+→ 量成具名行 → **进同一个 single-sink 计数**，再补一条"报了必须等于算了"的断言。
+
+### 5.45 目标组合：量"选中之后"那一态，这次没有新缺陷（`b4a807fb`）
+
+**为什么这一态才是要量的。** `#/target-profiles` 一直在两把尺的清单里，但量到的永远是**没选目标**
+的那一屏：`08_STITCH完整提示词.txt` 第 13 行给这一面的话是"先选软件／Agent，再看到该入口可用的
+模型／模式……显示官方支持与本项目未测试的区别"，而两栏真相与四档 `support_state` 药丸**是选了之后
+才画出来的**。没选的那一屏再干净，也不替选中那一态说话。
+
+**用什么当"到位"的判据。** 不用"有字了"，用界面自己写的状态位：`#tp-combination` 带
+`data-mode = unspecified | partial | plan-only | target`，只有真的解析到一份档案才成 `target`。
+探测器按 `tp-software → tp-agent → tp-entry → tp-model → tp-task-mode` 依次选第一个可选项
+（没有得选或已有值就跳过），然后等这个位。**等状态而不是等可见性**——一次诚实的空回答同样"有字"。
+
+**读数。** 对比度 52→**54** 面、`checked` 14,278→**14,764** 条文本 run，`belowAA=0`；
+几何 120→**124** 面，四个宽度的组合态都落 `state=read`，
+`docOverflowX=0 clipped=0 stray=0 tiny=0 occluded=0`，`notInView=0`——
+这条也顺手把 §5.44 那个观察的边界说清了：顶栏被推走是**长设计辅助屏**特有的，不是全站现象。
+**这一刀没有量出新缺陷**，所以它只留一条 browser 回执与覆盖面数字，不写"修好了什么"。
+`DL-KB-10` 回执 3→4 条（状态仍 DONE），`currentExecution.evidence` 283→**284**，
+直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变。
+
+**这套做法现在有四处成型**（条目详情、方案详情、目标组合、以及原有的全局搜索与证据投影）：
+种子／选择 → 等界面自己写的状态位 → 量成具名行 → 过同一个计数入口 → 测试要求"每宽度都在"且
+"报了＝算了"。剩下还没被尺子开进去的面：**我的方案的两案对照态**与**反馈块写入后的读回态**。
+
+### 5.46 两案对照真的被量到了：写第二份修订，才有那一态
+
+**这一态此前不存在于任何尺子里。** `DL-KB-12` 的验收写的是"对照页比的是两份**真实修订**"，
+而那块面板要满足两件事才会画出来：这份方案**得有第二个修订**，而且有人按下"对照"。
+两把尺以前既不写第二版也不按按钮，所以十二行并排的内容从未被量过——
+**此前它没被量过，也就谈不上通过**。
+
+**怎么让它存在。** 种子在原来那条创建之后，**走界面用的同一条路由**
+`POST …/assistance-plans/<id>/revisions`（带 `expected_revision: 1`，只改需求句）写第二版；
+然后打开 `#as-compare`、把两个下拉选到 r1／r2、点"对照"。等待判据是面板自己的两句话：
+`#as-compare-body` 里 ≥12 行，且 `#as-compare-status` 不再是"正在读回…"也不是失败——
+**状态位取自那行文字，不是硬写 `read`**（写死的话，将来一次读回失败也会被判成"已读回"）。
+
+**读数。** 对比度 54→**56** 面、文本 run 14,764→**15,270**，`belowAA=0`；
+几何 124→**128** 面，四个宽度的对照态都落 `state=read`，
+`clipped=0 stray=0 tiny=0 occluded=0 docOverflowX=0`——**1280 那一档也干净**，
+这是这块并排面板最值得问的一句话（两栏长中文最容易在窄一侧挤断）。
+`notInView=3` 又出现了，原因与 §5.44 同一条：设计辅助屏很长，滚到详情时顶栏被推上视口之外；
+这条继续按"实测现象＋留给 owner 的吸顶问题"记账，不动布局。
+
+**账。** `DL-KB-12` 加 1 条 browser 回执（2→3 条，仍 DONE），`evidence` 284→**285**。
+直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变。
+"点开／选中才量"这套做法到这里覆盖了 条目详情、方案详情、两案对照、目标组合、全局搜索、证据投影
+六处具名面板态；剩下的同类缺口只有一个：**反馈块写入后的读回态**（它也在方案详情里，
+需要一个 POST 才有内容）。
+
+### 5.47 反馈块写入之后才有那一态；顺手把一次"闸门自己崩了"记账
+
+**最后一块"点开才量"的面。** 闭环的最后一环是「用户自愿记录外部使用反馈」，
+而两把尺以前走到方案详情就停——反馈历史那行、`相同/未说明` 那几个格子、结果词的词表着色，
+**都要先写一条才有内容**。这一轮把它们量进去了。
+
+**写的是什么，怎么写得不越界。** 结果词从服务给的那一份里取第一个（页面不抄第二份词表），
+两条必填填闸门文案，**记录人写「审计脚手架（合成，不是真人签署）」**——
+这一格将来会出现在历史里，绝不能读起来像一次真人签署。等待判据仍是界面自己的话：
+`#as-fb-history` 出现行、`#as-fb-status` 不再说"正在读回"也不是失败；
+`state` 字段从这行文字**读出来**，不是硬写 `read`。
+
+**一次崩溃被记成账，而不是被"跑绿"盖过去。** 这批改动落地前，有一次整模块跑在 `w=1536` 死了：
+`locator.click: Timeout 30000ms exceeded`，等的是 `#as-list .as-plan-open`——
+那一屏的方案清单当时没有可点开的行，而闸门**没有把这件事说出来，直接把进程弄崩了**。
+现在这一步先数行、数不到就把 `#as-list-meta` 的原话引用进 `interactionMissing` 再往下走。
+**之后两次完整跑都干净，所以这不叫"修好了"**：原因没有确定，改的是"下一次它会自报"。
+这条按事实记在这里，不给它编一个原因。
+
+**读数。** 对比度 56→**58** 面、文本 run 15,270→**15,772**、`belowAA=0`；
+几何 128→**132** 面，四宽度反馈态全 `state=read`，`clipped/stray/tiny/occluded/docOverflowX=0`
+（`notInView=3` 与前两节同因）。六类"点开才有"的面至此都有具名行：
+条目详情、方案详情、两案对照、反馈读回、目标组合、全局搜索、证据投影。
+`DL-KB-16` 加 1 条 browser 回执（3→4 条，状态仍 `PARTIAL`——差的仍是具名真人，不是界面），
+`evidence` 285→**286**，直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变。
+
+### 5.48 把 STITCH 的六个值做成第三套色板：它第一次量就把自己量红了
+
+**这是 owner 那句"一比一复刻 STITCH 界面设计"的第一件实物。** `08_STITCH完整提示词.txt` 的视觉段
+逐字给了六个值：单一低饱和强调色 `#356B92`、正文 `#17212B`、次级 `#566472`、背景 `#F4F6F8`、
+内容 `#FFFFFF`、边界 `#D8DFE5`。按既有裁定，**新任务包配色不覆盖既有配色**，所以它落成第三套
+可选色板 `?palette=stitch`，默认那套一字节没动（`test_workbench_stitch_palette.py` 逐条钉住
+`--color-bg #060A14`／`--color-primary #316CFF`／`--color-text #F5F7FC` 还在默认 `:root` 里）。
+**只做浅色一侧**：包里没写暗色值，自造一份暗色就是把"复刻"变成"照着自己的口味猜"。
+
+**第一次量，闸门就把这套颜色判红了。** 珍珠白画布上，`warn/success/error` 药丸的填充是淡底，
+而我沿用深色主题的白墨——12px 粗体的状态词实测 **1.83:1 / 2.2:1**，
+`UNRESOLVED / VERIFIED / E0 / BLOCKED / NOT_ACCEPTED …` 这些词一个不落，
+`LOWCONTRAST` 共 **405** 行，闸门 exit 1。控制跑逐字留在
+`kb-06-stitch-pill-ink-control.log`，同 bundle、同种子、只改那两行角色。
+**修的是角色，不是阈值**：`--tag-ink` 取包自己声明的正文色，info 药丸保持中性淡底
+（这套基线要的是"单一"强调色，把 info 填成深色再压白字，是同一个错换了一处犯）。
+修完同一条尺 `CT_OK`：stitch/light 下 **58** 个面、**15772** 条文本 run，`belowAA=0 unparsable=0
+controlMisses=0`；几何 **132** 个面，`clipped/stray/tiny/occluded/docOverflowX` 全 0。
+
+**顺手挖出一个可达性缺陷，形状很眼熟。** `readThemeChoice()` 判断色板用的是硬写的
+`urlParam('palette') === 'ui2026' ? 'ui2026' : 'design-lab'`——
+于是第三套色板在菜单里、在 CSS 里、就是**进不去**：URL 与 `data-palette` 属性都被折回两套之一。
+现在统一问 `PALETTES` 这张表，并留一条测试专门判这个写法回潮。
+**"表里加了东西，读表的地方还在抄枚举"是同一类错的第 N 次出现**，这轮的账记在这条上。
+
+**账与边界。** `DL-KB-06` 加 1 条 `visual_review` 回执（12→13 条，状态仍 DONE），
+`evidence` 286→**287**，直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变。
+体积：bundle 609,452→**609,950** 字节、gzip 159,775→**160,052**（+277），
+`DL-KB-13` 的 150 KB 上限裁定仍在 owner 手上，本轮不靠删内容凑数。
+这是**量**，不是**批**：设计批准仍等 owner 真机测试，`DESIGN.md` 不进已批准状态，
+也没有拿 VLM 或像素差当签字。
+
+### 5.49 包里的数字规则进入尺子：119 处 11px、23 处半透明列表底、474 个超带半径。
+
+**这一段做的是什么。** 20261023 包写视觉规则用的是数字：`09_DESIGN.md` 给正文 14–16px、元数据至少
+12px、控件高度约 36–40px、圆角输入/按钮 6–10px、临时面板 12–16px；`08_STITCH完整提示词.txt` 给
+玻璃只给顶栏／导航／临时面板、长文字与列表实底。上一轮把六枚颜色做成可选主题之后，"一比一复刻"
+剩下的部分就是这几句话，而它们能不能成为断言，取决于能不能在**已渲染的文档**上量出来。静态 grep
+答不了：`.eyebrow` 在前段写 10px、在后段抬回 12px，只有算完层叠才知道人读到的是几号字。所以这一刀
+把尺子加进对比度闸门（`CT_SPEC` 段），跟 AA 用同一次渲染、同一批面。
+
+**第一次量出来的债**（修复前那次扫描是 width 1440 **单宽度**；下面"改完之后"那一段是 1440+1920
+**双宽度**，两处分母不同，不能互换）：小于 12px 的文本 run
+**119** 处，最小 **11px**，来源是 `--uif-font-micro` 与五处硬写 11px（导航分组标签、页脚、连接状态行、
+KPI 注脚、badge）；列表行与文字按钮压在半透明白上 **23** 处（`li.list-item` 的 74／100 与
+`button.ghost-btn` 的 62／100）；表单控件圆角超过 10px **474** 个。玻璃这条一测就过：全 UI 只有
+`aside#app-sidebar.sidebar blur(18px) + header.topbar blur(18px)` 两处 `backdrop-filter`，正好是包允许的对象，所以这条不改样式，改成把名单钉住。
+
+**改的是哪些，以及为什么这样切。** 12px 地板全局抬（不动颜色，也不动 `--accent-hover`、
+`--border-strong` 这类已实测的地板值）；实底与半径按 owner 裁定只做加法——写在
+`[data-palette="stitch"][data-scheme="light"]` 的作用域里，默认炭黑一字节不动。半径取带内上限 10px，
+适用对象是这句话的字面对象（input／select／textarea 与四类动作按钮，实测 **1002** 个，1440+1920
+两个宽度合计，单宽度那次是 501 个）；另外
+**1818** 个 painted 控件（同一双宽度扫描）是列表行、导航项与药丸，同一句把面板写成 12–16px，而包自己的 HTML 用
+`border-radius:20px` 的 `.status`，所以它们保持各自半径、只在直方图里登记。控件高度写的是「约 36–40px」，
+主动作实测 **41–47px**（比包里的目标更高），同样只登记不断言。这几处取舍写在测试的 docstring 里，
+不靠尺子的沉默。
+
+**改完之后的同一条尺**（stitch／light，widths 1440+1920）：
+
+```
+CT_SUMMARY checked=15772 belowAA=0 pseudoLayers=5250 coveredForeign=0 obscured=4 unparsable=0 collapsedOpened=6248 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0 glassOffAllowlist=0 formRadiusOver10=0 formControls=1002 formBelow36px=14（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）
+```
+
+几何尺量同一份 CSS：
+
+```
+OV_SUMMARY clipped=0 stray=0 tiny=0 interactions=28 [1440:evidence+projection-read=read,1440:capabilities+global-search=read,1440:knowledge+entry-detail=read,1440:assistant+plan-detail=read,1440:assistant+plan-compare=read,1440:assistant+plan-feedback=read,1440:target-profiles+combination=read,1280:evidence+projection-read=read,1280:capabilities+global-search=read,1280:knowledge+entry-detail=read,1280:assistant+plan-detail=read,1280:assistant+plan-compare=read,1280:assistant+plan-feedback=read,1280:target-profiles+combination=read,1536:evidence+projection-read=read,1536:capabilities+global-search=read,1536:knowledge+entry-detail=read,1536:assistant+plan-detail=read,1536:assistant+plan-compare=read,1536:assistant+plan-feedback=read,1536:target-profiles+combination=read,1920:evidence+projection-read=read,1920:capabilities+global-search=read,1920:knowledge+entry-detail=read,1920:assistant+plan-detail=read,1920:assistant+plan-compare=read,1920:assistant+plan-feedback=read,1920:target-profiles+combination=read] brand=4 navEdge=4 spec=0 theme=stitch/light
+```
+
+字号直方图（各面合并）：12px x 6476 13px x 5274 13.3px x 464 14px x 122 15px x 192 16px x 2882 17px x 56 19px x 22 21px x 16 24px x 6 26px x 2 32px x 52 35px x 38。
+
+**这条断言会咬。** 同一条 enforce 在默认配色下必须红：
+`test_the_pack_number_assertion_refuses_a_theme_it_was_not_applied_to` 跑 design-lab／dark，断言出现
+`SPEC-VIOLATION 长文字与列表实底`，并断言该配色 `below12=0`——后半句证明 12px 是全局抬的、不是只在
+珍珠白里改，前半句证明这条尺不是摆设。
+
+**账与边界。** `DL-KB-06` 加 1 条 `visual_review` 回执（13→14 条，状态仍 DONE），
+`evidence` 287→**288**，直方图 **`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变；本轮没改 TS，
+bundle 字节不动。下一刀的对象已经指名：包还要「单一低饱和强调色」与「避免大面积渐变」，而
+`.primary-btn` 现在是两停 brand 渐变，`--brand-gradient-*` 在珍珠白下仍是那对更深的蓝，不是平涂的
+#356B92；这条要连 AA 一起重测之后才好说，本轮不拿算出来的比值当通过。仍未裁的两件照旧记账不代做：
+`DL-KB-13` 的 150 KB 上限，与长屏上顶栏是否吸顶。
+
+### 5.50 包的「避免大面积渐变」变成一条面积读数：42 个面板级渐变面被压平。
+
+**这一条为什么能量。** 上一段把包的数字规则接进对比度尺之后，还剩一句没有对象：
+`08_STITCH完整提示词.txt` 的「避免大面积渐变」。「大面积」不写清就是空话，所以这条尺把对象定为
+**同一屏上看得见的渐变面积**：一个 painted 元素的 `background-image` 含渐变，且它与视口的可见交集
+超过 25% 就计入。用可见面积而不是布局面积，是因为长列表卡片的布局高度可以量到视口的 90 倍，
+照布局算会把一条 24px 高、95% 已经滚出屏幕的高光判成违规——那是把尺子指向自己造出来的错误。
+阈值取 25%：一个按钮、药丸或细进度条不可能到，一整块内容底或整屏装饰一定到。
+
+**第一次量的债**（stitch／light，width 1440，单宽度）：渐变 painted run **656** 条，其中可见面积过阈值
+**42** 处，来源是三类：`.panel` 的底（`linear-gradient(180deg, surface 82%, surface 94%)`，单卡实测可见
+占比 28–75%）、`.panel::before` 的整卡高光、`.grid-bg` 的 `inset:0` 装饰网格（opacity .22 加径向 mask，
+整屏 100%）。
+
+**改法是包自己的参照物给的**，不是我挑的：包里那份 `DESIGN-LAB_今日完整需求与可行性方案_20261023.html`
+的卡片写成 `section{background:#fff;border:1px solid var(--line)}`——平涂白卡压 `#f3f5f7` 画布，卡内没有
+渐变也没有高光层。于是在 `[data-palette="stitch"][data-scheme="light"]` 作用域里把 `.panel` 改平涂、
+`.panel::before` 的高光关掉、`.grid-bg` 不画；默认炭黑一字节不动（owner 裁定：新包的值做成可选主题，
+不覆盖既有配色）。这一处顺带把上一段那条「长文字与列表实底」做得更彻底——面板底与卡内高光本来就是
+正文底下的两层可变底。
+
+**改完的读数**（同一条尺，stitch／light）：
+
+```
+CT_SUMMARY checked=15772 belowAA=0 pseudoLayers=0 coveredForeign=0 obscured=4 unparsable=0 collapsedOpened=6248 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0 glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0 formControls=1002 formBelow36px=14（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）
+```
+
+渐变 painted run 在同一条单宽度扫描上 656→**489**，可见面积过阈值 42→**0**；那份单宽度复测的原文留在
+`design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-gradient-single-width-remeasure-20261025.log`，
+这样 656→489 的比较是同一分母上的比较。上面那条 `CT_SUMMARY/CT_SPEC_ENFORCED` 来自回执所绑的
+1440+1920 双宽度那次，分母不同（渐变 run 978、过阈值 0），两个数各记各的，不互换。AA 仍是 `belowAA=0`
+（这不是"应该没影响"的推测，是这条尺重跑之后的读数）。几何尺量同一份 CSS：
+
+```
+OV_SUMMARY clipped=0 stray=0 tiny=0 interactions=28 [1440:evidence+projection-read=read,1440:capabilities+global-search=read,1440:knowledge+entry-detail=read,1440:assistant+plan-detail=read,1440:assistant+plan-compare=read,1440:assistant+plan-feedback=read,1440:target-profiles+combination=read,1280:evidence+projection-read=read,1280:capabilities+global-search=read,1280:knowledge+entry-detail=read,1280:assistant+plan-detail=read,1280:assistant+plan-compare=read,1280:assistant+plan-feedback=read,1280:target-profiles+combination=read,1536:evidence+projection-read=read,1536:capabilities+global-search=read,1536:knowledge+entry-detail=read,1536:assistant+plan-detail=read,1536:assistant+plan-compare=read,1536:assistant+plan-feedback=read,1536:target-profiles+combination=read,1920:evidence+projection-read=read,1920:capabilities+global-search=read,1920:knowledge+entry-detail=read,1920:assistant+plan-detail=read,1920:assistant+plan-compare=read,1920:assistant+plan-feedback=read,1920:target-profiles+combination=read] brand=4 navEdge=4 spec=0 theme=stitch/light
+```
+
+**这条也会咬。** 默认炭黑配色在同一条 enforce 下现在报两条红：`长文字与列表实底` 与 `避免大面积渐变`。
+`test_the_pack_number_assertion_refuses_a_theme_it_was_not_applied_to` 断言这两句同时出现在红里，
+所以"珍珠白下为 0"不是靠把默认配色一起改掉换来的。
+
+**账与边界。** `DL-KB-06` 加第 15 条 `visual_review` 回执（带 `-r2` 的新文件，上一份一字不动），
+`evidence` 288→**289**。包里剩下的句子按能量化的顺序排队：「单一低饱和强调色」与「避免霓虹」——
+主按钮现在仍是两停 brand 渐变，珍珠白下不是平涂的 `#356B92`，这条必须连 AA 一起重测才好说；
+「字段密度」与「标题层级」要先定分母（按哪一列算密度）才好写成数。owner 未裁的两件继续记账不代做：
+`DL-KB-13` 的 150 KB 上限，与长屏上顶栏是否吸顶。
+
+### 5.51 包里那句「单一低饱和强调色」被拆成一支可数的第二色，然后归零。
+
+**这条量的是什么。** `08_STITCH完整提示词.txt` 写的是一句正面断言——「单一低饱和强调色 #356B92」，
+它的反面是可数的：界面里还有没有第二支蓝。答案是有，而且是成对的两停：`--brand-gradient-from #1D4FC4`
+与 `--brand-gradient-to #2A63D8`（style.css:23-25，2026-10-06 为了让白字过 AA 从 `#316CFF` 加深来的，
+那次实测记录就在同一行上方）。尺子读的是**已渲染的色**，不是样式表里的 token：把 painted 元素的
+`background-color`／`background-image`／`border-top-color` 里出现 `rgb(29,79,196)` 或 `rgb(42,99,216)`
+的算一处，所以 token 从哪条规则流过来都一样会被数到。
+
+**第一次量（stitch／light，width 1440）**：珍珠白下 **21 处** painted 面仍是那对深蓝——
+`button.primary-btn`（能力详情里的「使用此能力」）、`#research-submit`、`#preflight-run`、`#jury-submit`
+这些主动作。压平到包里那一支之后为 **0**。
+
+**这一刀自己带回来一个已经量掉的缺陷，尺子当场拦下。** 压平的第一版没排除禁用态：我的规则特异性
+压过了 `button:disabled`（style.css:303，2026-10-09 那次实测把禁用的「使用此能力」从 2.31:1 改成
+平涂次级底＋虚线边＋可读次级墨），于是 13px 的次级墨被压在强调色底上报出 **1.06:1**，产品级红 **29** 条。
+加上 `:not(:disabled)` 之后这三处只在可点状态下翻成强调色，禁用态继续用它自己的非文字线索。
+**「高特异性规则顺手覆盖掉一个为无障碍而写的状态」是这一轮的根因**，不是我改错了色值。
+
+**顺手修了尺子自己的账。** `belowAA` 以前按 `failCount - control.reported` 扣植入控制，
+而 `control.reported` 是「每个 id 至少被报过一次」的布尔计数（它证明解析器还认得那串颜色序列化，
+这个作用不变）；一个长页面会植入多枚同名折叠控制，多出来的行就被算成了产品债。现在按
+**实际控制行数**扣，产品债与测试台自己的道具第一次分开，`controlMisses=0` 仍然要求每枚控制都被报出。
+
+**改完的读数**（同一条尺，stitch／light，widths 1440+1920）：
+
+```
+CT_SUMMARY checked=15772 belowAA=0 pseudoLayers=0 coveredForeign=0 obscured=4 unparsable=0 collapsedOpened=6248 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+CT_SPEC_ENFORCED below12=0 translucentTextHosts=0 unparsableAlpha=0 glassOffAllowlist=0 formRadiusOver10=0 bigOver25pct=0 brandBluePaints=0 formControls=1002 formBelow36px=14（控件高度写的是「约36–40px」，实测读数只登记不断言：本 UI 的主动作在 41–47px，比包里的目标更高，不在 6–10px 那条带子一样的强制范围里）
+```
+
+几何尺量同一份 CSS：
+
+```
+OV_SUMMARY clipped=0 stray=0 tiny=0 interactions=28 [1440:evidence+projection-read=read,1440:capabilities+global-search=read,1440:knowledge+entry-detail=read,1440:assistant+plan-detail=read,1440:assistant+plan-compare=read,1440:assistant+plan-feedback=read,1440:target-profiles+combination=read,1280:evidence+projection-read=read,1280:capabilities+global-search=read,1280:knowledge+entry-detail=read,1280:assistant+plan-detail=read,1280:assistant+plan-compare=read,1280:assistant+plan-feedback=read,1280:target-profiles+combination=read,1536:evidence+projection-read=read,1536:capabilities+global-search=read,1536:knowledge+entry-detail=read,1536:assistant+plan-detail=read,1536:assistant+plan-compare=read,1536:assistant+plan-feedback=read,1536:target-profiles+combination=read,1920:evidence+projection-read=read,1920:capabilities+global-search=read,1920:knowledge+entry-detail=read,1920:assistant+plan-detail=read,1920:assistant+plan-compare=read,1920:assistant+plan-feedback=read,1920:target-profiles+combination=read] brand=4 navEdge=4 spec=0 theme=stitch/light
+```
+
+**这条同样会咬。** 默认炭黑在同一条 enforce 下现在报 **三条**红：`长文字与列表实底`、
+`避免大面积渐变`、`单一低饱和强调色`（21 处深蓝正是它的读数），
+`test_the_pack_number_assertion_refuses_a_theme_it_was_not_applied_to` 断言这三句同时出现——
+珍珠白的 0 不是把默认配色一起改掉换来的。
+
+**账与边界。** `DL-KB-06` 加第 16 条 `visual_review` 回执，`evidence` 289→**290**，直方图
+**`DONE 13`／`PARTIAL 2`／`NOT_STARTED 1`** 不变；TS 未改，bundle 字节不动。
+包里的句子还剩两句没落成数：「字段密度」与「标题层级」要先定分母；`苹果式克制玻璃感` 已经用玻璃名单钉住，
+`.app-nav button:hover` 这类 **hover 态**读同一对 brand token，但对比度尺目前只量静息态 painted 面，
+所以那处不改也不宣称已合规——要改得先决定 hover 的墨色跟不跟着翻，这是一条需要 owner 拍的设计裁定，
+不是我能替包猜的。owner 未裁的两件照旧记账：`DL-KB-13` 的 150 KB 上限，与长屏顶栏是否吸顶。
+
+### 5.52 单一强调色这一条被撤回为「已测量、未满足」，证据是 CI 自己的读数。
+
+**发生了什么。** 上一段的收口在本地（Windows + Chromium）是全绿的：珍珠白下压平三处 brand 渐变之后
+`brandBluePaints=0`、`belowAA=0`。同一提交推到 CI，`Workbench browser E2E (exact-SHA controlled-runtime,
+no-skip)` 在 Linux runner 上报 **2 条真红**，逐字是：
+
+```
+LOWCONTRAST 1920:target-profiles+combination 2.86:1 need>=4.5:1 16px opacity=1
+  fg=rgb(222, 224, 227) :: button#tp-validate.primary-btn :: 按新目标重新校验
+```
+
+**为什么不是把色值再猜一次。** 那枚按钮的墨色是 `rgb(222,224,227)`（浅灰白，不是 `#fff`）。按 2.86:1
+反推，它那一刻落到眼睛上的底比 `#356B92` 更亮（L≈0.23），而白字压那种底也只有约 3.79:1——也就是说
+"改成平涂单一强调色"并没有把这一处带到 AA 之上，而我手上只有一次远程读数、没有 Linux 复现环境。
+**在这种情况下继续调一个本地验证不了的色值，就是把绿灯建立在猜上**，所以处理是：三处渐变恢复原状，
+`brandBluePaints` 从 enforce 断言里移出、继续作为登记的债打印，测试里换成"这条仍在测量、且非零"的断言，
+并把平台差异写进注释（`:not(:disabled)` 那条修复保留——它抓回的是另一个已被量掉的缺陷，两平台一致）。
+
+**现在包里这句话的真实状态**：`单一低饱和强调色 #356B92` 在珍珠白下**未满足**，实测 21 处 brand 深蓝仍在
+（本地与 CI 同一次扫描的 `brandBluePaints` 读数一致）；要满足它需要一次配色裁定，两个方向都有代价——
+同一 hue 的深阶当填充（保持单一色相，但要重测白字），或者按钮文字改深色并放弃"强调色当填充"。
+这与 `品牌蓝压不住白字` 那条既有项目问题是同一类：不是新缺陷，是同一个约束在第三套配色上重新出现。
+
+**流程上的账（本轮真正的收获）。** 三条 CI 红里，两条来自我本地只跑了 76 项聚合门禁、没跑单元套件与
+权威链：`AUTHORITY_CHAIN=DRIFT`（账本加行后没重生成链）与 `--uif-font-micro` 抬到 12px 撞上 20261009 包
+登记的 11——后者用这条尺自带的 `DOCUMENTED_DEVIATIONS` 正式登记，不删检查、不偷偷对齐。**闸门包不等于
+测试套件**，这两条已经写进本轮收尾清单。
+
+**账与边界。** 本轮只改样式与尺子的断言，`evidence` 仍 **290**、直方图 **`DONE 13`／`PARTIAL 2`／
+`NOT_STARTED 1`** 不变；上一段那份 `kb-06-browser-single-accent-20261025` 回执**一字不动**（它记的是
+它那次测量的事实，撤回发生在它之后，不能被改写），本段就是它的取代说明。`.app-nav button:hover` 仍读同一对
+brand token 且不在尺子的静息态测量范围内，继续记为未测。owner 未裁的两件照旧：`DL-KB-13` 的 150 KB 上限，
+与长屏顶栏是否吸顶。
+
+### 5.53 「标题层级」与「标签位置」第一次有数：494 个带标签控件里 416 个标签在上方，层级不是单调阶梯。
+
+**这一刀只做两件事：把尺子架对，把读数留下来。** 包里两句还没有对象——`09_DESIGN.md` 的
+「标签放输入上方；错误紧邻字段」与「（标题）层级」。两者都是位置/阶梯类要求，可以在已渲染文档上量：
+标签用 `caption 文本节点的 Range 联合框` 与控件盒子比较（在上方且水平重叠），标题读每个 painted
+`h1..h6` 的 px/weight/line-height。
+
+**尺子先错过一次，而且是会让人误信的那种。** 界面普遍写成 `<label>{显示标题 + 控件}</label>`——
+label 是 wrapper。直接量 label 的盒子时，它的底边在控件之下，于是 247 个正确标注的字段里只有 7 个被判为
+「标签在上方」，看起来像巨大的不合规；改成只量标签自己的文本节点之后是 208（单宽度那次 208/247）。
+**"闸门报出一条大债"和"闸门的对象选错了"用同一个数字长得一模一样**，这条已写进注释。
+
+**读数（stitch/light，widths 1440+1920 同一次扫描）**：带标签控件 **494**，标签在上方
+**416**，其余 **78** 处逐条可点名，全部落在复选框／单选行与一个紧凑选择器上：
+  `LABEL-SIDEBY 1440:tools label.project-picker vs select#创作工具-project.project-select dy=-8px`
+  `LABEL-SIDEBY 1440:preflight label vs input#jury-approve dy=-17px`
+  `LABEL-SIDEBY 1440:preflight label vs input#jury-reject dy=-17px`
+  `LABEL-SIDEBY 1440:preflight label vs input#rights-decision-APPROVED dy=-17px`
+包那句话针对的是「输入」，而勾选框把标签放在框旁是常规写法，所以本轮**只登记不断言**，
+要不要把勾选类也纳入是同一次裁定里的一条。
+
+**「错误紧邻字段」这条没测到，不能记成通过**：`errorNodes=0`——静息态与这轮打开的所有面板里
+没有一条已渲染的错误／提示实例，因为错误只在真实失败时出现。要量它必须先让闸门制造一次真失败态
+（保存失败、目标不兼容、模型不可用三种里有两种是可造的），这是下一刀的前置，不是本轮的绿灯。
+
+**标题层级是量出来的未满足**：同一次扫描读到 10 个不同的
+`(级别, 字号, 字重)` 组合 —— `h1 26px/700/lh0 | h2 21px/700/lh0 | h1 17px/700/lh19.6 | h2 32px/700/lh0 | h3 15px/700/lh0 | h3 13px/700/lh0 | h2 24px/700/lh0 | h3 16px/700/lh0 | h4 16px/700/lh0 | h4 14px/700/lh0`。其中 `h1` 同时是 26px 与 17px，`h3` 有 13/15/16px 而 `h4` 是
+14/16px：**第三级比第四级更小**，层级不是单调阶梯。包里没写具体 px，参照文档给的是 42/27/19，
+所以收敛成一套阶梯需要一次设计裁定（照参照文档、还是把现有三套界面族各自归一），本轮不替包猜；
+另外打印里 `lh0` 表示计算值是 `normal`（我的格式化把 normal 转成 0，读数没错但表达有歧义，下一轮改）。
+
+**本轮加的两条断言是覆盖断言，不是合格断言**：`labelled>=200`、`headingLadder>=5`。
+它们防的是"选择器坏掉 → 0 违规 → 被读成通过"这一类假绿，而不是宣称界面已合规。
+账：`evidence` 仍 290，直方图不变，本轮只改尺子与测试，未动样式；卷宗与本节的数字全部取自
+`workbench-contrast-gate-stitch-light.log` 的同一次扫描。
+
+### 5.54 一条只在远端出现的 AA：同一个控件被点名三次，我的三次处理各改变一次读数。
+
+**事实，按时间排。** ① `1.37:1`（stitch/light，1920，`fg=rgb(180,190,199)`）与 `3.59:1`（ui2026/light）
+→ 我判断是 `.seg button:disabled{opacity:.45}` 把字与控件一起压淡，撤掉 opacity（`ffb26abc`）。
+② 同一条元素变成 `2.11:1`（stitch，`fg=rgb(203,210,216)`）→ 我把禁用态墨色从 `--muted` 改取 `--text`（`8e17aa85`）。
+③ 再变成 `1.06:1`（stitch，`fg=rgb(157,161,165)`）与 `2.6:1`（ui2026，`fg=rgb(209,213,217)`）→ 我用 id 级声明
+分别钉住两种状态的底与字（`b5b59927`）。**每一次我改什么，远端读数就跟着变**——所以这条不是幻觉、也不是
+阈值问题：那个 CTA 的字色确实被某条我还没定位到的规则接管，而它的底随状态在 brand 渐变与平涂次级底之间切换。
+
+**为什么本地看不见。** 本地这条尺跑不出该态：`target-profiles+combination` 面板在本地扫描里停在"已校验"，
+远端停在"目标已切换、待重校验"（`validate.textContent` 的两分支里后一条），也就是这个 pairing 只在远端那条
+数据路径上出现。**我没有把它压绿**：没有改阈值、没有放宽断言、没有跳过该面；相反，我把这一轮新加的
+`ROWCOUNT`/产品行独立返回用上了，所以现在每条红都点名到元素与比值。
+
+**这条债现在的真实状态**：远端仍红，`Workbench browser E2E` 一个作业失败（Python 单元套件与权威链两条绿）。
+下一刀的正确顺序已经清楚，不需要再猜色：① 让这条尺在本地也进入"待重校验"态（选目标→改目标→等 stale 文案出现，
+再量），② 在真实 DOM 上打印该按钮的 `getComputedStyle().color` 与胜出规则，③ 按胜出者改那一条规则，
+而不是再在外面叠一层声明。**在未定位之前，珍珠白与 20261009 两套主题的 AA 声明只对已扫到的状态成立**，
+这一句必须与它们各自的回执一起读。
+
+**账。** `evidence` 仍 290，直方图不变；本节只记录事实与下一步，不新增通过声明。owner 未裁项不变：
+150 KB 上限、顶栏吸顶、标题阶梯、勾选框标签是否纳入「标签在上方」。
+
+### 5.55 那条只在远端出现的 AA 定位了：闸门量到的是补间的中间帧，不是任何规则里写过的颜色。
+
+**先更正前提。** 交接写"分支尖端红"，我读 CI 实况时尖端已经绿了：PR run `40170639181`（head_sha
+`13df2a9e`）`Workbench browser E2E` 通过，`BROWSER_E2E ran=15 skipped=0 failed=0`，其中
+`test_workbench_contrast_gate ran=5 failed=0`；红的是更早的 `40168878523`（head_sha `b5b59927`，
+作业 `121095476953`）。**所以本轮不是把一条红拧成绿**：同一条代码路径红过两次、绿过一次，
+差别只在采样时刻落不落在那 200ms 里。绿的一次没有修掉任何东西，下一轮照样可能再红——本轮删的是那 200ms。
+
+**根因是量出来的。** 四类动作按钮的共享规则写 `transition:.2s ease`，简写不带属性表就等于
+`transition-property:all`，于是启用↔禁用切换时 `color` 与 `background-color` 一起补间。rAF 逐帧
+采样器（1920 / stitch-light，一帧一行）读到墨色
+`rgb(23,33,43) → 118,124,130 → 187,190,193 → 226,227,228 → 251,251,252 → 255,255,255`，
+同一时刻背景色从实白褪到 `rgba(255,255,255,0)` 压在 brand 渐变上；把 `rgb(187,190,193)` 与
+`rgba(255,255,255,.294)` 覆盖的 `rgb(29,79,196)` 按闸门自己的合成算法算出来是 **1.97:1**。
+
+**两次远端读数与插值逐通道吻合。** 按通道反解线性插值参数：stitch/light 的 `rgb(157,161,165)` 对
+`#fff ↔ #17212b` 解出 `t = 0.422 / 0.423 / 0.425`，ui2026/light 的 `rgb(209,213,217)` 对
+`#fff ↔ #152b3d` 解出 `t = 0.197 / 0.198 / 0.196`（残差是 8-bit 取整）。同时枚举
+`document.styleSheets`，匹配该元素的 `color` 声明只有三条，全部写白字。**那条红量的不是任何规则
+里的颜色。** §5.54 问"为什么我改什么远端读数就跟着变"也一并有了答案：那三次改的（撤 opacity、
+`--muted`→`--text`、id 级钉色）都是这条补间的端点，端点一动中间帧跟着动。
+
+**改的只有"补间哪些属性"。** `transition` 限定为 `transform, border-color, box-shadow`，时长与缓动
+一字节未动，两个端点值仍是 §5.54 之后那一套。没改阈值、没放宽断言、没跳过该面、没关 enforce、
+没猜新色值。motion 尺抓不到这一类：`color`／`background` 不是布局属性，它只打印
+`transitionAllCount` 并拒绝定罪——所以这是对比度尺的责任，也由它先咬到。
+
+**第二件事：本应走到该态的循环是空转的。** 旧 `openStaleValidationState` 要求每个下拉至少三个
+`<option>`；组合解析成功之后 `tp-agent` 只剩空选项，`tp-entry`／`tp-model`／`tp-task-mode` 各只剩
+一个可用值，五个轴一条都不满足，所以"换目标"从未发生，本地 `STALEROW` 才一直打印洁净文案——
+交接里"本地不可复现"是真的，但不是状态不可达，是闸门根本没去换。判据现在改成页面自己写的
+「唯一对应档案 <key>」：实测 `flux2--api--image-generation → elevenlabs--web-app--music` 且
+`dataset.mode` 仍为 `target`，脏文案「按新目标重新校验」升级为必须出现的断言，走不到就进
+`controlBad` 让闸门 exit 1（进不去是红，不是跳过）。
+
+**修复后的实测。** 三套配色双宽度：default `checked=8129`、stitch/light `16258`、ui2026/light `16258`，
+三者 `belowAA=0 controlMisses=0 unparsable=0`；三处 `STALEROW` 一致
+`color=rgb(255,255,255)`、`transition-property=transform, border-color, box-shadow`，
+`STALEOWNER` 三条规则全白。还原成不带属性表的简写做反证：静态守卫点名 `all` 变红，同一态下采样器
+重新量到 **7 个**不同墨色，修复后只剩 **1 个**——两枚日志逐字节存在
+`design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-action-button-ink-ramp-{before,after}-fix-20261025.log`。
+`python -m unittest test_workbench_contrast_gate` 6 条 `261.082s OK`。
+
+**包里仍未满足的五句，只登记不交付。**
+① 「单一低饱和强调色 #356B92」：`brandBluePaints` 本轮 stitch/light 双宽度 **44 处**（§5.52 的 21 处
+是单宽度读数，两个数字不可互换），仍等 owner 二选一。
+② 标题层级：仍是 10 个 `(级别,字号,字重)` 组合，`h1` 同时 26px 与 17px、`h3` 可小于 `h4`，收敛成一套
+阶梯要一次裁定（包参照文档 42/27/19px），本轮不替包编 px。
+③ 「错误紧邻字段」：`errorNodes=0` 是因为闸门还没制造任何一次真实失败态——这一句既不能记为满足，
+也不能记为"已测量"。下一刀的前置是先造一次真失败（保存失败／目标不兼容／模型不可用）。
+④ 勾选框／单选行的标签位置：带标签控件从 §5.53 的 494 增至 **532**、在上方从 416 增至 **434**、
+旁置从 78 增至 **98**。增量已核到行，不是猜测：新量的 `combination-after-change` 在 1440 与 1920 上
+各读到 `labelled=19 / labelAbove=9 / 旁置=10`，两处合计 +38 / +18 / +20。另注：打印的
+`LABEL-SIDEBY` 样例上限是 10 条，98 这个数来自 `labelled − labelAbove`，不是数样例。
+⑤ hover 态仍不在静息尺的测量对象内（`.app-nav button:hover` 读同一对 brand token），未测即不称合规。
+
+**账。** `evidence` 290 → **291**（新行 `kb-06-browser-remote-only-aa-root-cause-20261025`，
+`subject_sha=7f7a2946`，回执 18216 字节、`sha256=ba200ec0…`，append 前已证明 JSON 往返逐字节相同）；
+`currentExecution` 50 项直方图不变（34 `FROZEN_DEFERRED` / 13 `DONE` / 2 `PARTIAL` / 1 `NOT_STARTED`），
+`DL-KB-06` 状态未动，旧 34 项一项未解冻。owner 未裁项不变：150 KB 上限、顶栏吸顶、标题阶梯、
+勾选框标签是否纳入「标签在上方」、hover 墨色跟不跟着翻。
+
+### 5.56 「吸收未落地」按职责判定：落地六件、删 25 个死 token、把普查闸的人口补全
+
+**判据被 owner 纠正过一次，纠正本身改变了结论。** 我起初用「有没有引用」判有用没用，被指出
+**「有用没用的判定不是有没有引用，是对项目还有没有用」**。改成按职责判：去掉它，项目能证明的
+或能对外的承诺会不会变少。变少就是有用，哪怕零引用；既不证明也不承诺、且已有别的主人，才谈得上删。
+这条纠正不是修辞——按旧判据我会删掉 `model_radar.resolve()`，而它是 AGENTS.md 那句「零 checksum、
+许可冲突、模型不存在或硬件不足时 runtime resolver 必须 fail closed」的唯一承担者。
+
+**落地六件，每件都有改前/改后实测。**
+① `GET /api/projects/<32hex>` 未知 id 改前实测 `http.client.RemoteDisconnected`——连接无响应被关闭，
+在 `fetch` 眼里与"服务挂了"同形。原 handler 只有 `if project is not None` 一条分支。现在 404
+`PROJECT_NOT_FOUND`，与 7 个兄弟模块同词；两种 404 分开钉（畸形 id 由路由模式拒、合法但不存在由
+handler 拒），因为把它们混成一条期望会让"对一切返回 404 的 handler"也过关。
+② `drain_body` 注释承诺"任何失败在这里都被忽略"，代码里没有 `try`；读超时在 `except` 处理器内再次
+抛出，逃出到 `handle_one_request`——恰好重现这个 helper 存在的目的就是要消除的 10053。
+③ `MAX_QUERY = 200` 声明在模块作用域、没有任何代码读它，所以界只存在于源码文本里：调用方可以把
+一份文档当查询粘进来，而本方法会为它在每个字段的每个已存修订上做 contains 扫描。现真拒绝
+`KNOWLEDGE_QUERY_TOO_LONG`，且恰好 200 字符合法——界不是墙。
+④ `KNOWLEDGE_OFFSET_INVALID` 与 `KNOWLEDGE_LIMIT_INVALID` 被这个路由自己的合同行承诺，**全仓零测试**。
+承诺了却没被测的拒绝码不是合同。三条一起钉住，各按触发值类（负数／非整／bool／超上限）。
+⑤ `test_workbench_preflight_handoff_e2e` 存在、本地 2.039s 通过，却既不在 no-skip 注册表也不被任何
+workflow 步骤点名：**CI 从没执行过这把浏览器尺**，而该注册表的注释写的正是"未登记的浏览器套件会
+永远静默 skip 而没有 finding"。登记前先把它自带的 `_browser()`——只 glob `$HOME/AppData/Local/ms-playwright`
+的 `chrome-win*/chrome.exe`，Linux 上返回 None——换成其余七把尺共用的跨平台发现函数；登记之所以安全，
+是因为注册表自己会 `setdefault('E2E_NODE_MODULES', apps/workbench)`。复跑 `BROWSER_E2E ran=17 skipped=0 failed=0`。
+⑥ `test:unit` 直跑已提交的 `build/main.js`，所以改完 `shell.ts` 在本地跑测试，绿的是改前字节。现在
+脚本内先 `vite build`（pnpm 在本仓不跑 pre/post 钩子，写成 `pretest:unit` 等于没写）。重建后 bundle
+**零漂移**，node 三套测试全过。
+⑦ 另两处"说了没做"：`verify_fresh_clone.py` 刚问完 `shutil.which('uv')` 并把结果印在同一行，下一句
+就无条件写 `uv is absent`；聚合链用 `sys.executable` 派生子进程，所以同一提交在 `.venv` 下 `failed=0`、
+在裸解释器下 `failed=29`——29 条凭空捏造的产品回归。后者现在拒绝并点名解释器与不可导入的声明依赖，
+需要哪些依赖仍从 `pyproject.toml` 读，不在这里重复一份。
+
+**删与迁：先补机制，再删东西。** 清扫出 **25 个**无任何 `var()` 读、也无产品源码／闸门／测试／schema／
+包内按名断言的自定义属性（`--blur --bp-{desktop,tablet,mobile} --density-* --error --info --font-*
+--motion-emphasis --radius-{sm,xl} --space-* --color-info`），27 行声明、593 字节，
+`style.css` 121,964 → 121,371。它们残余的出现处只有两处：它来源的 B07 参考语料，和一份**记录它们
+没被用**的债清单——把这两类当消费者，是我只删到 14 个的原因。
+真正防复发的是把普查闸的**人口**补全：既有 CONSUMPTION 检查只看包点名的 `--uif-*` 字段，所以整族死
+声明一直在它视野外——**覆盖率闸永远只证明它自己携带的那张表**。新规则枚举全部声明属性，例外交给已有
+的 `SPEC_PROVENANCE` 判定，不手抄 allowlist（那等于给同一事实配第二个主人）。
+无界列表路由同样从"打印一个数"升级成"钉一张登记面"：18 条带列表的 GET 路由里 **9 条无界**，逐条写
+理由与代价；新增第十条即红，**绑好了却不摘牌也即红**（静默修好的洞，下一个人会原样继承）。
+
+**分页不是附件那条的修法，这条要写清楚以免被当成偷懒。** 实测 200 张 47,160 B 附件时服务端 199.59 ms，
+其中 **59.0% 是逐行 `checked_path`+`stat`、30.5% 是两次图像解码、只有 2.4% 是哈希**。成本来自每行重校验，
+不来自行数；而 `width/height/media_type` 没有落库，真正的修法是在写入时物化它们——那是带迁移、precheck
+与合同行的 state-schema 改动。用切片把列表截断看着像进步，毫秒数一毫秒不会少，还会让"附件多于 N 张"
+在界面上不可见。
+
+**保留但零引用、删了就丢承诺的，点名记账。** `model_radar.resolve()/radar_report()`（fail-closed 承诺的
+承担者；零生产消费者只说明本机没有加载模型的 runtime，而模型部署是冻结项）；`workflow_provider` /
+`remote_provider` / `audio_provider` / `comfy_*` / `packages/capabilities/reconstruction/*`（对外版本化公共
+合同面，且被 verify 链守着）；`vendor/` 39 件 manifest 与 `docs/history/**`（AGENTS.md 定为惰性资料，
+职责是出处与对标基线）；8 个未被 UI 读的 `--uif-*`（由 `SPEC_PROVENANCE` 承担包值出处职责）。
+**该并但本轮没并**：五份手写 CSS 花括号扫描器——功能重复，但每份的豁免清单与断言面不同，合并必须逐个
+证明输出集不丢，不是改名就能并。
+
+**我自己的仪器错误四条，如实入账。** ① 清扫第一遍把文档/证据里的名字当消费者，只删 14 个；
+② 普查闸初版复用 `declarations()`（正则只匹配 `--uif-*`），对任何其它名字恒返回空 = **恒真即假断言**，
+植一个 `--space-dead-99` 当场暴露；③ 404 测试连错两次 id 形状（64 位十六进制、`p-` 前缀都不匹配
+`([0-9a-f]{32})`），差点把"兄弟模块用词不一致"当成结论；④ 登记预检套件时锚点行没重出，等于把
+`test_workbench_motion_gate` 从元组里删掉，靠 `git diff` 只显示「+1 条、0 删除」才发现，并用 AST 复核
+元组=8 项、前 7 项俱在。另外：删掉 `--info` 会让它作为唯一读者的身份消失，`--color-info` 随之成孤儿，
+所以清扫必须**迭代到不动点**（第 2、3 遍各 0 删除）；而我为"理由必须实质"写的 40 字规则，逮到了我自己
+写的填充条目 `_list_research`（31 字）——规则能咬到作者，说明它不是装饰。
+
+**账。** `evidence` 291 → **292**（新行 `kb-13-loop-closure-and-css-token-register-20261025`，
+`subject_sha=b8ac53dc`，回执 8,593 字节、`sha256=d7f863ac…`，append 前已证明 JSON 往返逐字节相同）；
+`currentExecution` 50 项直方图不变（34 `FROZEN_DEFERRED` / 13 `DONE` / 2 `PARTIAL` / 1 `NOT_STARTED`）。
+**`DL-KB-13` 仍 `PARTIAL`，且两处都不是工程缺口**：150 KB 上限要 owner 裁定，无指导真人任务要真人。
+复测：聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`（清扫后与登记后各一次）；CSS 清扫后对比度复跑
+`checked=16258 belowAA=0 controlMisses=0 unparsable=0`；单元 44+110+21+19+21+9 OK，
+`TEST_SELF_SUFFICIENCY=OK modules=259 violations=0`；`KNOWLEDGE_SEARCH_P95_MS=34.7 budget=300`。
+owner 未裁项不变：150 KB 上限、顶栏吸顶、标题阶梯、勾选框标签、hover 墨色，新增一件：
+`_list_prompt_results` 是否套用仓内已有的 `PAGE_LIMIT=100` 信封（它是最接近能直接落地的一条）。
+
+### 5.57 CI 抓到我自己造的一次红：一把尺的依赖面不能大于它所在作业的装机面
+
+**红在远端，本地全绿。** 推送 `1d86e877` 后 `Workbench strict-TS product gate` 失败，步骤是
+`python3 scripts/measure_workbench_weight.py --check`，逐字读数
+`MEASURE_SOURCE_MOVED cannot import the route table: ModuleNotFoundError: No module named 'PIL'`
+（run `40187301910`，job `121150712090`，head `1d86e877`）。**造成者是我本轮加的 DL-KB-13 读数**：它为了拿
+`ROUTES` 去 `from design_lab.http_service import ROUTES`，而这条 import 链到达 `image_assets`、需要 Pillow——
+strict-TS 是 **node 作业，不装任何 Python 第三方包**（workflow 里那个 job 只有 setup-node/pnpm 步骤）。
+本机 `.venv` 有 Pillow，所以同一条命令本地绿、远端红。这与今天早些时候那条"只在远端出现的 AA"是同一类
+错误：**测量工具的依赖面大于它所在环境的装机面**，于是它的"绿"只代表"我这台机器"。
+
+**修法不是给 CI 加安装，也不是动 workflow。** 本脚本早就带着一套 AST 静态读取机器（`parse` /
+`module_tables`，用来解常量与页大小），拿路由表本来就该走它——改回复用之后，`--check` 回到纯标准库。
+同时拆开一个字段干两件事的错误通道：`readerError` 只代表"读不到路由表"（致命）；新增 `callSiteError`
+代表"规范匹配器不可用"（它确实需要产品依赖），**如实报缺失、绝不当成 0**。此前 `frontend_calls=0`
+会被这把尺自己当成致命错，那等于把"这列没测"报成"路由表形状变了"——一次假红与一次假绿之间只隔着
+一个字段名。
+
+**兼容性靠契约而不是猜。** 解析出的路由对象要交给规范匹配器 `verify_workbench_route_calls.route_matches`，
+它会调 `route.accepts(match)`，所以轻量对象必须实现它。带 `when=` 的路由无法从源码文本求值，答 `True`
+就是静默过匹配——现抛 `ValueError`，而调用方本来就 `except ValueError` 记成 "dynamic call shape"。
+实测全表只有一条路由带 `when=`（`_task_detail_or_events`），且它不是列表路由。
+
+**三把防复发的闸。** ① 结构闸：函数体之外不得模块级 import 任何非标准库模块——这把"我本地能跑"和
+"这个作业能跑"绑成同一件事；② 客户端列若因缺依赖不可用，测试必须失败并点名，不许把 0 读成"页面没要东西"；
+③ `when=` 路由必须拒绝求值。
+
+**用 CI 的真实条件复验，而不是用我自己的 venv 复验。** 无 Pillow 的裸解释器：
+`LISTROWS list_routes=18 bounded=9 without_limit=9 frontend_call_sites_scanned=0`、NOTE 点名缺失的匹配器、
+`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=160052`、**exit 0**；venv 下同样三个核心数，另加
+`frontend_call_sites_scanned=142`。两套读数核心一致，缺的那列被明确标注为"缺失而非零"。
+`tests.test_workbench_weight` 22 条 OK；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+
+**账。** 代码提交 `31862800`；`evidence` 292 → **293**（新行 `kb-13-gate-toolchain-coupling-20261025`，
+轴 `browser`，`subject_sha=31862800`，回执 2,757 字节、`sha256=f2a5f254…`；append 前再次证明 JSON 往返
+逐字节相同，哈希从写入字节读回）。`currentExecution` 50 项直方图不变
+（34 `FROZEN_DEFERRED` / 13 `DONE` / 2 `PARTIAL` / 1 `NOT_STARTED`），`DL-KB-13` 仍 PARTIAL。
+**远端是否转绿以推送后 exact-SHA 的作业为准，不以本地 exit 0 代替。**
+
+### 5.58 第二次远端红：账本绑定纪律真抓到了一次"记录变老"，而它该被抓
+
+**红在哪。** 再次推送 `d8962779` 后 `Python gate` 分片 1/3 报一条 FAIL：
+`test_evidence_artifact_presence...test_tracked_artefacts_of_the_real_ledger_all_read_back`，
+`outcomes={'FAIL': 1, 'PASS': 1018, 'SKIP': 14}`。同一矩阵里
+**`Workbench browser E2E` 绿**——说明上一轮两个修复（`--check` 回到纯标准库、预检浏览器套件登记）在 Linux 上成立。
+
+**为什么这不是产品回归。** 本轮给 `test_design_layer_http.py` 加了 404 测试，而**冻结记录
+`r5-workbench-http-native-ui-reobserved-20261006` 把那个模块当自己的工件哈希**——那条 2026-10-06 的观察
+现在描述的是比它命名文件更旧的字节。这把闸钉的是"漂移清单双向精确"，所以新增一对必须被当成 finding。
+
+**处置顺序决定诚实与否。** 先把活清单从闸自身重算、与钉住的集合**双向 diff**，再动文件：
+钉 30 对 / 64，活 31 对 / 65，唯一差异就是这一对；**无计数位移、无消失、broken=0**。
+然后按本文件既有惯例把这一对带日期理由加进期望集合，总数 pin 64→65 写进变更日志
+（沿用 59→60、60→64 的记法），**旧记录一字不改**——它仍是它当时的观察。
+不诚实的做法是两种：把那条从账本里删掉，或取消精确性检查。
+
+**一个自指情形要点明。** 编辑这个测试模块本身，本应让它自己绑定的记录也变老；实测改完后
+钉 65 == 活 65，`new/count_moves/vanished` 全空——因为绑定 `test_evidence_artifact_presence.py`
+的记录**早已在清单里**（2026-10-19 那条注释讲的正是这种"闸门模块让自己的绑定记录变老"的情形）。
+这不是巧合，是那次把自老化写进名单换来的可预测性。
+
+**账。** 代码 `9d4a17ca`；`evidence` 293 → **294**（`kb-13-drift-inventory-repin-20261025`，轴 `unit`，
+`subject_sha=9d4a17ca`，回执 2,577 字节、`sha256=8bc5e031…`）；直方图不变
+（34/13/2/1），`DL-KB-13` 仍 PARTIAL。远端仍以再次推送后的 exact-SHA 作业为准。
+
+### 5.59 品牌件流水线有、消费者没有：把 owner 的矢量标接上界面，并顺手结清一笔欠账
+
+**owner 的要求是一句话：把项目 LOGO 换上去（名称 DESIGN），来源 `D:/All projects/矢量LOGO`。**
+查下来的真实缺口不是"图不对"，而是**这条流水线没有消费者**：`design-lab-mark.png` 只被它自己的生成脚本
+和二进制清单引用；AppShell 导航头是纯文字 `DESIGN-LAB`；CSS 里给了 48px 的 `.brand-mark`，但它挂在
+`shell.ts:9606` 那段**被注释掉的旧版侧栏**里，实测 `rect` 是 0×0；唯一真在画的槽位是旧版页头那枚 52px
+`.mark`。所以"换 logo"必须同时做四件事：素材入库、导航槽位挂上、浅色主题翻墨色、**以及把守着位图
+管线的闸门一起改**——最后这件最容易漏，漏了就留下一把永远校验废弃资产的死闸。
+
+**切带不能手解路径，两次失败都在这。** ① 正则抓 `d="..."` 把 17 条抓成 **18** 条（多一条空路径），
+于是"单标"只剩那条空的；② 按坐标奇偶配对 x/y 在 Illustrator 混合绝对/相对命令、每条命令参数个数不同
+的前提下毫无意义，第一版因此产出 `viewBox` 4×4 的**不可见图形**——而数字看起来完全正常。改成让
+Chromium 解析源文件、逐条读 `getBBox()`：17 条非退化路径，在 **20.97px** 的垂直间隙处切开 → 单标 2 条
+（D + 星芒，框 `76.41,26.96 → 232.63,178.93`，160.22×155.97）、文字带 15 条。第三个错是 `viewBox`
+平移符号写反（把 `(left,top)` 移到原点的 min-x 应是 `left-pad`，我写成 `-left+pad`，内容被推到视口外）
+——**同样是靠渲染暴露的，不是靠读数字**。
+
+**接法与两处如实的未验证。** 导航头在文字左侧加 22px 单标，文字仍是可访问名、图形 `aria-hidden`。
+`--brand-mark` 改成同一矢量的两枚编码（`paper #EEF2F5` 给炭黑默认，`ink #17212B` 给 `ui2026/light`
+与 `stitch/light`），因为 `background-image` 不吃 `currentColor`，而 CSP 是 `img-src data:` 且
+`workbench.py` 只服务固定三条路径——开资源路由要同时放宽两者，那是 owner 的安全决定，不是便利。
+未验证的两件写清楚：应用自身的**主题控制器会在启动后重写 `data-palette`**（探针注入的值被改回
+`design-lab`），且落地视图上**没找到可点的主题控件**（`clicked=null`）。所以"浅色翻转渲染正确"已证
+（强制属性后 nav 底 `rgb(255,255,255)`、字色 `rgb(53,107,146)`、深墨标压白底），
+"**用户从当前视图一步切到珍珠白**"未证——那是 STITCH 施工单里主题入口的活，不由本条冒充完成。
+
+**闸门跟着素材走，并且它先冤枉了一次好人。** `render_brand_asset.py --check` 改为校验矢量真值
+（digest、两枚 fill、路径条数、默认变体、两个浅色是否都 opt-in）。它第一次运行报
+`only 1 light palette(s) opt into the ink glyph`——读回 CSS 才发现是**检查器多减了 1**，样式表是对的。
+修检查器，不修被它冤枉的 CSS。
+
+**又一次"我改的东西让别的记录变旧"。** `verify_projection_freshness` 抓到：新规则带来 4 个字面 px
+（`22/22/8/-4`），于是 `DESIGN.md` §4 那句债读数 517 → **521** 必须跟着改；字面色值那一栏工具明写
+「an agent must not fill this field」，未动。
+
+**结清一笔欠账。** 上一轮我说 `bdaf4883` 的全绿先不单独写档、并入这一轮，这就是结清：
+run `40191207017`（head `bdaf4883`）`conclusion=success`，逐字
+`BROWSER_E2E ran=17 skipped=0 failed=0`（含 `test_workbench_contrast_gate ran=6` 与
+`test_workbench_preflight_handoff_e2e ran=1`）、三分片 `exit=0` 且 `FAIL` 为 0、
+`PYTHON_TESTS_UNION=OK expected=3352 distinct=3352 ran=3352 duplicates=0 missing=0 unexpected=0`；
+`Workbench strict-TS product gate` 与 `Python gate` 均 success——前两轮那两条红（PIL 依赖、漂移清单）
+都确认消失。
+
+**账。** 代码 `e297f967`；`evidence` 294 → **295**（`kb-06-brand-mark-on-interface-20261025`，
+轴 `implementation`，`subject_sha=e297f967`，回执 6,001 字节、`sha256=86f58f50…`）；
+`LOGO.ai` 只按哈希登记不入库（仓库已过体积警戒线，且从 `.ai` 导出需驱动 Illustrator＝冻结项）；
+`DESIGN.md` 债句更新；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；node 三套与 42 条 CSS 相关
+python 全过；`LICENSE_COVERAGE=OK`、`BRAND_ASSET=OK paths=2 encodings=2 light_flips=2`。
+`currentExecution` 直方图不变（34/13/2/1）。
+
+### 5.60 包内那句动效第一次成了尺子：全站 20 条补间量出 16 条越界，动效层则默认关着。
+
+**这一段做两件事，方向相反。** 一是**收**：把 `apps/workbench/style.css` 里每一条补间都放进包自己写的那条带；
+二是**放**：按 owner 的新裁定叠一层增强动效，但它默认不生效。新裁定逐字是：
+「界面去找动效交互 STITCH 更多是静态页面 一比一复刻完成后 找牛逼的组件库 加入更多动画动效粒子等UI组件库」。
+归属先说清：这条**新增**一个动效层，**不放松任何既有边界**——包内静态面的规则
+（`docs/taskpacks/20261023-ui-kb/source/09_DESIGN.md:5`「动效强度约 1/10」、`:21`
+「仅必要的120–180ms opacity/transform 过渡；减少动态效果时移除」）对静态复刻面继续成立，
+动效层是叠加的、默认关闭的。
+
+**先量，再改（2026-10-25 本机实测）。** `apps/workbench/style.css` 共 **20** 条 `transition` 声明、
+**16 条越界**。越界构成：**10 条没有属性表**（简写不带属性表就等于 `transition-property:all`）；
+被补间的非允许属性有 `background`、`border-color`、`box-shadow`、`filter` 和 SVG 几何属性 `r`；
+越时长读数是 220ms×4、200ms×2、280ms×2、550ms×1。带那三个数不是抄规范，是从样式表自身定义读出来的：
+`--motion-fast=120ms`、`--motion-base=180ms`、`--motion-slow=280ms`——尺子解析 token 之后判数字，
+不判字符串。
+
+**为什么这条与 §5.55 同源。** `transition:all` 会连墨色一起补间；那次 CI-only 的 AA 红
+（`1920:target-profiles+combination button#tp-validate.primary-btn 1.06:1(stitch)/2.6:1(ui2026)`）
+量的就是一帧任何规则里都不存在的中间态灰。§5.55 只修了那四类动作按钮，本轮把这条缺陷类
+**放到整个样式表范围内**关掉——只要还留着越界声明，下一次动端点颜色时就还可能再红一次。
+
+**改的是补间属性表与时长，不是内容。** 14 条改为只补间 `transform`（其中 toast 是 `opacity,transform`，
+drawer 保留 `visibility 0s linear` 作为无障碍树离场的离散伴侣），时长统一落到带内 token；
+5 处颜色/几何补间被删除：`button` 的底色、`.stage-nav-btn` 的边框底色、`.version-ring-node` 的 `r`、
+`.seg button` 的 `all`、`.graph-stage circle.node-dot` 的 `all`（后者保留 transform 180ms）。
+drawer 由 .28s、`.review-inner` 由 .55s 收到 `--motion-base`（180ms）。这一刀的边界要说清：
+包内「不能为了轻量化删除必要内容」那条**不受影响**——动的是补间哪些属性、补多久，不是删界面；
+动效强度由 owner 的新裁定重新解释，它不再是砍内容的理由。
+
+**三条例外是具名登记，不是跳过。** `.ui-motion-fast` / `.ui-motion-base` / `.ui-motion-slow`
+（都是 `all`，其中 slow=280ms 越带）留在原子的理由是两条：① 它们是 B07 UIKIT 的对外导出件，
+其 `0.28s` 被
+`docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/evidence/W02-UTILITY-VERIFY.json`
+钉住（原文读数 `"ui-motion-slow = 0.28s (--motion-slow)"`）；② 实测在本产品里**零消费者**——
+`apps/workbench/build/main.js`、全部 8 个 `apps/workbench/*.ts` 源文件、`apps/workbench/index.html`
+各自 grep `ui-motion` 均为 0 命中。所以改它们等于替 UIKIT 改合同，不在本产品的动效范围内。
+登记是双向的：第四条越界声明会被判红，登记项若在 CSS 里消失也会被判红。
+
+**新尺的位置，和它自己的反证。** `design-lab/tests/test_workbench_contrast_gate.py` 新增类
+`MotionBandFollowsThePack`，3 个用例：带内断言 / 三枚植入缺陷 / `all` 与墨色属性全站禁用。
+植入的三枚是 `background-color 400ms ease`、`.5s ease`（裸简写）、`transform 90ms ease`（低于带下界），
+全部被同一把尺抓到，所以"零违规"不是空输入。它与既有 `SRC-T07-MOTION-COMPOSITED`
+（`design-lab/tests/test_workbench_motion_gate.py` + `design-lab/tests/e2e/audit_workbench_motion.mjs`）
+是两把不同的尺：那把只禁会重排的补间，并且**主动发布 `transitionAllCount` 而拒绝判红**，谁也不顶谁。
+
+**增强动效层落地，而且是委托实现的。** 新增源文件 `apps/workbench/motion.ts`，由 `main.ts` 引入，
+Vite 打进同一个 `build/main.js`——因此不新增任何被服务的路径，也不动 CSP 白名单。四个原语全部只写
+`transform`（磁吸 ≤3px、双轴倾斜 ≤4deg、入场只位移**不用 opacity**、数字滚动最终逐字落回页面已发布的原值）。
+一个 `pointermove` + 一个 `pointerleave` 的**委托**实现：shell 会重渲染路由视图，boot 时逐元素绑监听
+会在下一次导航静默失效。默认 **static**：只有 URL `?motion=enhanced` 才启用，且
+`prefers-reduced-motion: reduce` 一律退回 static（与 `style.css` 里那条 `transition:none!important` 同向）。
+粒子层本轮**未引入**，等库调研结论。
+
+**构建与读数。** `vite build` 成功，`build/main.js` **610,364 → 615,430 字节**；同一 gzip 档（level 9）
+**160,246 → 161,916 字节**（+1,670）。vite 自己打印的是 **164.50 kB**——那是另一个刻度（kB=1000 且它
+用的压缩设置不同），本段的每一个 delta 都用 level 9 同档前后对照，不混用。`tsc --noEmit` 干净；三个
+node 侧套件 `tests/unit.mjs`（含"bundle 在 vm 下可执行、零顶层 import/export"）、`tests/appshell.mjs`、
+`tests/shape-notice-coverage.mjs`（61 个 seam 读数）全绿；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+
+**`animation:` 是这轮第二把新尺，因为它原本是盲区。** 收完补间之后复查发现：`style.css` 还有 **4 条
+`animation` 声明，全部 `infinite`**，而两把动效尺都只看 `transition:`——`SRC-T07-MOTION-COMPOSITED` 看
+CSSOM 里的布局属性，新带尺看补间属性表，**谁都不读 `animation` 的时长与循环次数**。按"能不能画出来"分
+（选择器的每个 class 都要在 bundle 里作为整词出现才算有消费者；只用子串会把散文里的
+"DESIGN-LAB design **core**" 当成 `.core` 的消费者，第一版就是这么误判的）：
+**live=1** —— `.ambient` 的 `floatGlow 12s infinite`，而 `.ambient` 是每条路由都挂的（shell.ts 里
+`el('div', {class: 'ambient'})`），也就是说包里「无持续循环、自动播放和浮动装饰」在默认界面上一直被违反，
+只是没有任何尺能看见；现在它只在 `:root[data-motion="enhanced"]` 下运行。
+**dead=3** —— `dashMove`（`.flow-svg path`）、`pulse`（`.graph-stage .core`）、`scanSweep`
+（`.scan-line::after`）：宿主选择器在产品里零消费者，所以它们是死 CSS 而不是违规，登记在
+`DEAD_LOOPS` 里双向钉住——某天真被挂载，它就从"死"变成"live 无限循环"，必须作用域化或具名登记。
+
+**渲染证据（不是构建绿代替验收）。** 真服务 + 真 Chromium，`#/assistant`，1440×900，两面对照：
+默认面 `html[data-motion]=null`、`.ambient` computed `animation-name: none`、`animation-iteration-count: 1`；
+`?motion=enhanced` 面 `data-motion=enhanced`、`animation-name: floatGlow`、`iteration-count: infinite`。
+指针探针落在可见控件「设计辅助」上（`page.$` 第一次抓到的是折叠面板里的零尺寸元素，指针落不到东西上，
+所以按 rect 挑了一个真的）：静止 `transform: none`；默认面 hover 得到 `matrix(1,0,0,1,2.99,0)`——那是
+既有的 CSS `translateX(3px)` hover 规则，不是 JS；增强面 hover 得到 `matrix(1,0,0,1,0.96,0.82)`——那是
+委托磁吸写出来的按指针位置的小数值。两面的墨色都是 `rgb(245,247,252)`，**hover 不改字色**。
+该路由上磁吸宿主 **34** 个、倾斜宿主 **10** 个。截图在 `.project-local/task-runtime/motion-probe/shots/`
+（gitignored 证据根）。**仍未取的**：真人视觉验收——测量与截图不等于 owner 说一句"像样"。
+
+**一条自己造出来的新风险，写在交付的同一段里。** 增强面那个 12s 浮动是把 `blur(80px)`、`opacity:.45`
+的光斑在文字底下移动，而列表卡片的底是半透明的（`color-mix(...surface2 74%...)`），所以光斑位置会改变
+文字底下的合成背色——这正是 §5.55 那一族"任何规则里都不存在的一帧"。默认面已经干净（`animation-name:
+none`），但**增强面的对比度至今没有量过**：要把 `?motion=enhanced` 灌进对比度闸门并做逐帧采样，才能把
+这句从"风险"改成"已证"。在那之前，粒子/氛围层不得算 E2 交付。
+
+**挂起项如实写。** ① 粒子/氛围层**未选型未接入**（两份调研回来了：GSAP 3.13 全插件免费但许可是
+GreenSock License 非 MIT、gzip 27.2KB；canvas-confetti ISC 4.3KB；@tsparticles/slim MIT 30.5KB；
+pixi.js 226KB 与 lottie-web 76.8KB 因体积/维护不引入；react-bits 与 magicui 是 React+Tailwind，
+按 owner 既有的"参考它的结构源代码进行复制"裁法抄源码而不是装库）——本轮没有新增依赖，理由写在这里：
+在 JS 单口径已经超包内 150KB 的情况下再加 30KB 级 gzip，等于用别的界面少东西来换这里的动效；
+② `150KB` 上限的裁定仍在 owner 手上——`scripts/measure_workbench_weight.py` 自述不发明预算，实测
+`budgetDeclared=False`，本轮 gzip +1,670 字节使 JS 单口径离那句 150KB 更远，关键路径合计 gzip
+（bundle+stylesheet+document，level 9）实测 **206,956 字节 = 202.1 KiB**；行业那句是
+「critical file size budget < 170Kb gzipped」且覆盖的是**整条关键路径**，包里 150KB 只管 JS、且没有写
+设备/网络画像与目标指标。真人验收、模型推理、release、真实宿主 E3 全部仍冻结不变。
+
+**这条断言会咬在哪里。** 它咬的是此后**任何人**在 `style.css` 里新写的一条 `transition`：简写不带属性表、
+补间 `background`/`border-color`/`box-shadow`/`filter`/`r`、时长落在 120–180ms 带外，
+三把用例里的任意一把都会在 `test_workbench_contrast_gate` 上直接红；UIKIT 那三枚被"登记项消失即红"咬住，
+`motion.ts` 被默认 static 与 reduced-motion 退回咬住——谁把它改成默认开启、或让入场原语用上 `opacity`，
+重蹈的就是 §5.55 那帧谁都没写过的中间态灰。
+### 5.61 我把上一轮的"绿"报早了：换 logo 的那次改动在精确 SHA 的 PR 跑里是红的，红在两处同源的工具债
+
+**先追正自己的一条断言。** §5.59 末尾我写了"run `40191207017`（head `bdaf4883`）`conclusion=success`"
+来结上一轮欠的 CI 账。那个 SHA 是**换 logo 之前**的提交。真正的 logo 提交是 `e297f967`，它落进
+`54931d74` 之后，`pull_request` 事件的那一趟跑的是 **两个作业红**：`Python gate`（分片 3/3，
+`outcomes={'ERROR': 1, 'FAIL': 3, 'PASS': 1118, 'SKIP': 3}`，点名 4 条
+`test_workbench_brand_asset.*`）与 `Workbench browser E2E`（逐字
+`OV_BRAND_BROKEN 1440/1280/1536/1920: the mark decoded as no-data-uri, not 144x144`）。
+拿前一个 SHA 的绿当后一个变更的结论，是断言错位，不是笔误——所以这一节先把它写死：**换 logo 那一轮
+当时没有 CI 证据。**
+
+**两条红的根因是同一次半途迁移。** 素材从 144×144 的 PNG 镂空件换成 owner 的矢量件之后，仍有三处
+尺子按位图真值断言：`design-lab/tests/test_workbench_brand_asset.py`（4 个用例：找
+`data:image/png;base64`、要 `naturalWidth×naturalHeight == 144x144`、要白字、要四边留白、要
+`var(--glow)` 的光晕）、`design-lab/tests/e2e/audit_workbench_overflow.mjs` 的品牌探针，以及
+`design-lab/tests/test_workbench_overflow_gate.py:315` 的 python 侧读者——**一条规则在两个 realm 各写
+了一份**，所以一次红变成两个作业红。本地没抓到的原因很具体：那个测试模块**不在 76 门聚合的名单里**，
+`VERIFY_DESIGN_LAB=OK` 从来不代表它跑过。
+
+**修法是把断言指向现在真在画的东西，而且是更严不是更松。** 位图那三条职责（是图形不是矩形、只有一种
+油墨、几何没被重新解释）由矢量这组承担：data URI 能在浏览器里解码成图、是 `<svg` 文档、`<path>` 条数
+恰好 **2**（单标 = D + 星芒；第三条意味着切分图形色带与文字色带的那一刀动了）、两枚编码各自只带
+**一种**品牌墨（默认 paper `#EEF2F5`，浅色翻 ink `#17212B`）且**除 fill 之外逐字节相同**、`viewBox`
+与被跟踪文件相同、`--brand-mark` 默认必须是 paper、图形旁边的字标仍是文本 `DESIGN-LAB`、图形自身
+`aria-hidden=true` 且不带文字、盒子是声明的 **22×22**（收起的轨道 0 尺寸合法，跳过）。
+
+**顺手抓到两处"为错误的原因而红/绿"的断言形状**，这两条比表面更值得记：
+① `render_brand_asset.py --check` 的素材路径是函数内硬编码的，测试 monkeypatch 的是模块常量
+`PNG_PATH`——也就是说 `test_a_missing_asset_is_a_failure_not_a_pass` 测的**根本不是"素材缺失"**，
+它把没人读的那个常量指向了不存在的文件，于是 `--check` 照旧读磁盘上的真件并 exit 0。现在
+`MARK_PATH` 提成模块级可注入常量，`_check` 把检查器实际读的三个路径一起换。
+② `test_a_stale_digest_claim_is_caught` 把**已退役的 PNG** 当被验对象喂进去——它也 exit 1，
+但理由是"css 声称的摘要不是这个 png 的"，而不是它名字说的"摘要声明过期"。为错误原因通过的断言
+比失败的断言更危险，因为它会一直绿到被验对象消失。
+③ 该模块不再 `import numpy / PIL`：矢量真值不需要位图解码，顺手把它的依赖面缩回标准库
+（§5.57 那条教训的反向应用——尺子的依赖面不能大于它所在作业的装机面）。
+
+**本轮实测读数。** 改前：`test_workbench_brand_asset` 15 条里 **4 条红**（本机复现，与 CI 同形，
+所以这次不需要等远端）。改后：**16 条 OK**（净增 1 条，即新增的"两枚编码除 fill 外相同"那把）。
+`test_workbench_overflow_gate` 本机全量 **4 条 OK**，耗时 389.7s，四宽度（1440/1280/1536/1920）的品牌
+读数是 `{'loads': True, 'svg': True, 'paths': 2, 'fills': ['#EEF2F5']}`，`uriChars` 与 22×22 盒同样过；
+`ConnectionAbortedError WinError 10053` 是那条**已知的**服务侧读中断（`drain_body` 那一族，§5.56 已处理）
+在 unittest 输出里的回显，不参与判定。聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+`expected_tests` 不是钉住的常数（`run_python_tests_all.py:126` 从发现的 id 集合现算），所以本轮用例
+净增一条不需要动任何计数钉。
+
+**这条断言会咬在哪里。** 三个 realm 现在各自读同一种真值：若有人再把素材换形状（svg→png、或
+`--brand-mark` 重新去吃 `currentColor`），node 探针与 python 读者会**同时**红，不再是一个绿一个红；
+若有人把 `MARK_PATH` 再改回函数内硬编码，缺失件那条会立刻从"能红"退回"恒绿"，而这次有名字可以查。
+
+**仍未结清的账（不写成已结）。** `54931d74` 那一趟 PR 跑的 3352 并集与 17 门浏览器清单，覆盖的是
+**换 logo 之后、本轮修复之前**的字节；本轮 `14959a3d` 推上去之后要按精确 SHA 重读一次矩阵，
+读到什么写什么，不拿本机绿代替云端绿。
+### 5.62 精确 SHA 的矩阵终于全绿，而它顺手抓到一把尺在量空集：`errors=0` 不是通过，是没测到
+
+**先把上一节欠的账结清，并且结在正确的对象上。** §5.61 承认了"拿 `bdaf4883` 的绿当换 logo
+那轮的结论"是断言错位。本轮把品牌尺迁到矢量真值（`14959a3d`）与权威链重录（`f9683930`）推上去之后，
+**run 40211581088（PR 跑，head 逐字 `f9683930a7189bacb2e5d0a0c42d8acb927b2806`）`conclusion=success`**，
+10 个非 skipped 作业全绿；逐字读数：
+`PYTHON_TESTS_UNION=OK expected=3363 distinct=3363 ran=3363 duplicates=0 missing=0 unexpected=0`，
+三分片各自 `exit=0`（1/3 tests=1043 PASS 1029 SKIP 14；2/3 tests=1194 PASS 1186 SKIP 8；
+3/3 tests=1126 PASS 1123 SKIP 3），`BROWSER_E2E ran=27 skipped=0 failed=0`。
+并集从 3352 涨到 3363 是本轮新增动效尺用例的正常增量，`expected_tests` 由发现的 id 集合现算
+（`scripts/run_python_tests_all.py:126`），没有计数钉要改。
+
+**增强面的"自造风险"从"未量"变成已证。** §5.60 交付时写下：`?motion=enhanced` 的 12s 浮动光斑在
+半透明卡片底下移动，等于改变文字下方的合成背色，属 §5.55 那一族，而**增强面对比度从未量过**。
+本轮不是推理它安不安全，是把动画**冻在关键帧的每一档**再量：`floatGlow` 只有三个停靠点
+（0%、100% 恒等，50% `translateY(20px) translateX(12px) scale(1.06)`），所以取 0/3000/6000/9000/12000ms
+五个冻结姿态，用**同一个 `MEASURE` 谓词**、同一次渲染、同一批面逐档量。读数：
+`CT_MOTION_PASS poses=5 routes=24 checked=34170 belowAA=0 distinctTransforms=4`——
+4 个不同合成变换而不是 5 个，正因为 0% 与 100% 同点，这本身就是尺子在动而不是在原地重取样；
+`checked=34170` 说明这一路真的扫到了文字 run，不是空输入。**没有为此调高任何阈值。**
+
+**这一轮最值钱的一条：`errors=0` 是空集，而空集有两个不同的成因，先分清再修。**
+包写的是「错误紧邻字段」（`docs/taskpacks/20261023-ui-kb/source/09_DESIGN.md:13`），闸门那段循环的
+选择器是 `.error, [role=alert], .field-note, .refusal`。**归因先纠正一次**：我一度把这条写成
+"选择器错了"，实测不成立——`#as-form-error` 就是 `p.error[role=alert]`（shell.ts:4708），
+选择器本来就覆盖它，**真正缺的是"从来没有人让界面拒绝一次"**：闸门走过的每条路由读盘都成功，
+拒绝行一直是空的，所以 0 描述的是"没造出状态"。同时**确实还有第二类拒绝被漏掉**：知识/评审/权利/研究
+四条线的本地拒绝写进 **`p.view-hint`**（`#knowledge-outcome` 等，如
+`未提交：标题为空。服务端未写入任何候选。`），既没有 `role=alert`（读屏也不播报，那是可及性缺口不是
+测试缺口），也不在选择器里。两类各自修：
+① 选择器覆盖 `view-hint`，但不是整族收进来（view-hint 也写普通说明），而是按**产品自己的拒绝前缀**判；
+前缀从 `apps/workbench/shell.ts` 现数得到 6 个：`未提交`、`未签署`、`未记录`、`未选择方向版本`、
+`未选择简报`、`未选择资产`，经 `CT_REFUSAL_WORDS` 传给闸门，**空列表时闸门直接拒绝开跑**——
+因为"没给词"和"没有拒绝"这两种 0 必须能分开。② 新增 `openRefusalState` 去**真的点一次**：主刀是 `#/assistant` 的
+`#as-submit`（清空 `#as-objective` 后提交 → `#as-form-error` 写
+`请先写下要完成的设计目标…`），因为它落在闸门必走的默认路由上；第二刀是 `#/knowledge` 的
+`#knowledge-create-submit`（清空标题 → `#knowledge-outcome` 写 `未提交：标题为空。…`），
+专门覆盖 view-hint 那一族。两者都作为命名行 `+refusal` 进回执，并打印各自的 `role=`，
+让"有 role 的那族"和"没有 role 的那族"在读数里就能分开。
+新断言 `RefusalPopulationIsGraded` 三条：前缀数 ≥3 且三个已知词必须在；闸门源码必须含
+`CT_REFUSAL_WORDS is empty` 的拒绝与 `.view-hint` 的选择；回执里必须有 `+refusal` 行且 `errors>=1`。
+第三条在它该红的时候红过：先跑的那次用的是**改前留下的旧回执**，它逐字报
+`AssertionError: [] is not true : the receipt has no knowledge+refusal row`——这把尺不是摆设。
+
+**动效层按"有没有渲染"重扫一遍，抓到 `.soft-btn` 是零渲染样式。** 新增
+`EnhancedMotionLayerStaysComposited.test_every_wired_surface_is_actually_rendered`：把三张宿主名单里
+每个 class token 拿到**全部 `apps/workbench/*.ts` 与 `index.html`** 里找整词，找不到即红；
+并允许"片段拼装的类名"（形如 `class: <code>-btn`）作为有渲染者的旁证，以免把拼接的类当成死类——
+这条自我约束是因为**差点错判**：`.seg button`、`.review-card`、`[data-motion="count"]` 第一次都只
+在 bundle 里出现 1 次，而那 1 次就是本层自己写的选择器字符串；`.soft-btn` 经 shell/workbench/design/
+ui-primitives/main/index.html 逐个 grep 全为 0，判定为**样式表有定义、产品从不构建**。
+处置：从动效宿主里摘掉（不接线一个不存在的表面），CSS 那一条**保留不删**并作为发现记账——
+它同时服务 UIKIT 的对外合同，删它是另一个判定。数字滚动也一并摘掉：shell 已有
+`animateKpiCount` 驱动 `strong[data-count]`，再加一个动画器就是把同一个数跑两遍。
+重建后 `build/main.js` 615,430 → **614,144 字节**（gzip level 9 161,916 → **161,478**，净减 438 字节——
+本轮清死码反而变小），`tsc --noEmit` 干净，node 三套 rc=0。
+
+**两条被我上一轮写进台账、本轮被实测推翻的"待办"，按证据改写而不是照做。**
+① 「唯一强调色 `#356B92` 待落」：**早已在仓**——`style.css` 的
+`:root[data-palette="stitch"][data-scheme="light"]` 块里 `--color-primary`、`--accent`、
+`--color-secondary`、`--secondary` 四个都写 `#356B92`，且带日期注释说明"单一低饱和强调色同时担任
+action/focus/selection/info"。这一条不该再占施工单位。
+② 「`_list_prompt_results` 套 `PAGE_LIMIT` 信封是最成熟的一刀」：子代理实测**否掉**——
+`design-lab/schemas/prompt-result-readback-v1.schema.json` 是 `additionalProperties:false` 加 13 键
+固定集，喂 `limit/next_cursor/truncated` 会被自家校验判 500（逐字
+`Additional properties are not allowed ('limit', 'next_cursor', 'truncated' were unexpected)`），
+而兄弟先例 `knowledge-library-readback-v1.schema.json` 的 `required` 里就有
+`total/offset/limit/returned/next_offset`——即"加界"必然要改 **schema 文件**、路由模式（现不带查询串）、
+合同行拒绝词、以及 `test_workbench_weight.py` 的 `UNBOUNDED_REGISTER` 摘牌，是一整刀带迁移的活，
+不是顺手一刀。它按授权面**停手未改任何文件**，基线复验仍绿
+（`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=90 dispatched=90 bound=76`、
+`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=57 failures=0`、`Ran 41 tests / OK`）。
+
+**150KB 那句的调研结论，一并写在这里，因为它决定后面每一刀的取舍。** 行业那族是
+「critical file size budget < 170Kb gzipped」，出处是 2018 前端性能检查表第 07 条并被 web.dev 的
+code-splitting codelab 沿用；它由两条依据**反推**得出（$200 Android + 3G、400ms RTT、约 400kb/s、
+TTI<5s；170KB gzip 解压 0.8–1MB 在普通手机上约 1 秒解析编译），而且覆盖的是**整条关键路径**
+（HTML+CSS+JS 合计）。包里 150KB 只管 JS、单口径更严，却没写画像、指标与推导。本项目实测
+（gzip level 9，本行落笔时从磁盘现取）：bundle 616351/162258、
+stylesheet 121330/41645、document 10144/3857，
+**关键路径合计 207760 字节 = 202.9 KiB**；同时 `transferSize` 实测就是全额 610,364（**回环服务不
+gzip**），`responseEnd` 4ms、冷启动 `load` 93ms、**0 个 long task**、堆 2.3MB、DOM 436 节点。
+结论：这条传输预算量的是本部署形态下**不发生的传输**；对 127.0.0.1 的桌面 UI，规范化的等价物是
+CPU 预算（解析+编译+执行、无 >50ms 长任务、可交互 ≤1s），而我们在 CPU 侧有约 40 倍余量。
+`scripts/measure_workbench_weight.py` 自述不发明预算、实测 `budgetDeclared=False`，所以**上限怎么改
+仍是 owner 的决定**，本轮不擅自换数也不为凑数删内容。
+
+**仍未做（不写成已做）。** 粒子/氛围层的 canvas 需要样式表那条定位规则与重建后的测量，另起 §5.63；
+`?motion=enhanced` 的真人视觉验收没有；勾选框标签是否违反「标签放输入上方」（实测
+`labelSideBySideExamples` 里有 `1440:preflight label vs input#jury-approve dy=-17px` 这类同排）
+仍待 owner；`_list_prompt_results` 那一刀等 schema 迁移授权；release、安装态分发、真实宿主 E3、
+真人 E4、模型推理、ComfyUI/MiniMax H3、AAOS 联调、E 盘、手机端（排除项）一律不变。
+### 5.63 粒子层照"抄结构不引依赖"落地：画在文字之下的一层 canvas，并且用可冻帧的方式被量过
+
+**做了什么。** Owner 要的是"更多动画动效粒子"。调研回来的可装库各有代价：GSAP 3.13 gzip 27.2KB
+但许可是 GreenSock License（非 MIT，要过权利登记）；@tsparticles/slim MIT 30.5KB；canvas-confetti
+ISC 4.3KB；pixi.js 226KB、lottie-web 76.8KB 因体积与维护不引入；react-bits/magicui 是
+React+Tailwind。owner 既有的裁法是「吸收融入不了的 可以参考它的结构架构源代码等进行复制啊」，
+所以这一层**不装任何依赖**：照 canvas-confetti 的结构（一次性发射、速度+衰减、自动停）自写，
+24 颗粒子、只用两种品牌墨（`#EEF2F5` / `#17212B`）、alpha 0.10–0.22，
+挂在 `--layer-canvas-ambient` 那一层（`.app` 的第一个子节点、`pointer-events:none`、
+`aria-hidden="true"`），**永远在面板与文字之下**，不覆盖任何字形。
+
+**可测性是先设计进去的，不是事后补的。** `?motion=enhanced&particles=static` 画**一帧确定图**并停下：
+位置由固定种子函数 `seeded(i)` 生成，同一台机器与不同机器都是同一画面。这不是为测试开的后门，
+它同时是包里那条降级要求的落点（`09_DESIGN.md:9`「低性能或系统关闭透明时回退实底」）；
+`particles=live` 才用 rAF 动。`prefers-reduced-motion: reduce` 时整层不挂载，
+默认（不带 `?motion=enhanced`）也不挂载。
+
+**本轮实测读数（逐字，跑这次门时现取）。** 产品自己写的属性：
+`CT_MOTION_WIRED {"dataMotion": "enhanced", "canvas": true, "canvasAriaHidden": "true", "canvasZ": "-2"}`——注意 `data-motion` 现在来自
+`motion.ts` 而不是注入，这是"用户从 URL 一步进得来"的证据，而不是"样式表面对"的证据。
+逐姿态对比度：`poses=[0, 3000, 6000, 9000, 12000]` `routes=24`
+`checked=34170` `belowAA=0`
+`distinctTransforms=4`。
+被造出来的拒绝态行：["1440:assistant+refusal"]；
+`errors=4`、`errorAdjacent=0`。
+体积（gzip level 9，同档前后对照）：`build/main.js` 616351 字节 / gzip 162258；
+`style.css` 121330 / 41645；`index.html` 10144 / 3857；
+**关键路径合计 gzip 207760 字节 = 202.9 KiB**。
+
+**这条断言会咬在哪里。** 闸门现在会**因为粒子层没挂上而红**
+（`?motion=enhanced&particles=static did not mount an aria-hidden particle canvas`），
+也会因为产品不再自己写 `data-motion` 而红。也就是说：这一层要么真的可达并被量，要么把门卡住，
+不存在"代码在界面上看不见却全绿"的第三种结局。
+
+**未做（不写成已做）。** `particles=live` 的**动画过程**未做逐帧对比度认证——本轮量的是它与
+0% 一致的确定首帧；氛围层默认关闭，尚未有人从界面内一键进入（主题入口那把闸只点色板，不点 motion）；
+真人视觉验收没有；GSAP/tsparticles 的引入与权利登记没有发生。
+### 5.64 主题点击路径上有一个真缺陷：切色板时带的是旧色板的明暗侧，珍珠白因此永远点不出来
+
+**这条不是样式表问题，也不是测试问题，是产品问题。** 20261023 包的 STITCH 基线只给了珍珠白那一侧的值
+（`09_DESIGN.md:9`），所以 `PALETTES` 表里 `stitch` 只声明 `schemes: ['light']`。而色板按钮的旧写法是
+`{ ...readThemeChoice(), palette: cyclePalette(...) }`——**scheme 从旧色板继承**。从只声明 dark 的面
+切到 stitch 时，继承来的 `dark` 让 `applyTheme()` 走 `removeAttribute('data-scheme')` 那一支，
+`:root[data-palette="stitch"][data-scheme="light"]` 因此永不匹配：屏幕上画的还是默认炭黑面，
+而 URL 已经写成 `?palette=stitch`。**属性和界面在同一个时刻互相矛盾**，且只有点击路径断，
+直链是好的（`?palette=stitch&scheme=light` 返 200 且落对属性）。
+
+**这是被"走完整个色板表"的闸抓出来的，不是被注入属性的闸。** 前一版主题闸只点一步、只到 `ui2026`，
+所以 `stitch` 从来没有在点击路径上被验过——CSS 面由对比度闸用 `addInitScript` 注入属性量得干干净净，
+产品自己的按钮却到不了那一面。修法按职责分两侧：**产品侧** `shell.ts` 的色板按钮改为按
+**目标色板自己声明的那一侧**解析 scheme（`spec.schemes.includes(now.scheme) ? now.scheme :
+ spec.schemes[0]`），并把 `palette` 与 `scheme` 两个查询参数一起写回 URL，让属性、界面、URL 三者一致；
+**闸门侧**（`audit_workbench_theme_affordance.mjs` + `test_workbench_theme_affordance_gate.py`）
+色板表由两侧各自独立从 `shell.ts` 现读（不硬编码），断言①跳数必须等于表长（少一跳即红）、
+②**每一跳都必须真的改变被画的墨色**（只改属性不改颜色的 D13 缺陷从此按跳而不是按首次检查）、
+③最后一跳必须回到起点、④`?palette=stitch&scheme=light` 直链 200 且画出的不是默认面。
+
+**改前改后的逐跳读数。** 改前（同一台机、同一 bundle）：
+`HOP 1 ui2026/(absent) ink=rgb(159,177,195) over=rgb(8,14,22) ratio=8.81 moved=yes`、
+`HOP 2 stitch/(absent) ink=rgb(154,163,184) over=rgb(6,10,20) ratio=7.83 moved=yes`、
+`HOP 3 design-lab/light ink=rgb(154,163,184) over=rgb(6,10,20) ratio=7.83 moved=NO`——
+第 2 跳"看起来变了"是因为它从 ui2026 的暗面换到另一套暗值，**珍珠白根本没出现**；
+第 3 跳属性换了、颜色一动不动，就是 D13 那一形状。
+改后本轮实测：[{"hop": 1, "palette": "ui2026", "scheme": "(absent)", "url": "?palette=ui2026&scheme=dark", "probeText": "设计辅助", "ink": "rgb(159, 177, 195)", "backdrop": "rgb(8, 14, 22)", "bgChain": ["span=rgba(0, 0, 0, 0)", "nav=rgba(0, 0, 0, 0)", "aside#app-sidebar=rgba(0, 0, 0, 0)", "div#b10-app=rgba(0, 0, 0, 0)", "body=rgb(8, 14, 22)"], "changeRatio": 8.81, "ratioBasis": "opaque rgb() ink over opaque rgb() backdrop", "moved": true, "paletteMoved": true, "paint": "rgb(159, 177, 195) on span=rgba(0, 0, 0, 0) | nav=rgba(0, 0, 0, 0) | aside#app-sidebar=rgba(0, 0, 0, 0) | div#b10-app=rgba(0, 0, 0, 0) | body=rgb(8, 14, 22)"}, {"hop": 2, "palette": "stitch", "scheme": "light", "url": "?palette=stitch&scheme=light", "probeText": "设计辅助", "ink": "rgb(86, 100, 114)", "backdrop": "rgb(244, 246, 248)", "bgChain": ["span=rgba(0, 0, 0, 0)", "nav=rgba(0, 0, 0, 0)", "aside#app-sidebar=rgba(0, 0, 0, 0)", "div#b10-app=rgba(0, 0, 0, 0)", "body=rgb(244, 246, 248)"], "changeRatio": 5.6, "ratioBasis": "opaque rgb() ink over opaque rgb() backdrop", "moved": true, "paletteMoved": true, "paint": "rgb(86, 100, 114) on span=rgba(0, 0, 0, 0) | nav=rgba(0, 0, 0, 0) | aside#app-sidebar=rgba(0, 0, 0, 0) | div#b10-app=rgba(0, 0, 0, 0) | body=rgb(244, 246, 248)"}, {"hop": 3, "palette": "design-lab", "scheme": "(absent)", "url": "?palette=design-lab&scheme=dark", "probeText": "设计辅助", "ink": "rgb(154, 163, 184)", "backdrop": "rgb(6, 10, 20)", "bgChain": ["span=rgba(0, 0, 0, 0)", "nav=rgba(0, 0, 0, 0)", "aside#app-sidebar=rgba(0, 0, 0, 0)", "div#b10-app=rgba(0, 0, 0, 0)", "body=rgb(6, 10, 20)"], "changeRatio": 7.83, "ratioBasis": "opaque rgb() ink over opaque rgb() backdrop", "moved": true, "paletteMoved": true, "paint": "rgb(154, 163, 184) on span=rgba(0, 0, 0, 0) | nav=rgba(0, 0, 0, 0) | aside#app-sidebar=rgba(0, 0, 0, 0) | div#b10-app=rgba(0, 0, 0, 0) | body=rgb(6, 10, 20)"}]
+直链：{"asked": "palette=stitch&scheme=light", "status": 200, "palette": "stitch", "scheme": "light", "ink": "rgb(86, 100, 114)", "backdrop": "rgb(244, 246, 248)", "bgChain": ["span=rgba(0, 0, 0, 0)", "nav=rgba(0, 0, 0, 0)", "aside#app-sidebar=rgba(0, 0, 0, 0)", "div#b10-app=rgba(0, 0, 0, 0)", "body=rgb(244, 246, 248)"], "paintsLikeDefault": false}；色板表现读：[{"id": "design-lab", "schemes": ["dark"]}, {"id": "ui2026", "schemes": ["dark", "light"]}, {"id": "stitch", "schemes": ["light"]}]。
+
+**这些数字的权威边界，写在读数旁边而不是事后解释。** 每跳的比值是**变化探测器**，不是 AA 结论：
+该探针只在"墨色与祖先链全为不透明 `rgb()`"时给数，否则 `changeRatio=null` 退回原始色串比。
+仓库里唯一的对比度主人是 `audit_workbench_contrast.mjs`，`stitch` 浅色侧是否过 AA 由
+`test_workbench_contrast_gate.py` 以 `UI_PALETTE=stitch` 逐路由回答，本闸不越权也不重复认领。
+
+**体积（gzip level 9）。** `build/main.js` 616351 / 162258；`style.css` 121330 / 41645。
+
+**未做（不写成已做）。** `audit_workbench_theme_geometry.mjs:56` 那份**硬编码**色板表仍缺 `stitch`，
+本轮没动它（改了要把几何结论一起重读）；主题不写 localStorage 是既有裁决（`shell.ts:10140`），
+没有为"记住珍珠白"新开键；勾选框标签是否违反「标签放输入上方」仍待 owner；真人视觉验收没有。
+### 5.65 造出拒绝态的下一步就抓到一支不达标的红字：珍珠白的错误墨色默认继承 #F05252，压白底只有 3.48:1
+
+**这条是上一节的直接后果，不是新话题。** 闸门第一次让界面真的拒绝了一次（清空目标后点
+`#as-submit`，`p#as-form-error.error[role=alert]` 显示
+「请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。」），珍珠白面立刻报红，逐字：
+`LOWCONTRAST 1440:assistant+refusal 3.48:1 need>=4.5:1 13px opacity=1 fg=rgb(240, 82, 82) :: p#as-form-error.error`，
+同一条在 1920 与 plan-detail/plan-compare/plan-feedback 各自复用，合计 `CT_FAIL: 8 text run(s) below WCAG 2.1 AA contrast`。
+**为什么以前从不红**：这行文字在此之前**没有任何界面会显示**——所有路由的读盘都成功，
+`errors=0` 一直是空集。一个永远不会出现的状态当然永远不会失败。
+
+**根因是一处作用域漏配，不是品牌决定。** `:root` 定义 `--color-error:#F05252`（为炭黑默认面选的，
+压深色面过 AA）；ui2026/light 早在本文件里就把 `--color-error` 重指为 `var(--uif-light-danger)`
+（style.css:1770），而 `stitch/light` 那一块**没有重指**，于是珍珠白继承了给深色面设计的红。
+
+**取既有已实测值，不新造一支红。** 20261023 包只逐字给了六个值（强调/正文/次级/背景/内容/边界），
+**没有给错误色**，所以自造一支红就是冒充包的规定。这里重指到同仓已存在的
+`--uif-light-danger:#ab384d`，用闸门自己的合成算法算：压白 **6.17:1**、压珍珠白 `#F4F6F8` **5.69:1**、
+压浅色 elevate **5.20:1**，三档都在 4.5 以上；默认炭黑面**一字节不动**，仍是 `#F05252`。
+`--color-success`/`--color-warning` 未被改动：同一闸门在珍珠白逐路由量过全部被画文字，
+只有这一支在拒绝态出现时不达标，其余没有实测证据支持动它们。
+
+**改后同一把尺的读数（本轮现取，不是引用改前）。**
+`CT_SUMMARY`：{"checked": "42381", "belowAA": "0", "pseudoLayers": "32209", "coveredForeign": "0", "obscured": "6", "unparsable": "0", "collapsedOpened": "6317", "controlMisses": "0", "strict": "1", "mathChecks": "4", "mathBad": "0", "colourChecks": "4", "colourBad": "0"}；
+改后仍低于 AA 的 `assistant+refusal` 行数：**0**；
+本轮跑过 `Ran 20 tests in 367.012s`，判定 ["OK", "OK"]；
+被造出的拒绝态：proved 1 条
+（roles=["alert"]）、
+未落地的族 1 条。
+体积：`build/main.js` 616351 / gzip9 162258；
+`style.css` 121330 / gzip9 41645。
+
+**这条断言会咬在哪里。** 拒绝态现在是必造状态：`RefusalPopulationIsGraded` 要求回执里存在
+`+refusal` 行且 `errors>=1`，而 `CT_FAIL: the assistant intake form never showed its refusal line…`
+会在没人让界面拒绝一次时直接红——**"没有错误可量"不再是绿，是红**。
+珍珠白若有人再把 `--color-error` 改回亮红，下一跳的对比度闸会按每条路由把它报回来。
+
+**一处需要承认的仪器形状问题（顺手改掉）。** 拒绝态植入最初被推进 `controlBad` 那一个列表，
+于是"某个表单不在这次走到的状态上"被报成
+`CT_FAIL: the white-on-color(srgb) control was not reported as a failure` ——一个列表服务两个含义，
+失败信息就指错了仪器。现在拒绝态有自己的一对
+`refusalProved/refusalAbsent`、自己的一行 `CT_REFUSAL_PROVED count=… absent=…`，
+并且 `assistant` 那一族**必须**被造出来（造不出即红），`knowledge` 那一族落在没有该面板的状态时
+如实写成 `CT_REFUSAL_ABSENT`，不再伪装成颜色解析器的失职。
+### 5.66 那一条"最接近可落地"的登记被实测推翻后，这一轮把它真做完了：提示词读回现在是**有界的一页**
+
+**先接上一段没做完的。** §5.62 记下了"套 `PAGE_LIMIT` 信封是最成熟一刀"这个说法被子代理实测推翻：
+`prompt-result-readback-v1.schema.json` 是 `additionalProperties:false` 的 13 键闭集，直接加
+`limit/next_cursor/truncated` 会被自家校验判 500。推翻不等于不做——它只是说明这刀**必须带上 schema**，
+于是本轮按本仓已有的两个先例（`/api/knowledge-entries/search` 与 assistance-plan 列表）把它做完了。
+`contracts.ts` 里没有这支读回的类型（grep `PromptResultReadback` 零命中），所以这次改动**不需要**动前端形状，
+这一点是在动手前查的，不是事后补的。
+
+**改的是四处，一次带齐。** ① `prompt_results.py`：`PROMPT_RESULT_LIMIT=100`、
+`MAX_PROMPT_RESULT_LIMIT=200`，`readback(project_id, offset=0, limit=…)` 先校验再取数；
+② **信封字段全部在切片之前取**：`total_readable` 是可读出来的全部、`result_count` 仍是数据库行数
+（含解析不了的）、`newest`/`state`/`accepted_count`/`reviews` 都按全量算，只有 `results` 是这一页——
+分页因此**不可能**把 400 条提示词读成 100 条；`reviews` 明确不翻页，因为截断签收记录就是隐藏决定。
+③ 路由声明 `path_only=True`，`offset/limit` 在 handler 里用 `urlsplit + parse_qsl` 解析（与
+task-preflight、知识检索同一写法），非法值回**具名 400**而不是 404：
+`PROMPT_RESULT_FILTER_MALFORMED`、`PROMPT_RESULT_OFFSET_INVALID`、`PROMPT_RESULT_LIMIT_INVALID`；
+④ 合同行的 `reason` 记下这个界与三个拒绝词，`test_workbench_weight.py` 的
+`UNBOUNDED_REGISTER` **同轮摘牌**（9→8），摘牌的那条断言同时要求仪器不再把它算作无界——
+登记与现状不许朝任何一个方向漂。
+
+**仪器自己的现读（不是引用上面的话）。** `LISTROWS list_routes=18 bounded=10 without_limit=8 frontend_call_sites_scanned=142`
+`LISTROWS _list_prompt_results           initial_rows= 100 kind=page-limit    at=prompt_results.py:51(PROMPT_RESULT_LIMIT) max_rows=   - client_calls=2 client_limits=- client_without_limit=2`
+
+**这条断言会咬在哪里。** 三条新用例都是路由级：默认页必须报出 100 与 `truncated=False/next_offset=None`；
+两行数据用 `?limit=1` 翻页时，第一页必须仍说"共 2 条、还有下文、next_offset=1"，第二页必须
+`truncated=False` 且 `next_offset=None`，且 `state/newest/reviews` 与全量逐字节相等；
+`?limit=0`、`?limit=201`、`?limit=ten`、`?offset=-1` 必须各回自己那个码——**一个无名 400 就是
+让参数变成谜**。加上摘牌那条，把界悄悄改回无界、或把 `returned` 当成总数，都会红。
+
+**未做（不写成已做）。** 前端调用点仍不传 `limit/offset`（默认页就是当前答案），界面要不要显式翻页是
+UI 那一刀的活，本轮没动任何 `.ts`；其余 **8** 条无界路由不套同一修法，理由各自不同并已逐条登记
+（`_list_or_read_assets` 成本在每行重校验而非行数，`_list_projects` 是逐项目汇总，
+`_list_design_systems` 由四名注册表天然有界，`_list_rights/_list_knowledge_candidates`
+是 Human Gate 与读回面——截断即隐藏决定，`_list_jury` 与 `_list_research` 只登记了"未测量"，
+`_list_token_documents` 空值语义须保列表）。
+### 5.67 几何那把尺的色板表不再是手抄的：珍珠白第一次被量的同时，它证明了自己没改布局
+
+**接着 §5.64 的那条尾巴做。** 那一节记下「`audit_workbench_theme_geometry.mjs` 的色板表是硬编码的，
+仍缺 stitch」。这不是小事：一个几何门的覆盖面写成三字面量，就意味着包里那套珍珠白**从来没被这道
+门量过**——而它恰好是最容易被"顺手改一下布局"伤到的一套。
+
+**改法是取消第二份真相。** 变体表现在从 `apps/workbench/shell.ts` 的 `PALETTES` 现读（mjs 与 python
+各自独立解析同一份声明），断言是"渲染出的变体集合必须等于产品声明的集合"，所以第四套色板进了产品
+就自动进这道门，**解析不出来就直接红**（`declared_variants()` 在少于 4 项时抛 `AssertionError`，
+另有一枚把 `schemes: [` 遮掉的植入用例证明这条拒绝真的会响——第一版的植入是错的：它只改了表名、
+条目还在，因此什么都没证明，被自己的断言当场抓出来后才改成遮 `schemes`）。
+
+**珍珠白用什么当基准，这里要说清。** 包里 `09_DESIGN.md:9` 给的是**六个颜色值**，没有给导航轨宽度；
+所以本仓不能凭空写一个数字当期望，那等于把发明说成规范。断言因此是**等值**：`stitch/light` 的每一
+几何读数（`railRect / railComputed / marginLeft / paddingRight`）必须与默认面逐位相同，
+不同即 `PALETTE_MOVES_GEOMETRY`——它同时跑在窄屏分支上，因为"浅色主题把 min-width 漏进窄布局"
+正是未授权的移动端改动形状（手机端是排除项）。
+
+**现读结果。** 宽度 ["1200", "1920", "700", "768", "960"]，
+变体 ["design-lab/dark", "stitch/light", "ui2026/dark", "ui2026/light"]；
+`stitch/light` 的轨宽 {"700": 700, "768": 168, "960": 168, "1200": 168, "1920": 168}，
+默认面 `design-lab/dark` 同项 {"700": 700, "768": 168, "960": 168, "1200": 168, "1920": 168}——**逐位相同**，
+`report.findings` 为空，闸门在本机现跑一遍原话是 `Ran 3 tests in 3.972s OK`（含那枚植入用例）。
+
+**这条断言会咬在哪里。** 有人给珍珠白加一条 `min-width`/改 rail 宽，等值断言当场红；
+有人把 `PALETTES` 里的某一侧删掉，覆盖面断言红；有人把这道门的表又抄回字面量，
+python 与 mjs 两realm 的推导会先于任何断言炸在"少于 4 项"上。
+
+**未做（不写成已做）。** 这道门量的是几何，不是颜色——珍珠白的 AA 归对比度门，
+它的点击可达性归主题入口门（§5.64 修的那一刀）；界面上的翻页线索仍未做。
+### 5.68 包里那支单一强调色，第一次在"它被画成什么"上有了数：两个方向只有一个达标
+
+**这是 §5.52 欠下的那一半。** 那一节把「单一低饱和强调色 `#356B92`」判成**已测量、未满足**，并把 owner
+要裁的两条路摆出来：要么"同一色相的深阶当填充（保持单一色相，但要重测白字）"，要么"按钮文字改深色并
+放弃强调色当填充"。当时**第二个方向有数、第一个没有**，所以那条裁定一直是"代价未知"，不结算是不诚实的。
+
+**先说结构：强调色在样式表里从来不是字墨。** 现读 `apps/workbench/style.css`，消费 `var(--accent*)`
+的属性是 {"background": 3, "border-left": 2, "box-shadow": 2, "outline": 1, "border-color": 3, "stroke": 1, "fill": 1, "border-right": 1, "border-bottom": 1}，其中 `color:` 有 **0** 处。
+也就是说 WCAG 1.4.3 只在"墨压在强调色底上"这一层咬它——把它当字色来测，测的是一个本仓没实现的形状。
+被强调色当底的规则有 **3** 条，三条 shipped 的都写着 `color:#fff`。
+
+**四个读数（同一把 WCAG 算式，不是猜的）：** 纸白墨压 `#356B92` = **5.72:1**；
+压它的 hover 阶 `#2558DB` = **6.0:1**；深墨 `#17212B` 压 `#356B92`
+= **2.85:1（不达 AA 的 4.5）**；而强调色如果哪天被当字墨压在珍珠白 `#EEF2F5` 上，
+是 **5.08:1**（达标，但它现在没被这样画）。今天那 106 处 brand 深蓝实际 painted
+的填充是 `rgb(29, 79, 196)`=`#1D4FC4`，白字压它是 **7.08:1**。
+
+**结论只有一句，但它把裁定的代价变成了已知：** §5.52 摆的两个方向里，
+**"同色相深阶当填充 + 纸白墨"实测达标（5.72/6.0），
+"保留强调色底、文字改深色"实测 2.85:1 不达标**。所以这不是"两个都有代价"，
+而是"其中一个会直接造出 AA 违规"。包给的值 `#356B92` 一字未动，enforce 阈值一字未动，106 处 brand
+深蓝照旧是登记债——要不要收敛成一支、收敛到哪一支，仍是 owner 的设计判断，只是从此不必猜。
+
+**珍珠白那两面现在的实测面：** {"stitch/light": {"pairs": 182, "brandBluePaints_summed_over_pairs": 106, "productFails": 0, "motion": {"poses": [0, 3000, 6000, 9000, 12000], "routes": 24, "checked": 34170, "belowAA": 0, "distinctTransforms": 4}}, "ui2026/light": {"pairs": 182, "brandBluePaints_summed_over_pairs": 106, "productFails": 0, "motion": {"poses": [0, 3000, 6000, 9000, 12000], "routes": 24, "checked": 34170, "belowAA": 0, "distinctTransforms": 4}}}。
+分母要说清：`brandBluePaints` 这里按 `(宽度 × 路由)` 的 182 个对累加，
+所以它和 §5.52 那个 21 **不是同一分母**，不能读成"深蓝变多了五倍"；两处的原始读数都在各自的件里。
+
+**这条断言会咬在哪里。** 有人把某条强调色底规则的墨改成深色（`2.85:1` 当场红）；
+有人新写一条 `color:var(--accent)`（"强调色从不作为字墨"这条结构前提当场红，而它是整节算式的依据）；
+植入用例把 `color:#fff` 换成深墨后必须被点到名字，否则这道门只会守着空集。
+
+**未做（不写成已做）。** 不改品牌蓝本身，不动 `#356B92`，不做翻页线索，不做真人验收；
+`.app-nav button:hover` 那类伪态仍按 §5.52 的口径另计，本节的算式覆盖的是规则里写死的字面值。
+### 5.69 「错误紧邻字段」量错了对象：那条 1199px 一半是尺子的错，一半是真的
+
+**§5.62 把人口补全之后，读数并没有变好，它只是开始说实话。** 珍珠白那两件里
+`errors=8`、`errorAdjacent=8`，
+最远的例子逐字是 `（无）`。
+0 邻接听起来像"产品把错误信息扔在别处"，但那个 `dy` 是**怎么算的**要先问：
+审计取的是 `host.querySelector('input…')`——宿主里**第一个**控件。方案表单有二十来个字段，
+提示节点写在表单末尾，于是它被拿去跟最上面的「需求」文本域比距离，`dy=1199px` 是这两点之间的
+真实距离，也是**这条规则从没被正确度量过**的证据。
+
+**两处都得改，不是只改尺子。** 尺子这边：拒绝语现在通过 `data-for` 说出它讲的是哪个字段，
+审计按那个字段量距离；没有 `data-for` 的消息另记为 `errorUnowned`，仍按"最近的控件"打印，
+但**不混进被断言的那个数**——把人口重新分类来让数字变好，是这条线不能踩的地方。
+产品这边：`showFieldRefusal(control, message)` 把同一个 `p.error[role=alert]` **移到**该字段所在
+`.field-row` 之后（共享 `.as-row` 的字段插到整行之后，避免把一个 `<p>` 塞进两个 label 中间），
+并聚焦该控件；清空时节点回到原来的槽位，所以**没有拒绝的静态版面一字节未动**。
+五处字段级拒绝（需求／记录人／输出类型／外部步骤／镜头行）现在都走这道门，工作区读数失败也点名 `#as-workspace`。
+
+**现读结果（同一次跑出来的件）：** `errors=8`、
+`errorAdjacent=8`、`errorNamed=8`、
+`errorUnowned=0`；被逐个造出来的字段拒绝
+[{"key": "1440:assistant#case1", "field": "as-objective", "dy": 24, "besideRow": true, "text": "请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。"}, {"key": "1440:assistant#case2", "field": "as-author", "dy": 24, "besideRow": false, "text": "记录人不能为空：方案要写明是谁写的。"}, {"key": "1440:assistant#case3", "field": "as-output-type", "dy": 24, "besideRow": false, "text": "输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。"}]——**每条都贴在它点名的字段旁边**，闸门原话 `Ran 4 tests in 77.915s OK`。
+两个要说清的读数：`dy` 三次都正好是 **24px**，那正是 `.field-row` 自己的下边距，也就是消息与字段
+之间只剩这一行本该有的间距；第三例落在 `as-output-type` 而不是预期的外部步骤，因为这份合成工作区
+里输出类型没有可读回的选项，`更多设置` 里的步骤行与镜头行两条本轮**没有**被造出来。
+
+**人口本身在这一轮两次跑里不相等，这条要说出来。** {"this_run": {"errors": 8, "named": 8, "unowned": 0}, "predecessor_run_on_disk": {"errors": 8, "named": 8, "unowned": 0}}：
+本次跑记到 **8** 个 `p.error`，脚本启动时盘上那一份记的是
+**8** 个。
+差别在方案详情／对比／反馈那三个面板态里那条提示**还在不在屏上**——`startEditing` 这一路现在会清空
+提示节点并把它收回原来的槽位，空节点没有盒可量，于是不再计入。两种人口下等式都成立
+（8=8），因为被断言的从来不是计数，
+而是"每一个被计上的消息都贴在自己点名的字段旁"加上"至少三条逐个造出来的字段拒绝"。
+**不稳定性登记为下一刀的活**：让每个态自己造一次拒绝，而不是依赖前一个态遗留的消息。
+
+**三条里只有第一条 `besideRow` 为真。** `记录人` 与 `输出类型` 共用一个 `.as-row`，消息按设计落在
+整行之后——落在两个 label 中间会把那一行的栅格拆开。所以 `besideRow` 在这份件里是**读数**，
+判据是那 24px 的距离；把它当判据会把一个正确的设计选择判成缺陷。
+
+**这条断言会咬在哪里。** 有人把某条拒绝写回 `formError.textContent = '…'` 而不点名字段：
+源头的"每条字段级拒绝都走这道门"当场红；有人移动节点时忘了把 `data-for` 一起设上：
+审计按 `errorNamed>=1` 与逐条 `data-for` 红；有人把消息留在表单末尾：植入行 1199px 的对照用例
+（`test_the_rule_convicts_a_row_that_is_far_from_its_field`）证明这种形状确实会被判违规。
+
+**仍未做，也不写成做了。** `knowledge+refusal` 那一族在这次走查里仍然是 `absent`
+（`#knowledge-create-submit` 不在被走的态上），这条和改之前一样被打印出来、没有被藏进通过数；
+本节的逐个造只跑在 1440 一个宽度上，量的是同一表单内部的相对距离；没有加 `scrollIntoView`，
+因为那是界面自己决定要不要滚动，不属于这条规则的证据。
+
+**顺手量到的一件别处的债（本轮不修，只登记）。** 为了确认这次改动有没有把文档里的行号指针挪歪，
+写了一把通用尺子，它先把**自己**暴露了：卷宗里的 `<file>:<N>` 有相当一部分写的是裸基名
+（`style.css`、`prompt_results.py`），按仓库相对路径解析根本找不到文件；而能解析的那些里，
+`shell.ts:5794` 指 toast 节点，现读 `id: 'toast'` 在 **9857** 行——**差 4063 行**，这是历史累积，
+不是本轮 `+29` 行造成的。仓库里**不存在任何行号指针闸门**（`ls scripts` 无 pointer/anchor 类脚本）。
+结论：行号指针已经腐到不能靠一次性重写来救，需要先有一张"指针→判据片段"的显式表；本节的 §5.69
+正文因此**只写符号名与实测数字，不写新的行号指针**。
+### 5.70 「错误紧邻字段」的第二族不是没做，是闸门一直在点一个不存在的东西
+
+**§5.62 修了人口，§5.69 修了对象，这一节修的是入口。** 知识那一族的拒绝态从被要求那天起就一直在报
+`absent`，而我上一轮把它写成"仍造不出来、已登记"。真相更好笑也更典型：闸门点名的
+`#knowledge-title`、`#knowledge-create-submit`、`#knowledge-outcome`**在这个路由上根本不存在**。
+`knowledgeFormPanel` 的 create 前缀是 `kb-new`，字段真名是 `kb-new-title` 一族；
+而它的提交按钮与状态区**连 id 都没写**（`el('button', {type:'button', class:'primary-btn'}, …)`、
+`el('div', {role:'status', 'aria-live':'polite'})`）。所以"揭示失败"从来不是产品没渲染——
+表单渲染了，我查的是不存在的名字。
+
+**改法两处，都在闸门侧。** `openRefusalState` 从"id 参数"改成"选择器参数"（那两个元素没有 id，
+按 id 的探针永远够不到），知识那一族先用路由自己的 `#kb-new` 把表单揭示出来，再按结构定位：
+线是 `#kb-form [role=status]`、清空字段是 `#kb-new-title`、触发是 `#kb-form .primary-btn`。
+**没有把 `[role=status]` 加进被判的人口**：那条拒绝本来就写成 `p.error`，已经在人口里，
+加进来会把同一个句子数两遍。
+
+**现读结果（本次跑写的件）。** `CT_REFUSAL_PROVED count=4`，被造出的族是
+["assistant+refusal", "knowledge+refusal"]（改之前只有 assistant 一族、count=2）；
+计数到的拒绝消息从 **8 条变成 12 条**，其中**点名对象的 8 条全部贴在字段上**
+（`errorNamed=8`＝`errorNamedAdjacent=8`），
+剩下 **4 条是没主人的复合消息**：知识表单那句一次点名三个字段
+（"标题、一句话用途和正文都必须填写…"），因此谈不上"贴在哪一个字段旁"，
+实测离最近的控件是 `"1440:knowledge+refusal p.error -> nearest dy=82px"`。
+
+**这里有一处必须说清的取舍，不是把断言调松。** 上一版的断言是 `errors == errorAdjacent`。
+它在当时成立，只因为人口里**还没有**无主消息；如果把知识那 4 条从计数里去掉，它照样"绿"。
+所以定罪面挪到包真正说的那一对——**消息与它点名的字段**——同时新加一条反向断言：
+`errors` 必须**大于** `errorNamed`，即那 4 条复合消息必须还在被数到，
+哪天它们从人口里消失，闸门直接红并把距离留在 `errorFarExamples` 里点名。
+**这条规则的满足状态因此是：字段级拒绝已达标并被判；表级复合拒绝未达标、已量出距离、已登记。**
+
+**顺带修掉我自己造的一次崩。** 无主消息取"最近控件"时我把 `reduce` 的种子写成 `null`，
+于是宿主里没有可画控件的第一个元素就让整个跑炸在
+`TypeError: Cannot read properties of null (reading 'getBoundingClientRect')`——
+非空集合才 reduce。这条不是"测试太严"，是尺子自己会死在边界上。
+
+**未做（不写成已做）。** 知识那句仍是"一句管三个字段"；要真做到每个字段旁各说各话，
+得让校验器按字段返回问题，那是产品形态的一刀，本轮不替它猜形状。
+`.view-hint` 那一族仍不带 `role=alert`（§5.62 记的无障碍缺口），本节的修没有触碰它。
+### 5.71 owner 审计 7 条逐条对回字节：第 1 条（P1 源码包不能重建安装包）确证，而且比审计说的更大
+
+**审计说的是什么。** owner 于 2026-10-26 在版本 `7671ec70` 上发来 7 条，第 1 条 P1：
+"pyproject.toml 的 sdist 遗漏 wheel 所需资源，实测 sdist → wheel 因缺 domain-packs 失败"，
+验收要求"从源码发行包开始，在干净目录构建 wheel、安装，再验证 GET/POST 接口；不能只测直接从仓库构建"。
+
+**先把审计自己说的话坐实。** 本轮现场重跑复现，报错逐字是
+`FileNotFoundError: Forced include not found: …/design-lab/domain-packs`。
+但审计低估了规模：`[tool.hatch.build.targets.wheel.force-include]` 声明 **71** 条仓内路径，
+旧的 sdist `only-include` 只覆盖其中 **17** 条——**54 条**在源码包里根本不存在
+（`design-lab/schemas` 50 条、`config` 3 条、`domain-packs`、`production/profiles`、
+`readiness`、`scripts/verify_domain_pack_v2.py` 等）。CI 一直绿，是因为那个作业
+`uv build --wheel` 直接从 checkout 造 wheel，**从没碰过它自己发布出去的源码包**。
+
+**改法两处。** ① `only-include` 从"逐条抄 wheel 的清单"换成覆盖全部 force-include 源的**目录根**，
+并保留 2026-09-21 那条约束（`apps/workbench` 仍只列被服务的三个文件，node_modules 不进包）；
+`design-lab/tests` 也进包，因为验收用的三段链测试就住在那里——一个不能从自身跑验证的源码包不是源码包。
+② 新增 `design-lab/scripts/verify_sdist_packaging.py`：从 pyproject 自己重推"wheel 要的每条源都必须
+被 sdist 的某个根覆盖"，三种失败形状各自点名（wheel 指向仓库里没有的路径、sdist 列了不存在的根、
+列了又被 exclude 吃掉），另有 `--build` 模式真跑一遍 sdist→解包→wheel。这把闸进聚合。
+③ CI 的 `Clean wheel install + Workbench launch gate` 第一步改成
+**先造 sdist、解包、从解包树里造 wheel、装那个 wheel**，并把两个来源的 wheel 摘要当场比对。
+
+**本轮实测读数（这份 receipt 就是这次跑出来的）。** 源码包 `design_lab-0.1.0a0.tar.gz` 3,980,242 B；
+从源码包重建的 wheel **1,244,991 B、413 个成员、内容摘要 34e9969dd470d1e0**，
+从仓库直接造的 wheel **1,242,808 B、413 个成员、内容摘要 34e9969dd470d1e0**——
+**成员与每个成员的字节完全一致**，所以"从源码重建"不是第二次不同的构建。
+一句自我修正写在这里：我最初把断言写成"两个 .whl 文件的 sha256 必须相同"，实测**容器字节确实不同**
+（`c2382b42…` 对 `a9c86329…`），但逐成员比下来成员集合、每个成员的内容、zip 元数据全都一致——
+差的是压缩器的输出流。那条断言测的是"第二次构建用的 deflate 参数"，不是发行物，
+所以判据换成成员集合 + 内容摘要；这既没放松要求（内容照样逐成员比），也不再要求一个与语义无关的字节相等。
+闸的读数：`SDIST_PACKAGING=OK wheel_sources=71 covered=71 missing=0 sdist_roots=17 mode=static`；`SDIST_PACKAGING=OK wheel_sources=71 covered=71 missing=0 sdist_roots=17 mode=build`；`test_sdist_packaging` 九条用例 `Ran 9 tests in 0.092s OK`
+（其中四条是植入：删掉一个 sdist 根、wheel 指向不存在的路径、sdist 列了不存在的根、exclude 吃掉列出的源）。
+按验收口径对**已安装布局**的三段独立跑（现装现跑，读数直接来自这三段自己的输出）：
+{"test_workbench_launch": "Ran 3 tests in 1.935s OK", "test_standalone_chain_http": "Ran 6 tests in 5.926s OK | GET_SWEEP layout=installed routes=50 reads=54 answered=49 verdicts=5 unmeasured=2", "test_installed_write_surface": "Ran 6 tests in 4.888s OK | POST_SWEEP layout=installed rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1"}。
+
+**我自己在这条上踩到的一次假红，写下来免得下一轮误判。** 第一次我把三段合在**一条** `python -m unittest` 里跑，
+结果 12 条红——逐字是 `AssertionError: 'site-packages' not found in (…'src', 'design_lab', '__init__.py')`。
+那不是产品问题：`test_workbench_launch` 会把 checkout 的 `src` 放进 `sys.path`，
+后面两个模块的"必须跑在已安装布局"守卫因此正确地拒了。**CI 是把三段各跑一步的**，分开跑本机也全绿。
+一次调用方式造成的红，不能报成"修好了 12 条缺陷"。
+
+**其余六条的核验状态（未做完的不写成做完）。**
+第 2 条（supersedes 可分叉）读码确证：创建路径在 `knowledge_library.py:541-546` 以
+`KNOWLEDGE_SUPERSESSION_CONFLICT` 拒绝第二个后继，导入路径 `:647-658` 只做格式与存在性校验后无条件
+`INSERT`；库层无 UNIQUE/CHECK（`…knowledge-library-v1.sql:32-39`）；投影响应
+`superseded_by` 是 `string|null` 且 `setdefault` 取**第一条**（`:402-405`）；全仓无任何测试提到
+`KNOWLEDGE_SUPERSESSION_CONFLICT`。第 6 条确证：对比度闸的植入反例用例不带 `CT_OUT`，与基线共用
+`workbench-contrast-gate.json`（`test_workbench_contrast_gate.py:130/:449`），而 mjs 在失败退出前
+就 `writeFileSync`（`audit_workbench_contrast.mjs:1695` 早于 `:1800/:1848`），且报告里没有 mode/版本
+身份字段——归档到的可能就是那枚故意红的件。第 7 条的"打印路径崩"确证于
+`scripts/audit_workbench_ui.py:171`（`relative_to(REPO)` 对仓外目录抛 ValueError），
+同样形状还在 `scripts/run_design_review_plugin.py:279/:161`。
+第 3、4、5 条**本轮尚未复现**，不在此声明完成。
+
+**边界。** 旧 34 项状态一字未改：本行证据挂在语义主人 `DL-FINAL-T05`（"能力库安装资源与干净wheel核心链"）下，
+它的 `state` 仍是 `FROZEN_DEFERRED`——**owner 这份审计授权的是修这一处缺陷，不是把那张任务重新派工**；
+要改状态需要另一次明确授权。审计里"不能把本地 3294 通过／54 失败合并成全量复测通过"这条也照写在此：
+那 54 条失败本轮没有一并复现，本轮只声称上面点名的读数。
+### 5.72 owner 审计第 4 条（`doctor --task` 确定性崩溃）已修，并且把这一类缺陷做成了一把全仓的尺
+
+**复现先于修改。** 修复前两条输入都崩，逐字是
+`UnboundLocalError: cannot access local variable 'resolve_paths' where it is not associated with a value`
+（`src/design_lab/runtime/doctor.py:161`），**有效 id 与无效 id 一模一样地崩**——审计用"确定性"这个词是准的。
+
+**根因是一行局部 import 的作用域语义。** `main()` 的 `--paths` 分支里写着
+`from .paths import PathPolicyError, resolve_paths`；Python 的局部绑定是**整个函数级**的，
+于是排在前面的 `--task` 分支读 `resolve_paths` 时读的是一个尚未绑定的局部名。
+修法就是把 `PathPolicyError` 提到模块级那行 import（第 14 行本来就已经导入 `resolve_paths`），
+函数里那行局部 import 删掉。**为什么它一路绿着进仓**：`test_doctor.py` 原来只测 `probe_tools()`，
+没有任何用例走过 `--task` 分支。
+
+**约定格式现在有三条钉住。** 无效 id → `TASK_PREFLIGHT_FAIL` 且 `reason` 明写期望形状
+`'<TASKPACK>::<TASK_KEY>'`、退出码 2；有效 id → 返回合同封套
+`schemaVersion=design-lab/task-resource-preflight/v1`（这个封套**没有** `status` 字段，
+`status` 只属于拒绝路径——我第一版测试就是照这个假设写错而红了一次）；`--paths` 照旧可解。
+
+**比修这一处更值钱的是第二把尺。** 新增 `test_local_import_shadowing.py`：枚举 `git ls-files` 里的
+受版本控制 Python 文件，判"同名在**同一函数作用域**内被后面的局部 import 重新绑定、而前面已被读取"，
+且该名字在模块层已有绑定——正是这枚缺陷的形状。三条边界写死以免变成噪声机器：
+嵌套函数/lambda 里的读取**不定罪**（那里的名字在调用时才解析，是另一个问题）、
+形参不算（它本来就是局部名）、人口从 git 索引现数而不是手抄清单。
+**它不是恒真的**：对修复前的 `doctor.py` 定罪 `[[161, "main", "resolve_paths", 186]]`，
+对修复后的文件返回 `[]`；
+全仓现有命中 **0**。样本植入还额外证明"读在前、绑在后"这个方向性成立。
+
+**本轮实测。** `test_doctor.py: Ran 5 tests in 0.206s OK`、`test_local_import_shadowing.py: Ran 4 tests in 1.216s OK`；
+`test_doctor_evidence` 9、`test_doctor_tool_bindings` 12、`test_migration_preview` 11、
+`test_model_manifest` 22（本机 1 skip）、`test_model_selection` 8 全部 OK；
+聚合 `VERIFY_DESIGN_LAB=OK total=77 failed=0`；投影新鲜度 25 条 OK。
+
+**审计摄入进度（写清楚哪些还没做）。** 第 1 条（sdist）见 §5.71；第 4 条本节；
+第 **2、6、7(b)** 条已对回字节确证但**未修**（引用点在 §5.71 末段）；
+第 **3** 条（workbench.ts 响应头之后就清计时器，慢正文越过 750ms）与第 **5** 条
+（知识表单把多个字段的问题合成一句）**本轮尚未复现**，不作完成声明。
+旧 34 项状态一字未改：本行证据挂在语义主人 `DL-FINAL-T04`「机器配置、生成器、校验和CI同步」下，
+它的 `state` 仍是 `FROZEN_DEFERRED`——审计授权的是修这处缺陷，不是把那张任务重新派工。
+### 5.73 owner 审计第 2、3、5、6、7(b) 条：五处已修，每处都先在旧字节上红过一遍
+
+本轮把审计里工程可完成的五条做完，每条的验收方式都是同一件事：**修改前的字节必须被同一套用例判红**。
+一条从来只在修好之后跑绿的测试，什么也没证明。
+
+**第 2 条 · 知识 supersedes 可以分叉。** 复现属实，且不对称的位置很具体：`create()` 检查
+"这条是否已被替代"，`import_entry()` 只检查 id 形状与存在性，然后直接 INSERT——于是 UI 拦得住的分叉，
+导入路线一条就能写进去。读侧再把痕迹藏起来：`_statuses()` 用 `dict.setdefault` 配一条**无序**扫描，
+库里两条后继时它显示先回来的那一条。修法分四层：两条路线改调用同一个
+`_supersedes_guard()`（拒绝话术一致，并点名"已被哪一条替代"）；检查与写入包在
+`BEGIN IMMEDIATE` 里——读后再判的锁外检查只是"可能性"，并发用例在旧字节上跑出的正是
+`['wrote','wrote']`；状态 SQL 里加 `knowledge_entry_one_successor` 触发器，让**绕过应用层的写入者**
+也被数据库拒绝（该用例直接 INSERT，故意不走那两条路线）；扫描改成 `ORDER BY created_at, entry_id`，
+这样历史库里已有的分叉仍然可读，但每次读都给出同一个后继，而不是随 SQLite 心情。
+本轮实测：`test_knowledge_library.py: Ran 26 tests in 5.483s OK`；对修复前提交 `71aff01b` 的同一套用例判红
+`Ran 5 tests in 0.579s FAILED (failures=5)`。
+
+**第 3 条 · 请求超时与取消管不到正文。** `api()` 的 `finally` 在响应头到达时就 `clearTimeout`
+并摘掉两把取消监听，所以"答得快、正文慢慢滴"可以无限越过预算，切页也无法取消，写丢了正文落进一条
+无类错误。现在头部与正文在同一个 try 里，三种结局仍然可辨且各自动作不同：慢正文→读取超时（无副作用，
+可重试）；正文期切页→页面已切换；写丢了正文→`outcomeUnknown`「结果待核对」，禁止不看读回就重发。
+三条用例都带**看门狗**：无人管辖的实现要判红，而不是把测试挂死——挂死既测不出回归，也会被 CI
+当成环境噪声。第一条反证跑原本报 `rc=0`，那是**我自己的跑法在谎报**：`run_appshell()` 硬编码返回 0
+而从子进程取码，同时脚本没有断言"换源码这件事真的改了 bundle"。补上"bundle 摘要必须变化"与
+"只有修复版才有的那句话必须消失"两道见证之后（本轮：5cd4cc19598a -> bd048fe282c3 and it lost "答复在读取过程中被取消"），
+旧 bundle 判红 `PROVED: all 3 body-phase cases are non-vacuous -- each one is red on the pre-fix bytes and green on the fixed ones.`。
+
+**第 5 条 · 知识表单把多个字段的问题合成一句。** 原句「标题、一句话用途和正文都必须填写」一次说三个框，
+填掉两个之后屏上仍是同一句话，而且它写在面板末尾、离任何输入框都有半屏；导入路线把
+「来源 ID」和「来源版本」也同样合成一句。现在一个空字段一条说明，`data-for` 点名自己的字段、
+`aria-describedby` 让读屏进框就听见原因、光标交给第一条。位置不是"行之后"而是**行之内**：
+`.field-row` 是单列 grid，而表单容器 `.two-col` 是**两列** grid——插在行之后就落进右边那一格，
+变成挂在别人家字段旁边的错误。浏览器尺 `walkKnowledgeFieldRefusals()` 把这一族按画布上量：
+`errors=28 named=24 namedAdjacent=24`，
+案例 `4` 条知识 + `3` 条助手，`bad=0`，
+知识族每条 `dy` 实测 [18, 18, 18, 18]。
+**同时把测试自身的一处缺陷改掉**：`FieldRefusalsLandOnTheFieldTheyName` 原先断言
+`errors > errorNamed`，那是在**要求不具名的合并提示继续存在**——把它修好反而会让闸门变红。
+现在守的是人口不许缩小（具名数不少于被激发的案例数、具名是不具名的子集），不再守住缺陷的形状。
+
+**第 6 条 · 审计回执被反证覆写。** 基准跑与"故意判红"的反证跑共用同一个
+`workbench-contrast-gate.json`，而 CI 的 `Upload E2 evidence artifact` 是 `if: always()` 整目录上传，
+谁最后写谁就是归档件——归档里可能是那条刻意的红。反证跑现在写自己的
+`workbench-contrast-gate-enforce-red.json`，两份回执各自带上 `report.run`
+（`{"palette": "design-lab", "scheme": "dark", "widths": "1440,1920", "specEnforce": false, "gitSha": "022c5a9bd989bc4f1b57af7936167cb8656bf009", "productFails": 0, "plantedControls": 368}`），
+断言两边互不相同：基准 `specEnforce=false`、反证 `specEnforce=true widths=1440`。
+另外把规则本身做成可判红的尺：任何改了配置（主题/宽度/enforce）却没写自己文件名的
+`_run_gate` 调用都会定罪，删掉反证那一行 `CT_OUT` 的植入样本必须被它抓住。
+诚实边界：**这一类覆写全仓只此一处**，但人口不是用我第一版写的那条 grep 数的——
+`grep "assertNotEqual(code, 0)"` 匹配不到跨行调用（对比闸那条就写成
+`assertNotEqual(code, 0,\n ...)`，命中的反而是无关的 `test_release_preflight.py`）。
+可复现的探针对是 `grep -rnE "assertNotEqual\(.*,\s*0" design-lab/tests/*.py`：**11 处断言、跨 8 个模块**，
+其中只有对比闸的反证会把回执写进 CI 上传的 evidence 目录（`test_capability_library_clean_install.py:247`
+与 `test_release_preflight.py:470` 判的是子进程退出码，不落回执）。
+motion / theme-affordance / theme-geometry 三个闸门共用"单一路径"的形状但**没有第二个写入者**
+（`design-lab/tests/test_workbench_motion_gate.py:100`、`design-lab/tests/test_workbench_theme_affordance_gate.py:106`、`design-lab/tests/test_workbench_theme_geometry_gate.py:103`——三处各自现读到那一行写的就是`report_path = evidence / '<本闸门自己的报告名>.json'`，逐字核过才算点名到路径），
+本轮不改动它们，只登记。**教训记进记忆**：一条匹配不到的探针给出的"0/1 命中"不是证据，
+只是探针自己在说空话——这与 §5.71 那条"外部工具零发现不等于证明"同源。
+
+**第 7(b) 条 · 审计脚本在打印自己路径时崩。** `audit_workbench_ui.py` 扫完、写完 JSON，再对打印行做
+`out_path.relative_to(REPO)`，`--out`（或 `E2E_EVIDENCE_DIR`）指向仓外任何目录都在**成功测量之后**
+抛 ValueError；`run_design_review_plugin.py` 里同样的写法有两处。`display_path()` 在仓内仍给相对形式
+（现有钉住的读数不受影响），仓外给绝对形式，永不抛。`test_report_path_display.py: Ran 6 tests in 0.009s OK`，其中一条用例复现原式确实抛
+ValueError，另有一条把旧写法植入回去证明守卫会定罪。
+
+**顺带修好的一处测试基建（不改产品行为，但决定上面几条能不能被证伪）。**
+`apps/workbench/tests/appshell.mjs` 的替身此前没有 `parentNode` / `nextSibling` / `insertBefore` /
+`closest` / `getAttribute` / `id` 存取器。`closest()` 缺位会让 `control.closest('.field-row') ?? control`
+悄悄退化成"贴到输入框自己身上"，`id` 缺位让 `if (control.id)` 在替身里永远走 false 分支——
+也就是说"按字段拒绝"这一族在 DOM 测试里只能证明"放了个节点"，证不了"放在哪个字段里"。
+补上之后 `WORKBENCH SMOKE: all checks passed`、`APPSHELL REGRESSION: all checks passed`。
+
+**本轮实测汇总。** `test_knowledge_library.py: Ran 26 tests in 5.483s OK`、`test_report_path_display.py: Ran 6 tests in 0.009s OK`、`test_local_import_shadowing.py: Ran 4 tests in 2.344s OK`；
+node 三套 `WORKBENCH SMOKE: all checks passed` / `APPSHELL REGRESSION: all checks passed`；
+对比闸门 `7 条按字段案例 bad=0`，激发成功的拒绝家族
+`["1440:knowledge+refusal", "1440:assistant+refusal", "1920:knowledge+refusal", "1920:assistant+refusal"]`；
+`HEAD=022c5a9b`。
+
+**仍未做完的（不作完成声明）。** 第 7 条前半（兼容 Python API 的会话关联响应与持久化来源是否 UI/HTTP
+可达）本轮只完成定位、未见结论（这一句由 §5.74 取代）；第 7 条后半的**容量**两项：本轮现数 `src/design_lab/http_service.py`
+里有 **17 个 `_list_*` 处理器**，其中哪几个真正无界、以及各被界面调用几次，读数在 **§5.66** 那张
+`LISTROWS` 现读表里（`list_routes=18 bounded=10 without_limit=8`，逐路由给 `client_calls` 与不封页的
+理由；本节没有重测那份表，故不在此复述为"本轮实测"）；原图读取同样是容量风险。
+**CSV 安全模式属于待决策项**，不是工程缺口，等 owner 的一句话而不是我的实现。
+旧 34 项 `FROZEN_DEFERRED` 一字未改：本轮证据分别挂在语义主人 `DL-KB-02`（知识可写面）、
+`DL-KB-06`（三主入口外壳）与 `DL-FINAL-T04`（机器配置、生成器、校验和 CI 同步）下，
+它们的 `state` 不因审计授权修缺陷而解冻。
+### 5.74 owner 审计第 7 条前半（会话关联的响应与持久化来源）：缺陷成立，位置确定，今天无人可达
+
+§5.73 末段写的是"本轮只完成定位、未见结论"——本节就是那个结论。
+
+**分叉是真的，而且成因很窄。** `link_session()` 命中已有链接时返回的是**调用参数** `source_system`，
+而那一行是**写一次**的：没有 `UPDATE` 语句，`UNIQUE(job_id, session_ref)` 又让第二次 INSERT 进不来
+（`design-lab/schemas/state/design-lab-state-creative-v1.sql:116-124`）。于是"用另一个来源重新链接同一对"
+会把答复写成新来源，库里仍留着旧来源——响应与持久化就此对"这条作业是谁关联的"给出两个答案。
+修法两处：答复改读**那一行记的值**；与库里记的值相矛盾的重新链接**直接拒绝**并点名两侧来源，
+因为这类调用者是问错了出处，而不是做了一次幂等空操作。
+
+**可达性用断言记下来，而不是用我的话记下来。** 人口从 `git ls-files` 现数：服务模块
+（`src/design_lab/**` 全部 `.py`，只排除 `session_link.py` 自身与 creative 包的再导出）、
+工作台源码（`apps/workbench/**` 的 `.ts`/`.html`）、以及工作流文件——共 **126 个文件**，
+其中**没有一个**提到 `session_link` 或 `link_session`。另有 15 份文件在**文字或清单里出现**这个模块名——
+`reports/current/**` 的投影、`design-lab/config/current-report-index.json` 这类登记索引、
+`scripts/deepseek_test_gate_report.py` 与 `scripts/deepseek_worktree_reconciliation.py` 两份 CI 记账、
+它自己的测试与迁移普查、以及 `docs/history/**` 的历史快照——它们是**关于**这个模块的记载，不是**通向**它的通路：
+只列名字、列迁移表、做账，谁也不会因此调用 `link_session`。所以这处缺陷是**未接线面上的潜在缺陷**，
+本轮证据等级是模块级 E2，
+不是真实产品流程的 E3；接线那天这条测试变红，欠读回的是那个人，不是替我把我的断言继承过去。
+
+**本轮实测。** 修复前 `Ran 10 tests in 1.107s FAILED (failures=1)`，失败原因逐字 `AssertionError: CreativeError not raised`；
+修复后 `Ran 10 tests in 0.997s OK`。反证走的是同一套用例打在 `022c5a9b` 的 worktree 上，跑完按 sha 还原。
+### 5.75 本轮的 CI 账：在承载这些字节的提交上读回，而不是借用前一次的绿
+
+**run 40334885313（event=pull_request，head `768f3fac`）conclusion=success。**
+非 skipped 的作业全部 success（10 个），逐字读数取作业自己的日志：
+
+```
+PYTHON_TESTS_SHARDS_START shards=3 expected_tests=3412 plan=none (index %% n)
+PYTHON_TESTS_SHARD_RESULT shard=1/3 exit=0 tests=1092 wall_seconds=555.422 outcomes={'PASS': 1080, 'SKIP': 12}
+PYTHON_TESTS_SHARD_RESULT shard=2/3 exit=0 tests=1100 wall_seconds=79.843 outcomes={'PASS': 1090, 'SKIP': 10}
+PYTHON_TESTS_SHARD_RESULT shard=3/3 exit=0 tests=1220 wall_seconds=374.739 outcomes={'PASS': 1215, 'SKIP': 5}
+PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=0 unexpected=0
+BROWSER_E2E ran=44 skipped=0 failed=0
+```
+
+`PYTHON_TESTS_UNION` 那条把"分片跑过的集合＝发现集合"钉住：`expected=3412`；相对本会话在
+run 40315188651（head `5d603fe6`，就是那条漂移登记红里读出来的同一行）读到的 **3397**，
+本轮净增 **15 条**（知识分叉、对比闸静态尺、报告路径显示、会话关联四组），
+所以这些用例在 CI 里被执行过，不是只在我本机跑过。浏览器套件
+`BROWSER_E2E ran=44 skipped=0`——no-skip 是
+`verify_browser_e2e_ran.py` 的硬条件，任何 skipped 直接把作业判红，所以这一行的 skipped=0 才是
+"按字段拒绝那三条断言真的在真 Chromium 里量过"的证明。
+
+**为什么这一节值得单独写。** 本仓库 §5.59 曾经"CI 已绿"引的是变更**之前**的 SHA，被 §5.61 追正。
+本轮同样差点重犯：`83448333` 的 PR run 在我推最终 head 时被 cancel-in-progress 取消，
+而它的 push run 其实只跑了轻闸（11 个重作业全是 `skipped`）——**push run success 不等于套件通过**。
+所以结清的对象只能是 `fc9c8b0d`→`768f3fac` 这条 PR run。
+
+**第一次全量尝试是红的，红在我自己的测试里。** run `40331019135`（head `fc9c8b0d`）
+`conclusion=failure`：分片 1/3 与 3/3 绿，2/3 两条 FAIL，
+逐字 `PYTHON_TESTS_SHARD_RESULT shard=2/3 exit=1 tests=1100 wall_seconds=79.637 outcomes={'FAIL': 2, 'PASS': 1088, 'SKIP': 10}`，命中的用例是
+`test_report_path_display.ReportPathDisplayTests.test_an_out_of_repo_path_is_printed_absolutely_and_does_not_raise, test_report_path_display.ReportPathDisplayTests.test_the_expression_that_crashed_still_crashes_on_the_same_input`；并集本身仍然完整：`PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=0 unexpected=0`。
+成因不是产品：the two cases built their "outside the repository" path with `tempfile.TemporaryDirectory()`. The runner sets TMPDIR inside the workspace, so the fixture landed under the checkout, `display_path` correctly answered a relative path and the raw `relative_to` correctly did not raise. The product was right and the test premise about its environment was unverified.
+本地用 `TMPDIR=<仓内目录>` 复现出同样的两条红，修法是让"仓外路径"从 checkout 自己的位置推出来
+并把前提写进断言（前提一旦被环境破坏就在 setup 处响亮失败）；顺带把那句"有没有漏回仓库前缀"
+从**子串**比较改成**路径分量**比较——旧写法会被任何以仓库目录名开头的兄弟目录骗过，
+这正是一个能被拼写骗过的检查不该继续存在的理由。修后两种 TMPDIR 下都 `Ran 6 tests OK`。
+**同一 head 上的 browser E2E 作业是 `success`**，verify_browser_e2e_ran.py returns 1 on ANY skipped test and on any module that discovers 0 tests, so that job being green at the same head is proof that the contrast gate -- including walkKnowledgeFieldRefusals and the two new static guards -- ran with skipped=0 on the Linux runner, not that it quietly sat out.
+DOM 那一侧同样不是在 Windows 上自说自话：`canonical-verify.yml:260 runs `pnpm --filter @design-lab/workbench test:unit`, i.e. `vite build && node tests/unit.mjs && node tests/appshell.mjs && node tests/shape-notice-coverage.mjs`, inside job `workbench-gate` (display name "Workbench strict-TS product gate"). That is where the three body-phase watchdog cases and the per-field knowledge assertions execute off Windows.`
+该作业在同一 head 也是 `success`。
+
+**那一次红同时反过来证明了一件事：本轮新增的 15 条用例确实被 CI 跑到过。**
+`PYTHON_TESTS_UNION=OK expected=3412 distinct=3412 ran=3412 duplicates=0 missing=0 unexpected=0`，而本会话早先在同一条作业读到的上一次并集是 **3397**
+（run 40315188651，head `5d603fe6`，就是那条红里读出来的同一行）——差额 **15** 正好等于
+知识分叉 5 + 报告路径 6 + 对比闸静态尺 2 + 会话关联 2。也就是说除那两条之外，
+其余 13 条（含 `BEGIN IMMEDIATE` 双写者并发、`git ls-files` 枚举出的"无人可达"断言、
+以及触发器绕过应用层直插）在 **Linux runner** 上也已经过一次绿，
+不只是我这台 Windows 机器上的读数。
+
+**自查出来的一处小不一致，登记而不是顺手改。** 同一条"一个条目只能有一个后继"的规则现在有两句话术：
+应用层共用校验（`src/design_lab/knowledge_library.py:516`）会**点名**当前那个后继编号，而给抢锁失败者的
+兜底（`:592`，把触发器的 `IntegrityError` 翻译成同一个 409）只说"已被另一条替代"、没把编号带出来。
+状态码与 code 一致，差别只在后者少一个可操作信息。本轮**不在这趟推送里改产品字节**——§5.75 记的是
+已经过 CI 的那个 head，往里塞未验证的改动就是 §5.59 那次"引了变更之前的 SHA"的重演。
+下一刀：兜底路径补一次查询把后继写进 `detail`，并加一条真的抢锁输一次的用例。
+### 5.76 收口脚本自己造出的红：回执写进了账本，文件却没进提交
+
+**CI 是唯一的见证人，这本身就是缺陷。** run 40338742258（head `4dc59349`）红两个作业步骤，逐字是
+`VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=57 failures=1`、
+`ERROR: evidence-projection: NOTHING_TO_COMPARE … ROUTE_REFUSED /api/evidence-projection -> 500
+{'error': 'EVIDENCE_LEDGER_REJECTED', 'detail': ["[Errno 2] No such file or directory:
+'/home/runner/work/DESIGN-LAB/DESIGN-LAB/design-lab/evidence/current-execution/task-artifacts/
+kb-20261026/dl-final-t04-exact-sha-ci-matrix-20261026.json'"]}`、
+`CURRENT_EXECUTION=FAIL [Errno 2] …` 与 `VERIFY_DESIGN_LAB=FAIL total=77 failed=2`。
+
+**成因在工具，不在数据。** §5.75 那枚回执由收尾脚本与账本行同一次写出，但脚本暂存的是
+`git status` 里 ` M` 的路径——**新文件是 `??`**，于是账本行进仓、它指的文件留在工作树。
+本地永远看不出问题（文件就在盘上），干净 checkout 里它不存在。这条正是本仓闸门自己的读法：
+它们按账本重算 tracked 工件的摘要。修法三层：
+① 把 `??` 纳入收尾脚本的暂存集，并在推送前加一道"账本里每一条非 `.project-local` 工件必须
+在 git 索引里"的硬检查（本轮 316 条现数全在）；
+② 把这条检查落进测试：`test_evidence_artifact_presence` 新增两条——全量扫一遍账本、外加一枚
+植入（指一个不在索引里的工件路径必须被定罪，同时 `.project-local/**` 的豁免不许扩大成红）；
+③ 回执本身补提交在 `53cdc7eb`。**为什么不在本地先发现**：因为"存在"与"被交付"是两个不同的
+谓词，而我此前只测了前者。
+
+**本轮实测。** `Ran 7 tests in 5.662s OK`；聚合在最终字节上重跑见 §5.75 之后那一次推送的结论。
+### 5.77 §5.76 里我自己登记的那条小不一致已修：兜底拒绝也点名后继
+
+规则「一条条目最多只有一个后继」现在有两句完全一致的拒绝话术。共用一个格式化函数
+`_superseded_detail()`，应用层校验与 `sqlite3.IntegrityError` 兜底都走它；此前兜底只说
+"已被另一条替代"，把最有用的那件东西——**是哪一条**——留给了守门的那句。最需要编号的恰恰是抢锁输掉的那个
+调用者，因为它以为自己还是第一个。
+
+**用例是刻意走到兜底的，不是等竞速等来的**：把 `_supersedes_guard` 临时置空再写第二次，让数据库触发器成为
+唯一拦得住它的东西；断言里既要求 409/code 一致，也要求 `detail` 出现那条后继 id，还要求两条话术逐字相等，
+最后回读库里仍然只有一个后继。**反证**：同一用例打在修改前的 `ac97cc71` 上判红
+（`AssertionError: … not found in … already superseded by another entry`），在修复后的字节上
+`Ran 27 tests in 3.246s OK`。
+
+这一条不新增尺子，只把上节自己记下的债还掉；容量项与 CSV 安全模式仍按 §5.73 的说法归 owner
+（那句"待决策"写在 §5.73 的「仍未做完的」段里，§5.76 谈的是回执未提交，没有做过这项归属）。
+
+### 5.78 收口面自己被人审了一遍：三处指错的节号、一个在散文里腐烂的数，和一次仪器冤枉无辜脚本
+
+**这轮新写的三处交叉引用全都指错了地方，全部按"读目标"改正（提交 `f493ad2f`）——其中一处是上一轮那次
+"已验证"的改正本身。** §5.73 把逐路由 `LISTROWS` 现读表写成在 §5.67，实际在 **§5.66**：那节正文就是
+`LISTROWS list_routes=18 bounded=10 without_limit=8` 加每条路由的 `client_calls`，而 §5.67 是几何那把尺的
+色板表；接续提示词抄了同一个错数。上一轮那条提交信息写着「Verified by reading the target: 5.67 holds the
+table」，**它读的是另一节**——凭印象的"已核验"比没有核验更危险，因为它让下一个读者不再检查。§5.75 把上一次
+并集读数写成"§5.72 那次记下的 3397"，而 §5.72 全文没有这个数；真实出处在 run 40315188651（head `5d603fe6`）
+Python gate 作业日志里逐字的 `PYTHON_TESTS_UNION=OK expected=3397 distinct=3397 ran=3397`，也正是同一次作业里
+`test_evidence_artifact_presence…test_tracked_artefacts_of_the_real_ledger_all_read_back` 定罪漂移钉 65→66 的
+那一次，所以现在引用点名到 run，不再挂在一节没有说过的话上。§5.77 把"容量项与 CSV 归 owner"推给 §5.76，
+而 §5.76 讲的是回执没提交，那句归属只在 §5.73 的「仍未做完的」段里。
+
+**一个数在散文里腐烂，而登记面对它的条目一直是对的。** `UNBOUNDED_REGISTER` 现在 8 条，仪器也报
+`without_limit=8`（`test_the_unbounded_set_is_exactly_the_register` 钉住这个等式），但 §5.66 与接续提示词都还
+写"其余 7 条"，`test_workbench_weight.py` 的类文档写"Nine of eighteen"——`_list_prompt_results` 套上信封那一刻，
+这三句就被留在原地，而**没有任何一把尺读这三句**。修法不是把 7 改成 8 了事：给
+`scripts/verify_documented_counts.py` 加 `unbounded_routes()`，用文本切 `UNBOUNDED_REGISTER = {` 到闭合 `}`
+之间的一级键（不 import——这条闸在 node 作业的步骤里跑，那里没有 Pillow，约束是 §5.57 那次红留下的），
+再加一条 CLAIMS，让提示词那句必须逐字等于 `**8 条无界路由**`。**先红后绿**：claim 加上、散文还说 7 的时候
+`DOCUMENTED_COUNTS=FAIL claims=21 failed=1`，定罪行逐字
+`FAIL docs/current/NEXT-AGENT-PROMPT.md: prose says nothing, measurement says 8`；散文跟上之后
+`DOCUMENTED_COUNTS=PASS claims=21 route_views=24 cli=24 adapters=30 routes=88`。类文档那句数字被删掉而不是
+改成 8——一个由闸负责现数的量，不需要第二份没人看的副本。复验：`Ran 22 tests in 2.821s OK`（weight 模块）、
+`Ran 6 tests in 4.987s OK`（claim honesty 闸）。
+
+**顺带纠了一处"把邻居的理由抄给这一条"。** §5.66 原来写 `_list_rights/_list_jury/_list_knowledge_candidates`
+"是 Human Gate 与读回面——截断即隐藏决定"，但登记面自己给 `_list_jury` 的理由只是
+`no bound and no measurement yet`：Human Gate 那句只属于 `_list_rights`，读回那句只属于
+`_list_knowledge_candidates`。**改写一张理由表要逐行回表，不能照邻居的措辞。**
+
+**owner 决策与工程项，这次按登记面逐条分开（提交 `2048cf2e`）。** 之前接续提示词把第 7 条剩余两项一句话推成
+"未结且不是工程缺口"，等于把混合面整块交给 owner。按 `UNBOUNDED_REGISTER` 的原文分：`_list_design_systems`
+由四名注册表天然有界（**没有活**）；`_list_or_read_assets` 成本在每行重校验（实测 199.59 ms 里 path+stat 59.0%、
+两次图像解码 30.5%、hash 2.4%），**分页修不了**，真修法是写入时物化 `width/height/media_type`，属带迁移＋
+precheck＋合同行的 state-schema 单独一刀；`_list_projects`（逐项目汇总）与 `_list_token_documents`
+（空值语义须保列表）是**修法各不同的工程项**；`_list_jury`、`_list_research` 标着 `NOT MEASURED`，
+**先补数再谈修法**；只有 `_list_rights`（分页即隐藏 Human Gate 决定）与 `_list_knowledge_candidates`
+（导出是读回，截断即误报曾经 offered 过什么）真的要 owner 裁"封不封页"。CSV 安全模式继续是待决策项，与容量无关。
+
+**仪器冤枉了一次无辜脚本，方向值得记。** 我在聚合闸（77 项）还在跑的时候编辑了同一份提示词，
+`verify_projection_freshness` 用"跑前跑后各取一次哈希"的比较看到字节变了，就把罪名给了它最后运行的那支脚本，
+逐字 `FRESHNESS-CHECK-WROTE scripts/deepseek_registry_ssot.py --check modified
+docs/current/NEXT-AGENT-PROMPT.md`。树静止后单独重跑同一把闸：
+`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21 receipts=7 excluded=0 findings=0`，且跑完 `git status`
+干净——既不是写侧缺陷也不是数据问题，是我在同一棵树上边跑边改，而**这把闸的归因方式（"最后跑的那支"）
+不足以定罪**。边界写清楚：并发期间看到的任何红都是未归因的，先让树静止再重测那一项。
+
+**§5.76 末句那个前指现在有了名字。** run 40346676032（event=pull_request，head `5580f184`）
+**conclusion=success**，逐字取作业自己的日志：
+
+```
+PYTHON_TESTS_SHARDS_START shards=3 expected_tests=3415 plan=none (index %% n)
+PYTHON_TESTS_SHARD_RESULT shard=1/3 exit=0 tests=1094 wall_seconds=412.772 outcomes={'PASS': 1082, 'SKIP': 12}
+PYTHON_TESTS_SHARD_RESULT shard=2/3 exit=0 tests=1101 wall_seconds=63.216 outcomes={'PASS': 1091, 'SKIP': 10}
+PYTHON_TESTS_SHARD_RESULT shard=3/3 exit=0 tests=1220 wall_seconds=298.104 outcomes={'PASS': 1215, 'SKIP': 5}
+PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0
+VERIFY_DESIGN_LAB=OK total=77 failed=0
+BROWSER_E2E ran=44 skipped=0 failed=0
+```
+
+相对 §5.75 记下的 3412 净增 **3** 条，逐条对得上：`53cdc7eb` 给"工件必须在 git 索引里"加了两条，
+`7b9a4f37` 给兜底话术加了一条。同一 head 的 push run 40346664251 是 success，但它只跑轻闸（11 个重作业
+`skipped`），所以本节只能引那条 PR run。**边界**：这条 run 承载到 `5580f184`，`2048cf2e` 的计数闸与本节的
+字节在它之后——那一段的结论按同一条规矩由下一轮读回，本节不替它宣称绿。
+
+**owner 点名要读的那两个 run（`83448333`）也已逐字节读完，答案与"有没有红"不同。** push run 40328665473
+success（只有轻闸）；PR run 40328675340 **cancelled**——8 个重作业已 success，但 `Python gate`、
+`Workbench browser E2E` 与 `CI artifact proof` 三个作业被后来的推送取消。按本仓自己的规矩（cancelled／skipped
+的必要作业不能算通过），**那个 head 上从来没有过套间结论**，不存在"就地修到它绿"这一步；结论只能在承载字节的
+后续 head 上补读，就是上面那条 `5580f184`。
+
+**收口面现数（不是引用）。** `currentExecution.evidence` 318 条（本节这条之前），其中 20261026 日期 21 条；
+21 条里每条 `artifact_path` 都在 git 索引里，且 `artifact_sha256` 与 HEAD blob 逐字节相等（不匹配 0 条）；
+`reports/current/DEEPSEEK-AUTHORITY-CHAIN.json` 现publish `evidence_receipts: 318`；直方图
+`34 FROZEN_DEFERRED / 13 DONE / 2 PARTIAL / 1 NOT_STARTED`，旧 34 项一字未动；
+`src/design_lab/http_service.py` 现数 `17` 个 `_list_*` 处理器（§5.73 引的就是这个数）。审计 7 条的六枚回执
+（`kb-02-supersedes-fork-refused-on-both-routes`、`kb-06-body-phase-deadline-and-cancel`、
+`kb-06-knowledge-form-one-refusal-per-field`、`dl-final-t04-receipt-identity-and-separation`、
+`dl-final-t04-report-path-outside-repo`、`dl-final-t04-session-link-source-answered-from-the-row`）
+逐条对回 `022c5a9b`／`f12931bf` 的 subject，全部 PASS。
+
+**本节写下之后，承载它的 head 也已经读回了。** run 40350069509（event=pull_request，head `8190527d`）
+**conclusion=success**，10 个作业全绿，逐字 `PYTHON_TESTS_SHARDS_START shards=3 expected_tests=3415`、
+`PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；同 head 的 push run
+40350057037 success，但只跑轻闸。**用例数与 `5580f184` 相同（3415）是预期而不是巧合**：这几提交加的是登记件、
+回执与散文，没有新增断言——所以这两条 run 的差别只在字节身份，不在测试人口。**同一条规矩对本句继续成立**：
+本节这一段所在的那个 head 的 run 不在本节里，由下一轮读回；`main` 无分支保护
+（`gh api .../branches/main/protection` → `Branch not protected`），所以合不合入完全是 owner 的决定，本轮没有合。
+
+### 5.79 §5.78 刚读回绿，同一条浏览器尺在下一个 head 上自己红了一次：它在读一个还没渲染出来的状态
+
+**红在哪，不在哪。** run 40352855984（event=pull_request，head `cf30ee05`）`conclusion=failure`，唯一红作业是
+`Workbench browser E2E`，逐字 `BROWSER_E2E ran=44 skipped=0 failed=1`，红的那条是
+`test_workbench_design_layer_e2e.WorkbenchDesignLayerE2ETests.test_design_layer_slice_in_real_browser`；
+同一次跑的 `Python gate` 是 success。**产品字节一个都没动**：`8190527d → cf30ee05` 之间只有卷宗、接续提示词、
+登记件与投影；同一把闸在 `8190527d` 上读到的是 `BROWSER_E2E[test_workbench_design_layer_e2e] ran=2 skipped=0 failed=0`。
+
+**成因写在它自己的失败行里。** 逐字
+`E2E_ASSISTANT_PLAN_DUPLICATE: status="以上内容取自 aplan-bbec54… 的 r2：保存会新建一条方案（编号由服务铸造）…"
+answer={"revision":1,"id":"aplan-b5d27f…"} writes=5/5`——服务已经返回新方案与 r1，写入计数也确实进了一位
+（`5/5`），**可被读出来的是提交前的提示语**。`apps/workbench/shell.ts:6236` 那句确认文案由 `afterWrite()` 写，
+而它在页面自己的 POST promise settle 之后才跑；闸用 `waitForResponse(/assistance-plans$/)` 拿到响应就
+`innerText()`，读到的是渲染还没跟上的一帧。与 §5.55 那次"CI 在补间中间帧里读到一帧谁都不存在的颜色"同族：
+**量的是一页还没进入的状态**。
+
+**修法只把"读"变严，不把"判"变松。** `design-lab/tests/e2e/browser_design_layer_e2e.mjs` 现在先等它该看到的
+那句话——谓词要求 `#as-form-status` 同时含 `已复制为新的方案` 与那个 plan id（**与断言原本的两个条件逐字相同**），
+25 s 到不了就把 `copySettled=false` 交回断言；定罪行多带一个 `confirmationRendered=`，让下一个读者一眼分得开
+"确认从来没写出来"与"写出来了但没等到"。**这条闸仍然会红**：UI 若不写确认，等待超时 → `copySettled` 假 →
+`copyWritten` 假 → `abort(..., 15)`。
+
+**本机复测，以及本机证明不了的那一半。** `Ran 2 tests in 22.235s OK`，同一次跑写出的
+`.project-local/task-artifacts/browser-e2e/browser-e2e-summary.json` 为 `result=PASS consoleErrors=0`；
+`node --check` 干净，仓内自带的 `test_e2e_script_is_lint_clean` 过；`verify_evidence_artifact_presence`
+的 7 条也过（改这个 `.mjs` 没有让漂移钉的 66 对变成 67 或 65）。**如实写**：本机这份 summary 里没有
+`assistant` 字段，所以"四态那一段在本机被走过"不能由这份工件证明——它证明的是文件合规与本机不红，
+逐段结论仍要从 CI 自己的 `E2E step:` 序列里读。
+
+**承载这次闸改动的 head 已经读回：`751df4a0`。** PR run 40357134311 `conclusion=success`，12 个作业里
+10 个 success、2 个 skipped（`Branch light gate` 与 `CI artifact proof`，都不属于本事件应有的作业），
+逐字 `PYTHON_TESTS_SHARD_RESULT shard=1/3 exit=0 tests=1094 wall_seconds=558.435`、`shard=2/3 exit=0
+tests=1101`、`shard=3/3 exit=0 tests=1220`、`PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415
+duplicates=0 missing=0 unexpected=0`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、
+`BROWSER_E2E[test_workbench_design_layer_e2e] ran=2 skipped=0 failed=0`、`BROWSER_E2E ran=44 skipped=0
+failed=0`；同 head push run 40357121752 success 但 11 个重作业 skipped。**"四态那一段在这一跑里走过"
+怎么证的**：绿跑不会打印 `E2E step:` 序列（包装脚本只在失败时回显子进程 stdout），但这条尺的每一步失败
+都 `abort(..., 15)`，而 Python 侧断言的是子进程 0 退出与 `result=PASS` 摘要——所以这一段跑到末尾本身就是
+"逐步没有红"的证明，不需要我看不到的一行标记。**留给下一轮的边界照旧**：本节这几句所在的 head 不在
+`751df4a0` 那条 run 里，按同一条规矩由下一轮读回。
+
+**§5.73／§5.74 里的每一处 `path:line` 也被逐条回读了一遍（这是 owner 收口点名要核对的那两节）。**
+探针只扫这两节的正文、只从 `git ls-files` 解析文件名（从 `.` 起扫会走进 `.venv` 与 `node_modules`，
+第一版就是这么挂住的）：6 处指针，**越界 0 处、无法解析 2 处**——那两处写成
+`..._theme_affordance_gate.py:106` 与 `..._theme_geometry_gate.py:103`，用省略号开头的指针没法被任何机器
+认，所以已展开成全路径并逐字读到那一行（三处都正好是 `report_path = evidence / '<本闸门自己的报告名>.json'`，
+与那句话描述的"单一路径形状"对得上）。展开后重跑：**checked=6 unresolved=0 out_of_range=0**。
+`§5.74` 引用的 `design-lab/schemas/state/design-lab-state-creative-v1.sql:116-124` 也回读过：那 9 行正是
+`worklab_session_link` 的建表与 `UNIQUE (job_id, session_ref)`，也就是"写一次"的出处。
+### 5.80 对抗性审计本轮自己：把刚修好的那把闸打回红一次，再把本轮写下的每条断言逐条反问
+
+**为什么要这一节。** owner 的判据是"别把文档修订写成功能完成"；这一轮的反面风险是"别把修好了写成修好了"。
+所以这一节不新增功能，只攻击本轮自己留下的断言。
+
+**① 植入实验：证明 §5.79 那把闸不是被我改空的。** 把 `apps/workbench/shell.ts:6236` 的确认措辞
+`已复制为新的方案 ` 改成 `复制完成 `（服务侧一字不动），`vite build` 后跑同一条浏览器尺：
+`Ran 2 tests in 31.842s FAILED (failures=1)`，定罪行逐字带
+`E2E_ASSISTANT_PLAN_DUPLICATE: status="…保存会新建一条方案…" answer={"revision":1,"id":"aplan-ddb0c767…"}
+writes=5/5 confirmationRendered=false`。这一次实验同时钉住两件事：**闸仍能定罪**（真缺确认时它红，且烧掉
+那 25 s 预算——31.8 s 对复原本地跑的 10.7 s 就是这个差），以及 **cf30ee05 那次红的形态与植入形态逐字同形**，
+差别只在"等没等"——这正是 §5.79 归因的独立复现，不是我对那条日志的事后解释。复原不走 `git checkout`：
+从改前的两份拷贝按 sha256 还原并校验（`shell.ts` `a3febac0…`、`build/main.js` `5cd4cc19…`，后者与 CI 自己
+打印的 `bundleSha256` 同值），还原后 `Ran 2 tests in 10.741s OK`，`git status --porcelain` 无跟踪改动。
+
+**② 指针回读到字节，不只是"行号没越界"。** §5.73／§5.74 的 6 处 `path:line` 现在每处都读到过内容：
+`test_capability_library_clean_install.py:247` → `self.assertNotEqual(result.returncode, 0,`（正是 §5.73
+更正段说的跨行调用形状）、`test_release_preflight.py:470` → `self.assertNotEqual(code, 0)`（那句"判的是
+子进程退出码、不落回执"成立）、三条 `report_path = evidence / '<各自闸门名>.json'`（那句"单一路径形状、
+没有第二个写入者"成立）、`design-lab-state-creative-v1.sql:116-124` → `CREATE TABLE worklab_session_link`
+含 `UNIQUE (job_id, session_ref)`（§5.74 的"写一次"出处成立）。接续提示词里的 **36 个 `§5.NN` 引用全部
+解析到真标题，悬挂 0**；§5.66 的标题确为"提示词读回现在是有界的一页"、§5.67 为几何色板表，与本轮改正
+后的指向一致。
+
+**③ 本轮写下的人话数字被反证过。** "3415 相对 3412 净增 3 条，来自 `53cdc7eb` 两条与 `7b9a4f37` 一条"——
+用 `git show` 数新增的 `def test_` 行数：`53cdc7eb` = 2，`7b9a4f37` = 1，差值吻合。**没有把一次算术当作证据**：
+先测人口再写原因。
+
+**④ 收口面复数（把 §5.78 的读数推前，不让它悄悄过期）。** 账本 `currentExecution.evidence` 现数 **319**
+（§5.78 写 318 是当时的读数，本节说明它为什么动），20261026 日期 **22** 条（原 21 条＋本轮那枚收口回执），
+22 条的 `artifact_path` 全部在 git 索引且 `artifact_sha256` 与 HEAD blob 逐字节相等（不匹配 0 条）；
+投影 `DEEPSEEK-AUTHORITY-CHAIN.json` 现publish `evidence_receipts: 319`；登记件行 5 由自家闸现读
+`RECORD_REGISTER_GATE=PASS checks=5 problems=0`；直方图仍 `34 FROZEN_DEFERRED / 13 DONE / 2 PARTIAL /
+1 NOT_STARTED`；`scripts/verify_current_execution.py` 在最终树上 `CURRENT_EXECUTION=PASS tasks=50`。
+
+**⑤ 一处必须写下来的自我纠正（本轮我自己的跑法缺陷）。** 提交 `c46ef4b6` 的信息里宣称
+`RECORD_REGISTER_GATE=PASS checks=5 problems=0`，而**当时那条命令并没有跑成**：它被写成
+`python … | tail -1`，管道把退出码换成了 `tail` 的 0，于是 `&&` 链带着一条没跑过的闸继续走。
+不加管道重跑之后 `REGISTER_EXIT=0` 且同一行读数成立，所以那句声明现在是测量而不是断言——
+但成因如实记在这里：**管道吃掉退出码**这条教训本仓记忆里早已有一条（[[feedback-pipeline-exit-codes]]），
+这一轮我又踩了一次，而且踩在了"用来自证一句话"的那条命令上。
+
+**⑥ 新加的那把计数闸也被反证过人口方向，不只是散文方向。** 把一枚假的
+`'_list_planted_probe'` 加进 `UNBOUNDED_REGISTER`（登记面 8→9，提示词那句一字未动），
+`scripts/verify_documented_counts.py` 立刻 `exit=1`、`DOCUMENTED_COUNTS=FAIL claims=21 failed=1`；
+按 sha256 还原那份测试文件后再跑 `exit=0`、`PASS claims=21 route_views=24 cli=24 adapters=30 routes=88`，
+`git status --porcelain` 无跟踪改动。也就是说这条 claim 咬的是**人口**而不是我抄的那句话——
+把界悄悄改回无界、或新加一条无界路由而不改散文，两侧都会红。
+
+**⑦ 这一节没有证明的东西。** 本机 `browser-e2e-summary.json` 里没有 `assistant` 字段，所以四态那一段
+"在 Windows 本机被走过"不由该工件证明（§5.79 已写）；植入实验证明的是**这把闸的读法**，不是真实宿主
+E3、也不是真人 E4——两者仍是冻结项；`_list_rights` 与 `_list_knowledge_candidates` 封不封页、CSV 安全
+模式、初始界 50 还是 100、150 KB 上限、`DESIGN.md` 批准与合格模型裁定仍归 owner；本轮没有发现需要
+撤回的产品断言，撤回的只有我自己那句被管道掩过的自证与两处不可解析的指针写法。
+**承载本节全部字节的 head 已读回：`0331b68f`。** PR run 40365602992 `conclusion=success`、push run 40365593987 `success`（只跑轻闸），逐字取作业自己的日志：
+`PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0`、`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`、`EVIDENCE_ARTIFACTS=WARN tracked_broken=0`（漂移钉仍 66 对，改 `.mjs` 没有让它多出或少出一对）。
+在它之前，`751df4a0`（第一次带这个闸修复的 head）的 PR run 40357134311 也已单独读回为 success（§5.79），所以代码字节被两条 run 各覆盖一次，不是借用。**唯一仍按规矩交给下一轮的**，是把这段读数写进文件的那次文档／登记件／投影提交本身——它是 derived-only，人口与判据都不会因它变化。
+### 5.81 STITCH 画板包到了三天没人登记；登记之后，左栏与屏幕一第一次是照画板改的
+
+**这条缺陷是 owner 问出来的，不是我查出来的。** 2026-10-27 owner 问「为什么还是网页的？不是让你一比一复刻 STITCH 界面吗？」，我先答"包里只有提示词文本，画板从未进仓"——**那句是错的**。包在 `D:\All projects\Record\stitch_design_lab.zip`：5,115,919 B，sha256 `ae76e90307bfcc429b5b11e13502e2a739ad69f7a3bc96a5a86f0cdc941eee03`，2026-10-24 19:31 投递，**14 块画板**（每块 `code.html` + `screen.png`）另加 `obsidian_studio/DESIGN.md`，解包 31 个文件 / 5,678,932 B。两处独立失误叠在一起：
+
+- **资料到了没登记。** owner 2026-10-23 的规矩要求"来源、hash、版本/定态、别名和 canonical 位置，并更新固定资料索引"；这一包三天里没有 manifest 行、没有索引条目，于是它对项目不可见——任何下一位 Agent 都只能看见 08 那份提示词文本。
+- **我的检索面漏了投递目录。** 我只搜了项目目录与两个资产目录就下"从未进仓"的结论。同一份卷宗里 §5.73 刚因为"探针匹配不到已知成员"被追正过，这次是我自己把"我没搜到"写成"它不存在"。**How to apply：** 断言某资料不存在之前，先证明探针覆盖了投递的规范入口（本项目就是 `D:\All projects\Record` 与 `docs/RECORD-ARCHIVE-INDEX.md` 两处），否则结论只是探针的空集。
+
+**登记已补。** `docs/history/record-archive-2026-10-27-stitch-boards/ARCHIVE-MANIFEST.json` 逐成员记 name/bytes/CRC32/SHA-256（摘要从 ZIP 内的字节算，不从一份已解开的副本算）；原件与解包副本的 canonical 位置是 `.project-local/record-archive-2026-10-27/`，不随 Git 克隆，迁移须按摘要补齐。固定资料索引 `docs/RECORD-ARCHIVE-INDEX.md` 加 2026-10-27 日期节，**插在生成登记件那节的标题之前**——那节标题到 EOF 归生成器所有，追加在尾巴上会在下一次重绑时被吃掉（这条坑本仓早有记录，这次是照规则躲开的，不是又踩一遍）。
+
+**以画板为基准量的第一条差异是骨架，不是配色。** 14/14 块画板的左栏都是「设计辅助／知识与提示词库／我的方案」三项加左下角设置；现界面是 24 项 4 组。08 原文逐字要求「只保留三个日常导航」。所以 owner 那句「你是不是又混合了旧版界面啊」是对的，而且错在整块外壳，不在细节。
+
+**左栏收口（提交 `cbaee463`，PR run 40509435322 `conclusion=success`）。** 默认只露那三项 + 设置沉底，折叠时隐藏组标题，加「全部功能／收起次要入口」开关。**一条路由都没删**：`.app-nav-item` 的条数是浏览器 E2E 与 DESIGN.md 那句「导航 N 项」的现数对象，所以折叠只改显示——24 项仍在 DOM、`#/…` 仍可直达；当前路由若被折叠则自动展开，"侧栏保持活动路由可见"那条断言继续成立。
+
+**屏幕一补了三处本地事实。** 需求框下加「清空 · N 字」与「Shift+Return 换行」；参考行加「已关联 N 项参考」。两个计数都在 `renderReferences()` 里重算，**不是只挂 `input` 监听**：载入已存方案与保存后清空都是程序改 `value`，不触发 input 事件，只挂监听会一直显示上一段文字的字数——与 §5.79 那条"等状态而不是等事件"同源。
+
+**两处我没照画板抄，理由写在这。** ① 画板写「2 / 8 附件」，合同里没有 8 这个上限，报成 `N / 8` 就是让界面宣称一个不存在的产品约束；② 画板标题「这次想设计什么？」、主按钮「整理设计方向」与 08 原话「你想完成什么设计？」「整理方案」不一致——**以包内文本为权威**：画板是那次生成的产物，不是规格的第二份真值，而本仓反复判红的正是"把生成物当规格"。
+
+**验证（本机，全部改完之后再跑）。** `tsc --noEmit` 干净；`npm run test:unit` exit 0（appshell 仍数到全部导航项）；债闸 9/9 OK——左栏那几条带来 4 处字面 px，DESIGN.md §4 是**按闸自己的读数重钉 521→525**（先红，报出它要的那句原话，再改文档，不手点数字），屏幕一这一片只用既有令牌，px 数没再动；对比闸 31/31 OK（新墨色 `--muted` + `--uif-font-micro`，珍珠白与炭黑两侧都量过）；主题几何闸 3/3 OK；溢出闸 4/4 OK（`Ran 4 tests in 390.858s`）；设计层浏览器 E2E 2/2 OK（四态与"复制为新的方案"那条链仍走通）。
+
+**本节没有做的，别当已做。** 交付类型 chips（画板 5 枚；现控件是由服务读回填的 `<select>`，把同一个值做成第二个控件之前要先定"谁是状态主人"，否则就是本仓反复判红的第二台账）；附件 tile 的名称与大小（`references` 只有 kind+id，要联 `assets` 的元数据）；**缩略图**要开静态资源路由并放宽 CSP，那是 owner 的安全决定；画板顶栏那三个 Windows 窗口控制按钮在浏览器标签里没有真实现，**不画装饰件**——要真窗口壳就是交付形态变更，需要 owner 解除 release／安装态分发冻结。
+
+### 5.82 折叠改了几何却没改提示：UI 审计闸抓到的第二条，与交付类型胶囊落地
+
+**读数（本机，2026-10-27）。** 承载 `3a2b6565` 的那批慢闸里，溢出 4/4、对比 31/31、动效 1/1 都是绿的，
+只有 UI 审计闸红，报三条：
+
+```
+nav-overflow: short: 1217px of nav hidden with no cue
+nav-overflow: short: cue claims false but paints content=none at static
+nav-drawer: narrow: 873px of drawer nav hidden with no cue
+```
+
+**根因是 §5.81 那条折叠的第二条后果，不是画板改动本身。** 提示（`.nav.has-scroll-more::after`）由
+`syncNavCue()` 算，它只挂在 `scroll` 与 `resize` 两个事件上；折叠开合改变的是 `scrollHeight`，
+**既不发 scroll 也不发 resize**，于是 `sync()` 把导航展开到 23 项之后，类名还停在折叠态算出来的
+"下面没有东西"。1280x500 量到 1217px 被藏、380x844 抽屉里量到 873px 被藏——两条都是这一句
+"提示说没有，其实有一屏"。这条缺陷在折叠之前不可能出现：那时 `scrollHeight` 只在挂载和窗口变化时变。
+
+**修法**：`apps/workbench/shell.ts` 的 `setSidebarFold()` 末尾自己调一次 `syncNavCue()`，
+并把 `syncNavCue` 从 `const` 箭头改成函数声明——挂载时那次 `setSidebarFold(false)` 发生在
+定义之前，箭头会撞 temporal dead zone。两条都在代码注释里写明为什么是这个形状。
+
+**这条红是有用的，别只当它被修好了。** 它证明 UI 审计闸确实量的是**看得见**的那条侧栏：
+§5.81 把折叠挪到 `#app-sidebar .nav` 之前，这条闸在旧字节上是绿的（旧状态下折叠项全部露出，
+提示与几何一致）。同一把闸先绿后红，说明它跟着真实几何走，不是跟着类名走。
+
+**新增的守卫与它的反证。** `design-lab/tests/e2e/browser_design_layer_e2e.mjs` 加了
+`the rail users actually see is the folded one` 一步，量 `#app-sidebar .nav` 的可见按钮数、
+开合两次、并断言 `.app-nav` 在路由页仍然不可见。绿的时候的读数：
+
+```
+E2E_NAV_FOLD: {"total":23,"closedFirst":4,"opened":23,"closed":4,"hasFold":true,
+ "legacyVisible":false,"groupsShown":0}
+```
+
+这一步自己先错过两次：前两次跑在窄视口（上一步是手机布局）与空 hash 的旧工作台视图上，
+量到 `closedFirst:0`——`offsetParent` 在离屏抽屉里就是 null。那是**测量的前置条件**，不是产品缺陷，
+所以这一步现在自己把视口设成 1280x800、把 hash 设成 `#/knowledge`、并等 `knowledge` 那颗按钮真的可见。
+把折叠改成"什么都不隐藏"（`is-folded` 永远 false）之后，这一步按预期变红：
+
+```
+E2E_NAV_FOLD_INERT: folding hides nothing, or 全部功能 does not restore every route:
+ {"total":23,"closedFirst":23,"opened":23,"closed":23,"hasFold":true,"legacyVisible":false,"groupsShown":0}
+```
+
+还原后同一把闸回到上面那条绿读数。守卫不是"跑过了"，是**能打回的**。
+
+**交付类型胶囊（§5.81 留下的第一条）。** 画板 `design_lab_2` 把这一排画成胶囊，
+标题是「希望准备的材料（多选胶囊，非强制全部）」；08 第 9 行的原话是「输出类型选择」。
+两条不冲突——胶囊就是"选择"的一种控件形态——所以按画板做。冲突的是**基数**：合同里
+`output_type` 是单值，画板那排是多选。改成多选要么一次提交发 N 个请求，要么动那份闭合的读回
+schema，两件都不是页面能自己决定的，所以这里是一组 `radio`（一组选一个），并把画板那句
+"多选"留在本节而不是实现里。§5.81 问的"谁是状态主人"就此回答：**DOM 里被勾选的那颗 radio 是唯一的
+状态主人**，`<select>` 整个删掉，不留第二台账。词表仍全部来自服务：一条都没读回时一个胶囊都不画，
+只写「输出类型未读回」，主按钮照旧禁用；读回后一个都不预选。控件用真 `input[type=radio]`
+而不是可点的 `div`：键盘方向、无障碍名、以及触控目标尺寸闸量的都是这个原生元素。
+
+**跟着改的断言。** `#as-output-type` 从 `select` 变成 `radiogroup`，E2E 里所有
+`selectOption(...)` 改成勾选对应胶囊；首屏形状那条从"三个 select"改成"两个 select + 一组六个胶囊、
+`role=radiogroup`、预选数 0"——这条断言原来就是 08 那句"只展开本次必要字段"的渲染形状，
+改的是形状不是意图。
+
+**胶囊落地后的读数（本机 `0e3e5b5f`）。** 五把浏览器闸一次跑完：设计层 E2E `Ran 2 tests OK`、
+UI 审计 `OK`、对比 31/31、溢出 4/4、主题几何 3/3，全部 EXIT=0。首屏形状这一步现在把**它接受的那个形状**
+打出来，绿跑不再只留一个 OK：
+
+```
+E2E_ASSISTANT_INITIAL: {"selects":["as-workspace","as-reference-select"],"toolish":[],
+ "chips":["IMAGE","UI","MOTION","STORYBOARD","AUDIO","CAMPAIGN"],"chipGroup":"radiogroup",
+ "preselected":0,"canvases":0,"logs":0}
+```
+
+`preselected` 这一条不是装饰：在挂载处补一句"默认选第一项"（一个看起来很合理的改动）之后，
+同一步按预期变红，读数里是 `"preselected":1`。也就是说"一个都不预选"是**能被反证的断言**，
+不是一句写在注释里的愿望。词表那六个值也是这一次量出来的：它们来自服务读回，页面一个都没抄。
+
+**顺手清掉的一处旧注释**：`syncNavCue` 上面那段本来写着"ROUTE_VIEWS 里的 21 个目的地"，
+而同一段下一句就说"这里故意不写数字，任何手点的数字都会变成假装是实测的旧读数"。
+真实条数由路由闸现数（`route_views=24`），注释里那个 21 已经不对，所以把它去掉而不是改成 24。
+
+**胶囊落地后又被自己的眼睛推翻的一次：`0e3e5b5f` 的胶囊是坏的。** 那五把闸（E2E、UI 审计、对比、
+溢出、主题几何）在胶囊落地后全部 EXIT=0，于是把界面**渲染出来看了一张图**：六个标签里四个被压成
+**一字一行的竖条**（chip 盒子 `56x90`，行顶只有两个不同值），因为 `.as-chip` 是 flex 项又没有
+`white-space:nowrap`，标签被挤窄后按字断行。所有闸都看不见它——盒子仍然装得下、颜色仍然过 AA、
+容器仍然不溢出。**这是"绿色不等于对"的又一次实测**，也是本仓那条"文本换行不是裁切，要数行框"
+规矩的第三次应验。修法两处：`.as-chip{white-space:nowrap;flex:0 0 auto}`（`9e739f82`），
+以及把**行框计数**写进首屏那一步的断言里：
+
+```
+E2E_ASSISTANT_INITIAL_SURFACE: {..., "preselected":0, "multiLineLabels":4, ...}   ← 修复前的字节，红
+E2E_ASSISTANT_INITIAL: {..., "preselected":0, "multiLineLabels":0, ...}           ← 修复后，绿
+```
+
+先在新断言下跑**旧字节**拿到 `multiLineLabels:4` 的红，再改 CSS 拿绿——这条控制不是走过场：
+没有它，"我加了个断言"和"那个断言能看见这个缺陷"是两件事。修完再截图确认一次，六个胶囊
+两行排开、每个一行字。**渲染一次是这一轮最便宜的闸**，后续每一片新界面都要付这个成本。
+
+**CI 账（读回的，不是推断的）。** `9b376ac4`（登记画板包那一轮）的 PR run 40513197163
+`conclusion=success`，10 个非 skipped 作业全绿。`5388b62f` 的 PR run 40526168978 在跑的过程中
+被 `9e739f82`（胶囊换行修复）取代——**这不是取消，是自己认下那一版字节是坏的**：承载坏字节的 run
+就算绿也不该当作交付读数，所以本轮的 Canonical Verify 只在 `9e739f82` 及之后读。
+中间那几个 head（`3a2b6565`…`5e52fa97`）没有各自推送过，因此没有各自的 run；
+它们的字节由最终 head 的那一条 run 覆盖，这一点在接续提示词里也照这样写，不写成"每个 SHA 都验过"。
+
+**本节没有做的，别当已做。** 附件 tile 的名称与大小这一步**不是"没有数据"**：库里 `f.path` 与 `f.byte_size`
+都在（`src/design_lab/native_assets.py:25,37` 就 SELECT 了它们），是 workbench 读的那一行
+`AssetRecord`（`apps/workbench/contracts.ts:37-47`）没带出来。所以这一步的真实形状是
+"加宽那份读回投影 + 补它的路由合同行"，而不是"再发一次请求去联表"；在投影加宽之前，
+tile 只能显示 `media_type · W×H`，画板那行「2.4 MB · 字体排印样张」不能照抄——照抄就是让界面
+宣称一个它没读到的事实。缩略图（要开静态资源路由并放宽 CSP，owner 的安全决定）、
+画板首屏的两栏版式（「最近编辑的方案」现在在首屏，但是在表单下方而不是右栏）、
+以及画板顶栏那三个 Windows 窗口控制件（浏览器标签里没有真实现，不画装饰件）
+仍是上一节就写明的边界，本节没有推进，也没有宣称推进。
+
+### 5.83 一条 CI 红里其实有两个缺陷：登记件被我自己写旧了，复制方案的种子在慢机器上追不上提交
+
+`5388b62f` 的 PR run 40526168978 **completed failure**，四个作业红。本节把两条根因分开写，
+因为它们不是同一件事，修法也不是同一处。
+
+**其一：归档登记件（row 5）过期——这是流程缺陷，不是内容缺陷。** CI 逐字：
+
+```
+RECORD_REGISTER_GATE=FAIL checks=5 pathish_named=21 problems=5
+PROBLEM row 5: blob SHA-1 claim e2987b2f3331 vs 2663e461782b
+PROBLEM row 5: bytes claim 419,586 vs 425,392
+PROBLEM row 5: SHA-256 prefix claim 6a24555e8a67c18f vs f6280583c8a0bc5b
+```
+
+登记件钉的是**卷宗在 HEAD 上的 blob**，而我在同一个提交里把 §5.82 写了进去却没有重生成登记件。
+本地那次 `RECORD_REGISTER_GATE=PASS` 是真的跑过，但它跑在**卷宗被改动之前**——我引用的是"我改文档前
+的那次读数"，不是"承载这些字节的提交"的读数。这一类缺陷本仓已经记过一次（§5.80 的"绿闸覆盖的是偶然字节"），
+这次是它的镜像：**绿闸覆盖的是旧字节**。规矩要改成一句可执行的话：**登记件的重生成必须是收口的最后一步，
+而且要在提交之后再跑一次闸**，否则它验的永远是上一个提交的字节。
+
+**其二：`E2E_ASSISTANT_PLAN_DUPLICATE` 在 CI 上红、在本地绿——这是测试自己的竞态。** CI 的读数是
+`writes=5/5 … confirmationRendered=false`，状态格里是**种子提示**那句
+「以上内容取自 aplan-… 的 r2：保存会新建一条方案」，而不是保存后的确认句。
+下载下来的 `fail.png` 显示新方案确实建出来了（详情面板在屏、r1、记录人 E2E Copier）。
+把代码对上就清楚了：`#as-duplicate` 的点击走 `startDuplicating()`，那是**一次异步读**，读完才由
+`openFormFor()` 把内容灌进表单并写状态（`shell.ts:6139`）；而测试在点击之后**立刻**填记录人、点提交。
+本机种子赶得上，CI 慢一点，提交先落地、种子后落笔——确认句被自己前面的提示盖掉，
+断言等的那句话于是永远不出现。**产品没有写错，测试在拿一个还没成形的表单去提交。**
+
+**修法**：点击之后先等"表单里真的有源方案的内容、状态格里真的有那句种子提示"，再提交
+（`E2E_ASSISTANT_DUPLICATE_NOT_SEEDED` 是等不到时的独立失败名，不把它算成复制成功）。
+同一族的守卫在修订那条路上早就有（先等按钮变成「保存为新修订」再提交，`browser_design_layer_e2e.mjs:1094`），
+复制这条路是漏掉的那一条——**同一个等待语义，两处只写了一处**。
+
+**顺带记一张图**：CI 的 `fail.png` 里所有中文都是豆腐块（□□□），因为 runner 上没装 CJK 字体。
+这不影响断言（断言读的是 DOM 文本，不是像素），但它说明**CI 截图不能当视觉验收的证据**，
+也不能反过来用本机截图替 CI 作证——两边量的是不同的东西。
+
+**还有一处 LOGO 是真的没有：浏览器标签页。** 把三个面都渲染出来量了一遍（`.project-local/task-runtime/nav5-brand.txt`）：
+冷启动页 `.app-nav-mark` 22x22 在画、路由页 `.brand-mark` 48x48 在画，两处的字标都是文本 `DESIGN-LAB`；
+但三个面的 `link[rel~="icon"]` 读数都是 `NONE`——**标签页上没有任何图标**，只有 `tab:"DESIGN-LAB · 工作台"` 这行标题。
+这一条不在"画板与现界面的差异"里，因为画板是桌面壳、根本没有标签页；它是**交付形态是浏览器**才暴露出来的缺口。
+
+**为什么这一轮没有顺手补上**：图标必须自己带一份图形字节。仓库里那枚字标是 `style.css` 中按
+`brand-mark:begin sha256=…` 钉住的两份编码，同步由 `render_brand_asset.py --check` 这一把闸管着
+（`test_workbench_brand_asset.py` 的文档串写明"若哪天加了资产路由，这把闸要说话"）。
+标签图标要么再嵌一份 SVG（第二份字节的出处与漂移检查得并进同一把闸），要么开静态资源路由
+（正是那把闸现在会拒绝的方向，且与缩略图同一族：要动 CSP 与 `workbench.py` 的三路径白名单）。
+两条都能做，但都需要先把"第二份图形字节"的规矩定下来，**不该在一轮收口的尾巴上先塞进去再补闸**。
+下一步按第一条做：由 `render_brand_asset.py` 从同一份被跟踪的矢量派生 favicon 的字节、
+用同样的 `begin sha256=` 记号钉进 `index.html`，`--check` 同时覆盖 CSS 与 favicon 两处。
+
+**同一条 CI 里还有第三个绑定被我的落账动作挪动了：权威链记录。** `DeepSeek authority gate chain`
+作业红在本机可复现，逐字是 `AUTHORITY_CHAIN=DRIFT entries changed since generation:
+['design-lab/config/task-ledger-r3.json']`；把存的那条与现生成的那条逐键对比，动的只有
+`ledger.evidence_receipts = 321 -> 322`——**回执条数本身就是链记录的一个字段**，所以每落一条回执，
+链记录就必须重生成一次。`--check` 只豁免 `mutable_state` 条目的 `bytes`/`sha256` 两个键，
+嵌套的 `ledger` 子对象是逐字比的，这不是豁免漏了，而是"回执数"确实是一句要重新说的话。
+重生成后 `AUTHORITY_GATES=PASS gates=7 failed=none`。
+
+**这一轮因此把收口顺序钉成一句话**（写进接续提示词，不再靠记）：
+**卷宗/提示词改完先提交 → 重生成归档登记件 → 重生成权威链记录 → 重生成现行投影 → 跑闸 → 再提交 → 推送 → 读 CI**。
+登记件、权威链、投影三样都是**被绑定字节的派生物**，任何一处文档或账本动过，三样都要按这个次序重算；
+顺序错了就会像本轮一样：本地每个闸都各自绿过，CI 在承载全部字节的 head 上把它们一次跑红。
+
+### 5.84 承载全部字节的 head 上，CI 一次跑绿：逐字读数与"哪两条红是同一个根"
+
+**`19ffd0d1` 的 PR run 40537819918 `conclusion=success`**，10 个非 skipped 作业全绿
+（`Branch light gate` 与 `CI artifact proof` 按设计 skipped）。逐字：
+
+```
+PYTHON_TESTS_UNION=OK expected=3415 distinct=3415 ran=3415 duplicates=0 missing=0 unexpected=0
+VERIFY_DESIGN_LAB=OK total=77 failed=0
+BROWSER_E2E ran=44 skipped=0 failed=0
+  BROWSER_E2E[test_workbench_design_layer_e2e] ran=2 skipped=0 failed=0
+  BROWSER_E2E[test_workbench_ui_audit_gate]    ran=1 skipped=0 failed=0
+  BROWSER_E2E[test_workbench_overflow_gate]    ran=4 skipped=0 failed=0
+  BROWSER_E2E[test_workbench_contrast_gate]    ran=31 skipped=0 failed=0
+```
+
+**四条红其实只有两个根，而且三个是同一个自己造成的类。** `5388b62f` 那次四作业红里：
+登记件旧（§5.83 其一）、权威链旧（§5.83 其二，从测试面看就是
+`test_language_boundary_check_mode.ChainEncodingTests.test_the_chain_completes_on_a_gbk_console_and_writes_no_tracked_file`
+这条红——**同一个陈旧派生物从两个面各报一次**）、Python 作业红也是同一条链记录；
+只有浏览器 E2E 那条是真的产品测试竞态（复制种子），它在 `924af2fb` 上单独转绿——
+那两个 head 之间该作业唯一变化的就是这一处等待，所以**修复被 CI 自己证明了，不是我说的**。
+
+****这条 run 之后还有两条同码的收口 run，也都读回了。** `28a14b93`（第 323 行回执 + 三份派生物重绑）
+的 PR run 40542844974 `conclusion=success`，逐字 `PYTHON_TESTS_UNION=OK expected=3415 … ran=3415`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`；
+它之后的 `c5c77889` 只动接续提示词里那一句"待 owner 裁"的清单。
+`c5c77889`（只动"待 owner 裁"那一句清单）的 PR run 40546651758 同样 `conclusion=success`。
+**留给下一轮的第一件事**：读 `cf5b0203` 之后那一条 run——本轮已经把能读的都读回并写在这里，
+而某条 run 的结论不可能住进它自己承载的那段字节里，这是这套绑定方式的固有形状，不是欠账。
+
+回执 `dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027`（账本第 323 行）**
+钉的就是这一轮读回所依据的字节。它同时把"哪些不是本轮交付"写进 `not_claimed`：
+`3a2b6565`…`5e52fa97` 没有各自推送过，因此没有各自的 run——它们的字节由 `924af2fb` 与 `19ffd0d1`
+两条 run 覆盖，这句话不许被读成"每个 SHA 都单独验过"。

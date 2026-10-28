@@ -20,11 +20,12 @@
       "token": "--layer-canvas-ambient",
       "value": -2,
       "selectors": [
-        ".ambient,.ambient::before,.ambient::after"
+        ".ambient,.ambient::before,.ambient::after",
+        ".motion-particles"
       ],
-      "usedBy": 1,
+      "usedBy": 2,
       "name": "canvas-ambient",
-      "purpose": "环境光晕与其伪元素：底纹之上、面板之下",
+      "purpose": "环境光晕与其伪元素，以及可选的粒子 canvas（?motion=enhanced 才挂载）：底纹之上、面板之下",
       "note": null
     },
     {

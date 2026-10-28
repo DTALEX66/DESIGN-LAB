@@ -337,14 +337,14 @@
    "also_in_repo": [
     ".project/governance/authority-index.json"
    ],
-   "repoBytesAfterImport": 9708,
-   "repoCrc32AfterImport": "3e9bec11",
-   "repoSha256AfterImport": "sha256:9a0e1a58190767cf39709242ec429254a018415c9cb6e0219293b414ff3a8a07",
+   "repoBytesAfterImport": 13201,
+   "repoCrc32AfterImport": "07661f95",
+   "repoSha256AfterImport": "sha256:7ffe85d1f4043c10940f889a84c9cebc30b36597b044da7f0cc95bc2a5c5051b",
    "evolvedBy": {
-    "commit": "277f4649",
-    "subject": "docs(governance): adopt the desktop-UI/knowledge-base pack as the only dispatch entry"
+    "commit": "2aab189d",
+    "subject": "docs(authority): name the pack's files as pack files and re-pin; carry the round's next entry"
    },
-   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。"
+   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。 | 2026-10-28: owner lifted the freeze on external-software automation (AUTOMATION-20261028-R1), the delivered pack was registered byte-for-byte, and a repository-looking reference to a file inside that pack was reworded after verify_path_refs.py convicted it. Archived bytes unchanged; only the repo-side evolution declaration moved."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -360,14 +360,14 @@
    "also_in_repo": [
     "AUTHORITY.md"
    ],
-   "repoBytesAfterImport": 29509,
-   "repoCrc32AfterImport": "a8b4f161",
-   "repoSha256AfterImport": "sha256:00126066fd7715c3e4d2d5daceaf0b9d894be6ee8339c622c87621d6b0adfb58",
+   "repoBytesAfterImport": 34942,
+   "repoCrc32AfterImport": "a51033af",
+   "repoSha256AfterImport": "sha256:2bec69fcc77939d82476ab12d5316c439469c4e7c53ceef0270fcd8ffa139fce",
    "evolvedBy": {
-    "commit": "277f4649",
-    "subject": "docs(governance): adopt the desktop-UI/knowledge-base pack as the only dispatch entry"
+    "commit": "2aab189d",
+    "subject": "docs(authority): name the pack's files as pack files and re-pin; carry the round's next entry"
    },
-   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。"
+   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。 | 2026-10-28: owner lifted the freeze on external-software automation (AUTOMATION-20261028-R1), the delivered pack was registered byte-for-byte, and a repository-looking reference to a file inside that pack was reworded after verify_path_refs.py convicted it. Archived bytes unchanged; only the repo-side evolution declaration moved."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -482,14 +482,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 16086,
-   "repoCrc32AfterImport": "929180f1",
-   "repoSha256AfterImport": "sha256:c3bfe49665e5470acda58de01178bbac9a2b4160b6f96cc9d6a71d02e3b1bad1",
+   "repoBytesAfterImport": 16427,
+   "repoCrc32AfterImport": "3080898e",
+   "repoSha256AfterImport": "sha256:2e25d22c331c497e257807b11908c87faedd6b69bda0a16a787cc863192a4a96",
    "evolvedBy": {
-    "commit": "277f4649",
-    "subject": "docs(governance): adopt the desktop-UI/knowledge-base pack as the only dispatch entry"
+    "commit": "2aab189d",
+    "subject": "docs(authority): name the pack's files as pack files and re-pin; carry the round's next entry"
    },
-   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。"
+   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。 | 2026-10-28: owner lifted the freeze on external-software automation (AUTOMATION-20261028-R1), the delivered pack was registered byte-for-byte, and a repository-looking reference to a file inside that pack was reworded after verify_path_refs.py convicted it. Archived bytes unchanged; only the repo-side evolution declaration moved."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",

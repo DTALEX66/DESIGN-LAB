@@ -1,0 +1,26 @@
+WEIGHT bundle     bytes=  593796 gzip= 155787 sha=96a695099383b500
+WEIGHT stylesheet bytes=  110904 gzip=  40530 sha=8156d5a379778c68
+WEIGHT document   bytes=   10144 gzip=   3857 sha=6a67bc1ade21e6f5
+WEIGHT inline-data count=1 bytes=6626 share=1.12% of the bundle
+WEIGHT mountPoints=2663 routedViews=24
+WEIGHT page knowledge list default = 50
+WEIGHT page knowledge list maximum = 200
+WEIGHT page plan list default = 50
+WEIGHT page target profile list default = 20
+WEIGHT page plan feedback list default = 20
+WEIGHT module renderDesignAssistant              bytes=  59963 share=11.61%
+WEIGHT module renderTargetProfiles               bytes=  28744 share= 5.56%
+WEIGHT module renderDashboard                    bytes=  14839 share= 2.87%
+WEIGHT module renderCapabilityLibrary            bytes=  13662 share= 2.64%
+WEIGHT module renderKnowledgeLibrary             bytes=  11762 share= 2.28%
+WEIGHT module renderBriefEditor                  bytes=  10907 share= 2.11%
+WEIGHT module renderModelSelection               bytes=  10797 share= 2.09%
+WEIGHT module mountB10Overlays                   bytes=   9987 share= 1.93%
+WEIGHT module renderReferencePanel               bytes=   8590 share= 1.66%
+WEIGHT module promptIntelligencePanel            bytes=   8584 share= 1.66%
+WEIGHT module knowledgeCreateForm                bytes=   8048 share= 1.56%
+WEIGHT module renderSettings                     bytes=   6919 share= 1.34%
+WEIGHT modules declarations=365 coverage=100.0% of the bundle
+WEIGHT remoteReferences=0 budgetDeclared=False
+WEIGHT NOTE design.qa.yaml declares no performance budget; a ceiling is an owner decision, so these are baseline readings, not a pass/fail judgement on size.
+WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=155787

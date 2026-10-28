@@ -1,0 +1,34 @@
+--- stderr ---
+test_a_draft_with_no_creative_says_so_in_every_material (design-lab.tests.test_plan_export.PlanExportTests.test_a_draft_with_no_creative_says_so_in_every_material) ... ok
+test_a_malformed_shot_list_is_refused_rather_than_dropped (design-lab.tests.test_plan_export.PlanExportTests.test_a_malformed_shot_list_is_refused_rather_than_dropped) ... ok
+test_a_plan_stored_before_shot_rows_existed_still_exports_and_still_validates (design-lab.tests.test_plan_export.PlanExportTests.test_a_plan_stored_before_shot_rows_existed_still_exports_and_still_validates)
+`shots` is an added optional field, so a pre-DL-KB-11 document is not a defect. ... ok
+test_a_plan_without_shot_rows_refuses_the_csv_and_names_the_next_step (design-lab.tests.test_plan_export.PlanExportTests.test_a_plan_without_shot_rows_refuses_the_csv_and_names_the_next_step) ... ok
+test_a_shot_cell_with_quote_comma_and_newline_round_trips (design-lab.tests.test_plan_export.PlanExportTests.test_a_shot_cell_with_quote_comma_and_newline_round_trips) ... ok
+test_an_export_answer_reports_sent_and_executed_as_they_are (design-lab.tests.test_plan_export.PlanExportTests.test_an_export_answer_reports_sent_and_executed_as_they_are) ... ok
+test_an_unknown_plan_keeps_the_plan_vocabulary (design-lab.tests.test_plan_export.PlanExportTests.test_an_unknown_plan_keeps_the_plan_vocabulary)
+The export borrows the plan store's refusals instead of minting a second vocabulary. ... ok
+test_an_unknown_shot_field_names_the_row_it_refused (design-lab.tests.test_plan_export.PlanExportTests.test_an_unknown_shot_field_names_the_row_it_refused) ... ok
+test_an_unreadable_current_revision_is_refused_not_rendered_from_a_guess (design-lab.tests.test_plan_export.PlanExportTests.test_an_unreadable_current_revision_is_refused_not_rendered_from_a_guess) ... ok
+test_every_prose_material_carries_every_stated_item (design-lab.tests.test_plan_export.PlanExportTests.test_every_prose_material_carries_every_stated_item)
+Per item, from the plan's own lists -- so a limit dropped by one renderer is caught. ... ok
+test_exporting_leaves_the_plan_states_and_verification_untouched (design-lab.tests.test_plan_export.PlanExportTests.test_exporting_leaves_the_plan_states_and_verification_untouched) ... ok
+test_exporting_the_same_revision_twice_answers_identical_bytes (design-lab.tests.test_plan_export.PlanExportTests.test_exporting_the_same_revision_twice_answers_identical_bytes) ... ok
+test_no_material_prints_a_forbidden_claim_or_internal_vocabulary (design-lab.tests.test_plan_export.PlanExportTests.test_no_material_prints_a_forbidden_claim_or_internal_vocabulary) ... ok
+test_shot_rows_are_covered_by_the_content_digest (design-lab.tests.test_plan_export.PlanExportTests.test_shot_rows_are_covered_by_the_content_digest)
+A row is content: the same plan with a different 镜头表 is a different document. ... ok
+test_shot_rows_on_a_type_that_has_no_storyboard_are_refused_by_name (design-lab.tests.test_plan_export.PlanExportTests.test_shot_rows_on_a_type_that_has_no_storyboard_are_refused_by_name) ... ok
+test_the_emitter_holds_its_line_and_no_format_is_claimed_that_is_not_built (design-lab.tests.test_plan_export.PlanExportTests.test_the_emitter_holds_its_line_and_no_format_is_claimed_that_is_not_built)
+The four formats are the ones this file can actually render, in both directions. ... ok
+test_the_format_query_is_named_not_guessed (design-lab.tests.test_plan_export.PlanExportTests.test_the_format_query_is_named_not_guessed) ... ok
+test_the_json_form_is_the_stored_document_not_a_rebuilt_summary (design-lab.tests.test_plan_export.PlanExportTests.test_the_json_form_is_the_stored_document_not_a_rebuilt_summary) ... ok
+test_the_material_list_the_screen_reads_is_the_list_the_emitter_renders (design-lab.tests.test_plan_export.PlanExportTests.test_the_material_list_the_screen_reads_is_the_list_the_emitter_renders)
+DL-KB-11: the handoff vocabulary is served, so the page cannot offer an error. ... ok
+test_the_snapshot_pins_the_references_the_plan_recorded (design-lab.tests.test_plan_export.PlanExportTests.test_the_snapshot_pins_the_references_the_plan_recorded)
+The export freezes what the plan said it used -- it does not re-resolve today's bytes. ... ok
+test_the_two_prose_materials_render_the_same_section_list (design-lab.tests.test_plan_export.PlanExportTests.test_the_two_prose_materials_render_the_same_section_list) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 8.172s
+
+OK

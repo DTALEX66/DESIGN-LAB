@@ -88,12 +88,28 @@ CANDIDATES = (
     # 2026-10-23: knowledge library entry ids are `kentry-` + 32 hex (the shape
     # src/design_lab/knowledge_library.py mints and the read/revise route patterns require).
     'kentry-' + HEX32,
+    # 2026-10-24: assistance plan ids are `aplan-` + 32 hex, the shape
+    # src/design_lab/assistance_plan.py mints and the detail/choose/revision patterns require.
+    'aplan-' + HEX32,
+    # 2026-10-24 (DL-KB-10): target profile ids are `tprof-` + 32 hex -- the shape
+    # src/design_lab/target_profile.py mints for a draft (uuid4().hex) and derives for a seeded
+    # row (sha256 of its own profile_key), and both the detail and the /validate patterns require
+    # it. Added for the same reason as the two above: without a probe of that shape the gate reads
+    # the selection panel's own `/target-profiles/${profile_id}` call as FRONTEND_ROUTE_UNSERVED,
+    # which would convict a call the service really does dispatch.
+    'tprof-' + HEX32,
     'design-system',
     'print',
     'digital',
     'video',
     'task',
     '0',
+    # 2026-10-24 (DL-KB-12): `…/revisions/${revision}` is served by a pattern that requires
+    # `[1-9][0-9]{0,8}` -- an ordinal a person picks from the plan's own revision list, never an id
+    # this repository mints. '0' above is the only numeric probe and it cannot match a pattern that
+    # excludes zero, so the comparison page's real call read as FRONTEND_ROUTE_UNSERVED. '1' is the
+    # smallest value that shape accepts.
+    '1',
     '',
 )
 MAX_COMBINATIONS = 20_000
@@ -120,9 +136,6 @@ BACKEND_ONLY: dict[tuple[str, str], str] = {
         'the design view reads briefs, directions and their bindings in one round trip through '
         'GET .../design-layer; the single-brief read is exercised for external clients by '
         'design-lab/tests/test_design_layer_http.py',
-    ('GET', r'/api/projects/([0-9a-f]{32})/directions(?:\?after=(direction-[0-9a-f]{32}))?'):
-        'the Workbench selects directions from the design-layer projection instead of paging '
-        'the list route; the list is covered by design-lab/tests/test_design_layer_http.py',
     ('GET', r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})'):
         'the chosen and live direction arrive inside the design-layer projection; the '
         'single-direction read is exercised by design-lab/tests/test_design_layer_http.py',

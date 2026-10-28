@@ -35,15 +35,21 @@ export interface EventRecord {
 }
 
 export interface AssetRecord {
+  // Key set measured against the live route, not copied from an assumption:
+  // src/design_lab/image_assets.py::_verified returns exactly
+  // id, version_id, sha256, byte_size, rights, width, height, media_type for both the list and
+  // the single-read branch. `kind` and `version_no` used to be declared here and were never
+  // emitted, so the reference picker painted the literal word "undefined" in front of every
+  // asset. The raster-only scope is a WHERE clause on the route (asset_kind='raster'), so the
+  // page may not read a kind off the row; it reads what the service actually says.
   id: string;
-  kind: string;
-  version_no: number;
   version_id: string;
-  media_type: string;
+  sha256: string;
+  byte_size: number;
+  rights: string;
   width: number;
   height: number;
-  rights: string;
-  sha256: string;
+  media_type: string;
 }
 
 export interface NativeAssetRecord {
@@ -55,6 +61,43 @@ export interface NativeAssetRecord {
   sha256: string;
   rights: string;
   verification: string;
+}
+
+export interface AutomationConnectorRow {
+  // Key set measured against the live route (src/design_lab/automation_connectors.py::build).
+  // `design_lab_state` is NOT_PROBED for every row: it is this project's own reading, and the
+  // pack's MCP_READY/UNAVAILABLE words are reported separately as its evidence, never adopted.
+  id: string;
+  transport: string | null;
+  handshaked_in_pack_evidence: boolean;
+  tools_listed_in_pack_evidence: number | null;
+  native_tool_called_in_pack_evidence: boolean | null;
+  design_lab_state: string;
+  design_lab_enabled: boolean;
+  activation: string;
+  same_named_project_adapters: string[];
+  rights: string;
+}
+
+export interface AutomationConnectorsView {
+  meaning: string;
+  unprobedMeans: string;
+  registry_state: string;
+  pack_state: string;
+  counts: {
+    connectors: number; handshaked_in_pack_evidence: number;
+    tools_listed_total_in_pack_evidence: number; native_tool_calls_executed: number;
+    probed_by_design_lab: number; enabled: number; project_adapters: number;
+  };
+  connectors: AutomationConnectorRow[];
+  pack: {
+    zip_bytes: number | null; zip_sha256: string | null;
+    declared_connections: number | null; verification: Record<string, number> | null;
+  };
+  not_activated: string[];
+  inert_instruction_blobs: number | null;
+  evidence_ceiling: string;
+  claims_not_made: string[];
 }
 
 export interface ProjectSummary {

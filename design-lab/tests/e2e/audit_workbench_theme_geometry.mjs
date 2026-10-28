@@ -53,7 +53,27 @@ function expected(width) {
   return { theme: 256, offset: 256 + 30, pad: 30 };
 }
 
-const PALETTES = [['design-lab', 'dark'], ['ui2026', 'dark'], ['ui2026', 'light']];
+// The variant list is read out of the product's own table rather than typed a second time here.
+// It used to be hardcoded to design-lab/dark + ui2026 in both schemes, which meant the pearl-white
+// face -- the one the 20261023 pack actually specifies -- was never measured by this gate at all,
+// while the contrast gate injected the attribute and so graded a face nobody could reach by
+// clicking. shell.ts declares PALETTES with each palette's own `schemes`, so one parse here keeps
+// the two gates honest about the same population.
+function readPaletteTable() {
+  const shell = readFileSync(path.join(REPO, 'apps/workbench/shell.ts'), 'utf8');
+  const block = shell.slice(shell.indexOf('const PALETTES'), shell.indexOf('function paletteSpec'));
+  const out = [];
+  const each = /\{\s*id:\s*'([\w-]+)'[^}]*?schemes:\s*\[([^\]]*)\]/g;
+  let match;
+  while ((match = each.exec(block))) {
+    for (const scheme of match[2].split(',').map((s) => s.trim().replace(/'/g, '')).filter(Boolean)) {
+      out.push([match[1], scheme]);
+    }
+  }
+  return out;
+}
+
+const PALETTES = readPaletteTable();
 
 const READ = () => {
   const rail = document.querySelector('.app-nav');
@@ -104,6 +124,21 @@ for (const width of widths) {
   const exp = expected(width);
   report.widths[String(width)] = seen;
   if (!base) continue;
+  // Every other palette the product declares must be GEOMETRICALLY indistinguishable from the
+  // default face. The 20261023 pack states six colours (09_DESIGN.md:9) and no rail width, so a
+  // stitch-specific number here would be a value this repository invented -- which is why the
+  // assertion is equality with the default rather than a new constant. A difference is an
+  // unauthorised layout change, so this runs at every width including the narrow ones.
+  for (const [key, read] of Object.entries(seen)) {
+    if (key === 'design-lab/dark' || key.startsWith('ui2026/') || !read) continue;
+    for (const field of ['railRect', 'railComputed', 'marginLeft', 'paddingRight']) {
+      if (read[field] !== base[field]) {
+        findings.push(`PALETTE_MOVES_GEOMETRY @${width} ${key}: ${field}=${read[field]} vs `
+                      + `default ${base[field]} -- the 20261023 pack declares colours only, so `
+                      + 'a layout difference here is not authorised');
+      }
+    }
+  }
   if (exp.rail === null) {
     // Below the pack's 768px breakpoint the shell collapses the rail into a bar (measured: the rail
     // takes the full 700px viewport and the content margin drops to 16). That layout is

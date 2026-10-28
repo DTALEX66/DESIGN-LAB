@@ -2,9 +2,9 @@
   "authorityTaskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "authorityTaskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
   "counts": {
-    "DONE": 4,
+    "DONE": 13,
     "FROZEN_DEFERRED": 34,
-    "NOT_STARTED": 10,
+    "NOT_STARTED": 1,
     "PARTIAL": 2
   },
   "environmentFingerprint": {
@@ -14,7 +14,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-23T23:28:26+00:00",
+  "generatedAt": "2026-10-28T14:37:07+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -29,7 +29,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3c6ca49133a4995b074182280c0844a9872f039f",
+  "subjectSha": "407a2a1372c55d5fe555a33ba7a22abd66dfc081",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
@@ -880,14 +880,16 @@
         "kb-02-unit-backup-watch-20261024",
         "kb-02-implementation-chain-20261024",
         "kb-02-implementation-write-surface-r2-20261024",
-        "kb-02-unit-knowledge-r2-20261024"
+        "kb-02-unit-knowledge-r2-20261024",
+        "kb-02-unit-a5-offline-20261024",
+        "kb-02-browser-copy-and-gates-20261024"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-02",
       "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_FIRST",
-      "state": "PARTIAL",
+      "state": "DONE",
       "title": "知识条目可写面：新增、读取、列表与一个权威写入点"
     },
     {
@@ -903,13 +905,12 @@
         "kb-03-implementation-ui-audit-r2-20261024",
         "kb-03-browser-e2e-r2-20261024",
         "kb-03-browser-visual-r2-20261024",
-        "kb-03-visual-review-r2-20261024"
+        "kb-03-visual-review-r2-20261024",
+        "kb-03-browser-entry-detail-rulers-20261025"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-03",
-      "implementation_unmet": [
-        "DL-KB-02"
-      ],
+      "implementation_unmet": [],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
       "state": "DONE",
@@ -926,9 +927,7 @@
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-04",
-      "implementation_unmet": [
-        "DL-KB-02"
-      ],
+      "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
       "state": "DONE",
@@ -939,16 +938,20 @@
       "batch": "K2",
       "evidence": [
         "kb-05-unit-knowledge-r2-20261024",
-        "kb-05-implementation-revisions-r2-20261024"
+        "kb-05-implementation-revisions-r2-20261024",
+        "kb-05-unit-judgement-20261024",
+        "kb-05-implementation-judgement-surface-20261024",
+        "kb-05-browser-workbench-gates-20261024",
+        "kb-05-browser-knowledge-detail-walk-20261024",
+        "kb-05-unit-knowledge-reference-20261024",
+        "kb-05-browser-plan-cites-knowledge-20261024"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-05",
-      "implementation_unmet": [
-        "DL-KB-02"
-      ],
+      "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "PARTIAL",
+      "state": "DONE",
       "title": "修订、并发前置条件与推荐版本分离"
     },
     {
@@ -966,7 +969,8 @@
         "kb-06-browser-zoom-r2-20261024",
         "kb-06-visual-review-r2-20261024",
         "kb-06-browser-a11y-r2-20261024",
-        "kb-06-browser-debt-r2-20261024"
+        "kb-06-browser-debt-r2-20261024",
+        "kb-06-browser-stitch-palette-theme-20261025"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-06",
@@ -979,112 +983,142 @@
     {
       "acceptance_unmet": [],
       "batch": "K3",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
-      "id": "DL-KB-07",
-      "implementation_unmet": [
-        "DL-KB-02"
+      "evidence": [
+        "kb-07-unit-plan-object-20261024",
+        "kb-07-implementation-plan-routes-20261024"
       ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
+      "id": "DL-KB-07",
+      "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "中立方案对象与一份创意意图"
     },
     {
       "acceptance_unmet": [],
       "batch": "K3-UI",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
-      "id": "DL-KB-08",
-      "implementation_unmet": [
-        "DL-KB-07"
+      "evidence": [
+        "kb-08-implementation-workbench-node-20261024",
+        "kb-08-implementation-workbench-python-20261024",
+        "kb-08-browser-e2e-20261024",
+        "kb-08-browser-capture-20261024",
+        "kb-08-browser-overflow-20261024",
+        "kb-08-browser-contrast-20261024",
+        "kb-08-browser-ui-audit-20261024",
+        "kb-08-browser-a11y-20261024",
+        "kb-08-browser-debt-20261024",
+        "kb-08-browser-visual-20261024",
+        "kb-08-visual-review-20261024",
+        "kb-08-unit-five-kind-picker-20261024",
+        "kb-08-browser-five-kind-picker-20261024",
+        "kb-08-browser-plan-detail-geometry-20261025"
       ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
+      "id": "DL-KB-08",
+      "implementation_unmet": [],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "「设计辅助」初始态与方案详情屏"
     },
     {
       "acceptance_unmet": [],
       "batch": "K4",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
+      "evidence": [
+        "kb-09-implementation-profile-routes-20261024",
+        "kb-09-unit-target-profile-20261024"
+      ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-09",
       "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "目标档案：软件×模型×入口"
     },
     {
       "acceptance_unmet": [],
       "batch": "K4-UI",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
-      "id": "DL-KB-10",
-      "implementation_unmet": [
-        "DL-KB-09"
+      "evidence": [
+        "kb-10-browser-e2e-20261024",
+        "kb-10-implementation-route-calls-20261024",
+        "kb-10-unit-assistance-plan-20261024",
+        "kb-10-browser-target-combination-state-20261025"
       ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
+      "id": "DL-KB-10",
+      "implementation_unmet": [],
       "kind": "UI_SUBTASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "目标组合选择面板屏"
     },
     {
       "acceptance_unmet": [],
       "batch": "K5",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
-      "id": "DL-KB-11",
-      "implementation_unmet": [
-        "DL-KB-07",
-        "DL-KB-09"
+      "evidence": [
+        "kb-11-browser-contrast-20261024",
+        "kb-11-implementation-export-chain-20261024",
+        "kb-11-unit-plan-export-20261024"
       ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
+      "id": "DL-KB-11",
+      "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "三形态导出与执行状态声明"
     },
     {
       "acceptance_unmet": [],
       "batch": "K5-UI",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
-      "id": "DL-KB-12",
-      "implementation_unmet": [
-        "DL-KB-05",
-        "DL-KB-07"
+      "evidence": [
+        "kb-12-browser-e2e-summary-20261024",
+        "kb-12-implementation-workbench-node-20261024",
+        "kb-12-browser-two-revision-comparison-20261025"
       ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
+      "id": "DL-KB-12",
+      "implementation_unmet": [],
       "kind": "UI_SUBTASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "「我的方案」屏"
     },
     {
       "acceptance_unmet": [],
       "batch": "K6",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
+      "evidence": [
+        "kb-13-browser-overflow-report-20261024",
+        "kb-13-browser-overflow-zoom-20261024",
+        "kb-13-css-single-definition-20261024",
+        "kb-13-implementation-module-share-20261024",
+        "kb-13-implementation-search-latency-20261024",
+        "kb-13-implementation-weight-20261024"
+      ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-KB-13",
       "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "PARTIAL",
       "title": "轻量与性能：先量基线再改"
     },
     {
       "acceptance_unmet": [],
       "batch": "K6-UI",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
-      "id": "DL-KB-14",
-      "implementation_unmet": [
-        "DL-KB-02",
-        "DL-KB-09"
+      "evidence": [
+        "kb-14-browser-state-loop-20261024",
+        "kb-14-implementation-workbench-build-20261024",
+        "kb-14-unit-knowledge-outage-20261024"
       ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
+      "id": "DL-KB-14",
+      "implementation_unmet": [],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "DONE",
       "title": "状态与错误面"
     },
     {
@@ -1093,10 +1127,7 @@
       "evidence": [],
       "evidence_level": "NO_EVIDENCE",
       "id": "DL-KB-15",
-      "implementation_unmet": [
-        "DL-KB-09",
-        "DL-KB-11"
-      ],
+      "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
       "state": "NOT_STARTED",
@@ -1105,15 +1136,18 @@
     {
       "acceptance_unmet": [],
       "batch": "K8",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
-      "id": "DL-KB-16",
-      "implementation_unmet": [
-        "DL-KB-11"
+      "evidence": [
+        "kb-16-browser-feedback-20261024",
+        "kb-16-implementation-write-surface-20261024",
+        "kb-16-unit-plan-feedback-20261024",
+        "kb-16-browser-recorded-feedback-state-20261025"
       ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
+      "id": "DL-KB-16",
+      "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "PARTIAL",
       "title": "可选外部结果反馈"
     }
   ],
@@ -1122,5 +1156,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:453d7c5db1ad263cfb5ab2bdfed26ee37098a7b10a10b3c2db13db678b4ff7dc"
+  "worktreeDigest": "sha256:3fed4b517acbe18d38720c2ef252fe69d641312d9ade85d27f8558116c5890ce"
 }

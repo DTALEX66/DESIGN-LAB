@@ -19,6 +19,10 @@ const commit = process.env.CAP_COMMIT || 'unknown';
 const sourceImage = process.env.CAP_SOURCE_IMAGE || '';
 // Set by --seed-native-plan: submit one never-run native plan into the project THIS run creates.
 const seedNativePlan = process.env.CAP_SEED_NATIVE_PLAN === '1';
+// Set by --seed-assistance-plan: file one synthetic assistance plan with shot rows, a second
+// revision, a named choice and one voluntary report, so the plan-detail surfaces can be rendered
+// at all (they are states of a stored plan, not of the empty form).
+const seedAssistancePlan = process.env.CAP_SEED_ASSISTANCE_PLAN === '1';
 // Repo-relative when the file is inside the checkout, absolute (and visibly so) when the
 // operator pointed at something outside it.
 const referenceSourceRecorded = (() => {
@@ -240,8 +244,22 @@ const PAGES = [
   // DL-KB-03 (2026-10-23): 知识与提示词库。搜索是主视觉，读 GET /api/knowledge-entries/search；
   // 不进这份清单就等于这一面从没被真实渲染过，也就不会在任何闸上报错。
   { key: 'knowledge', hash: '#/knowledge' },
+  // DL-KB-08 (2026-10-24): 设计辅助的初始态与方案详情。空台账下只有表单与「尚无方案」，
+  // 四态图例与输出类型词表都来自服务读回；它是日常入口，不能只存在于路由表里。
+  { key: 'assistant', hash: '#/assistant' },
+  // The plan detail, reached the way a person reaches it: click a row in 最近的方案. With
+  // CAP_SEED_ASSISTANCE_PLAN the row exists and carries a shot table, a named choice, a second
+  // revision and one voluntary report, so the four state chips, the 镜头表, the material formats,
+  // the feedback history and the revision comparison are all in the frame.
+  { key: 'assistant-plan', hash: '#/assistant', click: '#as-list .as-plan-open',
+    settle: '#as-plan' },
+  // DL-KB-10 (2026-10-24): 目标组合选择面板。默认态是「暂不指定」：五个选择框、两栏对照
+  // （官方支持 / 本项目未测试）与"这一屏不给路线"那句状态说明都来自五条 /api/target-profile*
+  // 读回。不进这份清单就等于这一面从没被真实渲染过，也就不会在任何闸上报错。
+  { key: 'target-profiles', hash: '#/target-profiles' },
   // R2 §9 (DL-FINAL-T08): 分组全局搜索是浮层，只能靠真实点击打开后才有可审阅的一张图。
   { key: 'search-groups', hash: '#/capabilities', click: '#openPalette' },
+  { key: 'automation', hash: '#/automation' },
 ];
 
 // --- route coverage gate: runs before the browser launches, so a gap costs no PNGs ------
@@ -428,6 +446,117 @@ try {
     console.log(`CAP_SCAFFOLD=SEEDED kind=${kind} rows=${rows.length} project=${projectId}`);
   }
 
+  // --- capture scaffolding: one synthetic assistance plan with shot rows -------------------------
+  // Without this, every screenshot of `#/assistant` shows the empty form, and the plan screen's
+  // actual surfaces -- the four state chips, the 镜头表, the four material formats, the voluntary
+  // feedback history, the revision comparison -- are never rendered for anyone to look at. A review
+  // that never saw them cannot claim the screen was reviewed. Like the native scaffold above, this
+  // dies with the temporary project root, and the actor names say it is not a person's statement.
+  if (seedAssistancePlan) {
+    const base = serviceUrl.replace(/\/$/, '');
+    const auth = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const synthetic = '捕获脚手架（合成，不是真人）';
+    const shotPlan = {
+      objective: '为秋季新品做一条 15 秒主视觉动效，标题落在大面积留白里',
+      output_type: 'MOTION',
+      neutral_creative: null,
+      brand_constraints: ['只用两种油墨', '标题不使用描边'],
+      role_constraints: [],
+      lens: '俯拍整张桌面',
+      sound: '低频垫底，无对白',
+      shots: [
+        { index: 1, duration_s: 4, purpose: '开场：侧光落在纸纤维上',
+          camera: '缓推', sound: null, reference_role: '主参考' },
+        { index: 2, duration_s: null, purpose: '收束：标题一次落定，留出落版空白',
+          camera: '固定', sound: '低频收干', reference_role: null },
+      ],
+      references: [],
+      external_steps: [{ step: '在宿主里手动导出 MP4', tool: 'After Effects',
+                         job_id: null, operation_id: null }],
+      known_gaps: ['目标平台码率未定'],
+      limits: ['不含多语言字幕', '不产出可编辑源文件'],
+      created_by: synthetic,
+    };
+    const created = await (await fetch(`${base}/api/projects/${projectId}/assistance-plans`,
+      { method: 'POST', headers: auth, body: JSON.stringify(shotPlan) })).json()
+      .catch(() => ({}));
+    const planId = (created.plan || {}).plan_id;
+    if (!planId) {
+      fail(`CAP_SEED_ASSISTANCE_PLAN_REFUSED ${JSON.stringify(created).slice(0, 240)}`);
+    }
+    // A second revision, so the revision list and the comparison have two real rows to show. It
+    // carries the same shot table: a revision inherits the plan's content, so dropping the rows
+    // here would make r2 -- the one the detail renders -- the "no shot rows" branch instead.
+    const revisedBody = { ...shotPlan, neutral_creative: '两束交叉光缓慢推移，标题以一次落定收束。',
+      created_by: synthetic, expected_revision: created.revision };
+    const revised = await fetch(`${base}/api/projects/${projectId}/assistance-plans/${planId}/revisions`,
+      { method: 'POST', headers: auth, body: JSON.stringify(revisedBody) });
+    if (revised.status !== 201) {
+      fail(`CAP_SEED_ASSISTANCE_REVISION_REFUSED ${revised.status} `
+          + JSON.stringify(await revised.json().catch(() => ({}))).slice(0, 240));
+    }
+    const chose = await fetch(`${base}/api/projects/${projectId}/assistance-plans/${planId}/choose`,
+      { method: 'POST', headers: auth,
+        body: JSON.stringify({ actor: synthetic, actor_kind: 'human', revision: 2 }) });
+    if (chose.status !== 200) {
+      fail(`CAP_SEED_ASSISTANCE_CHOOSE_REFUSED ${chose.status} `
+          + JSON.stringify(await chose.json().catch(() => ({}))).slice(0, 240));
+    }
+    const reported = await fetch(
+      `${base}/api/projects/${projectId}/assistance-plans/${planId}/feedback`,
+      { method: 'POST', headers: auth, body: JSON.stringify({
+        outcome: 'PARTIALLY_MATCHES', target_key: 'elevenlabs--web-app--music',
+        actor: synthetic, note: '标题落点可用，时长要手改（合成脚手架，不是任何人的使用记录）',
+        source_ref: null, revision: 2, target_model: null,
+        dimensions: [{ name: '画幅', verdict: 'PARTIALLY_MATCHES', note: null }],
+        issue_timecodes: ['00:03-00:05'] }) });
+    if (reported.status !== 201) {
+      fail(`CAP_SEED_ASSISTANCE_FEEDBACK_REFUSED ${reported.status} `
+          + JSON.stringify(await reported.json().catch(() => ({}))).slice(0, 240));
+    }
+    // Prove each surface has something to render by reading it back through the page's own routes;
+    // a PNG of an empty list is not evidence that the control works.
+    const readback = await (await fetch(
+      `${base}/api/projects/${projectId}/assistance-plans/${planId}`, { headers: auth }))
+      .json().catch(() => ({}));
+    if ((readback.revisions || []).length !== 2 || !readback.states?.chosen
+        || !readback.states?.provided) {
+      fail(`CAP_SEED_ASSISTANCE_NOT_READ_BACK revisions=${(readback.revisions || []).length} `
+          + JSON.stringify(readback.states || {}));
+    }
+    const history = await (await fetch(
+      `${base}/api/projects/${projectId}/assistance-plans/${planId}/feedback`, { headers: auth }))
+      .json().catch(() => ({}));
+    if ((history.records || []).length !== 1) {
+      fail(`CAP_SEED_ASSISTANCE_FEEDBACK_NOT_LISTED records=${(history.records || []).length}`);
+    }
+    const materials = await (await fetch(
+      `${base}/api/assistance-plan-output-types`, { headers: auth })).json().catch(() => ({}));
+    if (!Array.isArray(materials.export_formats) || materials.export_formats.length !== 4) {
+      fail(`CAP_SEED_ASSISTANCE_MATERIALS_UNSERVED formats=`
+          + JSON.stringify(materials.export_formats ?? null));
+    }
+    writeFileSync(path.join(outDir, 'capture-scaffold-assistance.json'), JSON.stringify({
+      scaffolding: true,
+      note: '合成捕获脚手架：一条带两行镜头的方案、第二次修订、一次具名选用与一条自愿反馈。'
+        + '它只为让方案详情在截图里真的长出内容；记录人姓名标明是合成的，'
+        + '随临时项目根一起丢弃，不是任何人的使用记录，也不进入任何知识出口。',
+      project_id: projectId,
+      plan_id: planId,
+      revisions: (readback.revisions || []).length,
+      shot_rows: (readback.current?.shots || []).length,
+      states: readback.states,
+      feedback_records: (history.records || []).length,
+      formats_offered: (materials.export_formats || []).map((row) => row.value),
+      synthetic_actor: synthetic,
+      never_run: true,
+      nothing_sent: true,
+    }, null, 2) + '\n', 'utf8');
+    console.log(`CAP_ASSISTANCE_SCAFFOLD=SEEDED plan=${planId} revisions=2 shots=`
+      + `${(readback.current?.shots || []).length} formats=`
+      + `${(materials.export_formats || []).length} project=${projectId}`);
+  }
+
   if (sourceImage && existsSync(sourceImage)) {
     const buffer = readFileSync(sourceImage);
     await page.locator('#file').setInputFiles({
@@ -540,16 +669,48 @@ for (const width of widths) {
       // exists has to drive the same click a person would -- and wait until every object group
       // has answered, or the image would show four "尚未读取" placeholders and look like a pass.
       await page.click(p.click);
-      await page.waitForFunction(() => {
-        const groups = document.querySelectorAll('#paletteObjects .palette-group');
-        if (groups.length !== 4) return false;
-        return Array.from(groups).every((g) => {
-          const body = g.querySelector('.palette-group-body');
-          const text = (body && body.textContent) || '';
-          return Boolean(body && body.querySelector('.item'))
-            || text.includes('0 个对象') || text.includes('未读回');
-        });
-      }, { timeout: 25000 }).catch(() => problems.push(`palette-not-settled@${width} ${p.key}`));
+      if (p.settle) {
+        // Same rule for a detail screen assembled from several reads: the host must exist and no
+        // part of it may still say 正在读回. A PNG of placeholders would otherwise be filed under
+        // "the plan screen was reviewed". What is NOT required here is that every [role="status"]
+        // line has text: the material reply and the note slot are legitimately empty until a
+        // person acts, and demanding text made this wait unsatisfiable -- three settle timeouts on
+        // a panel that had in fact rendered everything. The scaffold's own read-back assertions
+        // (shot rows, formats, revisions, the feedback record) are what prove content landed.
+        await page.waitForFunction((sel) => {
+          const host = document.querySelector(sel);
+          if (!host) return false;
+          if (host.querySelector('.view-loading')) return false;
+          const stuck = Array.from(host.querySelectorAll('[role="status"]'))
+            .filter((node) => /正在读回|正在从服务读取/.test((node.textContent || '').trim()));
+          return stuck.length === 0;
+        }, p.settle, { timeout: 30000 })
+          .catch(async () => {
+            // Name what is still open, so a timeout says which read never landed instead of
+            // sending the next reader to instrument this file to learn it.
+            const why = await page.evaluate((sel) => {
+              const host = document.querySelector(sel);
+              if (!host) return 'no-host';
+              if (host.querySelector('.view-loading')) return 'still-reading';
+              const stuck = Array.from(host.querySelectorAll('[role="status"]'))
+                .filter((node) => /正在读回|正在从服务读取/.test((node.textContent || '').trim()))
+                .map((node) => node.id || node.className);
+              return stuck.length ? 'unread:' + stuck.join(',') : 'other';
+            }, p.settle);
+            problems.push(`settle-${why}@${width} ${p.key}`);
+          });
+      } else {
+        await page.waitForFunction(() => {
+          const groups = document.querySelectorAll('#paletteObjects .palette-group');
+          if (groups.length !== 4) return false;
+          return Array.from(groups).every((g) => {
+            const body = g.querySelector('.palette-group-body');
+            const text = (body && body.textContent) || '';
+            return Boolean(body && body.querySelector('.item'))
+              || text.includes('0 个对象') || text.includes('未读回');
+          });
+        }, { timeout: 25000 }).catch(() => problems.push(`palette-not-settled@${width} ${p.key}`));
+      }
     }
     await page.waitForTimeout(400);
     const file = `${String(shots.length).padStart(2, '0')}-${p.key}@${width}${themeTag}.png`;

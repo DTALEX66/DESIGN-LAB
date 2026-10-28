@@ -1,0 +1,12 @@
+WEIGHT bundle     bytes=  593796 gzip= 155787 sha=96a695099383b500
+WEIGHT stylesheet bytes=  110904 gzip=  40530 sha=8156d5a379778c68
+WEIGHT document   bytes=   10144 gzip=   3857 sha=6a67bc1ade21e6f5
+WEIGHT inline-data count=1 bytes=6626 share=1.12% of the bundle
+WEIGHT mountPoints=2663 routedViews=24
+WEIGHT page knowledge list default = 50
+WEIGHT page knowledge list maximum = 200
+WEIGHT page plan list default = 50
+WEIGHT page target profile list default = 20
+WEIGHT page plan feedback list default = 20
+WEIGHT remoteReferences=0 budgetDeclared=False
+WEIGHT NOTE design.qa.yaml declares no performance budget; a ceiling is an owner decision, so these are baseline readings, not a pass/fail judgement on size.

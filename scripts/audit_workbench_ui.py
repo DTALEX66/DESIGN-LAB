@@ -14,6 +14,10 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from report_paths import display_path  # noqa: E402
 import os
 import secrets
 import shutil
@@ -168,7 +172,7 @@ def main() -> int:
                         encoding="utf-8")
 
     violations = report.get("violations", [])
-    print("AUDIT_REPORT %s" % out_path.relative_to(REPO).as_posix())
+    print("AUDIT_REPORT %s" % display_path(out_path, REPO))
     print("AUDIT_SCOPES %s violations=%s ok=%s"
           % (report.get("notes", {}).get("totalMetrics"), len(violations),
              report.get("ok")))

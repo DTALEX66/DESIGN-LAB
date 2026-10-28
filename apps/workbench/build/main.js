@@ -536,6 +536,9 @@ async function api(path, body, options = {}) {
   if (generation) generation.signal.addEventListener("abort", cancel, { once: true });
   options.signal?.addEventListener("abort", cancel, { once: true });
   let response;
+  let bodySeen = false;
+  let status = 0;
+  let value;
   try {
     response = await fetch("/api" + path, {
       method: body ? "POST" : "GET",
@@ -544,6 +547,9 @@ async function api(path, body, options = {}) {
       cache: "no-store",
       signal: controller.signal
     });
+    bodySeen = true;
+    status = response.status;
+    value = await response.json();
   } catch (error) {
     if (deadlineHit) {
       const seconds = timeoutMs >= 1e3 ? Math.round(timeoutMs / 1e3) : timeoutMs / 1e3;
@@ -555,21 +561,23 @@ async function api(path, body, options = {}) {
         `读取超时（${seconds} 秒未答复）：本次读取已放弃。读取没有产生任何写入，可以直接重试。`
       );
     }
-    if (controller.signal.aborted)
+    if (controller.signal.aborted) {
+      if (isWrite)
+        throw new WriteOutcomeUnknownError(
+          "提交已发出，但答复在读取过程中被取消：结果待核对，不是失败。请先读回该资源确认服务端是否已经落库，再决定是否重发。"
+        );
       throw new PageReadCancelledError(
         "页面已切换，本次读取已取消（没有产生写入）。重新进入该页会重新读取。"
       );
+    }
+    if (bodySeen) {
+      throw new Error(`服务回复无法解析（HTTP ${status}，${errMsg(error)}）`);
+    }
     throw new Error(`无法连接本机设计服务（${errMsg(error)}）`);
   } finally {
     clearTimeout(timer);
     generation?.signal.removeEventListener("abort", cancel);
     options.signal?.removeEventListener("abort", cancel);
-  }
-  let value;
-  try {
-    value = await response.json();
-  } catch (error) {
-    throw new Error(`服务回复无法解析（HTTP ${response.status}，${errMsg(error)}）`);
   }
   if (response.status === 401) dropSession();
   if (!response.ok) {
@@ -1289,6 +1297,34 @@ const OFFLINE = {
     counts: { packs: 0, byValidation: {} },
     packs: []
   },
+  // 自动化连接器登记的诚实空载荷：两个来源都"未读回"，不是"没有连接器"。计数全部为 0 且
+  // evidence_ceiling 留空，因为离线时任何等级说法都不是从读回来的。
+  automationConnectors: {
+    meaning: "未连接本机设计服务",
+    unprobedMeans: "未读回，因此不说明任何连接器的状态",
+    registry_state: "NOT_READ",
+    pack_state: "NOT_READ",
+    counts: {
+      connectors: 0,
+      handshaked_in_pack_evidence: 0,
+      tools_listed_total_in_pack_evidence: 0,
+      native_tool_calls_executed: 0,
+      probed_by_design_lab: 0,
+      enabled: 0,
+      project_adapters: 0
+    },
+    connectors: [],
+    pack: {
+      zip_bytes: null,
+      zip_sha256: null,
+      declared_connections: null,
+      verification: null
+    },
+    not_activated: [],
+    inert_instruction_blobs: null,
+    evidence_ceiling: "",
+    claims_not_made: []
+  },
   tasks: { tasks: [], next_cursor: null },
   // DL-UI-U06: every section is NOT_READ, never ABSENT. "This service never recorded a native
   // attempt" is a claim about the database's table list, and a page that never reached the
@@ -1365,9 +1401,59 @@ const OFFLINE = {
     index: { rows: 0, indexed: 0, rebuilt_at: null },
     does_not_say: []
   },
+  // DL-KB-08：输出类型词表的诚实空载荷。离线时不手抄六项标签——选择框显示"未读回"，
+  // 也不把一个服务可能拒绝的词画成可选项。方案清单同理：空列表表示没有问到，不是"没有方案"。
+  assistanceOutputTypes: {
+    schemaVersion: "design-lab/assistance-plan-output-types/v1",
+    output_types: []
+  },
+  assistancePlans: {
+    schemaVersion: "design-lab/assistance-plan-list/v1",
+    total: 0,
+    offset: 0,
+    limit: 20,
+    returned: 0,
+    next_offset: null,
+    plans: []
+  },
+  // DL-KB-10：目标档案的两条只读接缝的诚实空载荷。词表留空而不是手抄一份 13 个字段名或
+  // 7 条轴——离线时这一屏不显示选择维度，而不是把服务可能拒绝的词画成可选项。清单同理：
+  // profiles 为空表示没问到，两个直方图为空表示一个状态都没数过；measured_fields 留成 0 是
+  // 页面替服务说"实测过 0 项"，所以它写 0，由未连接标记说明这个 0 是"没问到"不是"数过"。
+  targetProfileAxes: {
+    schemaVersion: "design-lab/target-profile-axes/v1",
+    capability_fields: [],
+    axes: [],
+    provenance_kinds: [],
+    field_states: [],
+    support_states: [],
+    entry_kinds: [],
+    validate_dimensions: [],
+    verdicts: [],
+    software: [],
+    task_modes: [],
+    measured_fields: 0,
+    measured_note: "",
+    executable: false
+  },
+  targetProfiles: {
+    schemaVersion: "design-lab/target-profile-list/v1",
+    total: 0,
+    offset: 0,
+    limit: 100,
+    profiles: [],
+    support_histogram: {},
+    provenance_histogram: {},
+    executable: false
+  },
   // 提示词反推需要一条真实存在的图像资产，所以资产清单也走同一只读接缝：没有读到
   // assets 时说未读回，而不是"这个项目没有素材"。
   assets: { assets: [] },
+  // 方案参考选择器读的三份项目内清单。空在这里只表示"没读到"，不表示"这个工作区没有
+  // brief / 方向 / 提示词结果"——那句只有服务能回答，由 shapeNotice 写出来的缺字段说明负责。
+  briefs: { briefs: [], next_cursor: null },
+  directions: { directions: [], next_cursor: null },
+  promptResults: { results: [] },
   designLayer: {
     design_layer: {
       briefs: [],
@@ -1417,6 +1503,9 @@ const OFFLINE = {
 const ROUTE_VIEWS = [
   // 设计辅助：拿到一个目标、看清它、找到参考与方法。
   { hash: "", view: "workbench", label: "工作台", entry: "设计辅助" },
+  // DL-KB-08：日常入口本身。初始屏只露需求、参考附件与输出类型；结果是服务里的一条方案记录，
+  // 四态（已保存／方案已提供／用户选用／外部未验证）由读回计算，页面不替服务下结论。
+  { hash: "#/assistant", view: "assistant", label: "设计辅助", entry: "设计辅助" },
   { hash: "#/dashboard", view: "dashboard", label: "仪表盘", entry: "设计辅助" },
   { hash: "#/intake", view: "intake", label: "输入与目标", entry: "设计辅助" },
   { hash: "#/analysis", view: "analysis", label: "分析与方案", entry: "设计辅助" },
@@ -1442,10 +1531,18 @@ const ROUTE_VIEWS = [
   // sources.radar 指向 design-lab/readiness/model-radar.json）。这里不加任何模型名或族名：
   // 手抄一份雷达就是这个仓库反复gate掉的第二台账。
   { hash: "#/models", view: "model-selection", label: "模型选择", entry: "设置与诊断" },
+  // DL-KB-10 屏幕三：目标组合选择面板。它读的是 DL-KB-09 刚上线的五个 /api/target-profile*
+  // 路由。放在「模型选择」旁边而不是合并进去，是因为 08 line 9 那句「方案助手模型是另一种
+  // 配置，不混进同一菜单」——两个菜单各管一件事：一处配助手模型，一处选外部制作目标。
+  { hash: "#/target-profiles", view: "target-profiles", label: "目标组合", entry: "设置与诊断" },
+  // owner 2026-10-28「取消冻结的自动化任务」「前端也同步上去自动化的菜单导航等」。次级入口，
+  // 不加进画板钉住的那三个日常项；屏上只有读回，没有任何启动动作。
+  { hash: "#/automation", view: "automation-connectors", label: "自动化连接器", entry: "设置与诊断" },
   { hash: "#/collaboration", view: "collaboration", label: "团队协作", entry: "设置与诊断" },
   { hash: "#/states", view: "ui-states", label: "界面状态", entry: "设置与诊断" },
   { hash: "#/components", view: "ui-components", label: "组件规范", entry: "设置与诊断" }
 ];
+const NAV_DAILY_VIEWS = ["assistant", "knowledge", "projects", "settings"];
 function viewLabel(view) {
   return ROUTE_VIEWS.find((route) => route.view === view)?.label ?? view;
 }
@@ -1702,6 +1799,32 @@ function rememberProject(id) {
   try {
     const next = [id, ...recentProjectIds().filter((v) => v !== id)].slice(0, RECENT_MAX);
     globalThis.localStorage?.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+  }
+}
+const PLAN_FILTER_KEY = "design-lab.assistant-plan-filters";
+function readPlanFilters() {
+  const fallback = { text: "", outputType: "all", state: "all" };
+  try {
+    const raw = globalThis.localStorage?.getItem(PLAN_FILTER_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return fallback;
+    const row = parsed;
+    return {
+      text: typeof row.text === "string" ? row.text.slice(0, 200) : "",
+      outputType: typeof row.output_type === "string" ? row.output_type.slice(0, 40) : "all",
+      state: typeof row.state === "string" ? row.state.slice(0, 20) : "all"
+    };
+  } catch {
+    return fallback;
+  }
+}
+function writePlanFilters(seed) {
+  try {
+    globalThis.localStorage?.setItem(PLAN_FILTER_KEY, JSON.stringify(
+      { text: seed.text, output_type: seed.outputType, state: seed.state }
+    ));
   } catch {
   }
 }
@@ -4370,6 +4493,146 @@ function domainDrawer(packs, openId, join = null) {
   });
   return panel;
 }
+async function renderAutomationConnectors(target) {
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读回自动化连接器登记…"));
+  const answer = await apiOrEmpty(
+    "/automation-connectors",
+    OFFLINE.automationConnectors
+  );
+  const notice = shapeNotice(answer);
+  const rows = answer.connectors ?? [];
+  const counts = answer.counts;
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
+    el(
+      "div",
+      {},
+      el("h2", {}, "自动化连接器"),
+      el(
+        "p",
+        { class: "muted" },
+        answer.meaning,
+        "两个来源分别标记为 ",
+        el("span", { class: "value-mono" }, `注册表 ${answer.registry_state}`),
+        " 与 ",
+        el("span", { class: "value-mono" }, `投递包 ${answer.pack_state}`),
+        "。",
+        answer.unprobedMeans
+      )
+    ),
+    el("div", { class: "page-actions" })
+  );
+  const kpis = el(
+    "div",
+    { class: "kpi-grid" },
+    kpiCard(String(rows.length), "已登记连接器", "本项目注册表与投递包登记的条数"),
+    kpiCard(String(counts.probed_by_design_lab), "本项目已探测", "为零就是说从未探测过，不是探测失败"),
+    kpiCard(String(counts.enabled), "已启用", "owner 2026-10-28 未授权启用任何一个"),
+    kpiCard(
+      String(counts.native_tool_calls_executed),
+      "原生工具调用",
+      "本轮为零；包里逐条 nativeToolCalled:false"
+    )
+  );
+  const table = el("ul", { class: "list" }, ...rows.map((row) => el(
+    "li",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, row.id),
+      el("small", {}, [
+        row.transport ?? "传输未声明",
+        row.design_lab_state,
+        row.design_lab_enabled ? "已启用" : "未启用",
+        row.activation === "NOT_ACTIVATED_BY_OWNER" ? "owner 明确不启用" : "未申请启用",
+        row.handshaked_in_pack_evidence ? `包内证据：握手过，列得 ${row.tools_listed_in_pack_evidence ?? 0} 条工具` : "包内证据：未握手",
+        row.same_named_project_adapters.length ? `同名既有注册行 ${row.same_named_project_adapters.length} 条（仅同名，未判定同一上游）` : "本项目此前没有同名注册行",
+        `权利 ${row.rights}`
+      ].join(" · "))
+    ),
+    el(
+      "div",
+      { class: "actions" },
+      el(
+        "span",
+        { class: `tag ${row.design_lab_enabled ? "info" : "warn"}` },
+        row.design_lab_enabled ? "已启用" : "未启用"
+      )
+    )
+  )));
+  const closed = el(
+    "section",
+    { class: "panel" },
+    el("p", { class: "eyebrow" }, "NOT ACTIVATED"),
+    el("h3", {}, "留在关闭位的"),
+    el(
+      "ul",
+      { class: "items-stack" },
+      el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "windows 桌面 UI 自动化"),
+          el("small", {}, "受控 UI 自动化这一档本轮不启用；启用需要 owner 另给明确授权。")
+        )
+      ),
+      el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "真启动宿主软件 / 调用任何工具"),
+          el("small", {}, "逐次的 Human Gate 决定；这一屏不提供该动作。")
+        )
+      ),
+      el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "包内 21 个真实公司名品牌模板"),
+          el("small", {}, "商标与许可归属仍待 Rights gate，本轮只逐字节登记。")
+        )
+      )
+    ),
+    el(
+      "p",
+      { class: "view-hint" },
+      `惰性隔离的第三方指令体（SKILL.md 等）读数：${answer.inert_instruction_blobs ?? "未读回"}；`,
+      " 它们不进入本项目的指令面、prompt、工具发现或能力计数。"
+    )
+  );
+  const claims = el(
+    "section",
+    { class: "panel" },
+    el("p", { class: "eyebrow" }, "这一屏没有说的事"),
+    el("ul", { class: "items-stack" }, ...(answer.claims_not_made ?? []).map((line) => el(
+      "li",
+      { class: "list-item" },
+      el("div", {}, el("small", {}, line))
+    ))),
+    el(
+      "p",
+      { class: "view-hint" },
+      "证据等级上限：",
+      answer.evidence_ceiling || "未读回，因此本页不下等级结论。"
+    )
+  );
+  target.replaceChildren(
+    pageHead,
+    kpis,
+    ...notice ? [el("p", { class: "error", role: "alert" }, `未读回：${notice}`)] : [],
+    table,
+    closed,
+    claims
+  );
+}
 async function renderDomains(target, opts = {}) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回域包…"));
   const data = await apiOrEmpty("/domains", OFFLINE.domains);
@@ -4573,14 +4836,25 @@ async function renderSettings(target) {
     "section",
     { class: "panel", id: "settings-target-profiles" },
     el("h3", {}, "目标工具档案"),
+    // 2026-10-24 DL-KB-09/10：这一节此前写着"本服务没有档案路由，也没有可读回的档案行"。那句话
+    // 当时是真的，现在不是：/api/target-profile-axes、/api/target-profiles（读与写）、
+    // /api/target-profiles/{id} 与 …/validate 五条路由已经上线，屏上也真的在读它们。留着旧句
+    // 会让下一会话错误地不信任远端已经存在的能力，所以改成按读回说话。
     el(
       "p",
       { class: "view-hint" },
-      '目标工具档案（软件 × 模型 × 入口）还没有存储：本服务没有档案路由，也没有可读回的档案行。在档案建立之前，这一节不展示任何"已支持"的组合，也不写死软件名或版本。'
+      '目标工具档案（软件 × 模型 × 接入方式 × 任务模式）由本服务的档案路由读回，在「目标组合」那一屏逐项显示官方支持与本项目未测试。档案里的字段按出处分级，"本项目实测"这一项本轮恒为空：没有任何外部产品或模型被运行过。'
     ),
     el(
       "div",
       { class: "kb-actions" },
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          window.location.hash = "#/target-profiles";
+        }
+      }, "打开目标组合"),
       el("button", {
         type: "button",
         class: "ghost-btn",
@@ -4716,6 +4990,21 @@ const KB_FIELD_LABELS = {
   task_tags: "任务标签",
   target_tools: "目标工具"
 };
+function showCopyFallback(text, note) {
+  const area = el("textarea", {
+    class: "input as-copy-fallback",
+    rows: "6",
+    readonly: "readonly"
+  });
+  area.value = text;
+  note.replaceChildren(el(
+    "span",
+    {},
+    "浏览器没有允许写入剪贴板：文本已在下方展开并选中，按 Ctrl+C 复制。这只是复制，不是选用。"
+  ), area);
+  area.focus();
+  area.select();
+}
 function kbTypeLabel(vocabulary, value) {
   return vocabulary.find((option) => option.value === value)?.label ?? value;
 }
@@ -4786,6 +5075,225 @@ function kbEntryBlocks(doc, vocabulary) {
     )
   ];
 }
+const KB_JUDGEMENT_KIND_LABELS = {
+  RECOMMENDATION: "推荐版本",
+  SOURCE_STATE: "来源状态"
+};
+const KB_SOURCE_STATE_LABELS = { ACTIVE: "仍然有效", INVALID: "已失效" };
+const REFERENCE_KIND_LABELS = {
+  ASSET: "素材",
+  BRIEF: "需求 Brief",
+  DIRECTION: "方向",
+  PROMPT_RESULT: "提示词结果",
+  KNOWLEDGE: "知识条目"
+};
+function kbJudgementSentence(item) {
+  if (!item) return "";
+  const who = `${item.recorded_by} 于 ${item.recorded_at}`;
+  if (item.kind === "RECOMMENDATION") return `推荐 r${item.revision} —— ${who}记下，理由：${item.reason}`;
+  return `${KB_SOURCE_STATE_LABELS[item.value ?? ""] ?? en(item.value ?? "")}${item.replaced_by ? `，替代条目 ${item.replaced_by}` : ""} —— ${who}记下，理由：${item.reason}`;
+}
+function kbJudgementList(judgements) {
+  return el("ul", { class: "list" }, ...judgements.map((item) => el(
+    "li",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, KB_JUDGEMENT_KIND_LABELS[item.kind] ?? en(item.kind)),
+      el("small", {}, kbJudgementSentence(item))
+    ),
+    el("span", { class: "tag neutral" }, item.judgement_id)
+  )));
+}
+function kbJudgementPanel(detail, judge) {
+  const basis = detail.recommendation_basis === "recorded-judgement" ? `当前推荐 r${detail.recommended_revision} 来自一次后来记下的判断，不是写入时的标记。` : detail.recommendation_basis === "written-flag" ? `当前推荐 r${detail.recommended_revision} 是写入那个版本时一起记下的标记；之后没有人改过。` : "当前没有推荐版本：没有人写下推荐，服务也不会自动排一个。";
+  const source = detail.source_state ? `来源状态：${kbJudgementSentence(detail.source_state)}` : "来源状态没有人说过——「没有人说过」不等于「来源没问题」。";
+  const revision = el(
+    "select",
+    {
+      id: "kb-judge-revision",
+      class: "input",
+      "aria-label": "要推荐哪一个已存下的修订"
+    },
+    ...detail.revisions.map((row) => el(
+      "option",
+      { value: String(row.revision) },
+      `r${row.revision} · ${row.title}${row.readable ? "" : " · JSON 不可读"}`
+    ))
+  );
+  const preferred = detail.recommended_revision ?? detail.latest_revision;
+  if (preferred !== null) revision.value = String(preferred);
+  const reason = el("input", {
+    id: "kb-judge-reason",
+    class: "input",
+    maxlength: "300",
+    placeholder: "为什么改推荐这一版（必填）",
+    "aria-label": "改推荐理由"
+  });
+  const decider = el("input", {
+    id: "kb-judge-name",
+    class: "input",
+    maxlength: "80",
+    placeholder: "记录人姓名（必填）",
+    "aria-label": "推荐判断的记录人"
+  });
+  const recommendNotice = el("div", { role: "status", "aria-live": "polite" });
+  const recommendSubmit = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "kb-judge-submit"
+  }, "记录推荐判断");
+  recommendSubmit.onclick = () => {
+    if (!reason.value.trim()) {
+      recommendNotice.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "判断必须写出理由：没有理由的排序，服务会直接拒绝。"
+      ));
+      return;
+    }
+    if (!decider.value.trim()) {
+      recommendNotice.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "必须填上记录人：验收只接受具名真人，这一页不会替你铸造一个名字。"
+      ));
+      return;
+    }
+    recommendSubmit.disabled = true;
+    recommendNotice.replaceChildren(el("p", { class: "view-loading" }, "正在记录…"));
+    void (async () => {
+      try {
+        await judge({
+          kind: "RECOMMENDATION",
+          revision: Number(revision.value),
+          value: null,
+          replaced_by: null,
+          reason: reason.value.trim(),
+          recorded_by: decider.value.trim(),
+          recorded_by_kind: "HUMAN"
+        });
+        recommendNotice.replaceChildren(el("p", {}, "已记下，正在按服务的答案读回这条判断。"));
+      } catch (error) {
+        recommendNotice.replaceChildren(el("p", { class: "error" }, `记录或读回失败：${errMsg(error)}`));
+        recommendSubmit.disabled = false;
+      }
+    })();
+  };
+  const stateValue = el(
+    "select",
+    {
+      id: "kb-source-value",
+      class: "input",
+      "aria-label": "来源现在的状态"
+    },
+    el("option", { value: "ACTIVE" }, KB_SOURCE_STATE_LABELS.ACTIVE),
+    el("option", { value: "INVALID" }, KB_SOURCE_STATE_LABELS.INVALID)
+  );
+  const replacement = el("input", {
+    id: "kb-source-replacement",
+    class: "input",
+    placeholder: "kentry-…（标记失效时必填：用哪一条替代）",
+    "aria-label": "替代条目编号"
+  });
+  const sourceReason = el("input", {
+    id: "kb-source-reason",
+    class: "input",
+    maxlength: "300",
+    placeholder: "为什么这样判定（必填）",
+    "aria-label": "来源判定理由"
+  });
+  const sourceDecider = el("input", {
+    id: "kb-source-name",
+    class: "input",
+    maxlength: "80",
+    placeholder: "记录人姓名（必填）",
+    "aria-label": "来源判断的记录人"
+  });
+  const sourceNotice = el("div", { role: "status", "aria-live": "polite" });
+  const sourceSubmit = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "kb-source-submit"
+  }, "记录来源判断");
+  sourceSubmit.onclick = () => {
+    const invalid = stateValue.value === "INVALID";
+    if (invalid && !replacement.value.trim()) {
+      sourceNotice.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "标记失效必须写出替代条目的编号：一个打不开的替代不是替代，服务会拒绝。"
+      ));
+      return;
+    }
+    if (!sourceReason.value.trim() || !sourceDecider.value.trim()) {
+      sourceNotice.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "理由与记录人都必填：这条判断只接受具名真人写明为什么。"
+      ));
+      return;
+    }
+    sourceSubmit.disabled = true;
+    sourceNotice.replaceChildren(el("p", { class: "view-loading" }, "正在记录…"));
+    void (async () => {
+      try {
+        await judge({
+          kind: "SOURCE_STATE",
+          revision: null,
+          value: stateValue.value,
+          replaced_by: invalid ? replacement.value.trim() : null,
+          reason: sourceReason.value.trim(),
+          recorded_by: sourceDecider.value.trim(),
+          recorded_by_kind: "HUMAN"
+        });
+        sourceNotice.replaceChildren(el("p", {}, "已记下，正在按服务的答案读回这条判断。"));
+      } catch (error) {
+        sourceNotice.replaceChildren(el("p", { class: "error" }, `记录或读回失败：${errMsg(error)}`));
+        sourceSubmit.disabled = false;
+      }
+    })();
+  };
+  return el(
+    "div",
+    { class: "kb-judgements" },
+    el("h4", {}, "判断与来源状态（真人记录，不改写任何版本）"),
+    el(
+      "p",
+      { class: "view-hint" },
+      `${basis} ${source} 修订行是只追加的，所以「把推荐退回旧版本」只能靠这样一条记录表达：写下判断不会新增修订，也不会改动任何已存字节。`
+    ),
+    ...detail.judgements.length ? [kbJudgementList(detail.judgements)] : [el(
+      "p",
+      { class: "muted" },
+      "还没有人记下判断：下面两个表单是这条判断的第一次记录。"
+    )],
+    el(
+      "div",
+      { class: "kb-judge-grid" },
+      el(
+        "div",
+        {},
+        fieldRow("推荐哪一个已存版本", revision, "kb-judge-revision"),
+        fieldRow("理由", reason, "kb-judge-reason"),
+        fieldRow("记录人", decider, "kb-judge-name"),
+        el("div", { class: "kb-actions" }, recommendSubmit),
+        recommendNotice
+      ),
+      el(
+        "div",
+        {},
+        fieldRow("来源状态", stateValue, "kb-source-value"),
+        fieldRow("替代条目（仅失效时必填）", replacement, "kb-source-replacement"),
+        fieldRow("理由", sourceReason, "kb-source-reason"),
+        fieldRow("记录人", sourceDecider, "kb-source-name"),
+        el("div", { class: "kb-actions" }, sourceSubmit),
+        sourceNotice
+      )
+    )
+  );
+}
 function kbDetailPanel(detail, vocabulary, actions) {
   const current = detail.current;
   const sameRevision = detail.recommended_revision !== null && detail.recommended_revision === detail.latest_revision;
@@ -4837,6 +5345,22 @@ function kbDetailPanel(detail, vocabulary, actions) {
     children.push(...kbEntryBlocks(current, vocabulary));
     children.push(el("h4", {}, "来源与许可"));
     children.push(el("ul", { class: "list" }, ...kbSourceRows(current.source)));
+    const copyNote = el("p", { class: "view-hint", role: "status", id: "kb-copy-status" });
+    const copyButton = el(
+      "button",
+      { type: "button", class: "ghost-btn", id: "kb-copy-body" },
+      "复制正文"
+    );
+    copyButton.onclick = () => {
+      const text = current.body;
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          copyNote.textContent = `已复制正文 ${text.length} 个字符：这只是复制到剪贴板，没有发送任何东西，也没有改动条目。`;
+        }, () => showCopyFallback(text, copyNote));
+        return;
+      }
+      showCopyFallback(text, copyNote);
+    };
     children.push(el(
       "div",
       { class: "kb-actions" },
@@ -4849,8 +5373,9 @@ function kbDetailPanel(detail, vocabulary, actions) {
         type: "button",
         class: "ghost-btn",
         onclick: () => actions.importReplace(current)
-      }, "导入新版本并替代")
-    ));
+      }, "导入新版本并替代"),
+      copyButton
+    ), copyNote);
   }
   if (detail.recommended && detail.recommended_revision !== detail.latest_revision) {
     children.push(el(
@@ -4861,10 +5386,11 @@ function kbDetailPanel(detail, vocabulary, actions) {
     children.push(el(
       "p",
       { class: "view-hint" },
-      "推荐版本是写入时记录下来的判断，不是自动排序；下面是那个版本的正文。"
+      detail.recommendation_basis === "recorded-judgement" ? "这个推荐版本是后来有人记下的判断，不是写入时的标记，也不是自动排序；下面是那个版本的正文。" : "推荐版本是写入时记录下来的判断，不是自动排序；下面是那个版本的正文。"
     ));
     children.push(...kbEntryBlocks(detail.recommended, vocabulary));
   }
+  children.push(kbJudgementPanel(detail, actions.judge));
   children.push(el("h4", {}, "修订历史（旧版本保留，不覆盖）"));
   children.push(el("ul", { class: "list" }, ...detail.revisions.map((revision) => el(
     "li",
@@ -4994,6 +5520,7 @@ function knowledgeEntryFields(prefix, vocabulary, licenseStates, initial) {
     { id: `${prefix}-license-status`, class: "input" },
     ...licenseStates.length ? licenseStates.map((state) => el("option", { value: state }, state)) : [el("option", { value: "" }, "许可状态清单未读回")]
   );
+  if (!initial && licenseStates.includes("unknown")) licenseStatus.value = "unknown";
   const allowedUsage = el("input", {
     id: `${prefix}-allowed-usage`,
     class: "input",
@@ -5151,8 +5678,13 @@ function knowledgeFormPanel(kind, vocabulary, licenseStates, initial, replaceId,
       title: fields.title.value.trim(),
       summary: fields.summary.value.trim(),
       body: fields.body.value.trim(),
-      applicability: fields.applicability.value.trim() || void 0,
-      limits: fields.limits.value.trim() || void 0,
+      // Both keys always go on the wire. The create route demands the exact key set, and the store
+      // is what turns an empty string into the literal UNKNOWN -- dropping the key here used to make
+      // "left 适用场景 blank" fail with a bare INVALID_PROJECT_FIELDS the reader cannot act on
+      // (found by the browser walk on 2026-10-24; the DOM harness never caught it because its
+      // fixture typed both boxes).
+      applicability: fields.applicability.value.trim(),
+      limits: fields.limits.value.trim(),
       domain_tags: kbTagList(fields.domainTags.value),
       task_tags: kbTagList(fields.taskTags.value),
       target_tools: kbTagList(fields.targetTools.value),
@@ -5161,23 +5693,88 @@ function knowledgeFormPanel(kind, vocabulary, licenseStates, initial, replaceId,
       source
     };
   };
-  const missing = () => {
+  const refusalLines = [];
+  const clearRefusals = () => {
+    refusalLines.splice(0).forEach(({ line, control }) => {
+      control.removeAttribute("aria-describedby");
+      line.remove();
+    });
+  };
+  const fieldRefusals = () => {
+    const problems = [];
+    const blank = (input) => !input.value.trim();
     if (!fields.entryType.value)
-      return "类型清单未读回（未连接本机服务）：先连接服务，类型选项才会从服务端读回。";
-    if (!fields.title.value.trim() || !fields.summary.value.trim() || !fields.body.value.trim())
-      return "标题、一句话用途和正文都必须填写；这三项在服务里也不能是 UNKNOWN。";
-    if (!fields.author.value.trim())
-      return kind === "import" ? "导入人必填：服务不持有身份，页面不会替你铸造一个。" : "记录人必填：服务不持有身份，页面不会替你铸造一个。";
-    if (kind === "import" && (!fields.sourceId.value.trim() || !fields.sourceVersion.value.trim()))
-      return '导入必须填写来源 ID 和来源版本：否则重复导入无法与"新版本"区分，服务也会拒绝。';
-    return "";
+      problems.push({
+        control: fields.entryType,
+        label: "类型",
+        message: "类型清单未读回（未连接本机服务）：先连接服务，类型选项才会从服务端读回。"
+      });
+    if (blank(fields.title))
+      problems.push({
+        control: fields.title,
+        label: "标题",
+        message: "标题为空：服务把空标题写成 UNKNOWN，这条检索不到，也没法在列表里认出它。"
+      });
+    if (blank(fields.summary))
+      problems.push({
+        control: fields.summary,
+        label: "一句话用途",
+        message: "一句话用途为空：服务把空摘要写成 UNKNOWN，列表里只剩标题。"
+      });
+    if (blank(fields.body))
+      problems.push({
+        control: fields.body,
+        label: "正文",
+        message: "正文为空：方法、步骤或提示词本体还没有内容，服务不会存一条空条目。"
+      });
+    if (blank(fields.author))
+      problems.push({
+        control: fields.author,
+        label: "记录人",
+        message: "记录人为空：服务不持有身份，页面不会替你铸造一个，之后也没人能被找到。" + (kind === "import" ? "导入同样要署名——导入人就是这条的记录人。" : "")
+      });
+    if (kind === "import" && blank(fields.sourceId))
+      problems.push({
+        control: fields.sourceId,
+        label: "来源 ID",
+        message: '来源 ID 为空：重复导入无法和"新版本"区分，服务会直接拒绝这条写入。'
+      });
+    if (kind === "import" && blank(fields.sourceVersion))
+      problems.push({
+        control: fields.sourceVersion,
+        label: "来源版本",
+        message: "来源版本为空：没有版本 pin，同内容的第二次导入无法判定为 DUPLICATE。"
+      });
+    return problems;
+  };
+  const paintRefusals = (problems) => {
+    clearRefusals();
+    problems.forEach((problem) => {
+      const line = el("p", { class: "error" });
+      if (problem.control.id) {
+        line.id = `${problem.control.id}-refusal`;
+        line.setAttribute("data-for", problem.control.id);
+        problem.control.setAttribute("aria-describedby", line.id);
+      }
+      line.textContent = problem.message;
+      const row = problem.control.closest(".field-row");
+      (row ?? problem.control.parentNode ?? problem.control).append(line);
+      refusalLines.push({ line, control: problem.control });
+    });
+    notice.replaceChildren(el(
+      "p",
+      { class: "error" },
+      `${problems.length} 处拦住了这次写入：${problems.map((p) => p.label).join("、")}。每条说明写在它拦住的输入框下面。`
+    ));
+    problems[0]?.control.focus();
   };
   submit.onclick = () => {
-    const problem = missing();
-    if (problem) {
-      notice.replaceChildren(el("p", { class: "error" }, problem));
+    const problems = fieldRefusals();
+    if (problems.length) {
+      paintRefusals(problems);
       return;
     }
+    clearRefusals();
     submit.disabled = true;
     notice.replaceChildren(el("p", { class: "view-loading" }, "正在写入…"));
     void (async () => {
@@ -5371,7 +5968,18 @@ async function renderKnowledgeLibrary(target) {
         void openDetail(id);
       },
       revise: (doc) => openForm("revise", doc, null),
-      importReplace: (doc) => openForm("import", doc, doc.knowledge_entry_id)
+      importReplace: (doc) => openForm("import", doc, doc.knowledge_entry_id),
+      // The judgement route answers the entry's own readback, and the honest confirmation is that
+      // readback re-rendered -- list badges included -- not a sentence this page wrote about a
+      // POST it hopes succeeded.
+      judge: async (body) => {
+        await api(
+          `/knowledge-entries/${detail.knowledge_entry_id}/judgements`,
+          body
+        );
+        await runSearch(0);
+        await openDetail(detail.knowledge_entry_id);
+      }
     }));
   }
   async function openDetail(id) {
@@ -5608,6 +6216,2874 @@ async function renderKnowledgeLibrary(target) {
   );
   const initial = await load(0);
   if (initial) renderAnswer(initial, false);
+}
+const ASSIST_UNKNOWN = "UNKNOWN";
+const ASSIST_UNUSED = "UNUSED";
+function formatByteSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  const text = unit === 0 ? String(Math.round(value)) : value.toFixed(value >= 10 ? 0 : 1);
+  return `${text} ${units[unit]}`;
+}
+function assistanceWords(value) {
+  return value.split(/[、,，\n]/).map((part) => part.trim()).filter(Boolean);
+}
+function assistanceSteps(text) {
+  const rows = [];
+  for (const line of text.split("\n")) {
+    if (!line.trim()) continue;
+    const parts = line.split("|").map((part) => part.trim());
+    const step = parts[0] ?? "";
+    if (!step) return null;
+    rows.push({
+      step,
+      tool: parts[1] || null,
+      job_id: parts[2] || null,
+      operation_id: parts[3] || null
+    });
+  }
+  return rows;
+}
+function assistanceRefusal(error) {
+  const envelope = error?.serviceEnvelope;
+  const code = envelope?.error;
+  const detail = envelope?.detail;
+  if (typeof code !== "string") return errMsg(error);
+  return typeof detail === "string" && detail ? `${code}：${detail}` : code;
+}
+async function renderDesignAssistant(target) {
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读取输出类型与工作区…"));
+  const objective = el("textarea", {
+    id: "as-objective",
+    class: "input",
+    rows: "4",
+    placeholder: "例如：为秋季新品做一张克制的主视觉海报，给标题留出大面积空白。"
+  });
+  const objectiveCount = el("span", { class: "as-count", id: "as-objective-count" }, "0 字");
+  const objectiveClear = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "as-objective-clear"
+  }, "清空");
+  const objectiveMeta = el(
+    "div",
+    { class: "as-field-meta" },
+    objectiveClear,
+    objectiveCount,
+    el("span", { class: "as-hint" }, "Shift+Return 换行")
+  );
+  const syncObjectiveMeta = () => {
+    objectiveCount.textContent = `${objective.value.length} 字`;
+  };
+  objective.addEventListener("input", syncObjectiveMeta);
+  objectiveClear.addEventListener("click", () => {
+    objective.value = "";
+    syncObjectiveMeta();
+    objective.focus();
+  });
+  const outputType = el("div", {
+    class: "as-chips",
+    id: "as-output-type",
+    role: "radiogroup",
+    "aria-label": "输出类型",
+    tabindex: "-1"
+  });
+  const chosenOutputType = () => outputType.querySelector("input:checked")?.value ?? "";
+  const chooseOutputType = (value) => {
+    for (const chip of Array.from(outputType.querySelectorAll("input"))) {
+      chip.checked = chip.value === value;
+    }
+  };
+  const workspace = el("select", { id: "as-workspace", class: "input" });
+  const workspaceName = el("input", {
+    id: "as-workspace-name",
+    class: "input",
+    maxlength: "160",
+    placeholder: "工作区名称（留空则取需求前 20 字）"
+  });
+  const workspaceNameRow = el(
+    "label",
+    { class: "field-row as-new-workspace" },
+    el("span", {}, "新工作区名称"),
+    workspaceName
+  );
+  const author = el("input", {
+    id: "as-author",
+    class: "input",
+    maxlength: "120",
+    placeholder: "你的名字或代号（必填）"
+  });
+  const assetSelect = el("select", { id: "as-reference-select", class: "input" });
+  const addReference = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "as-reference-add"
+  }, "添加参考");
+  const referenceList = el("ul", { class: "list as-refs", id: "as-references" });
+  const referenceCount = el(
+    "span",
+    { class: "as-count", id: "as-reference-count" },
+    "已关联 0 项参考"
+  );
+  const submit = el(
+    "button",
+    { type: "submit", class: "primary-btn", id: "as-submit" },
+    "整理方案"
+  );
+  const cancelEdit = el("button", {
+    type: "button",
+    class: "ghost-btn as-hidden",
+    id: "as-cancel-edit"
+  }, "取消修订");
+  const formError = el("p", { class: "error", id: "as-form-error", role: "alert" });
+  const formStatus = el("p", { class: "view-hint", id: "as-form-status", role: "status" });
+  function showFieldRefusal(control, message) {
+    formError.textContent = message;
+    if (control.id) formError.setAttribute("data-for", control.id);
+    const row = control.closest(".field-row") ?? control;
+    const slot = row.closest(".as-row") ?? row;
+    slot.parentNode?.insertBefore(formError, slot.nextSibling);
+    control.focus();
+  }
+  function clearFieldRefusal() {
+    formError.replaceChildren();
+    formError.removeAttribute("data-for");
+    formStatus.parentNode?.insertBefore(formError, formStatus);
+  }
+  const creative = el("textarea", {
+    id: "as-creative",
+    class: "input",
+    rows: "4",
+    placeholder: "一段中性的创意说明；留空则方案只有目标（保存成功，但未提供创意）。"
+  });
+  const brand = el("input", {
+    id: "as-brand",
+    class: "input",
+    placeholder: "例如：只用两种油墨（用、或逗号分隔）"
+  });
+  const role = el("input", {
+    id: "as-role",
+    class: "input",
+    placeholder: "例如：面向采购负责人（用、或逗号分隔）"
+  });
+  const lens = el("input", {
+    id: "as-lens",
+    class: "input",
+    placeholder: "镜头或视角要求（可留空）"
+  });
+  const sound = el("input", {
+    id: "as-sound",
+    class: "input",
+    placeholder: "声音或配乐要求（可留空）"
+  });
+  const gaps = el("input", {
+    id: "as-gaps",
+    class: "input",
+    placeholder: "待补充内容（可留空）"
+  });
+  const limits = el("input", {
+    id: "as-limits",
+    class: "input",
+    placeholder: "这次不做什么（可留空）"
+  });
+  const stepText = el("textarea", {
+    id: "as-steps",
+    class: "input",
+    rows: "3",
+    placeholder: "每行一条：步骤 | 工具 | 作业编号 | 操作编号\n后三项可留空；服务会写 UNKNOWN / UNUSED，不自造编号。"
+  });
+  const shotHost = el("div", { class: "as-shot-rows", id: "as-shot-rows" });
+  const addShot = el(
+    "button",
+    { type: "button", class: "ghost-btn", id: "as-add-shot" },
+    "加一行镜头"
+  );
+  const shotHint = el(
+    "p",
+    { class: "view-hint", id: "as-shot-hint" },
+    "每行一个镜头：时长（秒，可留空）、这一镜头要完成什么（必填）、镜头运动、声音、参考角色。序号按行顺序生成。留空的整行不写入。"
+  );
+  const shotRows = [];
+  function addShotRow(seed) {
+    const duration = el("input", {
+      class: "input",
+      type: "number",
+      min: "0",
+      step: "0.1",
+      maxlength: "8",
+      placeholder: "例如 4（留空=未定）"
+    });
+    const purpose = el("input", {
+      class: "input",
+      maxlength: "500",
+      placeholder: "这一镜头要完成什么"
+    });
+    const camera = el("input", { class: "input", maxlength: "200", placeholder: "镜头运动（可留空）" });
+    const soundNote = el("input", { class: "input", maxlength: "200", placeholder: "声音（可留空）" });
+    const role2 = el("input", { class: "input", maxlength: "100", placeholder: "参考角色（可留空）" });
+    const remove = el("button", { type: "button", class: "ghost-btn" }, "去掉");
+    const row = { duration, purpose, camera, soundNote, role: role2, remove };
+    if (seed) {
+      duration.value = seed.duration ?? "";
+      purpose.value = seed.purpose ?? "";
+      camera.value = seed.camera ?? "";
+      soundNote.value = seed.soundNote ?? "";
+      role2.value = seed.role ?? "";
+    }
+    remove.onclick = () => {
+      const at = shotRows.indexOf(row);
+      if (at >= 0) shotRows.splice(at, 1);
+      paintShotRows();
+    };
+    shotRows.push(row);
+    paintShotRows();
+    purpose.focus();
+  }
+  function paintShotRows() {
+    shotHost.replaceChildren(...shotRows.map((row, position) => el(
+      "div",
+      { class: "field-grid as-shot-row" },
+      el(
+        "label",
+        { class: "field-row" },
+        el("span", {}, `序号 ${position + 1}`),
+        el("input", {
+          class: "input",
+          value: String(position + 1),
+          readonly: "readonly",
+          "aria-label": `第 ${position + 1} 行的序号`
+        })
+      ),
+      el("label", { class: "field-row" }, el("span", {}, "时长秒"), row.duration),
+      el("label", { class: "field-row" }, el("span", {}, "要完成什么"), row.purpose),
+      el("label", { class: "field-row" }, el("span", {}, "镜头运动"), row.camera),
+      el("label", { class: "field-row" }, el("span", {}, "声音"), row.soundNote),
+      el("label", { class: "field-row" }, el("span", {}, "参考角色"), row.role),
+      row.remove
+    )));
+  }
+  function clearShotRows() {
+    shotRows.splice(0, shotRows.length);
+    paintShotRows();
+  }
+  const shotCell = (value) => value === null || value === ASSIST_UNKNOWN || value === ASSIST_UNUSED ? "" : value;
+  function fillShotRows(rows) {
+    clearShotRows();
+    for (const row of rows) {
+      addShotRow({
+        duration: row.duration_s === null ? "" : String(row.duration_s),
+        purpose: row.purpose,
+        camera: shotCell(row.camera),
+        soundNote: shotCell(row.sound),
+        role: shotCell(row.reference_role)
+      });
+    }
+    objective.focus();
+  }
+  function shotTable() {
+    const rows = [];
+    for (let position = 0; position < shotRows.length; position += 1) {
+      const row = shotRows[position];
+      const purpose = row.purpose.value.trim();
+      const duration = row.duration.value.trim();
+      const camera = row.camera.value.trim();
+      const soundNote = row.soundNote.value.trim();
+      const role2 = row.role.value.trim();
+      if (!purpose && !duration && !camera && !soundNote && !role2) continue;
+      if (!purpose) {
+        return { rows: [], problem: `第 ${position + 1} 行没有写「要完成什么」：一行分镜至少要说要拍什么，否则导出的表格里那一行没人能核对。` };
+      }
+      let seconds = null;
+      if (duration) {
+        const parsed = Number(duration);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+          return { rows: [], problem: `第 ${position + 1} 行的时长「${duration}」不是一个不小于 0 的秒数：留空表示未定，页面不替你猜一个数。` };
+        }
+        seconds = parsed;
+      }
+      rows.push({
+        index: position + 1,
+        duration_s: seconds,
+        purpose,
+        camera: camera || null,
+        sound: soundNote || null,
+        reference_role: role2 || null
+      });
+    }
+    return { rows, problem: "" };
+  }
+  addShot.onclick = () => addShotRow();
+  const more = el(
+    "details",
+    { class: "advanced", id: "as-advanced" },
+    el("summary", {}, "更多设置（设计建议、约束与外部步骤）"),
+    el(
+      "div",
+      { class: "advanced-body as-more" },
+      el("label", { class: "field-row" }, el("span", {}, "设计建议"), creative),
+      el("label", { class: "field-row" }, el("span", {}, "品牌约束"), brand),
+      el("label", { class: "field-row" }, el("span", {}, "角色约束"), role),
+      el("label", { class: "field-row" }, el("span", {}, "镜头 / 视角"), lens),
+      el("label", { class: "field-row" }, el("span", {}, "声音"), sound),
+      el(
+        "div",
+        { class: "field-row" },
+        el("span", {}, "镜头表（分镜）"),
+        addShot
+      ),
+      shotHint,
+      shotHost,
+      el("label", { class: "field-row" }, el("span", {}, "待补充内容"), gaps),
+      el("label", { class: "field-row" }, el("span", {}, "边界（不做什么）"), limits),
+      el("label", { class: "field-row" }, el("span", {}, "外部步骤"), stepText)
+    )
+  );
+  const form = el(
+    "form",
+    { class: "panel as-form", id: "as-form" },
+    el("h3", {}, "你想完成什么设计？"),
+    el(
+      "p",
+      { class: "view-hint" },
+      "写下目标就能保存一条方案。保存的是方案本身，不是一次模型运行；工具与模型不在这里选，稍后在工具交接里补。"
+    ),
+    el("label", { class: "field-row" }, el("span", {}, "需求"), objective),
+    objectiveMeta,
+    el(
+      "div",
+      { class: "as-row" },
+      el("label", { class: "field-row" }, el("span", {}, "工作区"), workspace),
+      workspaceNameRow
+    ),
+    el(
+      "label",
+      { class: "field-row" },
+      el("span", {}, "参考附件"),
+      el("div", { class: "as-row" }, assetSelect, addReference, referenceCount)
+    ),
+    referenceList,
+    el(
+      "div",
+      { class: "as-row" },
+      // A <label> cannot wrap a group of labelled chips (label inside label), and the group
+      // carries its own accessible name, so this row is a plain .field-row container.
+      el("div", { class: "field-row" }, el("span", {}, "输出类型"), outputType),
+      el("label", { class: "field-row" }, el("span", {}, "记录人"), author)
+    ),
+    more,
+    formError,
+    formStatus,
+    el("div", { class: "as-actions" }, submit, cancelEdit)
+  );
+  const filterSeed = readPlanFilters();
+  let filterDriftNotice = "";
+  const planSearch = el("input", {
+    id: "as-plan-search",
+    class: "input",
+    type: "search",
+    maxlength: "200",
+    value: filterSeed.text,
+    placeholder: "按目标文字找回方案（在这一次读回的结果里筛）"
+  });
+  const planTypeFilter = el("select", {
+    id: "as-plan-filter-type",
+    class: "input",
+    "aria-label": "按输出类型筛选方案"
+  });
+  const stateFilters = [
+    { value: "all", label: "全部状态", keep: () => true },
+    { value: "provided", label: "已提供创意", keep: (row) => row.provided },
+    { value: "open", label: "还没写创意", keep: (row) => !row.provided },
+    { value: "chosen", label: "已被具名选用", keep: (row) => row.chosen_revision !== null }
+  ];
+  const planStateFilter = el(
+    "select",
+    {
+      id: "as-plan-filter-state",
+      class: "input",
+      "aria-label": "按方案状态筛选"
+    },
+    ...stateFilters.map((item) => el("option", { value: item.value }, item.label))
+  );
+  if (!stateFilters.some((item) => item.value === filterSeed.state)) {
+    planStateFilter.value = "all";
+  } else {
+    planStateFilter.value = filterSeed.state;
+  }
+  const keepFilters = () => {
+    filterDriftNotice = "";
+    writePlanFilters({
+      text: planSearch.value,
+      outputType: planTypeFilter.value,
+      state: planStateFilter.value
+    });
+  };
+  planSearch.addEventListener("input", () => {
+    keepFilters();
+    renderPlans();
+  });
+  planTypeFilter.addEventListener("change", () => {
+    keepFilters();
+    renderPlans();
+  });
+  planStateFilter.addEventListener("change", () => {
+    keepFilters();
+    renderPlans();
+  });
+  const planList = el("ul", { class: "list", id: "as-list" });
+  const listMeta = el("p", { class: "view-hint", id: "as-list-meta" });
+  const listPanel = el(
+    "section",
+    { class: "panel" },
+    el("h3", {}, "最近的方案"),
+    el(
+      "div",
+      { class: "as-row" },
+      el("label", { class: "field-row" }, el("span", {}, "找回"), planSearch),
+      el("label", { class: "field-row" }, el("span", {}, "类型"), planTypeFilter),
+      el("label", { class: "field-row" }, el("span", {}, "状态"), planStateFilter)
+    ),
+    listMeta,
+    planList
+  );
+  const meta = el("div", { class: "as-meta", id: "as-meta", role: "status" });
+  const detailHost = el("div", { id: "as-detail" });
+  let outputTypes = [];
+  let materials = [];
+  let workspaces = [];
+  let selected = "";
+  let references = [];
+  let knowledgeChoices = [];
+  let projectChoices = [];
+  let assets = [];
+  let plans = [];
+  let planAnswer = OFFLINE.assistancePlans;
+  let editing = null;
+  let duplicateFrom = "";
+  let busy2 = false;
+  let vocabularyNotice = "";
+  let workspaceNotice = "";
+  let plansNotice = "";
+  let assetsNotice = "";
+  let knowledgeNotice = "";
+  let projectNotice = "";
+  async function loadVocabulary() {
+    const answer = await apiOrEmpty(
+      "/assistance-plan-output-types",
+      OFFLINE.assistanceOutputTypes
+    );
+    vocabularyNotice = shapeNotice(answer);
+    return answer;
+  }
+  async function loadWorkspaces() {
+    const answer = await apiOrEmpty("/projects", OFFLINE.projects);
+    workspaceNotice = shapeNotice(answer);
+    return answer;
+  }
+  async function loadPlans(projectId) {
+    const answer = await apiOrEmpty(
+      `/projects/${projectId}/assistance-plans?limit=20`,
+      OFFLINE.assistancePlans
+    );
+    plansNotice = shapeNotice(answer);
+    return answer;
+  }
+  async function loadAssets(projectId) {
+    const answer = await apiOrEmpty(
+      `/projects/${projectId}/assets`,
+      OFFLINE.assets
+    );
+    assetsNotice = shapeNotice(answer);
+    return answer;
+  }
+  async function loadKnowledgeChoices() {
+    const answer = await apiOrEmpty(
+      "/knowledge-entries/search?limit=200",
+      OFFLINE.knowledgeLibrary
+    );
+    knowledgeNotice = shapeNotice(answer);
+    knowledgeChoices = (answer.entries ?? []).map((entry) => ({
+      id: entry.knowledge_entry_id,
+      title: entry.title
+    }));
+    fillAssets();
+    renderReferences();
+  }
+  async function loadProjectChoices(projectId) {
+    const [briefs, directions, results] = await Promise.all([
+      apiOrEmpty(`/projects/${projectId}/briefs`, OFFLINE.briefs),
+      apiOrEmpty(`/projects/${projectId}/directions`, OFFLINE.directions),
+      apiOrEmpty(
+        `/projects/${projectId}/prompt-results`,
+        OFFLINE.promptResults
+      )
+    ]);
+    const latestResult = /* @__PURE__ */ new Map();
+    for (const row of results.results ?? []) {
+      if (!row.result_id) continue;
+      const seen = latestResult.get(row.result_id);
+      if (!seen || (row.revision ?? 0) > (seen.revision ?? 0)) latestResult.set(row.result_id, row);
+    }
+    projectChoices = [
+      ...(briefs.briefs ?? []).map((brief) => ({
+        kind: "BRIEF",
+        id: brief.brief_id,
+        label: `${brief.title} · r${brief.version}`
+      })),
+      ...(directions.directions ?? []).map((direction) => ({
+        kind: "DIRECTION",
+        id: direction.direction_id,
+        label: `${direction.title} · r${direction.version}`
+      })),
+      ...[...latestResult].map(([id, row]) => ({
+        kind: "PROMPT_RESULT",
+        id,
+        label: `${row.kind === "reversal" ? "反推" : "生成"} · r${row.revision}`
+      }))
+    ];
+    const truncated = [
+      briefs.next_cursor ? "需求 Brief" : "",
+      directions.next_cursor ? "方向" : ""
+    ].filter(Boolean).join("、");
+    projectNotice = [
+      shapeNotice(briefs),
+      shapeNotice(directions),
+      shapeNotice(results),
+      truncated ? `这一页之后还有更早的${truncated}没有读到` : ""
+    ].filter(Boolean).join("；");
+    fillAssets();
+    renderReferences();
+  }
+  const labelOf = (value) => outputTypes.find((option) => option.value === value)?.label ?? value;
+  const notices = () => [
+    vocabularyNotice,
+    workspaceNotice,
+    plansNotice,
+    assetsNotice,
+    projectNotice,
+    knowledgeNotice
+  ].filter(Boolean).join("；");
+  function fillWorkspaces() {
+    workspace.replaceChildren(
+      el("option", { value: "" }, "＋ 新建轻量工作区"),
+      ...workspaces.map((project2) => el("option", { value: project2.id }, project2.name))
+    );
+    workspace.value = selected;
+    workspaceNameRow.classList.toggle("as-hidden", selected !== "");
+  }
+  function referenceGroup(kind, label, options, emptyText) {
+    return el(
+      "optgroup",
+      { label },
+      ...options.length ? options.map((option) => el("option", { value: `${kind}:${option.id}` }, option.text)) : [el("option", { value: "" }, emptyText)]
+    );
+  }
+  const ofKind = (kind) => projectChoices.filter((choice) => choice.kind === kind);
+  function fillAssets() {
+    const groups = [
+      referenceGroup(
+        "ASSET",
+        "本工作区素材",
+        assets.map((asset) => ({
+          // Every word here is a field the route served. There is no name to show: the stored
+          // filename is a publish-time constant (`image_assets.py:144` writes reference.png or
+          // reference.jpg; native_tasks.py:172 writes native.<ext>), never the name the designer
+          // gave the file, so printing it would look like a caption while saying nothing.
+          // The short id tail is what distinguishes two same-size images from each other.
+          id: asset.id,
+          text: `${asset.media_type} · ${asset.width}×${asset.height} · ${formatByteSize(asset.byte_size)} · ${asset.id.slice(0, 12)}…`
+        })),
+        assetsNotice || "这个工作区还没有素材"
+      ),
+      referenceGroup(
+        "BRIEF",
+        "本工作区的需求 Brief",
+        ofKind("BRIEF").map((choice) => ({ id: choice.id, text: `${choice.label} · ${choice.id}` })),
+        projectNotice || "这个工作区还没有需求 Brief"
+      ),
+      referenceGroup(
+        "DIRECTION",
+        "本工作区的方向",
+        ofKind("DIRECTION").map((choice) => ({
+          id: choice.id,
+          text: `${choice.label} · ${choice.id}`
+        })),
+        projectNotice || "这个工作区还没有方向"
+      ),
+      referenceGroup(
+        "PROMPT_RESULT",
+        "本工作区的提示词结果",
+        ofKind("PROMPT_RESULT").map((choice) => ({
+          id: choice.id,
+          text: `${choice.label} · ${choice.id}`
+        })),
+        projectNotice || "这个工作区还没有提示词结果"
+      ),
+      referenceGroup(
+        "KNOWLEDGE",
+        "知识与提示词库",
+        knowledgeChoices.map((entry) => ({ id: entry.id, text: `${entry.title} · ${entry.id}` })),
+        knowledgeNotice || "库里还没有条目"
+      )
+    ];
+    const offered = assets.length + projectChoices.length + knowledgeChoices.length;
+    assetSelect.replaceChildren(
+      el("option", { value: "" }, offered ? "选择参考（素材、需求、方向、提示词结果或知识条目）" : [assetsNotice, projectNotice, knowledgeNotice].filter(Boolean).join("；") || "这一页没有可引用的材料"),
+      ...groups
+    );
+    addReference.disabled = offered === 0;
+  }
+  function renderReferences() {
+    const known = /* @__PURE__ */ new Set([
+      ...assets.map((asset) => `ASSET:${asset.id}`),
+      ...projectChoices.map((choice) => `${choice.kind}:${choice.id}`),
+      ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)
+    ]);
+    const kindLabel = (kind) => REFERENCE_KIND_LABELS[kind] ?? kind;
+    const assetById = new Map(assets.map((asset) => [asset.id, asset]));
+    const choiceById = new Map(projectChoices.map((choice) => [`${choice.kind}:${choice.id}`, choice]));
+    const knowledgeById = new Map(knowledgeChoices.map((entry) => [entry.id, entry]));
+    const captionOf = (kind, id) => {
+      if (kind === "ASSET") {
+        const asset = assetById.get(id);
+        return asset ? `${asset.media_type} · ${asset.width}×${asset.height} · ${formatByteSize(asset.byte_size)}` : "";
+      }
+      if (kind === "KNOWLEDGE") return knowledgeById.get(id)?.title ?? "";
+      return choiceById.get(`${kind}:${id}`)?.label ?? "";
+    };
+    syncObjectiveMeta();
+    referenceCount.textContent = `已关联 ${references.length} 项参考`;
+    referenceList.replaceChildren(...references.length ? references.map((reference) => el(
+      "li",
+      { class: "list-item as-ref" },
+      el("span", { class: "tag neutral" }, kindLabel(reference.kind)),
+      ...captionOf(reference.kind, reference.id) ? [el("span", { class: "as-ref-caption" }, captionOf(reference.kind, reference.id))] : [],
+      el("span", { class: "value-mono" }, reference.id),
+      el(
+        "span",
+        { class: "tag " + (known.has(`${reference.kind}:${reference.id}`) ? "neutral" : "warn") },
+        known.has(`${reference.kind}:${reference.id}`) ? "已选参考" : "不在当前清单（保留方案里原有的引用）"
+      ),
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          references = references.filter((entry) => entry.id !== reference.id || entry.kind !== reference.kind);
+          renderReferences();
+        }
+      }, "移除")
+    )) : [el(
+      "li",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, "未添加参考"),
+        el("small", {}, "参考只登记链接与当时的版本；服务不会因此分析图片。")
+      )
+    )]);
+  }
+  function fillPlanTypeFilter() {
+    const values = outputTypes.map((row) => row.value);
+    const wanted = values.includes(filterSeed.outputType) ? filterSeed.outputType : "all";
+    if (filterSeed.outputType !== "all" && wanted === "all") {
+      filterDriftNotice = `上一次选的输出类型「${filterSeed.outputType}」已不在这一版词表里，筛选回到「全部类型」。`;
+    }
+    planTypeFilter.replaceChildren(
+      el("option", { value: "all" }, "全部类型"),
+      ...outputTypes.map((row) => el("option", { value: row.value }, row.label))
+    );
+    planTypeFilter.value = wanted;
+  }
+  function renderPlans() {
+    if (!selected) {
+      listMeta.textContent = "还没有工作区：保存第一条方案时会新建一个轻量工作区。";
+      planList.replaceChildren();
+      return;
+    }
+    if (plansNotice) {
+      listMeta.textContent = plansNotice;
+      planList.replaceChildren(el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "未读回"),
+          el("small", {}, `${plansNotice}，因此不能说这个工作区没有方案。`)
+        )
+      ));
+      return;
+    }
+    const scope = `这个工作区共 ${planAnswer.total} 条，这一页读到 ${plans.length} 条` + (planAnswer.next_offset === null ? "" : "，还有更早的没有读到");
+    const needle = planSearch.value.trim().toLowerCase();
+    const typeWanted = planTypeFilter.value;
+    const stateFilter = stateFilters.find((item) => item.value === planStateFilter.value) ?? stateFilters[0];
+    const filtering = needle !== "" || typeWanted !== "all" || stateFilter.value !== "all";
+    const visible = filtering ? plans.filter((row) => (needle === "" || row.objective.toLowerCase().includes(needle)) && (typeWanted === "all" || row.output_type === typeWanted) && stateFilter.keep(row)) : plans;
+    listMeta.textContent = filterDriftNotice + (filtering ? `${scope}；按当前条件显示 ${visible.length} 条。筛选只在这 ${plans.length} 条里做，不是全库搜索。` : `${scope}（这一页最多 ${planAnswer.limit} 条）。`);
+    if (!plans.length) {
+      planList.replaceChildren(emptyLi(
+        planAnswer,
+        "尚无方案",
+        "在上方写下需求并保存第一条；保存后会在这里读回。"
+      ));
+      return;
+    }
+    if (!visible.length) {
+      planList.replaceChildren(el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "这一页里没有匹配的"),
+          el("small", {}, `${plans.length} 条已读回的方案里，没有同时满足「${needle || "文字"}」、类型「${typeWanted === "all" ? "全部" : labelOf(typeWanted)}」与状态「${stateFilter.label}」的。清空条件即可看回全部。`)
+        )
+      ));
+      return;
+    }
+    planList.replaceChildren(...visible.map((row) => {
+      const badges = [el("span", { class: "tag info" }, `r${row.revision}`)];
+      badges.push(row.provided ? el("span", { class: "tag ok" }, "方案已提供") : el("span", { class: "tag warn" }, "尚未提供创意"));
+      badges.push(row.chosen_revision === null ? el("span", { class: "tag neutral" }, "尚无用户选用") : el("span", { class: "tag ok" }, `用户选用 r${row.chosen_revision}`));
+      return el(
+        "li",
+        { class: "list-item as-plan-row" },
+        el(
+          "button",
+          {
+            type: "button",
+            class: "as-plan-open",
+            onclick: () => {
+              void openPlan(row.plan_id);
+            }
+          },
+          el("strong", {}, row.objective),
+          el("small", {}, `${labelOf(row.output_type)} · ${row.created_by} · ${row.created_at}`)
+        ),
+        el("div", { class: "as-badges" }, ...badges)
+      );
+    }));
+  }
+  async function refreshPlans() {
+    if (!selected) {
+      plans = [];
+      planAnswer = OFFLINE.assistancePlans;
+      plansNotice = "";
+      renderPlans();
+      return;
+    }
+    const answer = await loadPlans(selected);
+    plans = answer.plans;
+    planAnswer = answer;
+    renderPlans();
+  }
+  async function refreshReferenceSources() {
+    if (!selected) {
+      assets = [];
+      assetsNotice = "";
+      projectChoices = [];
+      projectNotice = "";
+      fillAssets();
+      renderReferences();
+      return;
+    }
+    const answer = await loadAssets(selected);
+    assets = answer.assets;
+    await loadProjectChoices(selected);
+  }
+  function referenceRow(status) {
+    const stateLabel = status.state === "CURRENT" ? "当前" : status.state === "CHANGED" ? "已变化" : "找不到";
+    const stateClass = status.state === "CURRENT" ? "ok" : status.state === "CHANGED" ? "warn" : "bad";
+    const analysisLabel = status.analysis === "ANALYZED" ? "已分析" : status.analysis === "LINKED_ONLY" ? "仅登记链接" : "不适用";
+    return el(
+      "li",
+      { class: "list-item value-row" },
+      el(
+        "div",
+        { class: "as-ref-head" },
+        el("span", { class: "tag info" }, status.kind),
+        el("span", { class: "tag " + stateClass }, stateLabel),
+        el(
+          "span",
+          { class: "tag " + (status.analysis === "ANALYZED" ? "ok" : "neutral") },
+          analysisLabel
+        )
+      ),
+      el("span", { class: "value-mono" }, status.id),
+      el(
+        "small",
+        {},
+        `登记 r${status.recorded_revision} · 现为 ` + (status.current_revision === null ? "找不到" : `r${status.current_revision}`)
+      )
+    );
+  }
+  function stepRow(step) {
+    const label = (value) => {
+      if (value === ASSIST_UNKNOWN) return el("span", { class: "tag neutral" }, "未登记");
+      if (value === ASSIST_UNUSED) return el("span", { class: "tag neutral" }, "未使用 ", en(ASSIST_UNUSED));
+      return value;
+    };
+    return el(
+      "li",
+      { class: "list-item value-row" },
+      el("span", {}, step.step),
+      el("small", {}, "工具："),
+      el("span", {}, label(step.tool)),
+      el("small", {}, "作业编号："),
+      el("span", {}, label(step.job_id)),
+      el("small", {}, "操作编号："),
+      el("span", {}, label(step.operation_id))
+    );
+  }
+  async function readMaterial(answer, note, format) {
+    if (!format) {
+      note.textContent = "没有选中材料格式：页面不知道该把哪一种交给浏览器。";
+      return null;
+    }
+    note.textContent = "正在从服务读取这份材料…";
+    try {
+      return await api(
+        `/projects/${answer.project_id}/assistance-plans/${answer.plan_id}/export?format=${encodeURIComponent(format)}`
+      );
+    } catch (problem) {
+      note.textContent = `材料没有读到：${assistanceRefusal(problem)}。这一句说的是这份材料，方案本身没有因此变动。`;
+      return null;
+    }
+  }
+  function materialReply(file, done) {
+    return `${done} ${file.format_label}（r${file.revision} · ${file.body_bytes} 字节 · ${file.body_sha256}）。这只是把材料交出去，不是选用，也不是发送。${file.not_executed}`;
+  }
+  async function copyMaterial(answer, note, format) {
+    const file = await readMaterial(answer, note, format);
+    if (!file) return;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(file.body).then(
+        () => {
+          note.textContent = materialReply(file, "已复制");
+        },
+        () => showCopyFallback(file.body, note)
+      );
+      return;
+    }
+    showCopyFallback(file.body, note);
+  }
+  async function downloadMaterial(answer, note, format) {
+    const file = await readMaterial(answer, note, format);
+    if (!file) return;
+    const blob = new Blob([file.body], { type: file.content_type + ";charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = el("a", { href: url, download: file.filename });
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1e3);
+    note.textContent = materialReply(file, "已下载");
+  }
+  function renderDetail(answer) {
+    const doc = answer.current;
+    if (!doc) {
+      detailHost.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "这个方案的最新修订无法解析：页面不展示正文，也不猜测它的内容。"
+      ));
+      return;
+    }
+    const states = answer.states;
+    const choice = answer.choice;
+    const chosenElsewhere = choice.chosen && !choice.is_latest;
+    const chips = el(
+      "div",
+      { class: "as-states", id: "as-states" },
+      el(
+        "span",
+        {
+          class: "tag " + (states.saved ? "ok" : "neutral"),
+          id: "as-saved",
+          dataset: { state: String(states.saved) }
+        },
+        states.saved ? "已保存" : "尚未保存"
+      ),
+      el(
+        "span",
+        {
+          class: "tag " + (states.provided ? "ok" : "warn"),
+          id: "as-provided",
+          dataset: { state: String(states.provided) }
+        },
+        states.provided ? "方案已提供" : "尚未提供创意"
+      ),
+      el(
+        "span",
+        {
+          class: "tag " + (states.chosen ? "ok" : "neutral"),
+          id: "as-chosen",
+          dataset: { state: String(states.chosen) }
+        },
+        states.chosen ? `用户选用 · r${choice.revision}` : "尚无用户选用"
+      ),
+      el(
+        "span",
+        {
+          class: "tag " + (states.externally_verified ? "ok" : "warn"),
+          id: "as-external",
+          dataset: { state: String(states.externally_verified) }
+        },
+        states.externally_verified ? "外部已验证" : "外部未验证"
+      )
+    );
+    const note = el("p", { class: "view-hint as-copy-note", id: "as-copy-note" });
+    const actions = el("div", { class: "as-actions", id: "as-actions" });
+    const materialSelect = el(
+      "select",
+      {
+        id: "as-material",
+        class: "input",
+        "aria-label": "要带走的材料格式"
+      },
+      ...materials.length ? materials.map((row) => el("option", { value: row.value }, row.label)) : [el("option", { value: "" }, "材料格式未读回")]
+    );
+    const copyButton = el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-copy",
+      onclick: () => {
+        void copyMaterial(answer, note, materialSelect.value);
+      }
+    }, "复制材料");
+    const downloadButton = el(
+      "button",
+      {
+        type: "button",
+        class: "ghost-btn",
+        id: "as-download",
+        onclick: () => {
+          void downloadMaterial(answer, note, materialSelect.value);
+        }
+      },
+      "下载材料"
+    );
+    const duplicateButton = el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-duplicate",
+      onclick: () => {
+        void startDuplicating(answer);
+      }
+    }, "复制一份");
+    copyButton.disabled = materials.length === 0;
+    downloadButton.disabled = materials.length === 0;
+    if (!materials.length) {
+      note.textContent = "材料格式没有从服务读回：这两种动作都要按服务给出的格式表走，页面不替你抄一份格式表，所以现在按不动。";
+    }
+    let primary;
+    if (!states.provided) {
+      primary = el("button", {
+        type: "button",
+        class: "primary-btn",
+        id: "as-supply",
+        onclick: () => {
+          void startEditing(answer, true);
+        }
+      }, "补充创意");
+    } else if (!states.chosen || chosenElsewhere) {
+      primary = el(
+        "button",
+        {
+          type: "button",
+          class: "primary-btn",
+          id: "as-choose",
+          onclick: () => openChooseForm(answer, actions, note)
+        },
+        chosenElsewhere ? `设为选用 r${answer.latest_revision}` : "设为选用"
+      );
+    } else {
+      primary = el("button", {
+        type: "button",
+        class: "primary-btn",
+        id: "as-revise",
+        onclick: () => {
+          void startEditing(answer, false);
+        }
+      }, "修订方案");
+    }
+    const reviseGhost = states.provided && !(primary.id === "as-revise") ? el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-revise",
+      onclick: () => {
+        void startEditing(answer, false);
+      }
+    }, "修订方案") : null;
+    actions.replaceChildren(
+      primary,
+      ...reviseGhost ? [reviseGhost] : [],
+      materialSelect,
+      copyButton,
+      downloadButton,
+      duplicateButton
+    );
+    const sections = [
+      el(
+        "div",
+        { class: "as-detail-head" },
+        el(
+          "div",
+          {},
+          el("h3", {}, doc.objective),
+          el(
+            "p",
+            { class: "muted" },
+            `${labelOf(doc.output_type)} · 最新 r${answer.latest_revision} · 记录人 ${doc.created_by} · ${doc.created_at}`
+          )
+        ),
+        chips
+      )
+    ];
+    if (chosenElsewhere) {
+      sections.push(el(
+        "p",
+        { class: "error" },
+        `选用记录在 r${choice.revision}，最新已是 r${answer.latest_revision}：选用的不是最新修订，两者都如实保留。`
+      ));
+    }
+    if (choice.chosen && choice.actor) {
+      sections.push(el(
+        "p",
+        { class: "view-hint", id: "as-choice" },
+        `选用人 ${choice.actor} · ${choice.chosen_at ?? "时间未读回"}` + (choice.is_latest ? "" : `（选用的是 r${choice.revision}，不是最新修订）`)
+      ));
+    }
+    sections.push(el("h4", {}, "目标与方向"));
+    sections.push(el("p", { class: "as-body" }, doc.objective));
+    sections.push(el(
+      "ul",
+      { class: "list" },
+      valueRow("输出类型", labelOf(doc.output_type), false),
+      valueRow("品牌约束", doc.brand_constraints.join("、") || "未登记", true),
+      valueRow("角色约束", doc.role_constraints.join("、") || "未登记", true),
+      valueRow("镜头 / 视角", doc.lens === ASSIST_UNKNOWN ? "未登记" : doc.lens, true),
+      valueRow("声音", doc.sound === ASSIST_UNKNOWN ? "未登记" : doc.sound, true),
+      valueRow("边界", doc.limits.join("、") || "未登记", true)
+    ));
+    sections.push(el("h4", {}, "设计建议"));
+    sections.push(el(
+      "p",
+      { class: states.provided ? "as-body" : "view-hint" },
+      states.provided ? doc.neutral_creative : "尚未提供创意：这条方案已经保存，只是还没有写到创意。用「补充创意」补上。"
+    ));
+    sections.push(el("h4", {}, "脚本与分镜"));
+    const storedShots = doc.shots ?? [];
+    if (storedShots.length) {
+      sections.push(el(
+        "ul",
+        { class: "list as-shot-list", id: "as-shots" },
+        ...storedShots.map((shot) => el(
+          "li",
+          { class: "list-item value-row" },
+          el("span", {}, `镜头 ${shot.index}`),
+          el("small", {}, shot.duration_s === null ? "时长未定" : `时长 ${shot.duration_s} 秒`),
+          el("span", {}, shot.purpose),
+          el("small", {}, "镜头运动："),
+          el("span", {}, shotCell(shot.camera) || "未登记"),
+          el("small", {}, "声音："),
+          el("span", {}, shotCell(shot.sound) || "未登记"),
+          el("small", {}, "参考角色："),
+          el("span", {}, shotCell(shot.reference_role) || "未登记")
+        ))
+      ));
+      sections.push(el(
+        "p",
+        { class: "view-hint" },
+        `镜头表读到 ${storedShots.length} 行：分镜 CSV、markdown 与纯文本里的镜头段都来自这一张表，页面不另写一份。`
+      ));
+    } else if (!states.provided) {
+      sections.push(el(
+        "p",
+        { class: "view-hint" },
+        "尚未提供创意，因此还没有可读的脚本；这条方案也没有登记镜头行。"
+      ));
+    } else {
+      sections.push(el("p", { class: "as-body" }, doc.neutral_creative));
+      sections.push(el(
+        "p",
+        { class: "view-hint" },
+        "这条方案没有登记镜头行，所以脚本就是上面这段正文。要一张能在拍摄现场核对的分镜表，在「更多设置」里逐行写镜头，保存后这里会读回来；没有镜头行时分镜 CSV 会被服务按名字拒绝，页面不画一张空表冒充分镜。"
+      ));
+    }
+    sections.push(el("h4", {}, "工具交接材料"));
+    sections.push(doc.external_steps.length ? el("ul", { class: "list" }, ...doc.external_steps.map(stepRow)) : el("p", { class: "view-hint" }, "本方案没有登记外部步骤。"));
+    sections.push(el(
+      "p",
+      { class: "view-hint" },
+      "服务不派发也不核验这些步骤；编号是登记值，不是执行证据。"
+    ));
+    const referenceSummary = `当前 ${answer.reference_status.length} 条参考 · 已分析 ${answer.analysis_summary.analyzed} · 仅登记链接 ${answer.analysis_summary.linked_only}`;
+    sections.push(el(
+      "details",
+      { class: "advanced", id: "as-basis" },
+      el("summary", {}, `参考与依据（${referenceSummary}）`),
+      el(
+        "div",
+        { class: "advanced-body" },
+        el("ul", { class: "list" }, ...answer.reference_status.length ? answer.reference_status.map(referenceRow) : [el("li", { class: "list-item" }, "这条方案没有登记参考。")]),
+        el(
+          "p",
+          { class: "view-hint" },
+          "参考按写入时的版本与摘要固定；「已变化」表示对象后来前进了，「仅登记链接」表示没有那次摘要的反推证据。"
+        )
+      )
+    ));
+    const tools = doc.external_steps.map((step) => step.tool).filter((tool) => tool !== ASSIST_UNKNOWN && tool !== ASSIST_UNUSED);
+    sections.push(el(
+      "details",
+      { class: "advanced", id: "as-tools" },
+      el("summary", {}, "适用工具"),
+      el(
+        "div",
+        { class: "advanced-body" },
+        tools.length ? el("p", {}, `方案登记的工具：${tools.join("、")}。工具组合可以稍后再选。`) : el("p", { class: "view-hint" }, "还没有登记工具；这不妨碍保存与复制方案。")
+      )
+    ));
+    sections.push(el(
+      "details",
+      { class: "advanced", id: "as-gaps" },
+      el("summary", {}, `待补充内容（${doc.known_gaps.length}）`),
+      el(
+        "div",
+        { class: "advanced-body" },
+        doc.known_gaps.length ? el("ul", { class: "list" }, ...doc.known_gaps.map((gap) => el("li", { class: "list-item" }, gap))) : el("p", { class: "view-hint" }, "服务没有记录待补充项。")
+      )
+    ));
+    const revisionRow = (revision) => el(
+      "li",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, `r${revision.revision}`),
+        el("small", {}, `${revision.created_by} · ${revision.created_at}` + (revision.readable ? "" : " · JSON 不可读")),
+        el("small", { class: "value-mono" }, revision.content_sha256)
+      ),
+      el(
+        "span",
+        { class: "tag " + (revision.revision === answer.latest_revision ? "info" : "neutral") },
+        revision.revision === answer.latest_revision ? "最新" : "旧版本"
+      )
+    );
+    sections.push(el(
+      "details",
+      { class: "advanced", id: "as-revisions" },
+      el("summary", {}, `修订历史（${answer.revisions.length}）`),
+      el(
+        "div",
+        { class: "advanced-body" },
+        el("ul", { class: "list" }, ...answer.revisions.map(revisionRow))
+      )
+    ));
+    if (answer.does_not_say.length) {
+      sections.push(el(
+        "details",
+        { class: "advanced", id: "as-claims" },
+        el("summary", {}, "服务声明它没有说的话"),
+        el(
+          "div",
+          { class: "advanced-body" },
+          el("ul", { class: "list" }, ...answer.does_not_say.map((line) => el("li", { class: "list-item" }, line)))
+        )
+      ));
+    }
+    sections.push(comparePanel(answer), feedbackPanel(answer), actions, note);
+    detailHost.replaceChildren(el(
+      "section",
+      { class: "panel as-detail", id: "as-plan" },
+      ...sections
+    ));
+  }
+  function feedbackPanel(answer) {
+    let verdictWords = [];
+    let wordsRead = false;
+    let justRecorded = null;
+    const outcome = el(
+      "select",
+      { id: "as-fb-outcome", class: "input" },
+      el("option", { value: "" }, "暂不记录")
+    );
+    const target2 = el("input", {
+      id: "as-fb-target",
+      class: "input",
+      maxlength: "200",
+      placeholder: "拿去的入口（例如 elevenlabs--web-app--music）"
+    });
+    const actor = el("input", {
+      id: "as-fb-actor",
+      class: "input",
+      maxlength: "200",
+      placeholder: "记录人姓名（必填：这是一条具名的人的陈述）"
+    });
+    const noteArea = el("textarea", {
+      id: "as-fb-note",
+      class: "input",
+      rows: "2",
+      placeholder: "发生了什么（可选）：哪里可用、哪里不行、要带哪个限制走"
+    });
+    const sourceRef = el("input", {
+      id: "as-fb-source",
+      class: "input",
+      maxlength: "200",
+      placeholder: "外部编号（可留空：留空记为 UNUSED，页面不代铸）"
+    });
+    const model = el("input", {
+      id: "as-fb-model",
+      class: "input",
+      maxlength: "200",
+      placeholder: "当时用的模型/版本（可留空：留空记为未说明，不推断）"
+    });
+    const timecodes = el("input", {
+      id: "as-fb-timecodes",
+      class: "input",
+      maxlength: "400",
+      placeholder: "问题时间码，逗号分隔（例如 00:03-00:05）"
+    });
+    const dimensionHost = el("div", { class: "as-fb-dimensions", id: "as-fb-dimensions" });
+    const addButton = el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-fb-add-dimension"
+    }, "加一条维度");
+    addButton.disabled = true;
+    const dimensionRows = [];
+    function addDimensionRow() {
+      const name = el("input", {
+        class: "input",
+        maxlength: "120",
+        placeholder: "维度（例如 画幅 / 时长 / 品牌色）"
+      });
+      const verdict = el(
+        "select",
+        { class: "input" },
+        ...verdictWords.map((word) => el("option", { value: word.value }, word.label))
+      );
+      const note = el("input", {
+        class: "input",
+        maxlength: "1000",
+        placeholder: "这一维度上的具体情况（可选）"
+      });
+      dimensionRows.push({ name, verdict, note });
+      dimensionHost.append(el(
+        "div",
+        { class: "field-grid as-fb-dimension" },
+        el("label", { class: "field-row" }, el("span", {}, "维度"), name),
+        el("label", { class: "field-row" }, el("span", {}, "结论"), verdict),
+        el("label", { class: "field-row" }, el("span", {}, "情况"), note)
+      ));
+    }
+    const save = el(
+      "button",
+      { type: "button", class: "ghost-btn", id: "as-fb-save" },
+      "记录这次外部使用"
+    );
+    save.disabled = true;
+    const status = el("p", { class: "view-hint", id: "as-fb-status", role: "status" });
+    const error = el("p", { class: "error", id: "as-fb-error", role: "alert" });
+    const history = el("ul", { class: "list", id: "as-fb-history" });
+    const planId = answer.plan_id;
+    const revision = answer.latest_revision;
+    function fillWords(words, select, keepDefault) {
+      const previous = select.value;
+      const defaultOption = [el("option", { value: "" }, "暂不记录")];
+      select.replaceChildren(
+        ...defaultOption,
+        ...words.map((word) => el("option", { value: word.value }, word.label))
+      );
+      if (previous && words.some((word) => word.value === previous)) select.value = previous;
+    }
+    function tallyOf(list, value) {
+      const count = list.outcome_histogram[value];
+      return typeof count === "number" ? String(count) : "未说明";
+    }
+    function paint(records, problem) {
+      error.textContent = problem ?? "";
+      const confirmed = justRecorded;
+      justRecorded = null;
+      const say = (line) => {
+        status.textContent = (confirmed ?? "") + line;
+      };
+      if (!records) {
+        history.replaceChildren();
+        say(wordsRead ? "未读回：这一次没有从服务读到这条方案的反馈历史。" : "未读回：结果词随反馈历史一起从服务读到，读到之前这个面板不能写 —— 页面不替你手抄状态词。");
+        return;
+      }
+      verdictWords = records.dimension_verdict_words;
+      fillWords(records.outcome_words, outcome);
+      if (!wordsRead) {
+        wordsRead = true;
+        save.disabled = false;
+        addButton.disabled = false;
+      }
+      if (!records.total) {
+        history.replaceChildren();
+        say("尚无记录 —— 不记录是正常状态，页面不替你补一条 UNKNOWN。");
+        return;
+      }
+      history.replaceChildren(...records.records.map((row) => el(
+        "li",
+        { class: "list-item", id: `as-fb-row-${row.feedback_no}` },
+        `${row.outcome_label}（r${row.revision}） · ${row.target_key} · ${row.actor} · ${row.recorded_at} · 外部编号 ${row.source_ref}` + (row.note ? ` —— ${row.note}` : "")
+      )));
+      say(`已读回 ${records.total} 条自愿记录：` + records.outcome_words.map((word) => `${word.label} ${tallyOf(records, word.value)}`).join(" / ") + "。这些记录不把「外部未验证」改成已验证。");
+    }
+    async function readBack() {
+      if (!selected) {
+        paint(null, "还没有工作区：这条记录要落到哪个工作区说不清，所以不写。");
+        return;
+      }
+      try {
+        paint(await api(
+          `/projects/${selected}/assistance-plans/${planId}/feedback`
+        ), null);
+      } catch (problem) {
+        paint(null, `反馈历史读回失败：${assistanceRefusal(problem)}`);
+      }
+    }
+    save.onclick = () => {
+      const workspace2 = selected;
+      if (!workspace2 || busy2) return;
+      if (!outcome.value) {
+        error.textContent = "没有选择结果：不记录就不写入，页面不会替你补一个 UNKNOWN。";
+        return;
+      }
+      if (!actor.value.trim()) {
+        error.textContent = "记录人姓名必填：一条外部使用反馈是人的陈述，得说得出是谁说的。";
+        actor.focus();
+        return;
+      }
+      if (!target2.value.trim()) {
+        error.textContent = "要写清拿去哪个入口，否则这条经验回到方案里也对不上号。";
+        target2.focus();
+        return;
+      }
+      busy2 = true;
+      save.disabled = true;
+      void (async () => {
+        try {
+          const written = await api(
+            `/projects/${workspace2}/assistance-plans/${planId}/feedback`,
+            {
+              outcome: outcome.value,
+              target_key: target2.value.trim(),
+              target_model: model.value.trim() || null,
+              dimensions: dimensionRows.map((row) => ({
+                name: row.name.value.trim(),
+                verdict: row.verdict.value,
+                note: row.note.value.trim() || null
+              })).filter((row) => row.name),
+              issue_timecodes: timecodes.value.split(/[,\n]/).map((s) => s.trim()).filter((s) => s),
+              actor: actor.value.trim(),
+              note: noteArea.value.trim() || null,
+              source_ref: sourceRef.value.trim() || null,
+              revision
+            }
+          );
+          error.textContent = "";
+          justRecorded = `已记录：${written.feedback.outcome_label}（外部编号 ${written.feedback.source_ref}）。这是你的陈述：系统没有核验外部运行，方案的「外部未验证」保持不变。`;
+          await readBack();
+        } catch (problem) {
+          error.textContent = `记录失败：${assistanceRefusal(problem)}。你的输入还在。`;
+        } finally {
+          busy2 = false;
+          save.disabled = false;
+        }
+      })();
+    };
+    addButton.onclick = addDimensionRow;
+    void readBack();
+    return el(
+      "section",
+      { class: "panel as-feedback", id: "as-feedback" },
+      el("h3", {}, "外部使用反馈（自愿）"),
+      el(
+        "p",
+        { class: "view-hint" },
+        "把材料拿去外部工具之后发生了什么，由你决定记不记。这条记录与「已保存／已提供／已选用／外部未验证」四个状态分开：记一条「可用」不会让系统核验通过，也不改变材料准备状态。"
+      ),
+      el(
+        "div",
+        { class: "field-grid" },
+        el("label", { class: "field-row" }, el("span", {}, "结果"), outcome),
+        el("label", { class: "field-row" }, el("span", {}, "拿去的入口"), target2),
+        el("label", { class: "field-row" }, el("span", {}, "记录人"), actor),
+        el("label", { class: "field-row" }, el("span", {}, "外部编号"), sourceRef)
+      ),
+      el("label", { class: "field-row" }, el("span", {}, "当时模型/版本"), model),
+      el("label", { class: "field-row" }, el("span", {}, "问题时间码"), timecodes),
+      el(
+        "div",
+        { class: "field-row" },
+        el("span", {}, "逐维度结论"),
+        addButton
+      ),
+      dimensionHost,
+      el("label", { class: "field-row" }, el("span", {}, "发生了什么"), noteArea),
+      save,
+      status,
+      error,
+      el("p", { class: "view-hint", id: "as-fb-history-label" }, "已记录的历史"),
+      history
+    );
+  }
+  function comparePanel(answer) {
+    const readable = answer.revisions.filter((row) => row.readable);
+    const revisionOptions = () => readable.map((row) => el(
+      "option",
+      { value: String(row.revision) },
+      `r${row.revision} · ${row.created_by} · ${row.created_at}`
+    ));
+    const from = el("select", {
+      id: "as-compare-from",
+      class: "input",
+      "aria-label": "对比的较早修订"
+    }, ...revisionOptions());
+    const to = el("select", {
+      id: "as-compare-to",
+      class: "input",
+      "aria-label": "对比的较晚修订"
+    }, ...revisionOptions());
+    if (readable.length >= 2) {
+      to.value = String(readable[readable.length - 1].revision);
+    }
+    const run = el(
+      "button",
+      { type: "button", class: "ghost-btn", id: "as-compare-run" },
+      "对比这两个修订"
+    );
+    const status = el("p", { class: "view-hint", id: "as-compare-status", role: "status" });
+    const body = el("div", { id: "as-compare-body" });
+    const fields = [
+      { label: "目标", read: (doc) => doc.objective },
+      { label: "输出类型", read: (doc) => labelOf(doc.output_type) },
+      { label: "设计建议", read: (doc) => doc.neutral_creative },
+      { label: "品牌约束", read: (doc) => doc.brand_constraints.join("、") || "未登记" },
+      { label: "角色约束", read: (doc) => doc.role_constraints.join("、") || "未登记" },
+      { label: "镜头 / 视角", read: (doc) => doc.lens },
+      { label: "声音", read: (doc) => doc.sound },
+      { label: "镜头表", read: (doc) => (doc.shots ?? []).map((shot) => `${shot.index} · ${shot.duration_s === null ? "时长未定" : `${shot.duration_s} 秒`} · ${shot.purpose}`).join(" / ") || "没有镜头行" },
+      { label: "边界", read: (doc) => doc.limits.join("、") || "未登记" },
+      { label: "待补充", read: (doc) => doc.known_gaps.join("、") || "未登记" },
+      { label: "外部步骤", read: (doc) => doc.external_steps.map((step) => `${step.step} | ${step.tool} | ${step.job_id} | ${step.operation_id}`).join(" / ") || "没有登记" },
+      { label: "参考", read: (doc) => doc.references.map((reference) => `${reference.kind} ${reference.id} r${reference.revision}`).join(" / ") || "没有登记" }
+    ];
+    async function compare() {
+      const left = Number(from.value);
+      const right = Number(to.value);
+      if (!readable.length) {
+        status.textContent = "这条方案没有可读的修订：正文解析不了，页面不猜内容。";
+        body.replaceChildren();
+        return;
+      }
+      if (left === right) {
+        status.textContent = "两个下拉选的是同一个修订：对比需要两份不同的正文。";
+        body.replaceChildren();
+        return;
+      }
+      status.textContent = "正在读回这两个修订…";
+      try {
+        const read = (revision) => api(
+          `/projects/${answer.project_id}/assistance-plans/${answer.plan_id}/revisions/${revision}`
+        );
+        const [older, newer] = await Promise.all([read(left), read(right)]);
+        const rows = fields.map((field) => {
+          const before = field.read(older.document);
+          const after = field.read(newer.document);
+          return el(
+            "li",
+            { class: "list-item value-row" },
+            el("span", {}, field.label),
+            el(
+              "span",
+              { class: "tag " + (before === after ? "neutral" : "info") },
+              before === after ? "相同" : "不同"
+            ),
+            el("small", {}, `r${older.revision}：`),
+            el("span", {}, before),
+            el("small", {}, `r${newer.revision}：`),
+            el("span", {}, after)
+          );
+        });
+        body.replaceChildren(el("ul", { class: "list" }, ...rows));
+        status.textContent = `对比的是 r${older.revision}（${older.content_sha256}）与 r${newer.revision}（${newer.content_sha256}）：两份正文各来自一次按修订读取，选用状态` + (older.is_chosen === newer.is_chosen ? `两边一致（${older.is_chosen ? "已选用" : "未选用"}）` : "在两边不同") + "。";
+      } catch (problem) {
+        body.replaceChildren();
+        status.textContent = `对比读回失败：${assistanceRefusal(problem)}。没有读到正文就不比较，页面不拿一个版本冒充另一个。`;
+      }
+    }
+    run.onclick = () => {
+      void compare();
+    };
+    if (!readable.length) {
+      run.disabled = true;
+      status.textContent = "这条方案没有可读的修订，对比按不动：正文解析不了，页面不猜内容。";
+    }
+    return el(
+      "details",
+      { class: "advanced", id: "as-compare" },
+      el("summary", {}, `修订对比（读到 ${readable.length} 个可读版本）`),
+      el(
+        "div",
+        { class: "advanced-body" },
+        el(
+          "div",
+          { class: "as-row" },
+          el("label", { class: "field-row" }, el("span", {}, "较早"), from),
+          el("label", { class: "field-row" }, el("span", {}, "较晚"), to)
+        ),
+        el("div", { class: "as-row" }, run),
+        el(
+          "p",
+          { class: "view-hint" },
+          "两份正文都从「按修订读取」的接口读回：新版本从来不覆盖旧版本，这里比较的就是服务里真实存下的两条记录。"
+        ),
+        status,
+        body
+      )
+    );
+  }
+  function openChooseForm(answer, actions, note) {
+    const name = el("input", {
+      id: "as-choose-name",
+      class: "input",
+      maxlength: "200",
+      placeholder: "选用人姓名（必填；这是一条具名人工记录）"
+    });
+    const error = el("p", { class: "error", role: "alert" });
+    const confirm = el("button", {
+      type: "submit",
+      class: "primary-btn",
+      id: "as-choose-submit"
+    }, "确认选用");
+    const cancel = el("button", {
+      type: "button",
+      class: "ghost-btn",
+      id: "as-choose-cancel"
+    }, "取消");
+    const chooseForm = el(
+      "form",
+      { class: "as-choose", id: "as-choose-form" },
+      el("label", { class: "field-row" }, el("span", {}, "以谁的名义选用"), name),
+      el(
+        "p",
+        { class: "view-hint" },
+        `将记录：${answer.latest_revision} 这一次修订被具名的人选用。它不是评分，也不是系统推荐；复制文本不需要这一步。`
+      ),
+      error,
+      el("div", { class: "as-actions" }, confirm, cancel)
+    );
+    chooseForm.onsubmit = (event) => {
+      event.preventDefault();
+      const actor = name.value.trim();
+      if (!actor) {
+        error.textContent = "请填写选用人姓名：只有具名的人可以选用，代理不能替人选用。";
+        name.focus();
+        return;
+      }
+      confirm.disabled = true;
+      void (async () => {
+        try {
+          const chosen = await api(
+            `/projects/${selected}/assistance-plans/${answer.plan_id}/choose`,
+            { actor, actor_kind: "human", revision: answer.latest_revision }
+          );
+          note.textContent = `已记录：${actor} 选用 r${answer.latest_revision}。`;
+          renderDetail(chosen);
+          await refreshPlans();
+        } catch (failure) {
+          error.textContent = `选用失败：${assistanceRefusal(failure)}`;
+          confirm.disabled = false;
+        }
+      })();
+    };
+    cancel.onclick = () => {
+      actions.replaceChildren();
+      renderDetail(answer);
+    };
+    actions.replaceChildren(chooseForm);
+    name.focus();
+  }
+  function endEditing() {
+    editing = null;
+    duplicateFrom = "";
+    submit.textContent = "整理方案";
+    cancelEdit.classList.add("as-hidden");
+  }
+  const DRAFT_PREFIX = "design-lab.plan-draft";
+  const DRAFT_TTL_MS = 24 * 60 * 60 * 1e3;
+  const DRAFT_MAX_CHARS = 12e3;
+  const draftSlot = () => editing ? `revise:${editing.planId}:r${editing.expectedRevision}` : duplicateFrom ? `duplicate:${duplicateFrom}` : `new:${selected}`;
+  const draftValues = () => ({
+    objective: objective.value,
+    creative: creative.value,
+    brand: brand.value,
+    role: role.value,
+    lens: lens.value,
+    sound: sound.value,
+    gaps: gaps.value,
+    limits: limits.value,
+    steps: stepText.value,
+    author: author.value
+  });
+  const draftShots = () => shotRows.map((row) => ({
+    duration: row.duration.value,
+    purpose: row.purpose.value,
+    camera: row.camera.value,
+    soundNote: row.soundNote.value,
+    role: row.role.value
+  }));
+  const hasDraftText = (fields, shots) => Object.values(fields).some((value) => value.trim() !== "") || shots.some((row) => Object.values(row).some((value) => value.trim() !== ""));
+  const writeDraft = () => {
+    const slot = draftSlot();
+    const fields = draftValues();
+    const shots = draftShots();
+    if (!hasDraftText(fields, shots)) return;
+    try {
+      const payload = JSON.stringify({ slot, savedAt: Date.now(), fields, shots });
+      if (payload.length > DRAFT_MAX_CHARS) return;
+      globalThis.localStorage?.setItem(`${DRAFT_PREFIX}:${slot}`, payload);
+    } catch {
+    }
+  };
+  const clearDraft = (slot) => {
+    try {
+      globalThis.localStorage?.removeItem(`${DRAFT_PREFIX}:${slot}`);
+    } catch {
+    }
+  };
+  const offerDraft = () => {
+    const slot = draftSlot();
+    let saved = null;
+    try {
+      const raw = globalThis.localStorage?.getItem(`${DRAFT_PREFIX}:${slot}`);
+      if (!raw || raw.length > DRAFT_MAX_CHARS) return;
+      saved = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    if (!saved || saved.slot !== slot || typeof saved.savedAt !== "number" || Date.now() - saved.savedAt > DRAFT_TTL_MS) return;
+    const fields = saved.fields;
+    const restored = {
+      ...draftValues(),
+      ...Object.fromEntries(Object.entries(fields ?? {}).filter(([, value]) => typeof value === "string"))
+    };
+    const rawShots = Array.isArray(saved.shots) ? saved.shots : [];
+    const shots = rawShots.filter((row) => row && typeof row === "object" && typeof row.purpose === "string" && typeof row.duration === "string" && typeof row.camera === "string" && typeof row.soundNote === "string" && typeof row.role === "string");
+    if (!hasDraftText(restored, shots)) return;
+    for (const [key, value] of Object.entries(restored)) {
+      const node = {
+        objective,
+        creative,
+        brand,
+        role,
+        lens,
+        sound,
+        gaps,
+        limits,
+        steps: stepText,
+        author
+      }[key];
+      node.value = value;
+    }
+    if (shots.length) {
+      clearShotRows();
+      for (const row of shots) addShotRow(row);
+      objective.focus();
+    }
+    formStatus.textContent = `这台机器上有一份未完成的编辑（${new Date(saved.savedAt).toLocaleString()}），已经放回表单：它只在本机，超过 24 小时就不再拿回来，保存成功后会清掉。输出类型按这条方案原本的类型与服务读回的词表，参考与附件不在草稿里，需要重新挑。`;
+  };
+  let draftTimer = null;
+  const scheduleDraft = () => {
+    if (draftTimer) clearTimeout(draftTimer);
+    draftTimer = setTimeout(writeDraft, 400);
+  };
+  const cancelDraftWrite = (slot) => {
+    if (draftTimer) clearTimeout(draftTimer);
+    draftTimer = null;
+    clearDraft(slot);
+  };
+  form.addEventListener("input", scheduleDraft);
+  form.addEventListener("change", scheduleDraft);
+  async function openFormFor(doc, submitLabel, statusLine, focusTarget) {
+    if (!workspaces.some((project2) => project2.id === doc.project_id)) {
+      workspaces = (await loadWorkspaces()).projects;
+    }
+    selected = doc.project_id;
+    fillWorkspaces();
+    objective.value = doc.objective;
+    chooseOutputType(doc.output_type);
+    creative.value = doc.neutral_creative === ASSIST_UNKNOWN ? "" : doc.neutral_creative;
+    brand.value = doc.brand_constraints.join("、");
+    role.value = doc.role_constraints.join("、");
+    lens.value = doc.lens === ASSIST_UNKNOWN ? "" : doc.lens;
+    sound.value = doc.sound === ASSIST_UNKNOWN ? "" : doc.sound;
+    gaps.value = doc.known_gaps.join("、");
+    limits.value = doc.limits.join("、");
+    stepText.value = doc.external_steps.map((step) => [
+      step.step,
+      step.tool === ASSIST_UNKNOWN ? "" : step.tool,
+      step.job_id === ASSIST_UNUSED ? "" : step.job_id,
+      step.operation_id === ASSIST_UNUSED ? "" : step.operation_id
+    ].join(" | ")).join("\n");
+    fillShotRows(doc.shots ?? []);
+    references = doc.references.map((reference) => ({
+      kind: reference.kind,
+      id: reference.id
+    }));
+    await refreshReferenceSources();
+    await refreshPlans();
+    submit.textContent = submitLabel;
+    cancelEdit.classList.remove("as-hidden");
+    more.open = true;
+    formStatus.textContent = statusLine;
+    clearFieldRefusal();
+    offerDraft();
+    form.scrollIntoView({ block: "start" });
+    focusTarget.focus();
+  }
+  async function startEditing(answer, focusCreative) {
+    const doc = answer.current;
+    if (!doc) return;
+    editing = { planId: answer.plan_id, expectedRevision: answer.latest_revision };
+    duplicateFrom = "";
+    await openFormFor(
+      doc,
+      "保存为新修订",
+      `正在修订 r${answer.latest_revision}：保存会追加一条新修订，旧版本保留。`,
+      focusCreative ? creative : objective
+    );
+  }
+  async function startDuplicating(answer) {
+    const doc = answer.current;
+    if (!doc) return;
+    editing = null;
+    duplicateFrom = answer.plan_id;
+    await openFormFor(
+      doc,
+      "另存为新方案",
+      `以上内容取自 ${answer.plan_id} 的 r${doc.revision}：保存会新建一条方案（编号由服务铸造），这一条与它的修订历史都不变。参考与附件只带 id，保存时由服务重新核对，对不上会被点名拒绝。`,
+      objective
+    );
+  }
+  async function openPlan(planId) {
+    if (!selected) return;
+    detailHost.replaceChildren(el("p", { class: "view-loading" }, "正在读回方案…"));
+    try {
+      const answer = await api(
+        `/projects/${selected}/assistance-plans/${planId}`
+      );
+      renderDetail(answer);
+      document.getElementById("as-plan")?.scrollIntoView({ block: "start" });
+    } catch (error) {
+      detailHost.replaceChildren(
+        el("p", { class: "error" }, `方案读回失败：${assistanceRefusal(error)}`),
+        el("button", {
+          type: "button",
+          class: "ghost-btn",
+          onclick: () => {
+            void openPlan(planId);
+          }
+        }, "重新读回")
+      );
+    }
+  }
+  async function afterWrite(planId, message) {
+    formStatus.textContent = message;
+    await openPlan(planId);
+    await refreshPlans();
+  }
+  async function submitPlan() {
+    if (busy2) return;
+    clearFieldRefusal();
+    formStatus.replaceChildren();
+    const text = objective.value.trim();
+    if (!text) {
+      showFieldRefusal(
+        objective,
+        "请先写下要完成的设计目标：保存的是一条方案记录，不是一次运行。"
+      );
+      return;
+    }
+    if (!author.value.trim()) {
+      showFieldRefusal(author, "记录人不能为空：方案要写明是谁写的。");
+      return;
+    }
+    if (!chosenOutputType()) {
+      showFieldRefusal(
+        outputType,
+        "输出类型未读回，暂时无法保存；这个选择来自服务，页面不手抄一份词表。"
+      );
+      return;
+    }
+    const stepRows = assistanceSteps(stepText.value);
+    if (stepRows === null) {
+      showFieldRefusal(
+        stepText,
+        "外部步骤每行都要有步骤名称：格式是「步骤 | 工具 | 作业编号 | 操作编号」，后三项可留空。"
+      );
+      return;
+    }
+    const shots = shotTable();
+    if (shots.problem) {
+      more.open = true;
+      showFieldRefusal(shotHost, shots.problem);
+      return;
+    }
+    busy2 = true;
+    submit.disabled = true;
+    const draftWasFor = draftSlot();
+    try {
+      if (!selected) {
+        const name = workspaceName.value.trim() || text.slice(0, 20);
+        const created = await api("/projects", { name });
+        selected = created.project.id;
+        workspaces = (await loadWorkspaces()).projects;
+        fillWorkspaces();
+      }
+      const body = {
+        objective: text,
+        output_type: chosenOutputType(),
+        neutral_creative: creative.value.trim() || null,
+        brand_constraints: assistanceWords(brand.value),
+        role_constraints: assistanceWords(role.value),
+        lens: lens.value.trim() || null,
+        sound: sound.value.trim() || null,
+        references: references.map((reference) => ({
+          kind: reference.kind,
+          id: reference.id
+        })),
+        external_steps: stepRows,
+        known_gaps: assistanceWords(gaps.value),
+        limits: assistanceWords(limits.value),
+        shots: shots.rows,
+        created_by: author.value.trim()
+      };
+      if (editing) {
+        const saved = await api(
+          `/projects/${selected}/assistance-plans/${editing.planId}/revisions`,
+          { ...body, expected_revision: editing.expectedRevision }
+        );
+        const planId = saved.plan.plan_id;
+        cancelDraftWrite(draftWasFor);
+        endEditing();
+        objective.value = "";
+        creative.value = "";
+        references = [];
+        stepText.value = "";
+        clearShotRows();
+        renderReferences();
+        await afterWrite(planId, `已保存为 r${saved.revision}：旧修订保留，新修订成为最新。`);
+      } else {
+        const copiedFrom = duplicateFrom;
+        const saved = await api(
+          `/projects/${selected}/assistance-plans`,
+          body
+        );
+        cancelDraftWrite(draftWasFor);
+        objective.value = "";
+        creative.value = "";
+        references = [];
+        stepText.value = "";
+        clearShotRows();
+        renderReferences();
+        endEditing();
+        await afterWrite(
+          saved.plan.plan_id,
+          (copiedFrom ? `已复制为新的方案 ${saved.plan.plan_id}：内容取自 ${copiedFrom}，那一条与它的修订历史都没有变化。` : "已保存 ") + `r${saved.revision}。` + (saved.plan.neutral_creative === ASSIST_UNKNOWN ? "这条方案还没有创意，四态里「方案已提供」会保持为否。" : "")
+        );
+      }
+      await refreshReferenceSources();
+    } catch (error) {
+      const envelope = error?.serviceEnvelope;
+      if (editing && envelope?.error === "ASSISTANCE_PLAN_REVISION_CONFLICT") {
+        clearFieldRefusal();
+        formError.replaceChildren(
+          el("span", {}, `保存失败：${assistanceRefusal(error)}。这次写入按 r${editing.expectedRevision} 准备，服务里的方案已经前进；你的输入还在，读回最新后可以再保存。`),
+          el("button", {
+            type: "button",
+            class: "ghost-btn",
+            id: "as-reload-latest",
+            onclick: () => {
+              void (async () => {
+                const planId = editing?.planId;
+                if (!planId) return;
+                const answer = await api(
+                  `/projects/${selected}/assistance-plans/${planId}`
+                );
+                renderDetail(answer);
+                await startEditing(answer, false);
+              })();
+            }
+          }, "读回最新并保留我的输入")
+        );
+      } else {
+        const refusal = assistanceRefusal(error);
+        clearFieldRefusal();
+        formError.textContent = `保存失败：${refusal}${refusal.endsWith("。") ? "" : "。"}你的输入还在这个表单里，改动没有离开它。`;
+      }
+    } finally {
+      busy2 = false;
+      submit.disabled = outputTypes.length === 0;
+    }
+  }
+  form.onsubmit = (event) => {
+    event.preventDefault();
+    void submitPlan();
+  };
+  cancelEdit.onclick = () => {
+    const copiedFrom = duplicateFrom;
+    const planBeingRevised = editing?.planId ?? "";
+    endEditing();
+    formStatus.textContent = copiedFrom ? `已取消复制：${copiedFrom} 与它的内容都没有任何变化，也没有新方案被写入。` : `已取消修订${planBeingRevised ? "：" + planBeingRevised : ""}；服务里的方案没有变化。`;
+    clearFieldRefusal();
+  };
+  addReference.onclick = () => {
+    const chosen = assetSelect.value;
+    const separator = chosen.indexOf(":");
+    if (separator < 1) return;
+    const reference = { kind: chosen.slice(0, separator), id: chosen.slice(separator + 1) };
+    if (references.some((entry) => entry.kind === reference.kind && entry.id === reference.id))
+      return;
+    references = [...references, reference];
+    renderReferences();
+  };
+  workspace.onchange = () => {
+    selected = workspace.value;
+    workspaceNameRow.classList.toggle("as-hidden", selected !== "");
+    references = [];
+    void (async () => {
+      try {
+        await refreshReferenceSources();
+        await refreshPlans();
+      } catch (error) {
+        showFieldRefusal(workspace, `工作区读数失败：${assistanceRefusal(error)}`);
+      }
+    })();
+  };
+  const types = await loadVocabulary();
+  outputTypes = types.output_types;
+  materials = types.export_formats ?? [];
+  fillPlanTypeFilter();
+  outputType.replaceChildren(
+    ...outputTypes.length ? outputTypes.map((option) => el(
+      "label",
+      { class: "as-chip" },
+      el("input", { type: "radio", name: "as-output-type", value: option.value }),
+      el("span", {}, option.label)
+    )) : [el("span", { class: "as-chips-empty" }, "输出类型未读回")]
+  );
+  submit.disabled = outputTypes.length === 0;
+  const listing = await loadWorkspaces();
+  workspaces = listing.projects;
+  selected = workspaces.length ? workspaces[workspaces.length - 1].id : "";
+  fillWorkspaces();
+  fillAssets();
+  renderReferences();
+  void (async () => {
+    try {
+      await loadKnowledgeChoices();
+    } catch (error) {
+      knowledgeNotice = `库未读回：${assistanceRefusal(error)}`;
+      fillAssets();
+      renderReferences();
+    }
+  })();
+  renderPlans();
+  offerDraft();
+  if (selected) {
+    await refreshReferenceSources();
+    await refreshPlans();
+  } else {
+    assetsNotice = "";
+  }
+  const notice = notices();
+  meta.replaceChildren(
+    ...notice ? [el("p", { class: "error" }, notice)] : [],
+    el(
+      "p",
+      { class: "view-hint" },
+      "四态由服务读回：已保存、方案已提供、用户选用、外部未验证。「已保存」不等于「已生成」；「外部未验证」不是警告，是服务不派发也不核验外部步骤。"
+    )
+  );
+  target.replaceChildren(
+    el(
+      "div",
+      { class: "page-head as-head" },
+      el(
+        "div",
+        {},
+        el("h2", {}, "设计辅助"),
+        el("p", {}, "写下一个目标，保存为一条可读的方案：先有需求、参考附件与输出类型，工具与模型稍后再选。页面不做聊天气泡流、节点画布或多 Agent 控制台。")
+      )
+    ),
+    el("div", { class: "split as-split" }, form, listPanel),
+    detailHost,
+    meta
+  );
+}
+const TP_PICK_ORDER = ["software", "agent", "entry", "model", "task_mode"];
+const TP_ADVANTAGE_FIELDS = ["input_modality", "reference_roles", "output_form", "prompt_style"];
+const TP_LIMIT_FIELDS = ["negative_input", "known_conflicts", "asset_limits", "ranges"];
+const TP_OFFICIAL_PROVENANCE = ["OFFICIAL_DOC", "OPEN_SOURCE_IMPL"];
+const TP_SUPPORT_TAG = {
+  DOCUMENTED_CLAIM: "info",
+  CONDITIONAL: "warn",
+  UNREACHED: "bad",
+  USER_DRAFT: "neutral"
+};
+const TP_SUPPORT_NOTE = {
+  DOCUMENTED_CLAIM: "官方页面写到了这一项，但本项目没有跑过",
+  CONDITIONAL: "官方页面自述尚未交付，或只在另一个入口成立",
+  UNREACHED: "本轮没有取回任何官方字节，全部字段保持未知",
+  USER_DRAFT: "某个人在这里登记了意向，没有对外部目标的证据"
+};
+const TP_VERDICT_TAG = {
+  DOCUMENTED_SUPPORT: "info",
+  DOCUMENTED_NOT_SUPPORT: "bad",
+  UNKNOWN: "neutral",
+  NOT_APPLICABLE: "warn"
+};
+const TP_DEFAULT_ASK = {
+  modality: "一段文本加一张参考图",
+  reference_role: "这张参考图承担 style",
+  asset_count: "3 张参考图",
+  asset_format: "PNG",
+  duration: "8 秒",
+  aspect: "9:16",
+  resolution: "1080x1920",
+  negative_input: "一段负向提示",
+  parameter: "seed"
+};
+const TP_DEFAULT_DIMENSIONS = ["modality", "reference_role", "negative_input", "parameter"];
+function tpFieldText(field) {
+  if (!field) return "这一项没有读回来";
+  if (field.value !== null && field.value !== void 0) return field.value;
+  return field.reason ?? "没有值，也没有说明为什么没有值（这是档案的缺陷，不是一种支持声明）";
+}
+function tpSupportBadge(state) {
+  return el("span", {
+    class: "tag " + (TP_SUPPORT_TAG[state] ?? "neutral"),
+    dataset: { support: state }
+  }, en(state));
+}
+function tpRefusal(error) {
+  const envelope = error?.serviceEnvelope;
+  const code = envelope?.error;
+  const detail = envelope?.detail;
+  if (typeof code !== "string") return errMsg(error);
+  return typeof detail === "string" && detail ? `${code}：${detail}` : code;
+}
+async function renderTargetProfiles(target) {
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读回目标档案词表与档案清单…"));
+  const axesRead = await apiOrEmpty(
+    "/target-profile-axes",
+    OFFLINE.targetProfileAxes
+  );
+  const listRead = await apiOrEmpty(
+    "/target-profiles?limit=100",
+    OFFLINE.targetProfiles
+  );
+  let axesNotice = shapeNotice(axesRead);
+  let listNotice = shapeNotice(listRead);
+  let axesOffline = disconnectedNotice(axesRead);
+  let listOffline = disconnectedNotice(listRead);
+  const axes = axesRead;
+  let profiles = listRead.profiles;
+  const axisLabel = new Map(axes.axes.map((option) => [option.key, option.label]));
+  const fieldLabel = new Map(axes.capability_fields.map((option) => [option.key, option.label]));
+  const provenanceLabel = new Map(
+    axes.provenance_kinds.map((option) => [option.key, option.label])
+  );
+  const measuredFields = axesOffline || typeof axes.measured_fields !== "number" ? null : axes.measured_fields;
+  const histogramCount = (kind) => {
+    if (listOffline) return null;
+    const value = listRead.provenance_histogram?.[kind];
+    return typeof value === "number" ? value : null;
+  };
+  const numberOr = (value) => value === null ? "未读回" : String(value);
+  const chosen = {};
+  for (const key of TP_PICK_ORDER) chosen[key] = "";
+  let planOnly = false;
+  let resolved = null;
+  let answer = null;
+  let stale = false;
+  let busy2 = false;
+  const askedInputs = /* @__PURE__ */ new Map();
+  const software = el("select", { id: "tp-software", class: "input" });
+  const agent = el("select", { id: "tp-agent", class: "input" });
+  const entry = el("select", { id: "tp-entry", class: "input" });
+  const model = el("select", { id: "tp-model", class: "input" });
+  const taskMode = el("select", { id: "tp-task-mode", class: "input" });
+  const pickers = {
+    software,
+    agent,
+    entry,
+    model,
+    task_mode: taskMode
+  };
+  const planOnlyBox = el("input", { type: "checkbox", id: "tp-plan-only" });
+  const actor = el("input", {
+    id: "tp-actor",
+    class: "input",
+    maxlength: "200",
+    placeholder: "你的名字或代号（登记草稿目标时必填，页面不代人签名）"
+  });
+  const sourceRef = el("input", {
+    id: "tp-source-ref",
+    class: "input",
+    maxlength: "200",
+    placeholder: "外部作业编号：自己填写；留空就是不使用，服务写 UNUSED"
+  });
+  const combination = el("p", { class: "view-hint tp-name", id: "tp-combination", role: "status" });
+  const limits = el("p", { class: "view-hint tp-name", id: "tp-limits" });
+  const creative = el("textarea", {
+    id: "tp-creative",
+    class: "input",
+    rows: "4",
+    placeholder: "一段中性的创意说明。它不跟着目标重写：02:68「更换模型时保留故事、品牌、镜头目的与素材角色」。"
+  });
+  const brand = el("input", {
+    id: "tp-brand",
+    class: "input",
+    placeholder: "品牌约束（用、或逗号分隔），切换目标后仍在原位"
+  });
+  const verifyState = el("div", { class: "view-hint", id: "tp-verify-state", role: "status" });
+  const verdictHost = el("div", { id: "tp-verdicts" });
+  const validate = el(
+    "button",
+    { type: "button", class: "primary-btn", id: "tp-validate" },
+    "按这个目标重新校验"
+  );
+  const verifyError = el("p", { class: "error", id: "tp-verify-error", role: "alert" });
+  const officialHead = el("div", { class: "kb-meta", id: "tp-official-head" });
+  const officialList = el("ul", { class: "list", id: "tp-official-list" });
+  const untestedHead = el("div", { class: "kb-meta", id: "tp-untested-head" });
+  const untestedList = el("ul", { class: "list", id: "tp-untested-list" });
+  const officialPanel = el(
+    "section",
+    {
+      class: "panel",
+      id: "tp-official",
+      dataset: { column: "official" }
+    },
+    el("h3", {}, "官方支持"),
+    officialHead,
+    officialList
+  );
+  const untestedPanel = el(
+    "section",
+    {
+      class: "panel",
+      id: "tp-untested",
+      dataset: { column: "untested" }
+    },
+    el("h3", {}, "本项目未测试"),
+    untestedHead,
+    untestedList
+  );
+  const routeNote = el("p", { class: "view-hint", id: "tp-route-note" });
+  const routeHost = el("div", { class: "grid-stack", id: "tp-routes" });
+  const fieldHost = el("div", { class: "grid-stack", id: "tp-more-fields" });
+  const dimensionHost = el("div", { class: "grid-stack", id: "tp-dimensions" });
+  const draftOut = el("p", { class: "tp-line", id: "tp-draft-out", role: "status" });
+  const draftSave = el(
+    "button",
+    { type: "button", class: "ghost-btn", id: "tp-draft-save" },
+    "把当前组合登记为草稿目标"
+  );
+  const meta = el("div", { class: "kb-meta", id: "tp-meta", role: "status" });
+  function poolBefore(axisIndex) {
+    if (axisIndex > 0 && !chosen.software) return [];
+    let pool = profiles;
+    for (let i = 0; i < axisIndex; i += 1) {
+      const key = TP_PICK_ORDER[i];
+      if (!chosen[key]) break;
+      pool = pool.filter((profile) => profile.axes[key] === chosen[key]);
+    }
+    return pool;
+  }
+  function optionValues(axisIndex, key) {
+    const seen = [];
+    for (const profile of poolBefore(axisIndex)) {
+      const value = profile.axes[key];
+      if (typeof value === "string" && value && !seen.includes(value)) seen.push(value);
+    }
+    return seen.sort();
+  }
+  function fillPicker(key, axisIndex, emptyLabel) {
+    const select = pickers[key];
+    const pool = poolBefore(axisIndex);
+    const values = optionValues(axisIndex, key);
+    if (chosen[key] && !values.includes(chosen[key])) chosen[key] = "";
+    select.replaceChildren(
+      el("option", { value: "" }, emptyLabel),
+      ...values.map((value) => el(
+        "option",
+        { value },
+        `${value} · 这个入口下 ${pool.filter((profile) => profile.axes[key] === value).length} 份档案`
+      ))
+    );
+    select.value = chosen[key];
+  }
+  function fillPickers() {
+    const catalogued = profiles.map((profile) => profile.axes.software ?? "");
+    const values = [...new Set([...axes.software, ...catalogued].filter((value) => value))].sort();
+    software.replaceChildren(
+      el("option", { value: "" }, "暂不指定（未知目标，不是一次可运行的选择）"),
+      ...values.map((value) => el(
+        "option",
+        { value },
+        catalogued.includes(value) ? value : `${value} · 服务词表里有，档案还没覆盖`
+      ))
+    );
+    software.value = chosen.software;
+    const pending = chosen.software ? "" : "（先选软件或 Agent）";
+    fillPicker("agent", 1, `未声明 Agent：档案没填这一轴，不等于没有 Agent${pending}`);
+    fillPicker("entry", 2, `接入方式未指定${pending}`);
+    fillPicker("model", 3, `模型未指定${pending}`);
+    fillPicker("task_mode", 4, `任务模式未指定${pending}`);
+  }
+  function resolveTarget() {
+    const pool = poolBefore(TP_PICK_ORDER.length);
+    resolved = pool.length === 1 ? pool[0] : null;
+  }
+  function combinationText() {
+    if (!chosen.software) {
+      return "当前组合：暂不指定目标。这不是一个可运行的目标，只是一个还没指定的规划状态" + (planOnly ? " ｜ 已勾选仅规划" : "");
+    }
+    if (resolved) {
+      const parts2 = TP_PICK_ORDER.map((key) => `${axisLabel.get(key) ?? key}：${resolved?.axes[key] ?? "未声明"}`);
+      return `${parts2.join(" · ")} —— 唯一对应档案 ${resolved.profile_key}（${resolved.origin === "SEEDED" ? "配置内种子" : "某人登记的草稿"}）` + (planOnly ? " ｜ 仅规划" : "");
+    }
+    const parts = TP_PICK_ORDER.map((key) => `${axisLabel.get(key) ?? key}：${chosen[key] || "未选"}`);
+    return `${parts.join(" · ")} —— 当前组合对应 ${poolBefore(TP_PICK_ORDER.length).length} 份档案，还没唯一到一个目标` + (planOnly ? " ｜ 仅规划" : "");
+  }
+  function limitsText() {
+    if (!chosen.software) {
+      return `「暂不指定」的限制：这一屏不推荐路线、不校验参数，也不会运行任何东西。服务在清单应答里写着 executable=${String(listRead.executable)}；"没有指定目标" 与 "目标已经可以跑" 是两件事。`;
+    }
+    if (!resolved) {
+      return `还没唯一到一个目标：可以读档案，但不能校验一个不存在的组合。服务的可执行常量是 executable=${String(listRead.executable)}。`;
+    }
+    if (planOnly) {
+      return `「仅规划」的限制：这个组合只作为规划材料留着。02:66 说用户仍能保留仅规划的未验证路线，但系统不能标它已可执行；本轮对这份档案读到的 executable=${String(resolved.executable)}，没有一次外部调用。`;
+    }
+    return `两条始终成立的限制：左栏「官方支持」只是别人的页面或实现里写了什么，右栏「本项目未测试」才是我们自己的状态（实测字段 ${numberOr(measuredFields)} 项）；并且本轮不运行任何外部产品或模型（读到的 executable=${String(resolved.executable)}）。`;
+  }
+  function fieldRow2(labelText, field) {
+    const state = field?.state ?? "UNKNOWN";
+    const tag = state === "DOCUMENTED" ? "info" : state === "NOT_DOCUMENTED" ? "warn" : "bad";
+    const provenance = field?.provenance ?? "";
+    return el(
+      "li",
+      { class: "list-item value-row" },
+      el(
+        "div",
+        { class: "kb-badges kb-badges-start" },
+        el("strong", { class: "tp-name" }, labelText),
+        el("span", { class: "tag " + tag }, en(state)),
+        el(
+          "span",
+          { class: "tag neutral" },
+          provenanceLabel.get(provenance) ?? "出处不在服务词表里"
+        )
+      ),
+      el("small", { class: "tp-name" }, tpFieldText(field)),
+      ...field?.source ? [el(
+        "small",
+        { class: "value-mono" },
+        `${field.source}${field.observed_at ? ` · 读到日 ${field.observed_at}` : ""}`
+      )] : []
+    );
+  }
+  function rowsFor(keys, fields) {
+    return keys.map((key) => fieldRow2(fieldLabel.get(key) ?? key, fields[key]));
+  }
+  function measuredFieldCount(fields) {
+    return Object.keys(fields).filter((key) => fields[key].provenance === "PROJECT_MEASURED").length;
+  }
+  function renderTruthColumns() {
+    const subject = resolved;
+    const fields = subject?.fields ?? {};
+    const keys = Object.keys(fields);
+    const officialKeys = keys.filter(
+      (key) => TP_OFFICIAL_PROVENANCE.includes(fields[key].provenance)
+    );
+    const untestedKeys = keys.filter((key) => !officialKeys.includes(key));
+    officialHead.replaceChildren(
+      el("p", {}, subject ? `这份档案里出处属于官方文档或开源实现的字段：${officialKeys.length} 项` : listOffline ? `${listOffline}：本批有几份档案、各出处多少项，都是没问到的数，不写成 0。` : `还没唯一到一个目标。本批 ${profiles.length} 份档案合计：官方文档出处 ${numberOr(histogramCount("OFFICIAL_DOC"))} 项、开源实现证据 ${numberOr(histogramCount("OPEN_SOURCE_IMPL"))} 项（读自清单应答的 provenance_histogram，不是页面自己数的）`),
+      el("p", {}, '这一栏只说"别人的页面或实现里写着什么"。它不等于本项目验证过——验证过的东西在右栏，右栏现在是空的。')
+    );
+    officialList.replaceChildren(...subject && officialKeys.length ? rowsFor(officialKeys, fields) : [emptyLi(
+      listRead,
+      "尚无官方出处字段",
+      subject ? "这份档案的每个字段都不是官方文档或开源实现的出处。" : "唯一到一个目标之后，这里逐项列出它的官方出处字段。"
+    )]);
+    untestedHead.replaceChildren(
+      el(
+        "p",
+        {
+          id: "tp-measured-count",
+          // 全批的实测字段数读服务的 axes.measured_fields；这一份档案自己的数现数，不写死。
+          dataset: {
+            all: numberOr(measuredFields),
+            profile: subject ? String(measuredFieldCount(fields)) : ""
+          }
+        },
+        subject ? `本项目实测字段数（这份档案）：${measuredFieldCount(fields)}` : `本项目实测字段数（全部档案合计，读自 axes.measured_fields）：${numberOr(measuredFields)}`
+      ),
+      el("p", {}, `出处直方图里的本项目实测（PROJECT_MEASURED）：${numberOr(histogramCount("PROJECT_MEASURED"))} 项`),
+      el("p", {}, axes.measured_note || '未读回服务关于"这一列为什么是这个数"的说明。'),
+      el(
+        "div",
+        { class: "grid-stack", id: "tp-support-histogram" },
+        ...Object.entries(listRead.support_histogram ?? {}).length ? Object.entries(listRead.support_histogram ?? {}).map(([state, count]) => el(
+          "p",
+          { class: "tp-line" },
+          tpSupportBadge(state),
+          ` ${TP_SUPPORT_NOTE[state] ?? "这一档不在服务的 support_states 词表里，按原词显示"}：${count} 份档案`
+        )) : [el(
+          "p",
+          { class: "tp-line", id: "tp-support-histogram-empty" },
+          `支持状态直方图${listOffline ? `：${listOffline}` : "未读回：应答里没有这个映射"}`
+        )]
+      )
+    );
+    untestedList.replaceChildren(
+      ...subject ? rowsFor(untestedKeys.length ? untestedKeys : keys, fields) : profiles.map((profile) => el(
+        "li",
+        { class: "list-item value-row" },
+        el(
+          "div",
+          { class: "kb-badges kb-badges-start" },
+          el("strong", { class: "tp-name" }, profile.axes.software ?? profile.profile_key),
+          tpSupportBadge(profile.support_state)
+        ),
+        el(
+          "small",
+          { class: "tp-name" },
+          `${TP_SUPPORT_NOTE[profile.support_state] ?? "按原词显示"}；档案 ${profile.profile_key} 里本项目实测 0 项`
+        )
+      )),
+      ...(subject?.reach_attempts ?? []).length ? [el(
+        "li",
+        { class: "list-item value-row", id: "tp-reach-attempts" },
+        el("strong", { class: "tp-name" }, "取回尝试（档案正文登记的每一次）"),
+        ...(subject?.reach_attempts ?? []).map((attempt) => el(
+          "small",
+          { class: "value-mono" },
+          attempt
+        ))
+      )] : [],
+      ...subject?.conditional_reason ? [el(
+        "li",
+        { class: "list-item value-row", id: "tp-conditional-reason" },
+        el("strong", { class: "tp-name" }, "条件成立的原因（档案正文原句）"),
+        el("small", { class: "tp-name" }, subject.conditional_reason)
+      )] : []
+    );
+  }
+  function routePool() {
+    if (!chosen.software) return [];
+    return poolBefore(1);
+  }
+  function renderRoutes() {
+    const pool = routePool();
+    if (!pool.length) {
+      routeHost.replaceChildren(el(
+        "p",
+        { class: "tp-line", id: "tp-routes-empty" },
+        chosen.software ? '这个软件下没有可读回的档案：不推荐任何路线，也不把"没有档案"写成"不支持"。' : '暂不指定目标：这一屏不给路线。"没指定"不是一条通用路线，也不是一次可运行的选择。'
+      ));
+      routeNote.textContent = "上面那句是状态说明，不是一条候选。";
+      return;
+    }
+    const documented = pool.filter((profile) => profile.support_state === "DOCUMENTED_CLAIM");
+    const ordered = (documented.length ? documented : pool).slice().sort((a, b) => a.profile_key.localeCompare(b.profile_key));
+    const picked = ordered.slice(0, 2);
+    routeHost.replaceChildren(...picked.map((profile, index) => el(
+      "article",
+      {
+        class: "row-card grid-stack",
+        id: `tp-route-${index + 1}`,
+        dataset: { profile: profile.profile_key, support: profile.support_state }
+      },
+      el(
+        "h4",
+        { class: "tp-name" },
+        `${profile.axes.software ?? "软件未声明"} · ${profile.axes.entry ?? "接入方式未声明"} · ${profile.axes.task_mode ?? "任务模式未声明"}`
+      ),
+      el(
+        "div",
+        { class: "kb-badges kb-badges-start" },
+        tpSupportBadge(profile.support_state),
+        el("span", { class: "tag neutral" }, "并列候选，不排名"),
+        ...planOnly ? [el("span", { class: "tag warn" }, "仅规划")] : []
+      ),
+      el(
+        "div",
+        { class: "grid-stack", id: `tp-route-${index + 1}-advantage` },
+        el("p", { class: "tp-line" }, el("strong", {}, "优势（档案正文原句）")),
+        ...TP_ADVANTAGE_FIELDS.map((key) => el(
+          "p",
+          { class: "tp-line" },
+          `${fieldLabel.get(key) ?? key}：${tpFieldText(profile.fields[key])}`
+        ))
+      ),
+      el(
+        "div",
+        { class: "grid-stack", id: `tp-route-${index + 1}-limit` },
+        el("p", { class: "tp-line" }, el("strong", {}, "限制（档案正文原句）")),
+        ...TP_LIMIT_FIELDS.map((key) => el(
+          "p",
+          { class: "tp-line" },
+          `${fieldLabel.get(key) ?? key}：${tpFieldText(profile.fields[key])}`
+        ))
+      ),
+      ...profile.conditional_reason ? [el("p", { class: "tp-line" }, `条件：${profile.conditional_reason}`)] : [],
+      el(
+        "p",
+        { class: "view-hint" },
+        "这两段只有档案里已有的句子，页面不加判断、不给分、不排名；「本项目实测 0 项」是本项目自己的状态，不是这份档案的缺点。"
+      )
+    )));
+    routeNote.textContent = picked.length === pool.length ? `当前组合下共 ${pool.length} 条候选，全部列出（屏幕三的上限是两条）。` : `当前组合下还有 ${pool.length - picked.length} 条候选没有列出——这一屏最多两条，这不是把它们判成了次选。`;
+  }
+  function renderVerify() {
+    const subject = resolved;
+    verifyState.replaceChildren(el("p", { class: "tp-name" }, combinationText()));
+    if (!subject) {
+      validate.disabled = true;
+      validate.textContent = "按这个目标重新校验";
+      verdictHost.replaceChildren();
+      return;
+    }
+    validate.disabled = busy2;
+    validate.textContent = stale ? "按新目标重新校验" : "按这个目标重新校验";
+    verifyState.append(el("p", {}, stale || !answer ? `目标已指向 ${subject.profile_key}：参数与参考角色需要重新校验。上面那两栏创意方向与品牌约束保留原位，不需要重填（06:20 验收 B2）。` : `目标 ${answer.profile_key} 已重新校验：${answer.verdicts.length} 条 verdict，每条都不授予可执行状态。`));
+    if (answer && !stale) {
+      const allFalse = answer.verdicts.every((verdict) => verdict.grants_execution === false);
+      verdictHost.replaceChildren(el(
+        "ul",
+        {
+          class: "list",
+          id: "tp-verdict-list",
+          // grants_execution 是服务在每条 verdict 里自带的字段；这里把"整批都为 false"写成一个
+          // 可被几何闸读到的属性，而不是页面上的一句口号。
+          dataset: { grantsExecution: String(allFalse), answerKey: answer.profile_key }
+        },
+        ...answer.verdicts.map((verdict) => el(
+          "li",
+          { class: "list-item value-row" },
+          el(
+            "div",
+            { class: "kb-badges kb-badges-start" },
+            el("strong", { class: "tp-name" }, `${verdict.dimension} ｜ 问的是：${verdict.asked}`),
+            el("span", {
+              class: "tag " + (TP_VERDICT_TAG[verdict.verdict] ?? "neutral"),
+              dataset: { verdict: verdict.verdict }
+            }, en(verdict.verdict)),
+            el(
+              "span",
+              { class: "tag bad", dataset: { grants: String(verdict.grants_execution) } },
+              en("grants_execution=false")
+            )
+          ),
+          el("small", { class: "tp-name" }, `依据字段：${fieldLabel.get(verdict.field) ?? verdict.field} ｜ ${verdict.reason}`),
+          ...verdict.source ? [el("small", { class: "value-mono" }, String(verdict.source))] : []
+        )),
+        el(
+          "li",
+          { class: "list-item value-row", id: "tp-execution-note" },
+          el("strong", { class: "tp-name" }, "这次校验说了什么、没说什么"),
+          el("small", { class: "tp-name" }, answer.execution_note),
+          el(
+            "small",
+            { class: "tp-name" },
+            "读到的 executable=",
+            String(answer.executable),
+            " · 这份档案的支持状态：",
+            en(answer.support_state)
+          ),
+          el("small", { class: "tp-name" }, `退路（档案正文）：${tpFieldText(answer.fallback)}`)
+        )
+      ));
+      return;
+    }
+    verdictHost.replaceChildren();
+  }
+  async function runValidate() {
+    const subject = resolved;
+    if (!subject) return;
+    busy2 = true;
+    validate.disabled = true;
+    verifyError.textContent = "";
+    const dimensions = {};
+    for (const box of Array.from(dimensionHost.querySelectorAll(
+      "input[type=checkbox]"
+    ))) {
+      if (!box.checked) continue;
+      const asked = askedInputs.get(box.value);
+      dimensions[box.value] = asked ? asked.value : box.value;
+    }
+    if (!Object.keys(dimensions).length) {
+      verifyError.textContent = "先在「更多设置」里勾出要问的维度，再校验。";
+      busy2 = false;
+      renderVerify();
+      return;
+    }
+    try {
+      answer = await api(
+        `/target-profiles/${subject.profile_id}/validate`,
+        { dimensions }
+      );
+      stale = false;
+    } catch (error) {
+      answer = null;
+      stale = true;
+      verifyError.textContent = `校验没有回来：${errMsg(error)}`;
+    } finally {
+      busy2 = false;
+    }
+    renderVerify();
+    renderMeta();
+  }
+  async function loadDetail(profile) {
+    askedInputs.clear();
+    if (!profile) {
+      fieldHost.replaceChildren(el(
+        "p",
+        { class: "tp-line" },
+        "还没唯一到一个目标：单份档案的完整字段读回要先有一个 profile_id。"
+      ));
+      return;
+    }
+    fieldHost.replaceChildren(el("p", { class: "view-loading" }, "正在读回这份档案的专业参数…"));
+    let document2;
+    try {
+      document2 = await api(`/target-profiles/${profile.profile_id}`);
+    } catch (error) {
+      fieldHost.replaceChildren(el(
+        "p",
+        { class: "error" },
+        `单份档案读回失败：${errMsg(error)}`
+      ));
+      return;
+    }
+    const reasons = Object.entries(document2.axis_reasons);
+    const keys = axes.capability_fields.length ? axes.capability_fields.map((option) => option.key) : Object.keys(document2.fields);
+    fieldHost.replaceChildren(
+      el(
+        "h4",
+        { class: "tp-name" },
+        `档案 ${document2.profile_key} 的专业参数（02:64 那 13 项，逐项带出处与读到日）`
+      ),
+      el("p", { class: "view-hint", id: "tp-axis-reasons" }, reasons.length ? reasons.map(([key, reason]) => `${axisLabel.get(key) ?? key}：${reason}`).join(" ｜ ") : "七个身份轴都填了值，没有需要解释的空轴。"),
+      el("ul", { class: "list" }, ...keys.map((key) => fieldRow2(
+        fieldLabel.get(key) ?? key,
+        document2.fields[key]
+      )))
+    );
+  }
+  function renderDimensions() {
+    dimensionHost.replaceChildren(
+      el("h4", { class: "tp-name" }, "要校验的维度（服务给的 validate_dimensions，不新增维度）")
+    );
+    if (!axes.validate_dimensions.length) {
+      dimensionHost.append(el(
+        "p",
+        { class: "error" },
+        `校验维度词表未读回${axesOffline ? `：${axesOffline}` : "；离线时不显示手抄维度"}`
+      ));
+      return;
+    }
+    for (const dimension of axes.validate_dimensions) {
+      const box = el("input", { type: "checkbox", id: `tp-dim-${dimension}`, value: dimension });
+      if (TP_DEFAULT_DIMENSIONS.includes(dimension)) box.checked = true;
+      const asked = el("input", {
+        class: "input",
+        id: `tp-ask-${dimension}`,
+        "aria-label": `要问「${dimension}」的具体输入`,
+        value: TP_DEFAULT_ASK[dimension] ?? dimension
+      });
+      askedInputs.set(dimension, asked);
+      dimensionHost.append(el(
+        "div",
+        { class: "tp-dimension" },
+        el(
+          "label",
+          { class: "tp-dimension-name", for: `tp-dim-${dimension}` },
+          box,
+          el("span", {}, en(dimension))
+        ),
+        asked
+      ));
+    }
+  }
+  async function saveDraft() {
+    draftOut.textContent = "";
+    if (!actor.value.trim()) {
+      draftOut.textContent = "草稿目标要具名记录人：这一栏不代人签名。";
+      actor.focus();
+      return;
+    }
+    const subject = resolved ?? poolBefore(TP_PICK_ORDER.length)[0] ?? null;
+    if (!chosen.software || !subject) {
+      draftOut.textContent = "没有可登记的组合：先选一个软件；想保持「暂不指定」就别写草稿。";
+      return;
+    }
+    const entryKind = subject.axes.entry ?? "UNSTATED";
+    if (!axes.entry_kinds.includes(entryKind)) {
+      draftOut.textContent = `入口 ${entryKind} 不在服务的 entry_kinds 词表里，不提交。`;
+      return;
+    }
+    busy2 = true;
+    draftSave.disabled = true;
+    try {
+      const written = await api("/target-profiles", {
+        software: subject.axes.software ?? "",
+        agent: subject.axes.agent ?? null,
+        model: subject.axes.model ?? null,
+        provider: subject.axes.provider ?? null,
+        version: subject.axes.version ?? null,
+        entry: entryKind,
+        task_mode: subject.axes.task_mode ?? "",
+        actor: actor.value.trim(),
+        // 编号仍由人填写；留空发空串，服务把它写成字面 UNUSED，页面不代铸一个标识当来源证据。
+        source_ref: sourceRef.value.trim(),
+        fields: {}
+      });
+      draftOut.textContent = `已存为草稿 ${written.profile.profile_id}（r${written.revision}，support_state=${written.profile.support_state}，外部编号=${written.profile.source_ref ?? "UNUSED"}）。服务同时声明：${written.claims_not_made.join("；")}。`;
+      const refreshed = await apiOrEmpty(
+        "/target-profiles?limit=100",
+        OFFLINE.targetProfiles
+      );
+      listNotice = shapeNotice(refreshed);
+      listOffline = disconnectedNotice(refreshed);
+      listRead.profiles = refreshed.profiles;
+      listRead.total = refreshed.total;
+      listRead.support_histogram = refreshed.support_histogram;
+      listRead.provenance_histogram = refreshed.provenance_histogram;
+      profiles = listRead.profiles;
+      fillPickers();
+      resolveTarget();
+      renderAll();
+      meta.dataset.reread = "done";
+    } catch (error) {
+      draftOut.textContent = `草稿没有写入：${tpRefusal(error)}`;
+    } finally {
+      busy2 = false;
+      draftSave.disabled = false;
+    }
+  }
+  function renderMeta() {
+    const notes = [axesNotice, listNotice, axesOffline, listOffline].filter(Boolean);
+    meta.replaceChildren(
+      ...notes.length ? [el("p", { class: "error" }, notes.join("；"))] : [],
+      el(
+        "p",
+        { class: "tp-line" },
+        `清单应答：total=${listRead.total} · 本页 ${profiles.length} 条 · offset=${listRead.offset} · limit=${listRead.limit}`
+      ),
+      el(
+        "p",
+        { class: "tp-line" },
+        "这一面读的是目标档案路由：词表、清单、单份档案、草稿写入与校验各一条。它不运行任何东西，也不替外部产品或模型声明已测试。"
+      )
+    );
+  }
+  function renderAll() {
+    combination.textContent = combinationText();
+    combination.dataset.mode = !chosen.software ? "unspecified" : !resolved ? "partial" : planOnly ? "plan-only" : "target";
+    limits.textContent = limitsText();
+    renderTruthColumns();
+    renderRoutes();
+    renderVerify();
+    renderMeta();
+  }
+  function onPickChanged(key, value) {
+    chosen[key] = value;
+    for (const later of TP_PICK_ORDER.slice(TP_PICK_ORDER.indexOf(key) + 1)) chosen[later] = "";
+    const before = resolved?.profile_id ?? "";
+    fillPickers();
+    resolveTarget();
+    if ((resolved?.profile_id ?? "") !== before) {
+      stale = true;
+      answer = null;
+      verifyError.textContent = "";
+      void loadDetail(resolved);
+    }
+    renderAll();
+  }
+  for (const key of TP_PICK_ORDER) {
+    pickers[key].addEventListener("change", () => onPickChanged(key, pickers[key].value));
+  }
+  planOnlyBox.addEventListener("change", () => {
+    planOnly = planOnlyBox.checked;
+    renderAll();
+  });
+  validate.addEventListener("click", () => {
+    void runValidate();
+  });
+  draftSave.addEventListener("click", () => {
+    void saveDraft();
+  });
+  fillPickers();
+  resolveTarget();
+  renderDimensions();
+  await loadDetail(resolved);
+  renderAll();
+  target.replaceChildren(
+    el(
+      "div",
+      { class: "page-head" },
+      el(
+        "div",
+        {},
+        el("h2", {}, "目标组合选择面板"),
+        el("p", {}, "先选软件与 Agent，再只看这个入口真的被记过的模型、接入方式与任务模式。官方写了什么、本项目测过什么，是两栏，不是一个分数。")
+      )
+    ),
+    el(
+      "div",
+      { class: "split kb-split" },
+      el(
+        "section",
+        { class: "panel" },
+        el("h3", {}, "第一步：软件 / Agent"),
+        el(
+          "p",
+          { class: "view-hint" },
+          "顺序来自屏幕三那句「用户先选软件/Agent，再看到该入口可用的模型/模式」。「暂不指定」与「仅规划」是这一屏上的两个显式状态，不是一次可运行的选择。"
+        ),
+        el(
+          "div",
+          { class: "tp-row" },
+          el(
+            "label",
+            { class: "field-row" },
+            el("span", {}, axisLabel.get("software") ?? "软件"),
+            software
+          ),
+          el(
+            "label",
+            { class: "field-row" },
+            el("span", {}, axisLabel.get("agent") ?? "Agent"),
+            agent
+          )
+        ),
+        el("h3", {}, "第二步：这个入口可用的接入方式 / 模型 / 任务模式"),
+        el(
+          "div",
+          { class: "tp-row" },
+          el(
+            "label",
+            { class: "field-row" },
+            el("span", {}, axisLabel.get("entry") ?? "入口"),
+            entry
+          ),
+          el(
+            "label",
+            { class: "field-row" },
+            el("span", {}, axisLabel.get("model") ?? "模型"),
+            model
+          ),
+          el(
+            "label",
+            { class: "field-row" },
+            el("span", {}, axisLabel.get("task_mode") ?? "任务模式"),
+            taskMode
+          )
+        ),
+        el(
+          "label",
+          { class: "tp-plan" },
+          planOnlyBox,
+          el("span", {}, "仅规划：这个组合只作为规划材料保留，不标为可执行")
+        ),
+        combination,
+        limits,
+        // 08:9（屏幕一）那句「方案助手模型是另一种配置，不混进同一菜单」在这一屏照样成立：
+        // 这里选的是外部制作目标（软件 × 模型 × 接入方式 × 任务模式），助手模型在 #/models 与
+        // #/assistant 那一屏配置，两个菜单不合并成一个。
+        el(
+          "p",
+          { class: "view-hint" },
+          '这里的模型是"外部制作目标"，不是方案助手模型：助手模型在「模型选择」那一屏配置，两个菜单不合并（这条规则出自 08 line 9，不是屏幕三那一句）。'
+        )
+      ),
+      el(
+        "section",
+        { class: "panel" },
+        el("h3", {}, "创意方向与品牌约束（切换目标后仍在原位）"),
+        el(
+          "p",
+          { class: "view-hint" },
+          "06:20 验收 B2「切换目标模型，原创意和品牌约束保留，参数及参考角色重新校验」；02:68 也说更换模型时保留故事、品牌、镜头目的与素材角色，不把旧参数原样搬到新模型。这两栏是本屏的规划文本，不写进服务，也不冒充一条已保存的方案。"
+        ),
+        el("label", { class: "field-row" }, el("span", {}, "创意方向"), creative),
+        el("label", { class: "field-row" }, el("span", {}, "品牌约束"), brand),
+        el("h3", {}, "参数与参考角色的重新校验"),
+        verifyState,
+        verdictHost,
+        el("div", { class: "as-actions" }, validate),
+        verifyError
+      )
+    ),
+    el("div", { class: "two-col kb-split" }, officialPanel, untestedPanel),
+    el(
+      "section",
+      { class: "panel" },
+      el("h3", {}, "推荐路线（最多两条，并列，不排名）"),
+      routeNote,
+      routeHost
+    ),
+    el(
+      "details",
+      { class: "advanced" },
+      el("summary", {}, "更多设置（专业参数、校验维度与草稿目标）"),
+      el(
+        "div",
+        { class: "advanced-body as-more" },
+        fieldHost,
+        dimensionHost,
+        el("h4", { class: "tp-name" }, "把当前组合登记为草稿目标"),
+        el(
+          "p",
+          { class: "view-hint" },
+          '草稿写进服务的 target_profile_draft，支持状态由存储侧固定成 USER_DRAFT：页面不能把一个人的猜测写成官方支持，也写不进"本项目实测"。'
+        ),
+        el(
+          "div",
+          { class: "tp-row" },
+          el("label", { class: "field-row" }, el("span", {}, "记录人"), actor),
+          el(
+            "label",
+            { class: "field-row" },
+            el("span", {}, "外部作业编号（可留空＝不使用）"),
+            sourceRef
+          )
+        ),
+        el("div", { class: "kb-actions" }, draftSave),
+        draftOut
+      )
+    ),
+    meta
+  );
 }
 async function projectPickerPanel(target, title, body, preamble, caption = "只读回服务端台账；本页不提交、不修改。") {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
@@ -7211,17 +10687,12 @@ function renderReferencePanel(id) {
   };
   const assetRow = (a) => {
     const rights = a.rights === "NOT_REVIEWED" ? el("span", { class: "tag warn" }, "权利未审查") : el("span", { class: "tag info" }, a.rights);
-    const headline = [
-      a.width !== void 0 && a.height !== void 0 ? `${a.width} × ${a.height}` : null,
-      a.media_type,
-      a.kind
-    ].filter(Boolean).join(" · ");
+    const headline = `${a.media_type} · ${a.width} × ${a.height} · ${formatByteSize(a.byte_size)}`;
     const provenance = [
-      a.id,
-      a.version_no !== void 0 ? `版本 ${a.version_no}` : null,
-      a.version_id ? `version_id ${a.version_id.slice(0, 12)}…` : null,
-      a.sha256 ? `sha256 ${String(a.sha256).replace(/^sha256:/, "").slice(0, 16)}…` : null
-    ].filter(Boolean).join(" · ");
+      `版本记录 ${a.version_id.slice(0, 12)}…`,
+      `sha256 ${a.sha256.replace(/^sha256:/, "").slice(0, 16)}…`,
+      a.id
+    ].join(" · ");
     return el(
       "li",
       { class: "list-item" },
@@ -8052,6 +11523,9 @@ async function renderRoute(view, target) {
     case "knowledge":
       await renderKnowledgeLibrary(target);
       return;
+    case "assistant":
+      await renderDesignAssistant(target);
+      return;
     case "projects":
       await renderProjects(target);
       return;
@@ -8066,6 +11540,11 @@ async function renderRoute(view, target) {
       return;
     case "design-domains":
       await renderDomains(target);
+      return;
+    // owner 2026-10-28: the automation surface reads GET /api/automation-connectors and offers
+    // no action, so nothing on this screen can be mistaken for a host being connected.
+    case "automation-connectors":
+      await renderAutomationConnectors(target);
       return;
     // R2 §2: the same registry addressed at one pack. The list stays rendered so the
     // detail is read inside its context instead of replacing it.
@@ -8103,6 +11582,10 @@ async function renderRoute(view, target) {
       return;
     case "model-selection":
       await renderModelSelection(target);
+      return;
+    // DL-KB-10 屏幕三：目标组合选择面板。选目标与配助手模型是两屏，不共用一个菜单。
+    case "target-profiles":
+      await renderTargetProfiles(target);
       return;
     case "plan":
       await renderPlan(target);
@@ -8152,7 +11635,16 @@ function mountAppShell() {
   const nav = el(
     "nav",
     { class: "app-nav", "aria-label": "DESIGN-LAB 导航" },
-    el("span", { class: "app-nav-brand" }, "DESIGN-LAB"),
+    // The owner's mark rides next to the wordmark rather than replacing it: the text is the
+    // accessible name, so the glyph stays aria-hidden. The old sidebar tile this copies from
+    // (shell.ts's commented-out legacy markup) renders at zero size, which is why the nav header
+    // had no logo at all until now.
+    el(
+      "span",
+      { class: "app-nav-brand" },
+      el("i", { class: "app-nav-mark", "aria-hidden": "true" }),
+      "DESIGN-LAB"
+    ),
     ...navGroupChunks(ROUTE_VIEWS, (route) => el("button", {
       type: "button",
       class: "app-nav-item",
@@ -8163,6 +11655,26 @@ function mountAppShell() {
     }, route.label)),
     el("span", { class: "app-nav-meta", id: "shell-connection" }, "未连接")
   );
+  const navDaily = NAV_DAILY_VIEWS;
+  const navMore = el("button", {
+    type: "button",
+    class: "app-nav-more",
+    "aria-expanded": "false",
+    onclick: () => foldNav(!nav.classList.contains("nav-open"))
+  }, "全部功能");
+  const navMeta = nav.querySelector(".app-nav-meta");
+  if (navMeta) nav.insertBefore(navMore, navMeta);
+  else nav.append(navMore);
+  function foldNav(open) {
+    const host = nav;
+    host.classList.toggle("nav-open", open);
+    navMore.setAttribute("aria-expanded", String(open));
+    navMore.textContent = open ? "收起次要入口" : "全部功能";
+    for (const item of Array.from(host.querySelectorAll(".app-nav-item"))) {
+      item.classList.toggle("is-folded", !open && !navDaily.includes(item.dataset.route ?? ""));
+    }
+  }
+  foldNav(false);
   const syncLegacyNavCue = () => {
     const mobile = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 760px)").matches;
     const hasMore = mobile && nav.scrollWidth > nav.clientWidth && nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1;
@@ -8290,6 +11802,28 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
       el("span", {}, n.label)
     ))
   );
+  function setSidebarFold(open) {
+    navList.classList.toggle("nav-open", open);
+    navFold.setAttribute("aria-expanded", String(open));
+    navFold.textContent = open ? "收起次要入口" : "全部功能";
+    for (const item of Array.from(navList.querySelectorAll("button[data-route]"))) {
+      item.classList.toggle(
+        "is-folded",
+        !open && NAV_DAILY_VIEWS.indexOf(item.dataset.route ?? "") === -1
+      );
+    }
+    syncNavCue();
+  }
+  const navFold = el("button", {
+    type: "button",
+    class: "nav-fold ghost-btn",
+    "aria-expanded": "false",
+    onclick: () => {
+      setSidebarFold(!navList.classList.contains("nav-open"));
+    }
+  }, "全部功能");
+  navList.append(navFold);
+  setSidebarFold(false);
   const sidebar = el(
     "aside",
     { class: "sidebar", id: "app-sidebar" },
@@ -8373,7 +11907,6 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
           window.location.hash = "#/settings";
         }
       }, "设置"),
-      el("button", { type: "button", class: "ghost-btn", id: "topNotice" }, "通知"),
       el("button", { type: "button", class: "ghost-btn", id: "openDrawer" }, "工作区")
     )
   );
@@ -8396,10 +11929,10 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
     )
   );
   document.body.append(app);
-  const syncNavCue = () => {
+  function syncNavCue() {
     const more = navList.scrollHeight > navList.clientHeight + 1 && navList.scrollTop + navList.clientHeight < navList.scrollHeight - 1;
     navList.classList.toggle("has-scroll-more", more);
-  };
+  }
   navList.addEventListener("scroll", syncNavCue, { passive: true });
   window.addEventListener("resize", syncNavCue);
   syncNavCue();
@@ -8417,6 +11950,9 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
       const highlight = view === "project-detail" ? "projects" : view;
       const selected = item.dataset.route === highlight;
       item.classList.toggle("active", selected);
+      if (selected && NAV_DAILY_VIEWS.indexOf(highlight) === -1) {
+        setSidebarFold(true);
+      }
       if (selected) {
         item.setAttribute("aria-current", "page");
         if (typeof item.scrollIntoView === "function") {
@@ -8715,9 +12251,9 @@ function mountB10Overlays() {
       closeModal();
     }
   });
-  wireB10Topbar(openPalette, showToast, openDrawer);
+  wireB10Topbar(openPalette, openDrawer);
 }
-function wireB10Topbar(openPalette, showToast, openDrawer) {
+function wireB10Topbar(openPalette, openDrawer) {
   const search = document.getElementById("openPalette");
   if (search) {
     search.onclick = openPalette;
@@ -8728,10 +12264,6 @@ function wireB10Topbar(openPalette, showToast, openDrawer) {
       }
     };
   }
-  const notice = document.getElementById("topNotice");
-  if (notice) notice.onclick = () => {
-    showToast("暂无新的通知");
-  };
   const drawerBtn = document.getElementById("openDrawer");
   if (drawerBtn) drawerBtn.onclick = () => {
     openDrawer();
@@ -8744,7 +12276,16 @@ const PALETTES = [
     schemes: ["dark"],
     missingScheme: "这套色板没有声明过浅色值，不自造一套。"
   },
-  { id: "ui2026", label: "UI-20261009 基线", schemes: ["dark", "light"], missingScheme: "" }
+  { id: "ui2026", label: "UI-20261009 基线", schemes: ["dark", "light"], missingScheme: "" },
+  // 20261023 包的 STITCH 提示词逐字给了六个值（强调 #356B92、正文 #17212B、次级 #566472、
+  // 背景 #F4F6F8、内容 #FFFFFF、边界 #D8DFE5）。它只声明了珍珠白这一侧，
+  // 所以这套色板只有一档：暗色值不在包里，不自造一套冒充"一比一"。
+  {
+    id: "stitch",
+    label: "STITCH 珍珠白（20261023 包）",
+    schemes: ["light"],
+    missingScheme: "这份基线只声明了浅色一侧的值，暗色不自造。"
+  }
 ];
 function paletteSpec(id) {
   return PALETTES.find((p) => p.id === id) ?? PALETTES[0];
@@ -8767,8 +12308,8 @@ function readThemeChoice() {
     palette: document.documentElement.getAttribute("data-palette"),
     scheme: document.documentElement.getAttribute("data-scheme")
   } : { palette: null, scheme: null };
-  const fromUrl = urlParam("palette") === "ui2026" ? "ui2026" : "design-lab";
-  const palette = applied.palette === "ui2026" || applied.palette === "design-lab" ? applied.palette : fromUrl;
+  const knownPalette = (value) => PALETTES.some((entry) => entry.id === value) ? value : null;
+  const palette = knownPalette(applied.palette) ?? knownPalette(urlParam("palette")) ?? PALETTES[0].id;
   const spec = paletteSpec(palette);
   const fromUrlScheme = urlParam("scheme");
   const wanted = spec.schemes.includes(applied.scheme) ? applied.scheme : spec.schemes.includes(fromUrlScheme) ? fromUrlScheme : spec.schemes[0];
@@ -8814,9 +12355,14 @@ function themeControlNodes() {
       dataset: { themeAction: "palette" },
       "aria-label": "配色主题",
       onclick: () => {
-        const next = { ...readThemeChoice(), palette: cyclePalette(readThemeChoice().palette) };
+        const now = readThemeChoice();
+        const palette = cyclePalette(now.palette);
+        const spec2 = paletteSpec(palette);
+        const scheme = spec2.schemes.includes(now.scheme) ? now.scheme : spec2.schemes[0];
+        const next = { palette, scheme };
         applyTheme(next);
         writeUrlParam("palette", next.palette);
+        writeUrlParam("scheme", next.scheme);
         refreshThemeControls();
       }
     }, spec.label)
@@ -9521,7 +13067,7 @@ function referencePickerForProject(projectId) {
           "label",
           { class: "intake-check" },
           el("input", { type: "checkbox", name: "intake-reference-asset", value: asset.id }),
-          el("span", {}, `${asset.media_type} · ${asset.width}×${asset.height} · ${asset.id.slice(-8)} · 权利 ${asset.rights} · v${asset.version_no}；导入与读回不等于获得素材使用权。`)
+          el("span", {}, `${asset.media_type} · ${asset.width}×${asset.height} · ${asset.id.slice(-8)} · 权利 ${asset.rights} · 版本 ${asset.version_id.slice(0, 12)}…；导入与读回不等于获得素材使用权。`)
         )
       ))));
     } catch (error) {
@@ -10618,7 +14164,7 @@ function planComposer(projectId) {
           "div",
           {},
           el("strong", {}, "底图 · 用户勾选，非推断"),
-          el("small", {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height} · 权利 ${asset.rights} · ${asset.version_no !== void 0 ? `v${asset.version_no}` : `版本 ${asset.version_id.slice(0, 12)}…`}`)
+          el("small", {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height} · 权利 ${asset.rights} · 版本 ${asset.version_id.slice(0, 12)}…`)
         )
       ),
       el(
@@ -11995,6 +15541,179 @@ async function renderModelSelection(target) {
     ...shapeNoticeRows(catalog, caps, env, projects2)
   );
 }
+const BAND_MS = 150;
+const MAGNET_PX = 3;
+const TILT_DEG = 4;
+function motionMode() {
+  if (typeof window === "undefined" || typeof document === "undefined") return "static";
+  let requested = false;
+  try {
+    requested = new URLSearchParams(window.location.search).get("motion") === "enhanced";
+  } catch {
+    requested = false;
+  }
+  if (!requested) return "static";
+  return reducedMotion() ? "static" : "enhanced";
+}
+function reducedMotion() {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return true;
+  }
+}
+function move(el2, x, y, extra) {
+  el2.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0)${extra}`;
+}
+function slideReveal(el2) {
+  el2.style.transform = "translate3d(0,10px,0)";
+  requestAnimationFrame(() => {
+    el2.style.transition = `transform ${BAND_MS}ms cubic-bezier(.2,0,0,1)`;
+    el2.style.transform = "";
+    setTimeout(() => {
+      el2.style.transition = "";
+    }, BAND_MS + 40);
+  });
+}
+const PARTICLE_COUNT = 24;
+const PARTICLE_INKS = ["#EEF2F5", "#17212B"];
+function seeded(i) {
+  const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
+function mountAmbientParticles(doc, live) {
+  const app = doc.querySelector(".app");
+  if (!app) return "no-app-host";
+  const existing = doc.querySelector("canvas.motion-particles");
+  const canvas = existing || doc.createElement("canvas");
+  if (!existing) {
+    canvas.className = "motion-particles";
+    canvas.setAttribute("aria-hidden", "true");
+    app.insertBefore(canvas, app.firstChild);
+  }
+  const box = canvas.parentElement.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = Math.max(1, Math.round(box.width * dpr));
+  canvas.height = Math.max(1, Math.round(box.height * dpr));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "no-2d-context";
+  const draw = (phase) => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < PARTICLE_COUNT; i += 1) {
+      const x = (seeded(i) + phase * (0.02 + seeded(i + 99) * 0.05)) % 1;
+      const y = (seeded(i + 7) + phase * 0.01) % 1;
+      const r = (2 + seeded(i + 31) * 5) * dpr;
+      ctx.globalAlpha = 0.1 + seeded(i + 53) * 0.12;
+      ctx.fillStyle = PARTICLE_INKS[i % PARTICLE_INKS.length];
+      ctx.beginPath();
+      ctx.arc(x * canvas.width, y * canvas.height, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+  draw(0);
+  if (!live) return "static";
+  const step = (now) => {
+    draw(now / 12e3);
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  return "live";
+}
+function particleMode() {
+  try {
+    const wanted = new URLSearchParams(window.location.search).get("particles");
+    if (wanted === "live" || wanted === "static") return wanted;
+  } catch {
+  }
+  return "off";
+}
+const MAGNETIC_SELECTOR = ".ghost-btn,.primary-btn,.danger-btn,.stage-nav-btn,.nav button";
+const TILT_SELECTOR = ".row-card,.capability-card,.panel";
+const REVEAL_SELECTOR = "#tp-verdicts>*,.list-item,.row-card,.grid-stack>*";
+function delegate(root, selector, onTarget, onLeave) {
+  let current = null;
+  let queued = false;
+  let pending = null;
+  const paint = () => {
+    queued = false;
+    if (!pending) return;
+    onTarget(pending[0], pending[1], pending[2]);
+  };
+  root.addEventListener("pointermove", (event) => {
+    const target = event.target && event.target.closest ? event.target.closest(selector) : null;
+    const host = target;
+    if (!host) {
+      if (current && onLeave) onLeave(current);
+      current = null;
+      pending = null;
+      return;
+    }
+    if (current !== host) {
+      if (current && onLeave) onLeave(current);
+      current = host;
+      host.style.willChange = "transform";
+    }
+    const box = host.getBoundingClientRect();
+    if (!box.width || !box.height) return;
+    pending = [host, event, box];
+    if (!queued) {
+      queued = true;
+      requestAnimationFrame(paint);
+    }
+  }, { passive: true });
+  root.addEventListener("pointerleave", () => {
+    if (current && onLeave) onLeave(current);
+    current = null;
+    pending = null;
+  }, { passive: true });
+}
+function mountEnhancedMotion(root) {
+  const scope = root.body ? root : root;
+  const hostsOf = (selector) => {
+    try {
+      return Array.from(scope.querySelectorAll(selector));
+    } catch {
+      return [];
+    }
+  };
+  const mode = motionMode();
+  if (mode !== "enhanced") {
+    return { mode: "static", magnetic: 0, tilt: 0, revealed: 0, particles: "off" };
+  }
+  const doc = scope;
+  try {
+    doc.documentElement.dataset.motion = "enhanced";
+  } catch {
+  }
+  delegate(doc, MAGNETIC_SELECTOR, (el2, event, box) => {
+    move(
+      el2,
+      (event.clientX - box.left - box.width / 2) / box.width * MAGNET_PX,
+      (event.clientY - box.top - box.height / 2) / box.height * MAGNET_PX,
+      ""
+    );
+  }, (el2) => {
+    move(el2, 0, 0, "");
+    el2.style.willChange = "";
+  });
+  delegate(doc, TILT_SELECTOR, (el2, event, box) => {
+    el2.style.transform = `perspective(900px) rotateX(${(-(event.clientY - box.top - box.height / 2) / box.height * TILT_DEG).toFixed(2)}deg) rotateY(${((event.clientX - box.left - box.width / 2) / box.width * TILT_DEG).toFixed(2)}deg)`;
+  }, (el2) => {
+    el2.style.transform = "";
+    el2.style.willChange = "";
+  });
+  const revealed = hostsOf(REVEAL_SELECTOR);
+  revealed.forEach(slideReveal);
+  const wanted = particleMode();
+  const particles = wanted === "off" ? "off" : mountAmbientParticles(doc, wanted === "live");
+  return {
+    mode,
+    magnetic: hostsOf(MAGNETIC_SELECTOR).length,
+    tilt: hostsOf(TILT_SELECTOR).length,
+    revealed: revealed.length,
+    particles
+  };
+}
 byId("design-brief-form").onsubmit = (event) => {
   event.preventDefault();
   void submitBrief().catch((e) => setStatus(errMsg(e), true));
@@ -12042,3 +15761,6 @@ if (typeof document !== "undefined" && document.body !== void 0 && devBypassEnab
   if (connEl) connEl.textContent = "未连接 · 本地浏览模式";
 }
 if (typeof window !== "undefined" && document.body?.dataset.localSession === "auto" && !devBypassEnabled()) void connectLocalService();
+if (typeof document !== "undefined" && document.body !== void 0) {
+  mountEnhancedMotion(document);
+}

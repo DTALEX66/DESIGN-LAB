@@ -178,6 +178,25 @@ def get_sweep_unmeasured() -> int:
 
 PAYLOAD_GATE = 'design-lab/scripts/verify_route_payload_contracts.py'
 
+WEIGHT_TEST = 'design-lab/tests/test_workbench_weight.py'
+
+
+def unbounded_routes() -> int:
+    """How many list GET routes the weight gate still registers as answering without a bound.
+
+    Read from `UNBOUNDED_REGISTER` in the test that owns it, by text: the register's own
+    `test_the_unbounded_set_is_exactly_the_register` already proves the table agrees with the live
+    instrument, so counting the table is counting the population without importing anything (this
+    gate runs on a bare interpreter in the node job's step, where Pillow is not installed).
+    Added 2026-10-26 because the prose said "其余 7 条" while the register held eight: bounding
+    `_list_prompt_results` moved the set from nine to eight, and the sentence was doing arithmetic
+    on neither.
+    """
+    src = (REPO / WEIGHT_TEST).read_text(encoding='utf-8')
+    start = src.index('UNBOUNDED_REGISTER = {')
+    body = src[start:src.index('\n}\n', start)]
+    return _require(len(re.findall(r"^\s+'(_list_[a-z0-9_]+)':", body, re.M)), 'UNBOUNDED_REGISTER')
+
 #: The four envelope versions the design-layer family got on 2026-10-23. Named here because the
 #: sentence this measures claims a row COUNT, and a count of "the rows that carry these versions"
 #: can only be re-checked against the ledger that records them.
@@ -237,6 +256,8 @@ CLAIMS = [
     ('docs/current/NEXT-AGENT-PROMPT.md', '其中 **{n} 行**逐行真写', write_sweep_walked),
     ('docs/current/NEXT-AGENT-PROMPT.md', '账本是 **{n} 条** GET 行', ledger_get_rows),
     ('docs/current/NEXT-AGENT-PROMPT.md', '仍有 **{n} 条**没被这条扫描读到', get_sweep_unmeasured),
+    # The capacity half of owner finding 7: how many list routes still answer without a bound.
+    ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 条无界路由**', unbounded_routes),
     # The design-layer family's three denominators (batch I, 2026-10-23): how many rows that family
     # was paid, how many route rows still have no contract at all, and how many live bindings the
     # payload gate now runs. All three are counted from the ledger and the gate table itself.

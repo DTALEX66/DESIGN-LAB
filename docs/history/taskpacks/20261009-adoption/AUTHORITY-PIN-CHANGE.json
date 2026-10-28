@@ -177,7 +177,42 @@
    },
    "why": "DL-TP-20261023-DESKTOP-KB-R1 becomes the only dispatch entry, so the top authority and the classification index had to change bytes. The change is a repoint plus one adoption block: the 2026-10-19 sentence naming the direction pack as 「当前唯一 integrated TaskPack」 is kept and marked as a dated reading rather than deleted, and the direction pack itself stays byte-frozen and pinned — it is superseded in its dispatch role only, never rewritten. Neither pin move removes a check, and the 34-row frozen segment is untouched: the new dispatch is 16 additional rows in the same currentExecution, which is why `verify_documented_counts.py` now measures the frozen and the dispatched counts as two separate denominators instead of refusing to count.",
    "checks": "两份文件均为 LF（无 CR 字节），worktree sha256 即 blob sha256（两者都在 .gitattributes 标 binary）；verify_top_level_authority 仍 10 项，除 r2-release-integrity 外九项在改钉前就已 PASS，改钉后十项全绿；TASK_DOC_STATE_GATE 仍 13 项全绿（pinned-files-declared-frozen 的 6 个路径未变，只换 digest）；AGENTS.md 不在 pin 清单内，其 CR-CRLF（\\r\\r\\n）行结束按原样保留，插入后 lone-LF 仍为 0；新任务包与两份登记件、17 名成员逐字节入仓后由 verify_archive_record_register 复核（该闸本轮另修一处：ls-files 需 -z，否则中文文件名被八进制引用而误报 unresolvable path）。"
-  }
+  },
+  {
+  "when": "2026-10-28",
+  "authority": "owner instruction 2026-10-28: 「取消冻结的自动化任务  （D:\\All projects\\Record\\新建文件夹     把这里的内容吃透）」「前端也同步上去自动化的菜单导航等」「并行执行 项目体积清理与规范化  执行合并迁移清理等相关执行，任何过时的陈旧的冗余的，该归档的归档 包括目录子文件夹等」; the same session's scope answers: 清理＝只清派生物＋仓库内历史归档合并＋PR #277 合并与分支收口, 包＝「全部吸收融入本项目  和原先冻结的自动化任务进行合并」",
+  "changed": [
+   "AUTHORITY.md",
+   ".project/governance/authority-index.json"
+  ],
+  "from": {
+   "AUTHORITY.md": "00126066fd7715c3e4d2d5daceaf0b9d894be6ee8339c622c87621d6b0adfb58",
+   ".project/governance/authority-index.json": "9a0e1a58190767cf39709242ec429254a018415c9cb6e0219293b414ff3a8a07"
+  },
+  "to": {
+   "AUTHORITY.md": "e31fb1faa904427dbf3a9f842e4946408d4391473c4c9f020b5574d427a3e543",
+   ".project/governance/authority-index.json": "7ffe85d1f4043c10940f889a84c9cebc30b36597b044da7f0cc95bc2a5c5051b"
+  },
+  "why": "The freeze on external-software automation was lifted by owner instruction, so the top authority and the classification index had to change bytes. The change is one adoption block plus two dated-reading markers: the 2026-10-23 sentence 「外部软件自动操作属未来能力」 is kept and marked as a dated reading rather than deleted, and desktopKbAdoption.stillFrozen keeps its entry as the record of that adoption while automationAdoption names it as superseded in part. Nothing else moves: the direction and desktop-KB packs stay byte-frozen and pinned, and the 34-row frozen segment is untouched. The unfreeze names a capability class, not a per-session licence to launch hosts -- the windows desktop-UI-automation connector, every tools/call, and the 21 company-named brand templates are recorded as NOT activated, and the delivered pack evidences only MCP_READY/UNAVAILABLE handshakes (543 listed tools, each with nativeToolCalled:false, and physicalSecondComputerTested:false in its own relocation evidence), so the ceiling this round is E1/E2. Neither pin move removes a check.",
+  "checks": "verify_top_level_authority 仍 10 项；两份文件均为 LF（CR=0），.gitattributes 把两者标为 binary，所以 worktree sha256 即 blob sha256；本登记件不是 json.dumps(indent=2) 的形状（条目在 2 空格、键在 3 空格），因此用文本拼接而不是重排，拼接前后其余字节逐字节相等。"
+ },
+ {
+  "when": "2026-10-28",
+  "authority": "same owner instruction as the previous revision; this re-pin exists because the first 2026-10-28 AUTHORITY.md bytes named a pack-internal file with a repository-looking path",
+  "changed": [
+   "AUTHORITY.md"
+  ],
+  "from": {
+   "AUTHORITY.md": "e31fb1faa904427dbf3a9f842e4946408d4391473c4c9f020b5574d427a3e543",
+   ".project/governance/authority-index.json": "7ffe85d1f4043c10940f889a84c9cebc30b36597b044da7f0cc95bc2a5c5051b"
+  },
+  "to": {
+   "AUTHORITY.md": "2bec69fcc77939d82476ab12d5316c439469c4e7c53ceef0270fcd8ffa139fce",
+   ".project/governance/authority-index.json": "7ffe85d1f4043c10940f889a84c9cebc30b36597b044da7f0cc95bc2a5c5051b"
+  },
+  "why": "verify_path_refs.py resolves every path-shaped reference in AUTHORITY.md and AGENTS.md and convicted `evidence/relocation.json` as an unallowlisted missing reference -- the file is inside the delivered ZIP, not in this repository. The reference was reworded to say so instead of being added to the policy allowlist, because allowlisting a wrong reference would weaken the gate for every future author. authority-index.json bytes did not move this time, so its digest is repeated unchanged in `from`/`to`.",
+  "checks": "PATH_REF_GATE=PASS checks=10 failed=[]；verify_top_level_authority 仍 10 项；AUTHORITY.md 为 LF（CR=0）且 .gitattributes 标 binary，worktree sha256 即 blob sha256。"
+ }
  ],
  "current_pins_note": "Latest change is revisions[-1] (2026-10-23 desktop-UI/knowledge-base adoption): AUTHORITY.md and .project/governance/authority-index.json re-pinned after the DESKTOP-KB-20261023-R1 block and the desktopKbAdoption/current repoint landed; the three pinned taskpacks and HISTORY-FREEZE-RULES.md are untouched, and the direction pack stays frozen lineage. Earlier revisions are kept as the supersession trail."
 }

@@ -1,0 +1,65 @@
+# DESIGN-LAB DL-KB-05 acceptance D5 (回退知识推荐版本后旧方案仍可读；失效来源可标记并替换).
+# subject commit 52961f490eff0fb60b6cf53d9e66d1a8afe5910d; Workbench bundle blob d476bfeaa07daa6c1dfe06530cad30ca2bd698d3.
+# Observed 2026-10-25T04:29:20+08:00. Each block below is that command's own output on these bytes.
+# axis: unit. The store, the route, the guards, the write sweep and the backup counter.
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_knowledge_judgement -v
+# exit=0
+test_a_judgement_survives_a_restart_and_still_outranks_the_written_flag (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_judgement_survives_a_restart_and_still_outranks_the_written_flag) ... ok
+test_a_judgement_without_a_reason_is_refused (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_judgement_without_a_reason_is_refused) ... ok
+test_a_recommendation_cannot_name_a_revision_that_was_never_stored (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_recommendation_cannot_name_a_revision_that_was_never_stored) ... ok
+test_a_recorded_judgement_moves_the_recommendation_back (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_recorded_judgement_moves_the_recommendation_back) ... ok
+test_a_source_cannot_be_replaced_by_the_entry_it_marks_dead (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_a_source_cannot_be_replaced_by_the_entry_it_marks_dead) ... ok
+test_an_agent_may_not_record_a_judgement (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_an_agent_may_not_record_a_judgement) ... ok
+test_an_invalid_source_must_name_its_replacement (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_an_invalid_source_must_name_its_replacement) ... ok
+test_moving_the_recommendation_rewrites_no_stored_bytes (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_moving_the_recommendation_rewrites_no_stored_bytes) ... ok
+test_the_judgement_table_is_append_only (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_judgement_table_is_append_only) ... ok
+test_the_newest_judgement_of_a_kind_is_the_answer_and_the_rest_is_history (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_newest_judgement_of_a_kind_is_the_answer_and_the_rest_is_history) ... ok
+test_the_same_judgement_sent_twice_is_one_judgement (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_same_judgement_sent_twice_is_one_judgement) ... ok
+test_the_table_refuses_a_replacement_that_is_not_an_entry (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_table_refuses_a_replacement_that_is_not_an_entry) ... ok
+test_the_wrong_field_for_the_kind_is_named_not_ignored (design-lab.tests.test_knowledge_judgement.KnowledgeJudgementTests.test_the_wrong_field_for_the_kind_is_named_not_ignored) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.197s
+
+OK
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_installed_write_surface -v
+# exit=0
+POST_SWEEP layout=source rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1
+POST_SWEEP_WRITTEN project asset brief direction choose bind tokens analysis model-choose compose reverse prompt-sign jury-verdict jury-proposal rights research candidate candidate-review candidate-revoke brief-rev brief-rev-by-id direction-rev direction-rev-by-id bundle preflight patch cancel native-plan knowledge-create knowledge-revise knowledge-import knowledge-index-rebuild knowledge-judgement assistance-plan assistance-revise assistance-choose target-profile-draft target-profile-validate plan-feedback
+POST_SWEEP_EXCLUDED /api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/run :: FROZEN-BY-POLICY: the body is one attempt_id and this sweep has one, but native_workers.start() spawns a child process running `design_lab native-work
+test_a_post_row_added_to_the_ledger_without_an_entry_here_is_convicted (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_a_post_row_added_to_the_ledger_without_an_entry_here_is_convicted)
+The falsifier for the coverage claim: plant a row and check that the plant moves. ... ok
+test_a_refusal_list_is_compared_in_both_directions (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_a_refusal_list_is_compared_in_both_directions)
+A named refusal that stopped happening must be as loud as an unearned one appearing. ... ok
+test_a_slot_this_sweep_never_captured_is_reported_rather_than_sent_literally (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_a_slot_this_sweep_never_captured_is_reported_rather_than_sent_literally)
+A leftover `{brief}` in a path would be a 400 nobody reads as a coverage hole. ... ok
+test_a_write_route_that_builds_an_envelope_names_the_contract_not_the_request (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_a_write_route_that_builds_an_envelope_names_the_contract_not_the_request)
+The conviction this batch's plant produced, pinned so it cannot come back. ... ok
+test_every_ledger_post_row_is_walked_or_named_in_this_layout (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_every_ledger_post_row_is_walked_or_named_in_this_layout)
+POST each row for real, read it back, and name every refusal that actually happened. ... ok
+test_the_exclusions_are_real_ledger_rows_and_every_row_has_a_check (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_the_exclusions_are_real_ledger_rows_and_every_row_has_a_check)
+A table that names a method nobody wrote, or excludes a row the ledger never had, is a ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 4.634s
+
+OK
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_backup_watches_written_tables
+# exit=0
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.171s
+
+OK
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_knowledge_library
+# exit=0
+KNOWLEDGE_SEARCH_P95_MS=26.7 budget=300 entries=1000 samples=30
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 2.436s
+
+OK

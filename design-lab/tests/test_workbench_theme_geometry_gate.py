@@ -19,6 +19,7 @@ theme looks right.
 """
 import json
 import os
+import re
 import secrets
 import shutil
 import subprocess
@@ -37,6 +38,28 @@ from test_workbench_design_layer_e2e import _find_browser, _find_node_modules_di
 ROOT = _TESTS_DIR.parents[1]
 GATE_SCRIPT = _TESTS_DIR / 'e2e' / 'audit_workbench_theme_geometry.mjs'
 WIDTHS = os.environ.get('THEME_WIDTHS', '1920,1200,960,768,700')
+
+
+def declared_variants(shell_source=None):
+    """Every palette/scheme pair the product itself declares, read out of shell.ts.
+
+    This used to be a literal triple in the assertion below, which is how the pearl-white face --
+    the one the 20261023 pack specifies -- went unmeasured by the geometry gate while the
+    contrast gate was busy grading it through an injected attribute. Reading the table here means
+    a fourth palette cannot join the product without also joining this gate's population, and a
+    parse that found nothing is refused rather than read as a smaller world.
+    """
+    shell = shell_source if shell_source is not None else \
+        (ROOT / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
+    block = shell[shell.index('const PALETTES'):shell.index('function paletteSpec')]
+    out = []
+    for match in re.finditer(r"\{\s*id:\s*'([\w-]+)'[^}]*?schemes:\s*\[([^\]]*)\]", block):
+        for scheme in re.findall(r"'([\w-]+)'", match.group(2)):
+            out.append('%s/%s' % (match.group(1), scheme))
+    if len(out) < 4:
+        raise AssertionError('the palette table shrank to %s; this gate would silently stop '
+                             'measuring a theme it was told to cover' % out)
+    return out
 
 
 def _evidence_dir():
@@ -137,12 +160,37 @@ class WorkbenchThemeGeometryGateTests(unittest.TestCase):
         self.assertEqual(sorted(report['widths'], key=str), sorted(measured, key=str),
                          'the gate skipped a width it was asked to walk')
         for width, seen in report['widths'].items():
-            self.assertEqual(sorted(seen), sorted(f'{p}/{s}' for p, s in
-                                                  [('design-lab', 'dark'), ('ui2026', 'dark'),
-                                                   ('ui2026', 'light')]),
+            self.assertEqual(sorted(seen), sorted(declared_variants()),
                              f'{width}: not every palette was rendered')
             for variant, read in seen.items():
                 self.assertIsNotNone(read, f'{width} {variant}: the gate read nothing')
+
+
+class PalettePopulationIsDerived(unittest.TestCase):
+    """The coverage list comes from the product, and a failed parse is loud.
+
+    Without this, the gate could go back to measuring three variants forever while claiming to
+    read the table: an empty or short derivation has to be an error, not a smaller denominator.
+    """
+
+    def test_the_pearl_white_face_is_in_the_population_this_gate_measures(self):
+        variants = declared_variants()
+        self.assertIn('stitch/light', variants,
+                      'the geometry gate would stop measuring the pack face again: %s' % variants)
+        self.assertGreaterEqual(len(variants), 4,
+                                'the derivation found %s -- too few to be the real table'
+                                % variants)
+
+    def test_the_deriver_refuses_a_table_it_cannot_read(self):
+        source = (ROOT / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
+        # Hide the schemes rather than the table name: a rename would make index() raise
+        # ValueError for the wrong reason, and this guard is about reading an EMPTY population.
+        blinded = source.replace('schemes: [', 'schemes_hidden: [')
+        self.assertNotEqual(blinded, source, 'the plant did not change anything, so it proves '
+                                             'nothing')
+        with self.assertRaises(AssertionError) as caught:
+            declared_variants(shell_source=blinded)
+        self.assertIn('shrank', str(caught.exception))
 
 
 if __name__ == '__main__':

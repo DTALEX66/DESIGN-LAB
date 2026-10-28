@@ -239,6 +239,94 @@
       "historicalDeclaredLevel": "E0",
       "reason": "registry declarations are not current host receipts",
       "tool": "eagle-mcp-server (npm)"
+    },
+    {
+      "adapterId": "adapter-delivery-sketchup",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "SketchUp MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-grasshopper",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Grasshopper MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-autocad",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "AutoCAD MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-rhino",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Rhino MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-blender",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "missing",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Blender MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-3dsmaxMCP",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "3ds Max MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-indesign",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "InDesign MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-revit",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Revit MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-photoshop",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Photoshop MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-illustrator",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Illustrator MCP (delivery pack)"
+    },
+    {
+      "adapterId": "adapter-delivery-windows",
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Windows desktop automation (delivery pack)"
     }
   ],
   "authorityTaskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
@@ -251,11 +339,11 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-23T23:28:26+00:00",
+  "generatedAt": "2026-10-28T14:37:07+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3c6ca49133a4995b074182280c0844a9872f039f",
+  "subjectSha": "407a2a1372c55d5fe555a33ba7a22abd66dfc081",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -264,5 +352,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:453d7c5db1ad263cfb5ab2bdfed26ee37098a7b10a10b3c2db13db678b4ff7dc"
+  "worktreeDigest": "sha256:3fed4b517acbe18d38720c2ef252fe69d641312d9ade85d27f8558116c5890ce"
 }

@@ -1,0 +1,7 @@
+LATENCY host=Windows 11 / AMD64 / 3.13.14
+LATENCY corpus samples=1000 queries=30 total_hits=8802 avg_hits=293.4
+LATENCY search n=30 p50=26.71ms p95=28.89ms max=28.98ms mean=26.50ms
+LATENCY create n=20 p50=6.54ms p95=8.14ms max=8.69ms mean=6.73ms
+LATENCY detail n=12 p50=8.22ms p95=8.94ms max=8.94ms mean=8.35ms
+LATENCY NOTE 这是本机冷磁盘单进程读数，不含网络、不含推理；推理延迟单独报，不与界面指标混合。数据库目录已随测量删除，语料是测量生成的，不是 owner 的条目。
+LATENCY=MEASURED search_p95=28.89ms

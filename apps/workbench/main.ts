@@ -9,6 +9,7 @@
 import { byId, errMsg, setStatus } from './workbench.js';
 import { bindDesignSystem, submitBrief, submitBriefRevision, submitDirection, submitDirectionRevision } from './design.js';
 import { mountAppShell } from './shell.js';
+import { mountEnhancedMotion } from './motion.js';
 import { connectLocalService } from './workbench.js';
 
 byId<HTMLFormElement>('design-brief-form').onsubmit = (event) => {
@@ -86,3 +87,10 @@ if (typeof document !== 'undefined' && document.body !== undefined && devBypassE
 // Official loopback launcher: page reload reconnects without copying credentials.
 if (typeof window !== 'undefined' && document.body?.dataset.localSession === 'auto'
     && !devBypassEnabled()) void connectLocalService();
+
+// Enhanced motion (owner 2026-10-25: 「STITCH 更多是静态页面 … 加入更多动画动效」). Opt-in
+// through ?motion=enhanced and inert under prefers-reduced-motion, so the static screens the
+// pack and every geometry gate were measured against stay exactly as measured.
+if (typeof document !== 'undefined' && document.body !== undefined) {
+  mountEnhancedMotion(document);
+}

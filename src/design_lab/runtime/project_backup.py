@@ -280,6 +280,28 @@ COUNTER_QUERIES = (
     ('knowledge_entry', 'rowid'),
     ('knowledge_entry_revision', 'rowid'),
     ('knowledge_index_state', 'rowid'),
+    # 2026-10-24 DL-KB-05 D5: a recorded judgement (recommendation moved back, source marked dead)
+    # is appended with no writer lease. It changes what the library answers as recommended without
+    # touching a revision row, so a proof blind to this table could call a window quiescent while
+    # the pointer every plan reads had moved.
+    ('knowledge_judgement', 'rowid'),
+    # 2026-10-24 DL-KB-07: the assistance plan store writes its identity row, its
+    # append-only revisions and the recorded choice with no writer lease. A backup
+    # window that swallowed a revision or a named-human choice would otherwise still
+    # report PROVED_QUIESCENT while the plan the page reads back had moved.
+    ('assistance_plan', 'rowid'),
+    ('assistance_plan_revision', 'rowid'),
+    ('assistance_plan_choice', 'rowid'),
+    # 2026-10-24 DL-KB-09: a draft target profile is written with no writer lease. The five seeded
+    # profiles live in the tracked config and cannot move at runtime, but a draft somebody adds at
+    # the selection panel can land inside a backup window -- and the panel reads it back later as
+    # the registry's own record of what the operator claimed.
+    ('target_profile_draft', 'rowid'),
+    # 2026-10-24 DL-KB-16: a voluntary external-use report is committed with no writer lease. A
+    # backup window that swallowed one would otherwise still report PROVED_QUIESCENT while the
+    # experience record the 我的方案 screen reads back had moved -- and this is the row people cite
+    # later about whether material actually worked somewhere else.
+    ('plan_feedback', 'rowid'),
 )
 
 

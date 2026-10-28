@@ -44,6 +44,12 @@ from .runtime.state_resources import repo_resource, state_schema
 RESULT_VERSION = 'design-lab/prompt-result/v1'
 READBACK_VERSION = 'design-lab/prompt-result-readback/v1'
 REVIEW_VERSION = 'design-lab/prompt-result-review/v1'
+# The list is bounded the way the knowledge and assistance-plan lists are: a default page, an
+# explicit maximum, and an envelope that says whether more exists. `reviews` is deliberately NOT
+# paginated -- truncating the acceptance history would hide decisions, which is the one thing a
+# Human Gate readback must never do.
+PROMPT_RESULT_LIMIT = 100
+MAX_PROMPT_RESULT_LIMIT = 200
 RESULT_SCHEMA_PATH = repo_resource('schemas/prompt-result-v1.schema.json')
 _READBACK_SCHEMA_PATH = repo_resource('schemas/prompt-result-readback-v1.schema.json')
 _REVIEW_SCHEMA_PATH = repo_resource('schemas/prompt-result-review-v1.schema.json')
@@ -358,8 +364,21 @@ class PromptResults:
 
     # -- reading ------------------------------------------------------------------
 
-    def readback(self, project_id) -> dict:
-        """Every stored result for one project, with the acceptance that still describes it."""
+    def readback(self, project_id, offset=0, limit=PROMPT_RESULT_LIMIT) -> dict:
+        """One page of the stored results, with the acceptance that still describes them.
+
+        Counts (`result_count`, `unreadable_count`, `accepted_count`) and the `newest`/`state`
+        verdict are computed over the WHOLE row set before any slicing, so paging a list can never
+        turn a project that produced 400 prompts into one that reads as if it produced 100.
+        """
+        if not isinstance(offset, int) or isinstance(offset, bool) or offset < 0:
+            raise PromptResultError(400, 'PROMPT_RESULT_OFFSET_INVALID',
+                                    f'offset must be an integer >= 0, got {offset!r}')
+        if (not isinstance(limit, int) or isinstance(limit, bool)
+                or not 1 <= limit <= MAX_PROMPT_RESULT_LIMIT):
+            raise PromptResultError(
+                400, 'PROMPT_RESULT_LIMIT_INVALID',
+                f'limit must be an integer between 1 and {MAX_PROMPT_RESULT_LIMIT}, got {limit!r}')
         self._check_project(project_id)
         with closing(self._connect()) as conn:
             rows = conn.execute(
@@ -409,6 +428,10 @@ class PromptResults:
         state = ('NONE' if not rows
                  else newest['review_state'] if newest is not None
                  else 'UNREVIEWED')
+        # Sliced only after every count and verdict above has been taken from the full set.
+        page = results[offset:offset + limit]
+        following = offset + len(page)
+        truncated = following < len(results)
         return _check({
             'schemaVersion': READBACK_VERSION,
             'project_id': project_id,
@@ -417,7 +440,13 @@ class PromptResults:
             'unreadable_count': unreadable,
             'accepted_count': len(accepted),
             'newest': newest,
-            'results': results,
+            'total_readable': len(results),
+            'offset': offset,
+            'limit': limit,
+            'returned': len(page),
+            'truncated': truncated,
+            'next_offset': following if truncated else None,
+            'results': page,
             'reviews': reviews,
             'review_state_vocabulary': list(ACCEPTANCE_STATES),
             'decision_vocabulary': list(DECISIONS),
@@ -427,6 +456,9 @@ class PromptResults:
                 'ACCEPTED 只说明有人对引用的那份 content_sha256 点过头，不说明它被导出、被发送或被'
                 '任何模型执行过。',
                 'NOT_CURRENT 表示存在一份签名，但它签的是另一份字节；旧签名不会被改写，只是不再描述现在。',
+                'results 是这一页，不是全部：result_count 数的是数据库行（含解析不了的），'
+                'total_readable 数的是能读出来的全部，returned/truncated/next_offset 说这一页占其中多少。'
+                '把列表翻页不代表评审历史被截——reviews 永远是全量，因为截断签收记录就是隐藏决定。',
             ],
         }, _READBACK_SCHEMA_PATH, 'prompt-result readback', registry=_ref_registry())
 

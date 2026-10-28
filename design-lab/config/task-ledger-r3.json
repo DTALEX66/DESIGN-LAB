@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-23T23:28:13Z",
+  "updated_at": "2026-10-24T00:57:00Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -8722,7 +8722,7 @@
       },
       {
         "id": "DL-KB-02",
-        "state": "PARTIAL",
+        "state": "DONE",
         "evidence": [
           "kb-02-implementation-write-surface-20261024",
           "kb-02-unit-knowledge-20261024",
@@ -8730,7 +8730,9 @@
           "kb-02-unit-backup-watch-20261024",
           "kb-02-implementation-chain-20261024",
           "kb-02-implementation-write-surface-r2-20261024",
-          "kb-02-unit-knowledge-r2-20261024"
+          "kb-02-unit-knowledge-r2-20261024",
+          "kb-02-unit-a5-offline-20261024",
+          "kb-02-browser-copy-and-gates-20261024"
         ]
       },
       {
@@ -8746,7 +8748,8 @@
           "kb-03-implementation-ui-audit-r2-20261024",
           "kb-03-browser-e2e-r2-20261024",
           "kb-03-browser-visual-r2-20261024",
-          "kb-03-visual-review-r2-20261024"
+          "kb-03-visual-review-r2-20261024",
+          "kb-03-browser-entry-detail-rulers-20261025"
         ]
       },
       {
@@ -8761,10 +8764,16 @@
       },
       {
         "id": "DL-KB-05",
-        "state": "PARTIAL",
+        "state": "DONE",
         "evidence": [
           "kb-05-unit-knowledge-r2-20261024",
-          "kb-05-implementation-revisions-r2-20261024"
+          "kb-05-implementation-revisions-r2-20261024",
+          "kb-05-unit-judgement-20261024",
+          "kb-05-implementation-judgement-surface-20261024",
+          "kb-05-browser-workbench-gates-20261024",
+          "kb-05-browser-knowledge-detail-walk-20261024",
+          "kb-05-unit-knowledge-reference-20261024",
+          "kb-05-browser-plan-cites-knowledge-20261024"
         ]
       },
       {
@@ -8782,48 +8791,94 @@
           "kb-06-browser-zoom-r2-20261024",
           "kb-06-visual-review-r2-20261024",
           "kb-06-browser-a11y-r2-20261024",
-          "kb-06-browser-debt-r2-20261024"
+          "kb-06-browser-debt-r2-20261024",
+          "kb-06-browser-stitch-palette-theme-20261025"
         ]
       },
       {
         "id": "DL-KB-07",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-07-unit-plan-object-20261024",
+          "kb-07-implementation-plan-routes-20261024"
+        ]
       },
       {
         "id": "DL-KB-08",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-08-implementation-workbench-node-20261024",
+          "kb-08-implementation-workbench-python-20261024",
+          "kb-08-browser-e2e-20261024",
+          "kb-08-browser-capture-20261024",
+          "kb-08-browser-overflow-20261024",
+          "kb-08-browser-contrast-20261024",
+          "kb-08-browser-ui-audit-20261024",
+          "kb-08-browser-a11y-20261024",
+          "kb-08-browser-debt-20261024",
+          "kb-08-browser-visual-20261024",
+          "kb-08-visual-review-20261024",
+          "kb-08-unit-five-kind-picker-20261024",
+          "kb-08-browser-five-kind-picker-20261024",
+          "kb-08-browser-plan-detail-geometry-20261025"
+        ]
       },
       {
         "id": "DL-KB-09",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-09-implementation-profile-routes-20261024",
+          "kb-09-unit-target-profile-20261024"
+        ]
       },
       {
         "id": "DL-KB-10",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-10-browser-e2e-20261024",
+          "kb-10-implementation-route-calls-20261024",
+          "kb-10-unit-assistance-plan-20261024",
+          "kb-10-browser-target-combination-state-20261025"
+        ]
       },
       {
         "id": "DL-KB-11",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-11-browser-contrast-20261024",
+          "kb-11-implementation-export-chain-20261024",
+          "kb-11-unit-plan-export-20261024"
+        ]
       },
       {
         "id": "DL-KB-12",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-12-browser-e2e-summary-20261024",
+          "kb-12-implementation-workbench-node-20261024",
+          "kb-12-browser-two-revision-comparison-20261025"
+        ]
       },
       {
         "id": "DL-KB-13",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-13-browser-overflow-report-20261024",
+          "kb-13-browser-overflow-zoom-20261024",
+          "kb-13-css-single-definition-20261024",
+          "kb-13-implementation-module-share-20261024",
+          "kb-13-implementation-search-latency-20261024",
+          "kb-13-implementation-weight-20261024"
+        ]
       },
       {
         "id": "DL-KB-14",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "DONE",
+        "evidence": [
+          "kb-14-browser-state-loop-20261024",
+          "kb-14-implementation-workbench-build-20261024",
+          "kb-14-unit-knowledge-outage-20261024"
+        ]
       },
       {
         "id": "DL-KB-15",
@@ -8832,8 +8887,13 @@
       },
       {
         "id": "DL-KB-16",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-16-browser-feedback-20261024",
+          "kb-16-implementation-write-surface-20261024",
+          "kb-16-unit-plan-feedback-20261024",
+          "kb-16-browser-recorded-feedback-state-20261025"
+        ]
       }
     ],
     "evidence": [
@@ -11668,6 +11728,1134 @@
         "observed_at": "2026-10-23T23:27:47Z",
         "subject_sha": "3c6ca49133a4995b074182280c0844a9872f039f",
         "artifact_sha256": "2ab634bbc451a942a26613c53a3620b8df6ac2fe5e3769b0ffdaf77843573894"
+      },
+      {
+        "id": "kb-07-unit-plan-object-20261024",
+        "task_id": "DL-KB-07",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-07-unit-plan-object-20261024.log",
+        "command": "cd design-lab/tests && python -m unittest test_assistance_plan -v :: 18 tests OK; saved / provided / chosen / externally verified are four separate readback facts, a plan with an objective and no creative is saved but not provided, only a named human can choose (agent refused twice), a stale expected_revision is refused with the actual number, a cited asset stays LINKED_ONLY until a stored reversal exists, a moved reference reads CHANGED, and a missing job id is the literal UNUSED",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:53:09Z",
+        "artifact_sha256": "c4f70706d122bfd9afef3c42bef4755e8a565929ce6b75bcaab2b9a604f400b1"
+      },
+      {
+        "id": "kb-07-implementation-plan-routes-20261024",
+        "task_id": "DL-KB-07",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-07-implementation-plan-routes-20261024.log",
+        "command": "cd design-lab/tests && python -m unittest test_route_payload_contracts test_ledger_schema test_packaged_contract_resources -v :: 77 tests OK; the five assistance-plan routes are fixed in ROUTES, bound to their schemas in contract-bindings.json (47 live payload bindings), and the plan schemas plus the plan state SQL resolve from an installed wheel",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:53:46Z",
+        "artifact_sha256": "782064d742d59dc61145597a1d87131a8e81c5b8ad549db49bf1399beea5ced2"
+      },
+      {
+        "id": "kb-08-implementation-workbench-node-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-implementation-workbench-node-20261024.log",
+        "command": "cd apps/workbench && node tests/unit.mjs && node tests/appshell.mjs && node tests/shape-notice-coverage.mjs :: 30 ok lines; the screen builds and every rendered seam still reports its bound value (54 reads); the rendered four states are asserted in the browser scenario, not here",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:55:06Z",
+        "artifact_sha256": "01829acb9f348e65c369599d6d708076fe0228e8061d1e17842ca77c24b91f81"
+      },
+      {
+        "id": "kb-08-implementation-workbench-python-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-implementation-workbench-python-20261024.log",
+        "command": "cd design-lab/tests && python -m unittest test_workbench_css_single_definition test_workbench_route_calls test_workbench_served_bundle -v :: 44 tests OK; the seven new list containers are admitted at 66, the assistant route call site matches its ROUTES entry, and the served bundle is the committed one",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:55:09Z",
+        "artifact_sha256": "43aa1fa9480a4812041638a3964904c43ba92ae859ea18a4322dad79e7d7f8da"
+      },
+      {
+        "id": "kb-08-browser-e2e-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-e2e-20261024.json",
+        "command": "python -m unittest test_workbench_design_layer_e2e :: assistantLoop saved/provided/chosen flip in order and externalVerified stays false, copy works before adoption carrying 外部未验证 (writes and chooses do not move), an empty objective is refused with focus returned, the supplied creative appends r2 and a named human chooses it, a reload rebuilds the same states; consoleErrors 0; the served bundle sha256 ffabee75 equals the committed build at 2d9372fb (the summary's own subjectSha field reads 'local')",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:19:31Z",
+        "artifact_sha256": "5ee79369c9e4709310e9a3d9e98eb5cd380d13962d4e2d32757dab32353badde"
+      },
+      {
+        "id": "kb-08-browser-capture-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-capture-manifest-20261024.json",
+        "command": "python scripts/capture_workbench_screenshots.py --widths 1440,1280,1920 :: 81 shots bound to commit 2d9372fb; #/assistant captured at 1280x800, 1440x900 and 1920x1080 with rendered.unreadBack false",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:49:27Z",
+        "artifact_sha256": "dee9c2d807978329ad3ca92eff0676e868371516be284ead25c6df39fee50112"
+      },
+      {
+        "id": "kb-08-browser-overflow-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-overflow-20261024.json",
+        "command": "OV_WIDTHS=1440,1280,1920 E2E_EVIDENCE_DIR=<evidence>/browser python -m unittest test_workbench_overflow_gate -v :: navCue contentPx=1331, hiddenPx 515/715/865/995 at 1100/900/750/620, the cue is present at the top and gone at the end, footer hairline 12px; subject bundle ffabee75",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:31:54Z",
+        "artifact_sha256": "7be8ba7e241557130d8e13d2520232ef02763f51aed332eb55916b6c63b118ac"
+      },
+      {
+        "id": "kb-08-browser-contrast-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-contrast-20261024.json",
+        "command": "python -m unittest test_workbench_contrast_gate -v :: 3 tests OK in both palettes (155.7s); subject bundle ffabee75, stylesheet e83dde18",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:35:08Z",
+        "artifact_sha256": "55d15354b79080ec7ecf5e5fa04af0c172fb2bdb0a943f8d6b0892ca13995bd3"
+      },
+      {
+        "id": "kb-08-browser-ui-audit-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-browser-ui-audit-20261024.json",
+        "command": "UI_AUDIT_WIDTHS=1280,1440,1920 python -m unittest test_workbench_ui_audit_gate -v :: ok=true, violations=[], measured at commit 2d9372fb (environment.commit records the same SHA)",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:48:26Z",
+        "artifact_sha256": "ede42be0bbf7bba76a2d1edb9b09d9b5d14ac4035ffc4036b14f65a4c488b7a7"
+      },
+      {
+        "id": "kb-08-browser-a11y-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-assistant-20261024/a11y.json",
+        "command": "python scripts/run_design_review_plugin.py --only a11y :: axe-core over 27 screens including #/assistant, 0 findings, ok=true; this is an automated scan, not a WCAG certification and not human acceptance",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:53:27Z",
+        "artifact_sha256": "8548edcc8a113ccc5b5934bde10e7d90f7983e0db89497c554e9b40208bc8819"
+      },
+      {
+        "id": "kb-08-browser-debt-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-assistant-20261024/design-debt.json",
+        "command": "python scripts/run_design_review_plugin.py --only debt :: 713 findings ok=false (630 minor / 52 major / 31 debt) across 10 files, identical to the pre-assistant scan, so this screen added no literal px, hard-coded colour or custom shadow; recorded as an open register with classification, not as a pass",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:52:56Z",
+        "artifact_sha256": "eb6112c3267db8efc657967686d4ead02c81ffdd6a41f248187f87560ef6b97d"
+      },
+      {
+        "id": "kb-08-browser-visual-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-visual-receipt-20261024.json",
+        "command": "one-off Playwright probe against a real loopback service :: four screenshots (saved, chosen at 1440 and 1280, list at 1280) with bytes and sha256; the four chips, the named chooser line, the r2 list row and the 1-primary-action rule are read from the DOM; 1440x900 and 1280x800 keep 整理方案 below the fold",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:56:26Z",
+        "artifact_sha256": "1d24969825f8a90c4499f4974fee54fe1c1b7b11653948f90cc4280690164090"
+      },
+      {
+        "id": "kb-08-visual-review-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "2d9372fbc00ed53f5a00593a3e3ad5386d132a43",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-08-visual-review-20261024.md",
+        "command": "reviewed the rendered screen at 2d9372fb: the initial form carries three selects and no tool/model picker; the detail renders 已保存 / 方案已提供 / 用户选用 · r2 / 外部未验证 with the named chooser line and the two revisions; the list row carries r2 plus both states; no chat bubbles, canvas or agent console; mobile excluded",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T00:56:36Z",
+        "artifact_sha256": "11a3c58d2304e5e2cb9dcd872d25053c17cea6328e5ed1e0d862b526db502f16"
+      },
+      {
+        "id": "kb-09-unit-target-profile-20261024",
+        "task_id": "DL-KB-09",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-09-unit-target-profile-20261024.log",
+        "artifact_sha256": "d215a58c631d41427576109def358f8a29b5b3bc43a12379c6b54bb278418885",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_target_profile -v :: the profile rows come from the tracked config, an unknown software entry keeps UNKNOWN instead of a guessed support state, a seeded profile id is derived from its own key while a draft is USER_DRAFT with source_ref UNUSED, validation never grants execution, and no parameter is invented for a model the machine has not been shown to run :: Ran 16 tests in 7.369s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-09-implementation-profile-routes-20261024",
+        "task_id": "DL-KB-09",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-09-implementation-profile-routes-20261024.log",
+        "artifact_sha256": "4694f1a4a3a4741463499c4a6bc8cd84d3e775eb534f98fb674255e3390d06d4",
+        "command": ".venv/Scripts/python.exe design-lab/scripts/verify_route_payload_contracts.py :: VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=56 failures=0 | VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=56 failures=0",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-10-implementation-route-calls-20261024",
+        "task_id": "DL-KB-10",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-10-implementation-route-calls-20261024.log",
+        "artifact_sha256": "4278df6c09ba5d19be1d670c7f2b0526a0228855f512743c0f293154385209fe",
+        "command": ".venv/Scripts/python.exe design-lab/scripts/verify_workbench_route_calls.py :: VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=137 routes=87 matched=76 backend_only=11 dynamic=3 special=1 | VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=137 routes=87 matched=76 backend_only=11 dynamic=3 special=1",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-10-unit-assistance-plan-20261024",
+        "task_id": "DL-KB-10",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-10-unit-assistance-plan-20261024.log",
+        "artifact_sha256": "bed4aac493b7a1492478f98b3ec702756f63be73a80c003eead16ff8e6fbe0f9",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_assistance_plan -v :: the output-type list the panel reads is the served one, shot rows are refused for a type that carries no storyboard, and a plan written before the shot field existed still reads back :: Ran 29 tests in 13.395s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-11-unit-plan-export-20261024",
+        "task_id": "DL-KB-11",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-11-unit-plan-export-20261024.log",
+        "artifact_sha256": "df727ef8d89c10b102818556205ed9ba3886af44c6a83bc5db0bcee8b6f1bc02",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_plan_export -v :: markdown / txt / json / 分镜 CSV are rendered from one builder, the CSV escaping is proven on the emitted bytes (quotes, commas, newlines), a shot-less plan refuses the CSV rather than emitting an empty table, and every form carries the revision and the not-executed sentence :: Ran 21 tests in 8.172s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-11-implementation-export-chain-20261024",
+        "task_id": "DL-KB-11",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-11-implementation-export-chain-20261024.log",
+        "artifact_sha256": "728643c4dcba965ac247ac99217421c251450ca2de70872571fb1e403fdb144c",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_standalone_chain_http -v :: the export hop is walked against the live service and read back, and the chain still says nothing was sent: the route exists, the GET is measured, the delivery claim is refused :: Ran 6 tests in 5.949s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-12-implementation-workbench-node-20261024",
+        "task_id": "DL-KB-12",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-12-implementation-workbench-node-20261024.log",
+        "artifact_sha256": "aabf1652ca6c9de1d0201a92d980db1fba40a6dc7e6a167fa2f10a55cc081cef",
+        "command": "sh -c 'npm run typecheck && npm run build && npm run test:unit' :: the retrieval screen compiles, builds the tracked bundle and passes the node-side seam regressions, including the localStorage guard for a harness with no storage :: ok: ㉒ 知识回执与反馈：构建只读一次零写、状态/新鲜度/导出/出站边界全部来自读回、未建的一半写在可见文字里、创建本地拒绝不替人补事实、7 键创建体（无 schemaVersion、created_at=null）、相同重发沿用 candidate_id 而改动换新、6 键 human 裁决与 3 键撤销、成功后读回来自服务端、未读回不画候选数也不提供裁决/撤销控件",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-14-implementation-workbench-build-20261024",
+        "task_id": "DL-KB-14",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-14-implementation-workbench-build-20261024.log",
+        "artifact_sha256": "00ce3e52de526d0e7a3528cb355f2937255b310163801059f86976af9258ab34",
+        "command": "sh -c 'npm run typecheck && npm run build' :: the six state surfaces are compiled into the tracked bundle the service serves; the rebuild is byte-checked by CI against the committed artifact :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-14-unit-knowledge-outage-20261024",
+        "task_id": "DL-KB-14",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-14-unit-knowledge-outage-20261024.log",
+        "artifact_sha256": "5d548c637b33e1fc10dac8b74472a808047c5ead4bf2cb8bcab807801730db0f",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_knowledge_survives_model_outage -v :: with no qualified model the knowledge and templates stay readable and the screen says what is unavailable rather than showing an empty success :: Ran 4 tests in 2.280s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-16-unit-plan-feedback-20261024",
+        "task_id": "DL-KB-16",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-16-unit-plan-feedback-20261024.log",
+        "artifact_sha256": "78bdc96b41cbd366835d48f65fb3a3da419477b28302834e04e64a7165eecf42",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_plan_feedback -v :: a report binds the material and model version it describes, never moves plan state, keeps every revision, refuses an anonymous verdict only where the contract asks for a named person, and says 未外部验证 instead of a verdict :: Ran 22 tests in 10.926s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-16-implementation-write-surface-20261024",
+        "task_id": "DL-KB-16",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-16-implementation-write-surface-20261024.log",
+        "artifact_sha256": "25e9a41ae324450c0c4f820d1a57b0f527cd1df66e6ac0efe471f267f5014908",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_installed_write_surface -v :: the feedback row is really POSTed to the installed service and read back through the ledger GET, with the one frozen route named as excluded rather than quietly skipped :: Ran 6 tests in 4.354s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-css-single-definition-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-css-single-definition-20261024.log",
+        "artifact_sha256": "b47e2ffed41f1437052a07bbcad1353ef383082a9e2a710c74d48cf1cd574e30",
+        "command": ".venv/Scripts/python.exe -m unittest design-lab.tests.test_workbench_css_single_definition -v :: no second owner for one declaration: the geometry the budget is measured on comes from one stylesheet :: Ran 17 tests in 0.044s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-implementation-weight-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-implementation-weight-20261024.log",
+        "artifact_sha256": "4e5a81b5ddde98d0d6e5ac471f086ef369e4cb61570e707419edba2df337fc0b",
+        "command": ".venv/Scripts/python.exe scripts/measure_workbench_weight.py :: the delivered plan sets 首屏 JS gzip <= 150 KB; this run measured 155,787 B gzip for the committed bundle, which is OVER that ceiling, so the row is PARTIAL rather than a pass on size. The script itself refuses to judge: it prints the readings and says a ceiling is an owner decision :: WEIGHT remoteReferences=0 budgetDeclared=False | WEIGHT NOTE design.qa.yaml declares no performance budget; a ceiling is an owner decision, so these are baseline readings, not a pass/fail judgement on size.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-implementation-search-latency-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-implementation-search-latency-20261024.log",
+        "artifact_sha256": "56901c03b985f35c4764d7237372e5b9d3e29a59a2b2128d230017ce0c38b345",
+        "command": ".venv/Scripts/python.exe scripts/measure_knowledge_search_latency.py :: the plan asks for p95 <= 300 ms over 1,000 structurally real records and <= 100 ms for ordinary actions; this machine measured search p95 28.89 ms, create 8.14 ms, detail 8.94 ms, and the note says inference latency is never mixed into these numbers :: LATENCY=MEASURED search_p95=28.89ms",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-browser-overflow-zoom-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-browser-overflow-zoom-20261024.log",
+        "artifact_sha256": "4ef680bcd9e00ad3d7810f7de71858a855a6ae501fe63860022a6cc984762379",
+        "command": "design-lab/tests/e2e/audit_workbench_overflow.mjs through the gate harness at widths 1440,1280,1536,1920 (1536 = a 1920 panel at Windows 125%, the step that was missing), strict :: Ran 3 tests in 255.734s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-browser-overflow-report-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-browser-overflow-report-20261024.json",
+        "artifact_sha256": "12da511160e7b59360095dd44d8f55c80c2b134a802a6f39ffb7b05fe722a46e",
+        "command": "the per-route geometry report behind the line above, including the 1536 sweep :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-10-browser-e2e-20261024",
+        "task_id": "DL-KB-10",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-10-browser-e2e-20261024.log",
+        "artifact_sha256": "290c52e045771bae10aead4987b50d19d7481cc60d74a175e36bb94927eaa7a4",
+        "command": "design-lab/tests/e2e/browser_design_layer_e2e.mjs through the harness: the target-combination panel switches model without losing the original creative or the brand constraints :: Ran 2 tests in 8.108s | OK",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-12-browser-e2e-summary-20261024",
+        "task_id": "DL-KB-12",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-12-browser-e2e-summary-20261024.json",
+        "artifact_sha256": "ca5c135ea0e120c91895cf06ec7ef6df8d97e087418b04aa95c6c8af445c5ee1",
+        "command": "the loop payload the browser scenario produced this run, including the retrieval, comparison, copy and draft facts :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-14-browser-state-loop-20261024",
+        "task_id": "DL-KB-14",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-14-browser-state-loop-20261024.json",
+        "artifact_sha256": "ca5c135ea0e120c91895cf06ec7ef6df8d97e087418b04aa95c6c8af445c5ee1",
+        "command": "the six-state scenario inside the same run: each of 知识空态 / 保存失败 / 附件未解析 / 模型不可用 / 目标不兼容 / 旧版本查看 asserted against what the page showed, not against a drawing :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-16-browser-feedback-20261024",
+        "task_id": "DL-KB-16",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-16-browser-feedback-20261024.json",
+        "artifact_sha256": "ca5c135ea0e120c91895cf06ec7ef6df8d97e087418b04aa95c6c8af445c5ee1",
+        "command": "the voluntary-report legs of the same run: words served by the contract, plan state unmoved, history read back after the page is thrown away :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-11-browser-contrast-20261024",
+        "task_id": "DL-KB-11",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "36addfd51a45f3c45cdb5d194672b1c4495775fc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-11-browser-contrast-20261024.json",
+        "artifact_sha256": "5cbcf14b5af554fda596cb51d361613d7bcd0ad8105ec8f6136812ac74522004",
+        "command": "contrast gate over the material panel and the plan detail: every measured run meets AA, and the collapsed-detail control proves the reading is painted text :: ",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T16:32:00Z"
+      },
+      {
+        "id": "kb-13-implementation-module-share-20261024",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "8e2b3c4913dcd47d1607b295146fba8d3b167095",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-13-implementation-module-share-20261024.log",
+        "artifact_sha256": "964f116093aa19ff52bfb430c10cff04ff8b034e713424daafc7733443f3a427",
+        "command": ".venv/Scripts/python.exe scripts/measure_workbench_weight.py --check :: the plan asks for the module and resource share to be measured before anyone tries to get lighter, so the bundle is now attributed by top-level declaration: WEIGHT module renderDesignAssistant              bytes=  59963 share=11.61% | WEIGHT module renderTargetProfiles               bytes=  28744 share= 5.56% | WEIGHT modules declarations=365 coverage=100.0% of the bundle | WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=155787 -- the two screens this round added are the largest single shares, which is the number the owner needs to weigh against the 150 KB ceiling and the un-minified single-file build contract; the 80% coverage floor is proven by an indented fixture the reader cannot parse (coverage 0.0)",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T18:42:17Z"
+      },
+      {
+        "id": "kb-05-unit-judgement-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "52961f490eff0fb60b6cf53d9e66d1a8afe5910d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-unit-judgement-20261024.log",
+        "artifact_sha256": "ea21e216356cfa4f0e6dbdffe4829999eab443ef1cec04a731eff29e97c181c6",
+        "command": "design-lab/tests/test_knowledge_judgement.py plus the write sweep, the backup-table watcher and the knowledge-library suite :: Ran 13 tests in 1.197s | POST_SWEEP layout=source rows=40 walked=39 written=39 read_backs=48 refused=0 excluded=1",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T20:43:02Z"
+      },
+      {
+        "id": "kb-05-implementation-judgement-surface-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "52961f490eff0fb60b6cf53d9e66d1a8afe5910d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-implementation-judgement-surface-20261024.log",
+        "artifact_sha256": "8e157799a6f0e20d677f415b678e125cc8b42429241187d335d2e41f329834cb",
+        "command": "the same-change quartet on the committed bytes: ledger row with its emitter pointer (VERIFY_CONTRACT_BINDINGS=PASS routes=90 dispatched=90 bound=76), two real judgement payloads compared against the readback contract (VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=57 failures=0), the desktop call site (VERIFY_WORKBENCH_ROUTE_CALLS=PASS routes=88 matched=77), the re-measured prose denominators (DOCUMENTED_COUNTS=PASS claims=20 routes=88), the state-contract graph and the inert survey at --check, and apps/workbench/tests/appshell.mjs walking both judgement forms through the shipped bundle. Remainder named, not skipped: assistance_plan.REFERENCE_KINDS = ('ASSET','BRIEF','DIRECTION','PROMPT_RESULT') has no KNOWLEDGE, so no plan can pin a knowledge entry and the 旧方案 half of D5 is proven at the entry level only.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T20:43:02Z"
+      },
+      {
+        "id": "kb-05-browser-workbench-gates-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "52961f490eff0fb60b6cf53d9e66d1a8afe5910d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-browser-workbench-gates-20261024.json",
+        "artifact_sha256": "086ef9c3e6c855332d07125011cf595d8eb194b201eb3991ec368546176cf8c0",
+        "command": "contrast gate (50 route-runs, checked=14002, belowAA=0, unparsable=0) + geometry sweep (112 route-runs at 1440/1280/1536/1920, docOverflowX=0, clipped=0, stray=0, detailsExpanded=1200) + route-level UI audit (ok=true), bound to bundle sha256 4df788c3 (602,549 B) and commit 52961f49. The record also states its own boundary: no browser gate opens a knowledge entry, so the judgement panel is not painted in Chromium by these gates -- its behaviour is walked by the DOM harness on the same bundle.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T20:43:02Z"
+      },
+      {
+        "id": "kb-05-browser-knowledge-detail-walk-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "38bb48d80f5a1fc3b47ddbf3fcbf2443e75d3cfc",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-browser-knowledge-detail-walk-20261024.json",
+        "artifact_sha256": "7fb7b807e7a67c63811eb9b887476fb07d38f589a809a07b582f9097be3de1c5",
+        "command": "design-lab/tests/e2e/browser_design_layer_e2e.mjs :: knowledge detail and judgement walk -- the first time any gate opened a knowledge entry in Chromium. 8 of 8 states true, posts by phase [0, 0, 1, 1] (a local refusal sends nothing), and the painted trail is compared against the readback the POST returned. It found two live form defects the DOM harness had walked green: blank 适用场景/边界 dropped the key and answered INVALID_PROJECT_FIELDS, and a fresh form pre-selected 许可状态=reviewed and answered KNOWLEDGE_LICENSE_UNKNOWN_CONTRADICTION. Both fixed in this commit; both now have a non-browser assertion in apps/workbench/tests/appshell.mjs. Contrast and geometry re-ran on these bytes (50 and 112 route-runs, belowAA=0, docOverflowX=0, clipped=0, stray=0) and still measure the list screen, not this panel -- the record says so rather than borrowing their green.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T21:17:30Z"
+      },
+      {
+        "id": "kb-05-unit-knowledge-reference-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "2c47e359172f329f8271bba6c2be6a89945ce002",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-unit-knowledge-reference-20261024.log",
+        "artifact_sha256": "630c88b3fe631987f09d244bce070edd46b22e927197ee5758f46bbbf5e31bfd",
+        "command": "design-lab/tests/test_assistance_plan.py (the plan store over real HTTP routes, now including a plan that cites a knowledge entry, the refusal of an unknown or malformed one, the enum tie across the four schemas, and test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes) plus the export suite and the contract gates :: Ran 34 tests in 18.494s",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T22:01:10Z"
+      },
+      {
+        "id": "kb-05-browser-plan-cites-knowledge-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "2c47e359172f329f8271bba6c2be6a89945ce002",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-05-browser-plan-cites-knowledge-20261024.json",
+        "artifact_sha256": "35161d199fb463c67fffebf5fc45d5c0d0adf978a69716d5ac010660fdf064da",
+        "command": "the knowledge walk in browser_design_layer_e2e.mjs extended to the reuse link: ten states all true, the reference picker offering the entry beside the workspace assets, and the saved plan coming back pinned to the entry's own revision and digest as resolved by the store. It also records the defect this removed: a plan citing a non-asset reference could not be revised from the screen at all, because the form re-sent every reference as ASSET.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T22:01:10Z"
+      },
+      {
+        "id": "kb-02-unit-a5-offline-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "72710b7f04b940f59fec4b92e0312fd44cc7cf38",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-02-unit-a5-offline-20261024.log",
+        "artifact_sha256": "366dc7f5ab737059873250d2df073aaa376d2cad4d8206e11d8126cd2385a72e",
+        "command": "design-lab/tests/test_knowledge_library.py -- A5 measured rather than assumed: the library's imports are scanned for anything model-, provider- or network-facing (matched on dotted parts, and the scanner is proven against a planted import so a guard that cannot fail is not trusted), the model-selection store is asserted empty, then create/search/revise/copy-bytes all answer. Three runs, each with its own exit code in the log: Ran 20 tests in 2.592s | Ran 35 tests in 13.006s | node apps/workbench/tests/appshell.mjs over the same bundle.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T22:41:53Z"
+      },
+      {
+        "id": "kb-02-browser-copy-and-gates-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "72710b7f04b940f59fec4b92e0312fd44cc7cf38",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-02-browser-copy-and-gates-20261024.json",
+        "artifact_sha256": "d3a207a471576561ef7aae411993964a933bb38ffa85455a2bf14c64e716c27c",
+        "command": "Chromium grants the clipboard, clicks 复制正文 and reads back exactly the body the create route answered (True); the DOM harness drives the refused-clipboard fallback over the same bytes. The eleven knowledge-walk states are all asserted. Re-measured on this bundle: contrast 14002 text runs over 50 route-runs at [1440, 1920] with belowAA=0, controlMisses=0, unparsable=0 (and the same gate under ui2026/light: 14002 runs, belowAA=0); geometry 112 route-runs at [1440, 1280, 1536, 1920] with docOverflowX=0, clipped=0, stray=0. Bound to bundle sha256 3fdb4f636b5c = blob 8c4138b5deda at 72710b7f04b9.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T22:41:53Z"
+      },
+      {
+        "id": "kb-08-unit-five-kind-picker-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "e172e33e964bfd60ba7daffaff7332038f82ac68",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-08-unit-five-kind-picker-20261024.log",
+        "artifact_sha256": "ab37041ef140e81844ff653eedb86fbc587bfe2fe457b9acfd25be9edb15c427",
+        "command": "design-lab/tests/test_assistance_plan.py adds the cross-realm tie that was missing: the picker's kind labels must equal REFERENCE_KINDS and each kind must have its own <optgroup>, so a future kind cannot land on the store side only -- exactly how KNOWLEDGE arrived last round. design-lab/tests/test_workbench_route_calls.py then convicts the now-false directions-list exemption (STALE_BACKEND_ONLY), which is removed rather than re-worded. Ran 35 tests in 20.720s | Ran 23 tests in 1.997s",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T23:25:13Z"
+      },
+      {
+        "id": "kb-08-browser-five-kind-picker-20261024",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "e172e33e964bfd60ba7daffaff7332038f82ac68",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261024/kb-08-browser-five-kind-picker-20261024.json",
+        "artifact_sha256": "728179f96abf007471ffa10265215af5872889abb5f54204bf135f89b1c8dac3",
+        "command": "In Chromium the picker offers all five kinds and the saved plan comes back citing KNOWLEDGE, BRIEF, DIRECTION and PROMPT_RESULT, each with a store-resolved revision and digest (planCitesEveryKind). Twelve knowledge-walk states all asserted. Re-measured on this bundle: contrast 14002 text runs over 50 route-runs at [1440, 1920] belowAA=0, geometry 112 route-runs at [1440, 1280, 1536, 1920] docOverflowX=0 clipped=0 stray=0, UI audit ok=true with 0 violations at widths 1280,1920,2048. Bound to bundle sha256 0923de170be7 = blob 8d2702e5b321 at e172e33e964b.",
+        "exit_code": 0,
+        "observed_at": "2026-10-24T23:25:13Z"
+      },
+      {
+        "id": "kb-03-browser-entry-detail-rulers-20261025",
+        "task_id": "DL-KB-03",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "a7c438913d598283fec8a7446d72bb5915be5496",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-03-browser-entry-detail-rulers-20261025.json",
+        "artifact_sha256": "3a367960f0a3047a917a8d6bfa196deb83db691b43bd3d424e9fa58d2d9505ae",
+        "command": "The contrast and geometry rulers now open a knowledge entry detail instead of stopping at the list, and the first run through the wider sweep caught a real AA defect: the hovered row title wears --accent (#316CFF) at 4.08:1 under the pointer. Fixed to --secondary (the scheme-aware accent; the brand token itself stays on the owner), three hover rules in all. Rulers went from 50 route-runs / 14,002 text runs to 52 / 14278 and from 112 geometry route-runs to 116, with belowAA=0, clipped=0, stray=0 after the fix, and the new panel states are asserted present at every width so the coverage cannot quietly fall off.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T00:17:46Z"
+      },
+      {
+        "id": "kb-08-browser-plan-detail-geometry-20261025",
+        "task_id": "DL-KB-08",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "7d97ac8dfde8fdc8b041876af04caa14a7d65b30",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-08-browser-plan-detail-geometry-20261025.json",
+        "artifact_sha256": "511b45fa2ae5b242afeae9ff919f4888e42e8df85ba37ebe056e0e2f290bc74f",
+        "command": "The geometry ruler now opens a seeded plan detail and measures it as assistant+plan-detail at ['1280', '1440', '1536', '1920'] widths, each settling on state=read; geometry route-runs went 116→120 at this commit and the contrast ruler 50→52 with totals docOverflowX=0 clipped=0 stray=0 occluded=0. A panel is now graded, not merely reported (one absorbPanel sink plus a test that requires the summary interaction count to equal the panel rows), and a centre point outside the viewport is bucketed as notInView with its numbers instead of being called an occlusion.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T00:54:23Z"
+      },
+      {
+        "id": "kb-10-browser-target-combination-state-20261025",
+        "task_id": "DL-KB-10",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "b4a807fb68c3ea4ae68538fc16fd915d4c1ffcb5",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-10-browser-target-combination-state-20261025.json",
+        "artifact_sha256": "1495e4da6cc6f1c62a06737849e909586af3b4b0fc8741e18005eeaa03aae9e8",
+        "command": "Both rulers now select a target on #/target-profiles and measure the state where the truth columns actually fill, settling on the screen's own data-mode flag (target) rather than on text appearing. Contrast went 52→54 route-runs / 14764 text runs with belowAA=0; geometry 120→124 route-runs with docOverflowX=0 clipped=0 stray=0 tiny=0 occluded=0, four widths each reporting state=read. Each new row is graded, not merely reported (one sink, plus the assertion that the summary's interaction count equals the panel rows).",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T01:18:04Z"
+      },
+      {
+        "id": "kb-12-browser-two-revision-comparison-20261025",
+        "task_id": "DL-KB-12",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "ee654faf45748353b7e760c6186debe0d21606f9",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-12-browser-two-revision-comparison-20261025.json",
+        "artifact_sha256": "aba4b7ac13a6ffbf5138628f00a4beed247df2bfb3a706ddea161ea1ecdd9a17",
+        "command": "Both rulers now reach the two-revision comparison: a second revision is written through the same /revisions route the screen uses, #as-compare is opened, r1 and r2 selected and 对照 clicked, and the run waits on >=12 painted rows with a status line that stopped saying 正在读回. Contrast 54→56 route-runs / 15270 text runs (belowAA=0), geometry 124→128 route-runs with clipped/stray/tiny/occluded/docOverflowX all zero and every comparison row settling on state=read; the rows are graded through the shared sink and required at every width.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T01:33:09Z"
+      },
+      {
+        "id": "kb-16-browser-recorded-feedback-state-20261025",
+        "task_id": "DL-KB-16",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "0cdcbd11bc175e8d7fbdc954b97fa3c724a69af2",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-16-browser-recorded-feedback-state-20261025.json",
+        "artifact_sha256": "2667cf568049fdbaf4fbbd443c21cdeb4576de13f42e1f951669421ad7097d5e",
+        "command": "Both rulers now record one synthetic piece of external feedback inside the plan detail and measure the state that only exists afterwards. Contrast 56→58 route-runs / 15772 text runs with belowAA=0; geometry 128→132 route-runs with clipped/stray/tiny/occluded/docOverflowX all zero and four feedback rows reporting state=read. The recorder name says it is scaffolding, the state field is read off the panel's own status line, and a missing plan row is now quoted instead of crashing the run (the crash is recorded in the receipt; its cause is not established). DL-KB-16 still needs a named human for human_review.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T01:53:02Z"
+      },
+      {
+        "id": "kb-06-browser-stitch-palette-theme-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "28603bb7b8e12580daa7fd9a2ead4439a7630b74",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-stitch-palette-theme-20261025.json",
+        "artifact_sha256": "d908d6b97623a4fee1357d894c62856c89e73753e7286655d64614b5b0ac8d20",
+        "command": "The 20261023 pack's six STITCH colours ship as a third optional palette (?palette=stitch), light side only because the pack names no dark values, with the default palette untouched token by token. The contrast gate caught a real defect on the first measurement -- white pill ink on the pack's light canvas measured 1.83:1 and 2.2:1 across 405 lines -- and the fix moved roles, not thresholds; the control log is kept beside this receipt. After the fix: contrast 58 route-runs / 15772 text runs belowAA=0, geometry 132 route-runs with every problem counter zero, both under stitch/light. Also fixed: readThemeChoice() hardcoded two palette names, so a third was unreachable from the URL even though the menu and CSS had it. design-lab/tests/test_workbench_stitch_palette.py (7 cases) ties the six values to the pack text and the schemes to the CSS rules.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T02:14:28Z"
+      },
+      {
+        "id": "kb-06-browser-pack-number-rules-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "a3e82b136d5325d6b33e6f07c2713afe1d35b4c6",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-pack-number-rules-20261025.json",
+        "artifact_sha256": "654f820133132546a2c1f127aa1378e5b504f3241ff405132005c976b639bd26",
+        "command": "The 20261023 pack writes its visual rules as numbers, so the contrast ruler now grades them on the same painted document it uses for AA: 元数据至少12px, 圆角输入/按钮6-10px, 玻璃只给顶栏/导航/临时面板, 长文字与列表实底, and the control-height and typography histograms it reports without asserting. Measured before the fix at width 1440: 119 text runs under 12px, 23 list rows and text buttons painted on translucent white, 474 form controls over the 10px radius band. After the fix, under stitch/light: below12=0 translucentTextHosts=0 formRadiusOver10=0 glassOffAllowlist=0 unparsableAlpha=0 over 15602 text runs and 1002 form controls, with AA still belowAA=0. The 12px floor was raised globally (--uif-font-micro and five 11px rules); the 实底 and radius fixes are scoped to the pack theme, which the falsifier proves by going red on the default palette. Glass needed no change: the only two blurred surfaces measured are the top bar and the navigation, and the allowlist is now that list.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T02:55:16Z"
+      },
+      {
+        "id": "kb-06-browser-pack-number-rules-r2-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "8d9104659b57ca959fff460a2aee80bf768556d4",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-pack-number-rules-r2-20261025.json",
+        "artifact_sha256": "086d44e2362e7471aaa0cd59a042a2b7b064ac3c43d803078f6936552cc53296",
+        "command": "The 20261023 pack writes its visual rules as numbers, so the contrast ruler now grades them on the same painted document it uses for AA: 元数据至少12px, 圆角输入/按钮6-10px, 玻璃只给顶栏/导航/临时面板, 长文字与列表实底, and the control-height and typography histograms it reports without asserting. Measured before the fix at width 1440: 119 text runs under 12px, 23 list rows and text buttons painted on translucent white, 474 form controls over the 10px radius band. After the fix, under stitch/light: below12=0 translucentTextHosts=0 formRadiusOver10=0 glassOffAllowlist=0 unparsableAlpha=0 over 15602 text runs and 1002 form controls, with AA still belowAA=0. The 12px floor was raised globally (--uif-font-micro and five 11px rules); the 实底 and radius fixes are scoped to the pack theme, which the falsifier proves by going red on the default palette. Glass needed no change: the only two blurred surfaces measured are the top bar and the navigation, and the allowlist is now that list.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T03:16:33Z"
+      },
+      {
+        "id": "kb-06-browser-single-accent-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "78a1685427afa5de5df80dff382e340a7a559ea0",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-single-accent-20261025.json",
+        "artifact_sha256": "610e63b37dafe6eb6a0b2694db82b02b2c9c2374fb813c43936cac99a2ef051a",
+        "command": "The 20261023 pack writes its visual rules as numbers, so the contrast ruler now grades them on the same painted document it uses for AA: 元数据至少12px, 圆角输入/按钮6-10px, 玻璃只给顶栏/导航/临时面板, 长文字与列表实底, and the control-height and typography histograms it reports without asserting. Measured before the fix at width 1440: 119 text runs under 12px, 23 list rows and text buttons painted on translucent white, 474 form controls over the 10px radius band. After the fix, under stitch/light: below12=0 translucentTextHosts=0 formRadiusOver10=0 glassOffAllowlist=0 unparsableAlpha=0 over 15602 text runs and 1002 form controls, with AA still belowAA=0. The 12px floor was raised globally (--uif-font-micro and five 11px rules); the 实底 and radius fixes are scoped to the pack theme, which the falsifier proves by going red on the default palette. Glass needed no change: the only two blurred surfaces measured are the top bar and the navigation, and the allowlist is now that list.",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T03:38:18Z"
+      },
+      {
+        "id": "kb-06-browser-remote-only-aa-root-cause-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "7f7a29461bd362b136f1f14c2ef81479de015225",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-browser-remote-only-aa-root-cause-20261025.json",
+        "artifact_sha256": "ba200ec03cc3ef8350a5c052fd929431acd72bc9f7cf77151125b0225238f087",
+        "command": "§5.54 留下的\"只在远端出现的 AA\"定位到了，而且交接里的前提需要先更正：读 CI 实况时，PR run 40170639181（head_sha 13df2a9e，即本分支尖端）已经全绿，BROWSER_E2E ran=15 skipped=0 failed=0，含 test_workbench_contrast_gate ran=5 failed=0；红的是更早的 40168878523（head_sha b5b59927）。所以本轮不是把一条红改成绿，而是把一枚硬币改成必然：同一条代码路径在 b5b59927 上红两次、在 13df2a9e 上绿一次，差别只在采样时刻。根因量出来了：四类动作按钮的共享规则写的是不带属性表的 `transition:.2s ease`，等价于 transition-property:all，于是启用/禁用切换把 color 与 background-color 一起补间。rAF 逐帧采样（1920/stitch-light）读到墨色 rgb(23,33,43) → 118,124,130 → 187,190,193 → 226,227,228 → 251,251,252 → 255,255,255，同时 background-color 从实白褪到透明；rgb(187,190,193) 压在 .294 白纱覆盖的品牌蓝上按闸门算法合出 1.97:1。CI 两次点名的灰值经按通道反解，与「白字 ↔ 该主题 --text」的线性插值三通道同解（stitch #17212b t=0.422/0.423/0.425；ui2026 #152b3d t=0.197/0.198/0.196），而枚举 document.styleSheets 只找到三条匹配该元素的 color 声明、全部写白字：那条红量的不是任何规则里的颜色。修复只撤掉中间帧——transition 限定为 transform/border-color/box-shadow，时长与缓动未动，端点值仍是 §5.54 之后那一套，没有改阈值、没有放宽断言、没有跳过该面、没有猜新色值。§5.54 问\"为什么我改什么远端读数就跟着变\"也有答案了：那三次改的都是这条补间的端点。第二件：本应走到该态的换目标循环是空转（它要求每个下拉≥3 个 option，而组合解析成功后 tp-agent 只剩空选项、tp-entry/tp-model/tp-task-mode 各只剩一个可用值），现在判据改成页面自己写的「唯一对应档案 <key>」，实测 flux2--api--image-generation → elevenlabs--web-app--music 且 mode 仍为 target，脏文案「按新目标重新校验」变成必须出现的断言，进不去即进 controlBad 让闸门 exit 1。三套配色双宽度复测：default checked=8129、stitch/light 与 ui2026/light 各 checked=16258，三者 belowAA=0、controlMisses=0、unparsable=0，STALEROW 三处一致 color=rgb(255,255,255)、transition-property=transform, border-color, box-shadow；补测试后 test_workbench_contrast_gate 6 条 261.082s OK。还原简写的反证实测：静态守卫点名 all 并变红，同一态下采样器重新量到 7 个不同墨色，修复后只剩 1 个，两枚日志逐字节存本目录。包里仍未满足的五句照实登记（强调色 44 处、标题 10 个组合非单调、errorNodes=0 因为闸门尚未制造失败态、标签旁置 98 处其中新增 20 处已核到行、hover 态不在静息尺内），未当作已交付。E2 controlled-runtime，不是 E3/E4。",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T07:30:00Z"
+      },
+      {
+        "id": "kb-13-loop-closure-and-css-token-register-20261025",
+        "task_id": "DL-KB-13",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "b8ac53dc30c65ab47aefd8b4bcec992d0f27a753",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-loop-closure-and-css-token-register-20261025.json",
+        "artifact_sha256": "d7f863acbd9df70dd8dce505dce6f5a6c622b483692bd8a8563934e6ba0a8f50",
+        "command": "全量审计后的\"吸收未落地\"一刀，判据按 owner 纠正改成按职责而不是按引用：去掉它，项目能证明或能承诺的会不会变少。落地六件（每件都有改前/改后实测）：① GET /api/projects/<32hex> 未知 id 改前实测 http.client.RemoteDisconnected（与\"服务挂了\"同形）→ 现 404 PROJECT_NOT_FOUND，与 7 个兄弟模块同词，并把两种 404（畸形 id 由路由模式拒、合法但不存在由 handler 拒）分开钉住；② drain_body 注释承诺\"失败即忽略\"却无 try，读超时在 except 内再抛出，正是它要防的 10053；③ MAX_QUERY=200 声明了没人读 → 真拒绝 KNOWLEDGE_QUERY_TOO_LONG，恰好 200 字符合法（界不是墙）；④ 合同行承诺的 KNOWLEDGE_OFFSET_INVALID/KNOWLEDGE_LIMIT_INVALID 全仓零测试，三条一起钉；⑤ test_workbench_preflight_handoff_e2e 本地 2.0s 通过却不在 no-skip 注册表、workflow 也不点它，CI 从未执行这把浏览器尺——登记前先把它的 Windows 专属 chromium glob 换成其余七把尺共用的跨平台发现函数，现 BROWSER_E2E ran=17 skipped=0 failed=0；⑥ test:unit 直跑已提交 bundle，改 shell.ts 后本地\"绿\"测的是改前字节，现脚本内先 build（pnpm 在此不跑 pre/post 钩子）。迁与档：删 25 个无人读的自定义属性（27 行、593 字节、style.css 121964→121371），并把普查闸人口从只覆盖包点名的 --uif-* 扩到全部声明属性，例外由既有 SPEC_PROVENANCE 决定而非手抄 allowlist；无界列表路由做成登记面（9/18 条逐条带理由，新增第十条即红，绑好却不摘牌也即红）。附件成本已量成数：200 张 47,160 B 时服务端 199.59 ms，其中 path+stat 59.0%、两次图像解码 30.5%、hash 仅 2.4%——所以分页不是这条的修法（成本来自每行重校验而非行数，且 width/height/media_type 未落库，真修法要 state-schema 物化，属带迁移/precheck/合同行的单独一刀）。保留但零引用、删了就丢承诺的也点名记账：model_radar.resolve()/radar_report()（fail-closed 承诺的承担者，零消费者只说明没有加载模型的 runtime，模型部署冻结）、workflow/remote/audio provider 与 comfy_*/reconstruction 包（对外版本化公共合同面）、vendor/ 39 件与 docs/history/**（AGENTS.md 定为惰性资料）、8 个未被 UI 读的 --uif-*（SPEC_PROVENANCE 承担包值出处）。我自己的仪器错误四条也如实入账：清扫第一遍把\"文档/证据里提到名字\"当消费者只删 14 个（收紧到代码作用域才见 25）；普查闸初版复用只匹配 --uif-* 的 declarations() 造成恒真即假断言，植 --space-dead-99 当场暴露；404 测试连错两次 id 形状（64 位与 p- 前缀都不匹配 ([0-9a-f]{32})），差点把\"兄弟模块用词不一致\"当结论；登记时锚点行未重出等于从元组删掉 motion_gate，靠 diff 只 +1/0 删除发现并 AST 复核（8 项、前 7 项俱在）。另：删除 --info 使 --color-info 成孤儿，故清扫迭代到不动点（第 2、3 遍 0 删除）；40 字理由规则逮到作者自己的填充条目。复测：聚合 VERIFY_DESIGN_LAB=OK total=76 failed=0（清扫后与登记后各一次）；CSS 清扫后对比度复跑 checked=16258 belowAA=0 controlMisses=0 unparsable=0；单元 44+110+21+19+21+9 OK，self-sufficiency modules=259 violations=0；KNOWLEDGE_SEARCH_P95_MS=34.7 budget=300。DL-KB-13 仍 PARTIAL：150 KB 上限需 owner 裁定、无指导真人任务需真人，两者都不是工程缺口。E2 controlled-runtime，不是 E3/E4。",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T10:39:10Z"
+      },
+      {
+        "id": "kb-13-gate-toolchain-coupling-20261025",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "318628008248d61e3ac0a2994c170ffa8cd65a55",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-gate-toolchain-coupling-20261025.json",
+        "artifact_sha256": "f2a5f254c9ac7bce981df5ad625687c14b4774d7f474db80bfd091bc6926bc5b",
+        "command": "推送 1d86e877 后 CI 抓到一次我自己的红：Workbench strict-TS product gate 在步骤 `python3 scripts/measure_workbench_weight.py --check` 死于 MEASURE_SOURCE_MOVED cannot import the route table: ModuleNotFoundError: No module named 'PIL'。归因不靠猜：那个 node 作业不装任何 Python 第三方包，而我本轮新增的 DL-KB-13 读数为了拿 ROUTES 去 import design_lab.http_service，import 链到达 image_assets 并需要 Pillow；本机 .venv 有 Pillow 所以本地绿——与今天早些时候那条\"只在远端出现的 AA\"同属平台依赖假绿。修法不给自己加安装、也不动 CI 配置：改用本脚本已有的 AST 静态读取拿路由表。同时拆开一个字段承担两件事的错误通道：readerError 只代表\"读不到路由表\"（致命），新增 callSiteError 表示\"规范匹配器（它确实需要产品依赖）不可用\"，如实报缺失、绝不当成 0。解析出的路由对象补上 accepts() 以兼容规范匹配器 verify_workbench_route_calls.route_matches，带 when= 的路由无法从文本求值则抛 ValueError（调用方本就按 dynamic call shape 处理），不答 True 造成静默过匹配。三把防复发闸：函数体外不得模块级 import 非标准库；客户端列不可用必须点名失败；when= 必须拒绝求值。用 CI 真实条件复验（无 Pillow 的裸解释器）：list_routes=18 bounded=9 without_limit=9、NOTE 点名缺失的匹配器、GATE=OK、exit 0；venv 下同三个数再加 142 个调用点。tests.test_workbench_weight 22 条 OK，聚合 VERIFY_DESIGN_LAB=OK total=76 failed=0。E2，不含产品功能变化；远端是否绿以推送后的 exact-SHA 作业为准。",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T11:23:30Z"
+      },
+      {
+        "id": "kb-13-drift-inventory-repin-20261025",
+        "task_id": "DL-KB-13",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "9d4a17cad6d67830bdb5c9cc1c3c2da5c702a59a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-drift-inventory-repin-20261025.json",
+        "artifact_sha256": "8bc5e031cbb9dcbb0b9f1da6e7cd07fb245f5c340e4176ed420e211f45c2fb75",
+        "command": "第二次推送后 CI 又红一次，而且红在账本绑定纪律上：Python gate 的分片 1/3 报 tests.test_evidence_artifact_presence.EvidenceArtifactPresenceTests.test_tracked_artefacts_of_the_real_ledger_all_read_back 一条 FAIL（outcomes={'FAIL': 1, 'PASS': 1018, 'SKIP': 14}）。同一矩阵里 Workbench browser E2E 已绿，说明前一轮两个修复（--check 回到纯标准库、预检浏览器套件登记）在 Linux 上成立。原因不是产品回归而是纪律生效：本轮给 test_design_layer_http.py 加了 404 测试，而冻结记录 r5-workbench-http-native-ui-reobserved-20261006 把那个模块当工件哈希，所以那条观察现在描述的是比它命名的文件更旧的字节。处置按本仓既有惯例：先把活清单从闸自身重算并与钉住的集合双向 diff（钉 30 对/64、活 31 对/65，唯一差异就是这一对，无位移、无消失、broken=0），再把它作为带日期注释的一条加入期望集合，并把总数 pin 64→65 写进既有变更日志——旧记录不改写。这不是放松断言：断言仍要求双向精确；不诚实的做法是把那条从账本里删掉或取消精确性检查。改完自检：钉 65 == 活 65，new/count_moves/vanished 全空、broken=0；编辑本测试模块自身没有新增绑定它的一对（2026-10-19 那条注释讲的正是这种自老化情形，它已在清单里）。本地 tests.test_evidence_artifact_presence 5 条 OK。E2，无产品行为变化。",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T11:52:00Z"
+      },
+      {
+        "id": "kb-06-brand-mark-on-interface-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "e297f96704427e3bc9ddf8b3127773e02d610d36",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-brand-mark-on-interface-20261025.json",
+        "artifact_sha256": "86f58f505aab652001c142947d950997bc7e58d062f128f71f58e780631bdb83",
+        "command": "owner 点名 D:/All projects/矢量LOGO 要求把项目 logo 换上去。查下来的真实缺口不是\"图不对\"，而是**品牌件流水线没有消费者**：design-lab-mark.png 只被自己的生成脚本和二进制清单引用，AppShell 导航头是纯文字，CSS 里 48px 的 .brand-mark 挂在被注释掉的旧版侧栏（实测 rect 0x0），唯一在画的是旧版页头 52px 的 .mark。入库两枚派生矢量：design-mark.svg（只含图形带）与 design-lockup.svg（完整 17 路径含字标）。切带不手解路径——两次失败都在此：正则把 17 条抓成 18 条（含一条空路径，于是\"单标\"只剩空的），按坐标奇偶配 x/y 在 Illustrator 混合绝对/相对命令下无意义，产出 4x4 viewBox 的不可见图形；改由 Chromium 解析源文件逐条读 getBBox()，在 20.97px 间隙切成单标 2 条 / 文字带 15 条，单标框 160.22x155.97；viewBox 平移符号写反也是靠渲染暴露的。接线：导航头文字左侧加 22px 单标（文字仍是可访问名，图形 aria-hidden）；--brand-mark 改为同一矢量的两枚编码（paper 给炭黑默认、ink 给 ui2026/light 与 stitch/light），因为 background-image 不吃 currentColor，而 CSP img-src data: 加 workbench.py 三条固定路径意味着开资源路由要同时放宽两者——那是 owner 的安全决定，不是便利。同轮把 render_brand_asset.py --check 从校验位图亮度阈值管线改为校验矢量真值（digest/两枚 fill/路径条数/默认变体/浅色是否都 opt-in），否则留一把永远守废弃管线的死闸；它第一次运行冤枉了一份正确的样式表——light_flips 多减 1，是检查器算错，读回 CSS 后修检查器而非改 CSS。验证：三套配色下 .app-nav-mark present、box=[22,22]、svg data URI 生效、可访问名仍是 DESIGN-LAB；强制 stitch/light 后 nav 底 rgb(255,255,255)、字色 rgb(53,107,146)、logo 深墨压白。同时如实记下未验证项：应用自身主题控制器会在启动后重写 data-palette，且落地视图未找到可点主题控件（clicked=null），所以\"翻转渲染正确\"已证、\"用户一步切到珍珠白\"未证。verify_projection_freshness 又抓到我一次：新规则带来 4 个字面 px，DESIGN.md §4 的债句 517→521 需随之更新（字面色值那栏工具明写 agent 不得填，未动）。node 三套全过、42 条 CSS 相关 python OK、LICENSE_COVERAGE=OK、BRAND_ASSET=OK paths=2 encodings=2 light_flips=2、聚合 VERIFY_DESIGN_LAB=OK total=76 failed=0。LOGO.ai 只按哈希登记不入库（仓库已过体积警戒线，且从 .ai 导出需驱动 Illustrator＝冻结项）。另结清上一轮欠账：run 40191207017（bdaf4883）conclusion=success，BROWSER_E2E ran=17 skipped=0 failed=0、三分片 0 FAIL、PYTHON_TESTS_UNION=OK ran=3352 duplicates=0 missing=0，strict-TS 与 Python gate 均 success。E2，不含宿主运行与真人验收。",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T12:58:00Z"
+      },
+      {
+        "id": "kb-13-motion-band-graded-to-pack-sentence-20261025",
+        "task_id": "DL-KB-13",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "ada3ddd9d5f1836d45d3d530b290dcd192d06770",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-motion-band-graded-to-pack-sentence-20261025.json",
+        "artifact_sha256": "a384529027ea6398e7919ce3c50f4e241024e7f23a746135a8dc3f8d911273d3",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T15:42:00Z",
+        "command": "MEASURED motion band + budget research —— see the artifact; the row records measurement of bytes, not a human or model acceptance."
+      },
+      {
+        "id": "kb-06-enhanced-motion-layer-opt-in-20261025",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "ada3ddd9d5f1836d45d3d530b290dcd192d06770",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-enhanced-motion-layer-opt-in-20261025.json",
+        "artifact_sha256": "e30eb35af03077870848d18ec06ca88b08b174e55f99abdbf827e63b64d2bcbc",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T15:42:00Z",
+        "command": "SHIPPED opt-in motion layer —— see the artifact; the row records measurement of bytes, not a human or model acceptance."
+      },
+      {
+        "id": "kb-06-brand-guard-vector-truth-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T16:22:00Z",
+        "subject_sha": "14959a3df0fed6cedb99d97250b43b3bbf21331f",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-brand-guard-vector-truth-20261026.json",
+        "artifact_sha256": "dcd656bb0a07291db2708bf98449e86824350a26174ad8f87087bffcd2ac6486",
+        "exit_code": 0,
+        "command": "追正 §5.59 的过早绿 + 把三处品牌尺迁到矢量真值 —— 见工件；本行记录的是测量与断言修复，不是真人验收。"
+      },
+      {
+        "id": "kb-06-particle-layer-copied-structure-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:19:00Z",
+        "subject_sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-particle-layer-copied-structure-20261026.json",
+        "artifact_sha256": "0080bff1ef571afb3df4464514b03dbf16d30d80c22709a1f354866f2fe86b91",
+        "exit_code": 0,
+        "command": "粒子层按抄结构落地（零依赖），并由对比度闸门在增强面逐姿态量过 —— 见工件；live 动画过程与真人视觉验收未做。"
+      },
+      {
+        "id": "kb-13-prompt-results-list-bounded-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:19:00Z",
+        "subject_sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-prompt-results-list-bounded-20261026.json",
+        "artifact_sha256": "c52f65567cb562bfeac3f1d183ff595d28e00d0b426cf3870bf174fdcba31089",
+        "exit_code": 0,
+        "command": "提示词读回列表改为有界一页，界与信封在切片前取数，四个非法参数各回具名 400；同轮从 UNBOUNDED_REGISTER 摘牌 —— 读数见工件。"
+      },
+      {
+        "id": "kb-13-enhanced-face-pose-measured-and-ci-closed-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "f9683930a7189bacb2e5d0a0c42d8acb927b2806",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-enhanced-face-pose-measured-and-ci-closed-20261026.json",
+        "artifact_sha256": "394bd349f70e958efc118301528f5eba069dd736820c05808cb7983228dfff8b",
+        "exit_code": 0,
+        "observed_at": "2026-10-25T17:22:00Z",
+        "command": "精确-SHA 矩阵读数 + 增强面逐姿态对比度 + 拒绝态空集盲区的修复 —— 全部见工件；本行记录测量与断言修复，不是真人验收。"
+      },
+      {
+        "id": "kb-06-theme-click-path-scheme-fix-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:22:00Z",
+        "subject_sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-theme-click-path-scheme-fix-20261026.json",
+        "artifact_sha256": "925c4ffdc0a646b48e90cb0d060e206953d9e0cdb69b35b74db21d5d14fc3337",
+        "exit_code": 0,
+        "command": "主题点击路径的 scheme 归属缺陷修复 + 走完整个色板表的闸 —— 读数见工件；比值是变化探测器不是 AA 结论。"
+      },
+      {
+        "id": "kb-13-refusal-state-exposes-light-error-ink-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:22:00Z",
+        "subject_sha": "78eb296bf2b1bd29490cd8189187912e77a97409",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-refusal-state-exposes-light-error-ink-20261026.json",
+        "artifact_sha256": "97265d24d495b2ff93f2a79b47d3e2b18d7b63bedf4618efab5fff57dcd5a967",
+        "exit_code": 0,
+        "command": "拒绝态第一次被造出来后，珍珠白的错误墨色被同一把尺按每条路由报红；本轮把 --color-error 在该作用域重指到既有已实测值 —— 读数见工件。"
+      },
+      {
+        "id": "kb-13-theme-geometry-palette-table-derived-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:33:00Z",
+        "subject_sha": "e7168474b862e9e60ec4fe50913ff72cf00b99ea",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-theme-geometry-palette-table-derived-20261026.json",
+        "artifact_sha256": "97c4198807d58f82eca506209b25acba8df2d0b42238ca186b9c33b15f434aa3",
+        "exit_code": 0,
+        "command": "几何门的色板表改为从 shell.ts 现读，并等值断言珍珠白不改布局 —— 读数见工件。"
+      },
+      {
+        "id": "kb-13-single-accent-graded-as-paint-20261026",
+        "task_id": "DL-KB-13",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T17:42:00Z",
+        "subject_sha": "a3ff2db1baf7fb24fd1d155c7ffb25e0c97a6dec",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-13-single-accent-graded-as-paint-20261026.json",
+        "artifact_sha256": "675ad33f810d4a054697364aff5ae7d64dd989441b4bb3150fa977df420d66cc",
+        "exit_code": 0,
+        "command": "把包里那支单一强调色按\"它被画成什么\"实测：结构上从不作字墨，两方向的 AA 代价分别量化 —— 读数见工件。"
+      },
+      {
+        "id": "kb-06-field-refusal-adjacency-graded-on-its-referent-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-25T18:08:00Z",
+        "subject_sha": "c176ad6081ce55c4b0134c19cff42ec2db8ebc9a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-field-refusal-adjacency-graded-on-its-referent-20261026.json",
+        "artifact_sha256": "39ed73effc52b7783edb89f29c1c927b13845622c86388c53c76eec684b064d3",
+        "exit_code": 0,
+        "command": "把「错误紧邻字段」按它点名的字段来量：尺子改认 referent、产品把提示移到字段旁，并逐个造出各条字段拒绝 —— 读数见工件。"
+      },
+      {
+        "id": "kb-06-knowledge-refusal-provoked-with-real-ids-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PARTIAL",
+        "observed_at": "2026-10-25T19:03:00Z",
+        "subject_sha": "82a5e15c91bd93232a8b4f18413585c5978fd213",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261025/kb-06-knowledge-refusal-provoked-with-real-ids-20261026.json",
+        "artifact_sha256": "0bb3f4ae37235565f9cacc460f8a34b398deff787252505408a0f4d1dec395b7",
+        "exit_code": 0,
+        "command": "知识那一族的拒绝态一直被点在不存在的 id 上：改成按真名与结构定位并量出距离，定罪面挪到\"消息与它点名的字段\" —— 读数见工件。"
+      },
+      {
+        "id": "dl-final-t05-sdist-wheel-roundtrip-20261026",
+        "task_id": "DL-FINAL-T05",
+        "axis": "delivery",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T11:13:00Z",
+        "subject_sha": "a7bd9a47266954b92a9be8218d917205ba4d8d1a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t05-sdist-wheel-roundtrip-20261026.json",
+        "artifact_sha256": "2608aee8a4d83e83736b4c4e855db62f210ca75846076189c3870f9af1028dfc",
+        "exit_code": 0,
+        "command": "按审计验收从源码发行包重建 wheel、装入干净环境并跑 GET/POST；两个来源的 wheel 逐字节相同。新增 sdist↔wheel 覆盖闸与 CI 的源码包路径 —— 读数见工件。"
+      },
+      {
+        "id": "dl-final-t04-doctor-task-unboundlocal-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T11:26:00Z",
+        "subject_sha": "d2dbeefcce3d93c60be19ade4df5fffbd3fd9106",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-doctor-task-unboundlocal-20261026.json",
+        "artifact_sha256": "89bf64372cf2bc6d7e4debcdba4cba3c7ec227049f275aeb61d7d38eb58cf29e",
+        "exit_code": 0,
+        "command": "修掉 doctor --task 的 UnboundLocalError（局部 import 遮蔽），并把这一类缺陷做成全仓作用域尺（对修复前定罪、修复后沉默） —— 读数见工件。"
+      },
+      {
+        "id": "kb-02-supersedes-fork-refused-on-both-routes-20261026",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-02-supersedes-fork-refused-on-both-routes-20261026.json",
+        "artifact_sha256": "188f2de1830442318a706296ad9d333a59dedef475ca4eb73e78863c2d465170",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 2 of 7 (P2): a knowledge entry can acquire a second successor through the import route while create refuses it, and the detail read shows one of the two"
+      },
+      {
+        "id": "kb-06-body-phase-deadline-and-cancel-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-06-body-phase-deadline-and-cancel-20261026.json",
+        "artifact_sha256": "204dbcb839fed8eb8a4836fd750f32391e2883d5f75e8c532682af3fb59e13e9",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 3 of 7 (P2): the request deadline and the page-change cancel are released when response HEADERS arrive, so a slow body outruns the budget and a lost write body is unclassified"
+      },
+      {
+        "id": "kb-06-knowledge-form-one-refusal-per-field-20261026",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/kb-06-knowledge-form-one-refusal-per-field-20261026.json",
+        "artifact_sha256": "ff5a9d7e94b9d7533884ec8695a133972397263d24df705119f88d295688367a",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 5 of 7 (P2): the knowledge form merges several field problems into one message, and the green tests only constrain the named subset while forcing unnamed messages to persist"
+      },
+      {
+        "id": "dl-final-t04-receipt-identity-and-separation-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-receipt-identity-and-separation-20261026.json",
+        "artifact_sha256": "0ceb063ff523859504cc36c96b2351cec6767ad1646a7e29f1292c3bff865594",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 6 of 7 (P2): a normal scan and the falsification test share one receipt path, so the archived artefact may be the deliberate red"
+      },
+      {
+        "id": "dl-final-t04-report-path-outside-repo-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:49:00Z",
+        "subject_sha": "022c5a9bd989bc4f1b57af7936167cb8656bf009",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-report-path-outside-repo-20261026.json",
+        "artifact_sha256": "94c9bf19a7a24be5a05687cfdc709ae88cd51ecb1518add2b657c649690893c8",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 7 of 7: an audit script writes its report outside the repository and then crashes while printing the path"
+      },
+      {
+        "id": "dl-final-t04-session-link-source-answered-from-the-row-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T12:55:00Z",
+        "subject_sha": "f12931bf82e2985822d4420de89f3414cfaae1a6",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-session-link-source-answered-from-the-row-20261026.json",
+        "artifact_sha256": "a2f72bb5538fe56e974451494bd5fe732d06450060556e8a00ff8d54e09d64d9",
+        "exit_code": 0,
+        "command": "owner audit 2026-10-26, finding 7 of 7 (first half): the compatible Python API may answer session correlation from a different source than the one it persists, with UI/HTTP reachability unconfirmed"
+      },
+      {
+        "id": "dl-final-t04-exact-sha-ci-matrix-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "delivery",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T14:17:00Z",
+        "subject_sha": "768f3fac7abdc6b7a0fbd20b3247272ad935bfaa",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-exact-sha-ci-matrix-20261026.json",
+        "artifact_sha256": "9b76ee3ce4fea106aa90f5f3e83dfa6cd02693c6d55072234347ba2738247e4a",
+        "exit_code": 0,
+        "command": "closing the round: the exact-SHA CI matrix for the six fixes of owner audit 2026-10-26 (findings 2, 3, 5, 6, 7a, 7b), read from the run that carries those bytes"
+      },
+      {
+        "id": "dl-final-t04-ledger-artefact-must-be-tracked-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T14:38:00Z",
+        "subject_sha": "53cdc7eb5e8391b2796dff1bf1378e452f80dd32",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-ledger-artefact-must-be-tracked-20261026.json",
+        "artifact_sha256": "fcded1a2fd52279b5385f24783f5f364dbfa0dc14c4b5167a9f1ca94d79220ea",
+        "exit_code": 0,
+        "command": "self-caused during this round: CI run 40338742258 at 4dc59349 failed because the section 5.75 ledger row named a receipt that was never committed"
+      },
+      {
+        "id": "dl-kb-02-supersede-fallback-names-successor-20261026",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T14:47:00Z",
+        "subject_sha": "7b9a4f37d7382198db763501c69696b9243315c0",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-kb-02-supersede-fallback-names-successor-20261026.json",
+        "artifact_sha256": "12bcdae6e3a92cf29110c668d459971e01be37af36ec1a178a7aa010550eb6e0",
+        "exit_code": 0,
+        "command": "self-registered in section 5.76: the trigger-fallback refusal for the single-successor rule did not name the existing successor, while the application guard did"
+      },
+      {
+        "id": "dl-final-t04-closing-surface-pointer-and-count-reaudit-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T15:28:41Z",
+        "subject_sha": "2048cf2e85abf5807d7341a9f51b743d4f32a9fe",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-closing-surface-pointer-and-count-reaudit-20261026.json",
+        "artifact_sha256": "313111201a99954fb0bbee081b5d146416f548b0657f3d53fd093cb8a577acaf",
+        "exit_code": 0,
+        "command": "closing-surface self-audit after owner audit 2026-10-26: three section pointers this round wrote were wrong and one route count in prose had aged away from UNBOUNDED_REGISTER, so the count is now re-measured by scripts/verify_documented_counts.py and the prose carries the measured number"
+      },
+      {
+        "id": "dl-final-t04-gate-nonvacuity-plant-confirmation-wording-20261026",
+        "task_id": "DL-FINAL-T04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "observed_at": "2026-10-26T17:03:21Z",
+        "subject_sha": "3b0659f8f6aebf4cbf727e71825d27fa051faf16",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261026/dl-final-t04-gate-nonvacuity-plant-confirmation-wording-20261026.json",
+        "artifact_sha256": "0c6517f4f1223cfe37afc75f3cc9a12182b9170f91c5e2cd45e1169475c741d7",
+        "exit_code": 0,
+        "command": "adversarial audit of this round on owner order: plant a missing copy-confirmation wording in apps/workbench/shell.ts, rebuild, and prove the repaired browser gate still convicts (FAILED failures=1 with confirmationRendered=false); restore from pre-plant copies by sha256 and prove green again"
+      },
+      {
+        "id": "dl-kb-06-stitch-board-baseline-registered-and-shell-folded-20261027",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-27T13:30:59Z",
+        "subject_sha": "8895bea6062bec86d8a50307f04b6b9e4ef8c614",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-stitch-board-baseline-registered-and-shell-folded-20261027.json",
+        "artifact_sha256": "53fa8e8cddd96bb5cadddc443932b553f80a522a6dd98945b695e724df8ab2a4",
+        "exit_code": 0,
+        "command": "register the 2026-10-24 STITCH board pack per owner 2026-10-23's material rule, then fold the nav rail and add screen-1's counters to match the boards' shell"
+      },
+      {
+        "id": "dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-27T15:19:40Z",
+        "subject_sha": "9e739f82b3baacc1e63431a89f5cdc02a91ae153",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-kb-06-nav-fold-cue-refreshed-and-output-chips-landed-20261027.json",
+        "artifact_sha256": "494f1671f603c1659e211b6b4b91c3a34c14d08b76ed6de520757cad05032a96",
+        "exit_code": 0,
+        "command": "close the two gate-found defects left by the STITCH fold (the cue that kept claiming nothing was hidden, and the guard that measured the wrong rail), then land the boards' output-type chip row with the radio as its only state owner"
+      },
+      {
+        "id": "dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027",
+        "task_id": "DL-FINAL-T04",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-27T16:37:02Z",
+        "subject_sha": "19ffd0d164dc9c67a1fb529c90d6e9b510a46291",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261027/dl-final-t04-closed-head-read-and-three-bindings-rebound-20261027.json",
+        "artifact_sha256": "111636810c631a1f79e47b7ff8565c510aeac2e0ae028a6021e0c172405d092a",
+        "exit_code": 0,
+        "command": "read the Canonical Verify runs at 924af2fb and 19ffd0d1 verbatim, and rebind the three derived bindings (archive register, authority chain, current reports) that landing receipts had moved"
+      },
+      {
+        "id": "dl-kb-06-reference-tile-stops-reading-unserved-fields-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:02:10Z",
+        "subject_sha": "766f48d2c91724797854f562f0f6c252bb52df5a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-reference-tile-stops-reading-unserved-fields-20261028.json",
+        "artifact_sha256": "56e5d472d46eacd5b6492481edc91287d2cd450cdc37ce03853f74348529b69b",
+        "exit_code": 0,
+        "command": "measure the served key set and the painted text in a real browser, then register and clean as owner 2026-10-28 instructed; readings are in the bound artefact"
+      },
+      {
+        "id": "dl-kb-06-design-automation-pack-registered-by-digest-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:02:10Z",
+        "subject_sha": "337a6d2e6df43fb097d90ff1392080924ff8ba7c",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-design-automation-pack-registered-by-digest-20261028.json",
+        "artifact_sha256": "5694253de8019f0570d17f406877f24c0b8dac40dcef3370ea23b5328f652b0e",
+        "exit_code": 0,
+        "command": "measure the served key set and the painted text in a real browser, then register and clean as owner 2026-10-28 instructed; readings are in the bound artefact"
+      },
+      {
+        "id": "dl-final-t04-derivative-cleanup-measured-and-attested-20261028",
+        "task_id": "DL-FINAL-T04",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:02:10Z",
+        "subject_sha": "337a6d2e6df43fb097d90ff1392080924ff8ba7c",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-final-t04-derivative-cleanup-measured-and-attested-20261028.json",
+        "artifact_sha256": "c5902e14b7c623f8e51769147df85ff0c6dcfd906ab466a7f87d359877759920",
+        "exit_code": 0,
+        "command": "measure the served key set and the painted text in a real browser, then register and clean as owner 2026-10-28 instructed; readings are in the bound artefact"
+      },
+      {
+        "id": "dl-kb-06-automation-connectors-read-only-projection-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "contract",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:21:21Z",
+        "subject_sha": "037369ee0d22ad08022f5bb7390aa4a180ba7c5a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json",
+        "artifact_sha256": "6fc1ad082927d2b6a8778df0b13c98bb2d9abab2871fdd4e644c19a191aadffe",
+        "exit_code": 0,
+        "command": "build the read-only connector projection behind GET /api/automation-connectors, sweep it over live HTTP, and run the aggregate CI runs"
+      },
+      {
+        "id": "dl-kb-06-automation-menu-rendered-and-rail-reachable-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:45:21Z",
+        "subject_sha": "af3ae3e69cbdc622e4334f01b6c3de1757c51c0d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-menu-rendered-and-rail-reachable-20261028.json",
+        "artifact_sha256": "44d03f2dbb893944d79bab8269ec75bf84c16803147c1f4453e76843feff8d49",
+        "exit_code": 0,
+        "command": "render #/automation in real Chromium against the live route, register the eleven connectors as declared adapters, and clear the stale BACKEND_ONLY row the aggregate convicted"
+      },
+      {
+        "id": "dl-kb-06-ci-reds-adapter-rows-and-clipped-contrast-run-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T13:58:15Z",
+        "subject_sha": "b5804dd527331e15d15dfb2d5a186aacad898b27",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-ci-reds-adapter-rows-and-clipped-contrast-run-20261028.json",
+        "artifact_sha256": "16d081ed51dcf96cd2742e5012d5da63ed8f05eb4353d8bddf3733e90dfbfdb5",
+        "exit_code": 0,
+        "command": "read CI run 40694692860 job logs, correct the eleven adapter rows against the adapter contract and the large-tools guard, teach the contrast gate to skip runs an ancestor clips away, and prove the skip in both directions"
+      },
+      {
+        "id": "dl-final-t04-pr-run-read-at-407a2a13-20261028",
+        "task_id": "DL-FINAL-T04",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T14:36:30Z",
+        "subject_sha": "407a2a1372c55d5fe555a33ba7a22abd66dfc081",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-final-t04-pr-run-read-at-407a2a13-20261028.json",
+        "artifact_sha256": "94f5a480fea6c9d1b4d1ac3a294fed0894037054e24c1b72b009a38558d69700",
+        "exit_code": 0,
+        "command": "gh run view 40702925356 --log; gh api runs/40702925356/jobs"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

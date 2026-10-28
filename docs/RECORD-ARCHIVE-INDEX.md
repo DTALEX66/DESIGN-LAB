@@ -370,6 +370,41 @@ SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一
 
 **定态**：本包不是能力索引、不是第二账本。派工入口是 `DL-TP-20261023-DESKTOP-KB-R1` → `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`；落仓时观察 HEAD `efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823`，作者包内基线 `2d6ede51cd0f49e9b99c27f09924a0db29843b89` 保留为作者观察时点。当前 SHA 一律 `git rev-parse HEAD` 自读。
 
+## 2026-10-27 新增：STITCH 画板基准包（owner 2026-10-24 投递，2026-10-27 才登记）
+
+- 来源：`D:\All projects\Record\stitch_design_lab.zip`（5,115,919 B，sha256 `ae76e90307bfcc429b5b11e13502e2a739ad69f7a3bc96a5a86f0cdc941eee03`）与同批的 `DESIGN-LAB_QODER完整合并验证提示词_20261024.txt`（21,973 B，sha256 `89209168cbb81825c4396ccf095216bc680b537e419f4936cd4867a712bc2792`）。
+- 内容：**14 块画板**（每块 `code.html` + `screen.png`）+ `obsidian_studio/DESIGN.md`，共 31 个文件；解包 5,678,932 B。
+- 规范位置：原件与解包副本在 `.project-local/record-archive-2026-10-27/`（不随 Git 克隆，迁移须按摘要补齐）；逐成员 name/bytes/CRC32/SHA-256 登记在 `docs/history/record-archive-2026-10-27-stitch-boards/ARCHIVE-MANIFEST.json`。
+- 用途：**界面一比一还原的视觉基准**。本轮据此把左栏收成画板那三项 + 设置（提交 `cbaee463`）；与 `docs/taskpacks/20261023-ui-kb/source/08_STITCH完整提示词.txt` 逐字冲突处（标题、主按钮措辞）**以包内文本为权威**，画板是它的产物而不是相反。
+- 未登记就存在了三天，成因与教训记在 `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` 的 §5.81。
+
+## 2026-10-28 新增：design-automation 移植包（owner 2026-10-28 指令「取消冻结的自动化任务」「全部吸收融入本项目」）
+
+- 来源：`D:\All projects\Record\新建文件夹`（9 个文件，非 ZIP 投递、无随包签名）。owner 逐字原话、效力边界与
+  **明确未激活项**在 `docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md`。
+- 主体：`jzxz-portable-windows-x64-20261028.zip`（**371,678,561 B**，sha256
+  `d0daeb54ea13b4996368970368483dc0046f6cfe8df7753ddfc287c4e62a9ca4`，**29,382** 个成员，解包 662,244,361 B）。
+  其余 8 个散件（6 个插件包 + `DELIVERY_REPORT.md` + `INTEGRATION.md`）与包内同名成员**逐字节相同**，
+  只留一份规范副本。
+- 规范位置：9 个原件全部落 `.project-local/record-archive-2026-10-28-design-automation/`
+  （实测 450,201,998 B，不随 Git 克隆；迁移须按摘要补齐）。
+- 逐条核验：包自带 `MANIFEST.json`（成员 6,288,608 B，sha256 `e29ff9f3…94c73372`，**29,380** 行）被逐成员重算比对，
+  读数 **matched=29380 / mismatch=0 / missing=0**，ZIP 内未列 2 条正是该 manifest 自己 `excluded[]` 写明的
+  自身与 `evidence/relocation.json`。另对 5 个最大成员独立重算复核（194,652,336 B / 0.492 s），5/5 相符。
+- 登记面：`docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json` 逐条列
+  **124** 个 authored 成员（`docs/`、`evidence/`、`adapters/`、`runtime/`、`scripts/`、`config/`、
+  `examples/`、`test/`、`cli.mjs`、`gateway.mjs` 等，含 name/bytes/CRC32/SHA-256）；
+  其余 **29,257** 个 `runtimes/` 与 `vendor/` 成员由包自带的那份 manifest 按摘要钉住，
+  而那份 manifest 由本清单钉住的 ZIP 字节钉住——是摘要链，不是口头声明。
+- **惰性隔离（不是能力，也不是指令）**：21 份 `SKILL.md` 与 `开始生成.md`、`prompt_audit.py`、
+  `prompt-registry.js` 等按 `AGENTS.md` 的 inert source blob 处置，不进根指令、prompt、工具发现或能力计数；
+  其中含 `pip install …` / `npm install -g …` 字样，一律不执行。
+- **未激活**：`config/connections.json` 的第 11 个连接器 `windows`（桌面 UI 自动化）、
+  任何宿主真启动或 `tools/call`、以及 `ppt-master/templates/brands/**` 那 21 个真实公司名模板（商标归 Rights gate）。
+- 读数上限：包里 9 个桥接器只证明"能握手并列工具"（543 条工具，逐条 `nativeToolCalled:false`），
+  `evidence/relocation.json` 自写 `"physicalSecondComputerTested": false`。因此本项目在本包上的等级上限是
+  **E1/E2**，不构成真实宿主 E3、真人 E4 或 release 证据。
+
 ## 2026-10-19 新增：归档与移除波次的五份记录（owner 2026-10-19 指令）
 
 本节登记 2026-10-19 归档波次产出的**五份记录**本身。波次过程与逐条缺陷不在这里重述，读第 5 项那份交付报告；
@@ -383,7 +418,7 @@ SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一
 | 2 | `docs/history/archive-2026-10-19/REMOVALS.json` | 移除清单 / 删除登记 / removal record | design-lab/archive-removal/v1 | `27370e630035` | 46,699 B | `b93c0391eaefc3b5…` | 83 份旧交接/提示词原件的移除登记（713,606 B），跨 `docs/history/**` 73 份 + `reports/history/**` 10 份；逐条含 `blobSha1`/`sha256`/`crc32`/`bytes`/`restoreAt`/`recoverWith`，统一锚点 `restoreAt=7015571e729ec78c266cf45e0bd3b01b2e50973b`，`keptAuditInputs=17`（owner 提供的 R3 审计输入不删） |
 | 3 | `docs/history/archive-2026-10-19/HANDOFF-PROMPT-DIGEST.json` | 交接与提示词汇总登记 / digest | design-lab/archive-digest/v1 | `c76a3f6cc9f9` | 102,291 B | `2d5e6684a48fee59…` | 读取于 `readAtCommit=f55f0382`、对 `verifiedAgainstHead=7015571e` 复核；106 条目 → 删除 83 / 保留 23，合计 2,443,642 B；`blobIdsReDerived=1` |
 | 4 | `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` | 归档汇总与追溯记录 / 可读汇总 | 无 schemaVersion（Markdown 汇总件） | `d8a3f843647b` | 62,238 B | `bb82f0fab6ffbf47…` | 3 个 `##` 小节；承载被删文档的标题/自述/结论/取代关系与只有它记载的事实，使第 2 项的删除是退役而不是丢失 |
-| 5 | `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` | 波次交付报告 / 审计正文 | 无 schemaVersion（交付报告） | `b52953d50840` | 202,755 B | `ac130b03d9533c65…` | 15 个 `##` 小节，标题逐条读自报告正文：0. 结论与状态声明（先看这一节） / 1. Owner 原话与本轮边界 / 2. 基线怎么读（不抄本文件的数字） / 3. 做了什么（全部为实测数字） / 4. 防"再次索引旧路径"的机制 / 5. 命令、退出码与读数（本会话实测，均为定向闸口） / 6. 本轮暴露并修掉的六个缺陷 / 6.5 第七个缺陷（本次复核自己发现的） / 6.6 第八个缺陷（owner 追问「还有没做完的吗」时暴露） / 6.7 第九个缺陷（UI 对齐走查发现，先量化再修） / 6.8 第十个缺陷（写现行面时删掉了邻居的冻结条目） / 7. 回滚方法 / 8. 风险与下一步 / 9. 技能走查记录：量到了什么，量不到什么 / 10. 像素回归实跑（§9.1 那条判断这轮被自己验了一遍） |
+| 5 | `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` | 波次交付报告 / 审计正文 | 无 schemaVersion（交付报告） | `344690f76afa` | 437,157 B | `0c1be921b62508d7…` | 15 个 `##` 小节，标题逐条读自报告正文：0. 结论与状态声明（先看这一节） / 1. Owner 原话与本轮边界 / 2. 基线怎么读（不抄本文件的数字） / 3. 做了什么（全部为实测数字） / 4. 防"再次索引旧路径"的机制 / 5. 命令、退出码与读数（本会话实测，均为定向闸口） / 6. 本轮暴露并修掉的六个缺陷 / 6.5 第七个缺陷（本次复核自己发现的） / 6.6 第八个缺陷（owner 追问「还有没做完的吗」时暴露） / 6.7 第九个缺陷（UI 对齐走查发现，先量化再修） / 6.8 第十个缺陷（写现行面时删掉了邻居的冻结条目） / 7. 回滚方法 / 8. 风险与下一步 / 9. 技能走查记录：量到了什么，量不到什么 / 10. 像素回归实跑（§9.1 那条判断这轮被自己验了一遍） |
 
 完整 SHA-256（逐条，便于跨机器核对）：
 
@@ -391,7 +426,7 @@ SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一
 - 2. `docs/history/archive-2026-10-19/REMOVALS.json` → `b93c0391eaefc3b5cb8b7efa16a20a6f7b343b4c25641f26155a88b4fe0fb3fc`
 - 3. `docs/history/archive-2026-10-19/HANDOFF-PROMPT-DIGEST.json` → `2d5e6684a48fee594ebe966e7bae9ea38a295bd0b84221e822b4975fe62fec4f`
 - 4. `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` → `bb82f0fab6ffbf4713ad76de294ac335b3a5664597dc8591f1c46db1b109483f`
-- 5. `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` → `ac130b03d9533c656a28d23d7bbf206c581df6dd07f86fe5c10bbafc83e7d69d`
+- 5. `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` → `0c1be921b62508d702d9340e179a4cc3cf2e2a801e7673886f0c21a91fc02151`
 
 **五份记录是怎么产出的**：
 
@@ -416,7 +451,7 @@ SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一
 - 83 条 `sha256` 全是 `sha256:` + 64 位十六进制，`restoreAt` 同值一条；
 - 五份记录均可 UTF-8 解码且不含 `U+FFFD`（中文正文若被写成乱码字节，这里会先炸）。
 
-**本节测于哪个提交**：五个 blob 在 `b63ccf51` 上逐条重算；交付报告最后一次被改写于 `b63ccf51`。本节所在提交装不下自己的哈希，所以两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效；真正会变的情形只有「记录本身被改写」。四份在 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再编辑；第五份是 dated 交付报告，若以后确实要补它，就重跑 `python scripts/generate_archive_record_register.py` 让本节跟着更新，别留下和仓库不一致的哈希。
+**本节测于哪个提交**：五个 blob 在 `407a2a13` 上逐条重算；交付报告最后一次被改写于 `50792cba`。本节所在提交装不下自己的哈希，所以两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效；真正会变的情形只有「记录本身被改写」。四份在 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再编辑；第五份是 dated 交付报告，若以后确实要补它，就重跑 `python scripts/generate_archive_record_register.py` 让本节跟着更新，别留下和仓库不一致的哈希。
 
 **定态**：五份都是**波次的登记件**，不是能力索引、不是派工入口，也不改变 `currentExecution` 34 项的 `FROZEN_DEFERRED`。真值仍读 `design-lab/config/capability-evidence-index.json`、`design-lab/config/capability-status.json` 与 `docs/current/NEXT-AGENT-PROMPT.md`。
 

@@ -1,0 +1,113 @@
+# DESIGN-LAB DL-KB-08: the reference picker cites every kind the store accepts.
+# Subject commit e172e33e964bfd60ba7daffaff7332038f82ac68; bundle blob 8d2702e5b321d48a3e45cd1393b6d05955161929 (sha256 0923de170be7, 609452 bytes) == the blob HEAD carries.
+# Observed 2026-10-24T23:25:13Z. Each block is that command's own output.
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_assistance_plan -v
+# exit=0
+test_a_caller_supplied_revision_or_digest_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_caller_supplied_revision_or_digest_is_refused) ... ok
+test_a_cited_entry_is_pinned_to_the_newest_revision_not_the_recommended_one (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_cited_entry_is_pinned_to_the_newest_revision_not_the_recommended_one) ... ok
+test_a_draft_without_a_creative_is_saved_but_not_provided (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_draft_without_a_creative_is_saved_but_not_provided) ... ok
+test_a_linked_asset_is_reported_linked_only_until_a_reversal_exists (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_linked_asset_is_reported_linked_only_until_a_reversal_exists) ... ok
+test_a_new_revision_moves_the_link_to_changed_without_touching_the_pin (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_new_revision_moves_the_link_to_changed_without_touching_the_pin) ... ok
+test_a_plan_for_an_unknown_project_is_404 (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_for_an_unknown_project_is_404) ... ok
+test_a_plan_is_not_readable_through_another_project (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_is_not_readable_through_another_project) ... ok
+test_a_plan_is_saved_with_its_basis_and_reads_back_after_a_restart (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_is_saved_with_its_basis_and_reads_back_after_a_restart) ... ok
+test_a_plan_revision_without_expected_revision_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_plan_revision_without_expected_revision_is_refused) ... ok
+test_a_reference_from_another_project_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_reference_from_another_project_is_refused) ... ok
+test_a_reference_that_moved_on_is_reported_changed (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_reference_that_moved_on_is_reported_changed) ... ok
+test_a_revision_stored_before_an_optional_field_existed_still_reads_back (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_stored_before_an_optional_field_existed_still_reads_back)
+A pre-DL-KB-11 document is history, not a defect -- and it still satisfies the contract. ... ok
+test_a_revision_whose_digest_no_longer_covers_its_bytes_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_whose_digest_no_longer_covers_its_bytes_is_refused)
+Both directions of the same disagreement: edited bytes, or a column that moved alone. ... ok
+test_a_revision_with_no_creative_reads_back_as_not_provided (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_revision_with_no_creative_reads_back_as_not_provided)
+`provided` is this row's own answer, not the readback's answer about the newest row. ... ok
+test_a_stale_revision_is_refused_with_the_actual_number (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_a_stale_revision_is_refused_with_the_actual_number) ... ok
+test_an_older_revision_reads_back_as_that_revision_and_not_as_the_current_one (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_older_revision_reads_back_as_that_revision_and_not_as_the_current_one)
+The bug this route exists to make impossible: a comparison page reading r2 twice. ... ok
+test_an_unknown_or_malformed_knowledge_reference_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unknown_or_malformed_knowledge_reference_is_refused) ... ok
+test_an_unknown_output_type_is_refused_by_name (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unknown_output_type_is_refused_by_name) ... ok
+test_an_unreadable_revision_row_is_refused_rather_than_returned_as_a_guess (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unreadable_revision_row_is_refused_rather_than_returned_as_a_guess) ... ok
+test_an_unstored_reference_is_a_404_not_a_saved_plan (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unstored_reference_is_a_404_not_a_saved_plan) ... ok
+test_an_unstored_revision_number_is_a_404_that_names_the_highest_one (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_an_unstored_revision_number_is_a_404_that_names_the_highest_one) ... ok
+test_choosing_a_revision_that_does_not_exist_is_refused (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_choosing_a_revision_that_does_not_exist_is_refused) ... ok
+test_every_revision_row_the_readback_lists_is_served_byte_for_byte (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_every_revision_row_the_readback_lists_is_served_byte_for_byte)
+No second truth: the readback's per-row columns and this route's answer are one row. ... ok
+test_every_served_output_type_is_one_the_create_route_accepts (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_every_served_output_type_is_one_the_create_route_accepts) ... ok
+test_is_chosen_follows_the_choice_row_and_stays_false_for_a_plan_nobody_chose (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_is_chosen_follows_the_choice_row_and_stays_false_for_a_plan_nobody_chose) ... ok
+test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_moving_the_recommendation_back_leaves_the_cited_plan_reading_the_same_bytes)
+DL-KB-05 D5, end to end through the routes: 回退推荐版本后旧方案仍可读. ... ok
+test_only_a_named_human_can_choose_a_revision (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_only_a_named_human_can_choose_a_revision) ... ok
+test_the_latest_revision_carries_the_digest_the_readback_publishes (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_latest_revision_carries_the_digest_the_readback_publishes) ... ok
+test_the_output_type_vocabulary_is_served_before_any_project_exists (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_output_type_vocabulary_is_served_before_any_project_exists) ... ok
+test_the_reference_kind_list_is_one_list_across_the_schemas (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_reference_kind_list_is_one_list_across_the_schemas) ... ok
+test_the_revision_read_keeps_the_plan_s_own_refusal_vocabulary (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_revision_read_keeps_the_plan_s_own_refusal_vocabulary)
+Unknown project, and a plan that is not in this project, are two different 404s. ... ok
+test_the_revision_table_refuses_its_own_rewrite (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_revision_table_refuses_its_own_rewrite) ... ok
+test_the_schemas_are_packaged_and_named_by_state_resources (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_schemas_are_packaged_and_named_by_state_resources) ... ok
+test_the_served_does_not_say_is_the_readback_s_list_unchanged (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_served_does_not_say_is_the_readback_s_list_unchanged) ... ok
+test_the_workbench_picker_labels_exactly_the_kinds_the_store_accepts (design-lab.tests.test_assistance_plan.AssistancePlanTests.test_the_workbench_picker_labels_exactly_the_kinds_the_store_accepts) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 20.720s
+
+OK
+
+$ .venv/Scripts/python.exe -m unittest design-lab.tests.test_workbench_route_calls -v
+# exit=0
+test_a_duplicated_route_is_red (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_a_duplicated_route_is_red) ... ok
+test_a_method_disagreement_says_so (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_a_method_disagreement_says_so) ... ok
+test_a_special_route_that_is_called_is_not_stale (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_a_special_route_that_is_called_is_not_stale) ... ok
+test_a_stale_dynamic_fetch_allowance_is_red (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_a_stale_dynamic_fetch_allowance_is_red) ... ok
+test_a_stale_special_route_is_red (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_a_stale_special_route_is_red) ... ok
+test_an_exemption_for_a_vanished_route_is_stale (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_an_exemption_for_a_vanished_route_is_stale) ... ok
+test_an_exemption_the_frontend_now_calls_is_stale (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_an_exemption_the_frontend_now_calls_is_stale) ... ok
+test_an_unreached_route_is_red_until_it_is_exempted (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_an_unreached_route_is_red_until_it_is_exempted) ... ok
+test_an_unserved_frontend_call_is_red (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_an_unserved_frontend_call_is_red) ... ok
+test_nothing_to_compare_is_a_failure (design-lab.tests.test_workbench_route_calls.EvaluateDirectionTests.test_nothing_to_compare_is_a_failure) ... ok
+test_a_comment_or_string_naming_a_call_is_not_a_call (design-lab.tests.test_workbench_route_calls.ScannerTests.test_a_comment_or_string_naming_a_call_is_not_a_call) ... ok
+test_a_fetch_outside_api_is_unresolved_rather_than_guessed (design-lab.tests.test_workbench_route_calls.ScannerTests.test_a_fetch_outside_api_is_unresolved_rather_than_guessed) ... ok
+test_a_function_declaration_is_not_a_call (design-lab.tests.test_workbench_route_calls.ScannerTests.test_a_function_declaration_is_not_a_call) ... ok
+test_a_path_field_expands_to_the_literals_the_table_carries (design-lab.tests.test_workbench_route_calls.ScannerTests.test_a_path_field_expands_to_the_literals_the_table_carries) ... ok
+test_a_prefixed_constant_resolves_to_its_value (design-lab.tests.test_workbench_route_calls.ScannerTests.test_a_prefixed_constant_resolves_to_its_value) ... ok
+test_a_second_argument_is_a_write_and_undefined_is_not (design-lab.tests.test_workbench_route_calls.ScannerTests.test_a_second_argument_is_a_write_and_undefined_is_not) ... ok
+test_a_trailing_comma_is_a_read_not_a_write (design-lab.tests.test_workbench_route_calls.ScannerTests.test_a_trailing_comma_is_a_read_not_a_write) ... ok
+test_a_renamed_frontend_path_is_red_against_the_shipped_routes (design-lab.tests.test_workbench_route_calls.ShippedTreeTests.test_a_renamed_frontend_path_is_red_against_the_shipped_routes) ... ok
+test_dropping_one_exemption_convicts_that_route (design-lab.tests.test_workbench_route_calls.ShippedTreeTests.test_dropping_one_exemption_convicts_that_route) ... ok
+test_each_exemption_states_a_measured_reason (design-lab.tests.test_workbench_route_calls.ShippedTreeTests.test_each_exemption_states_a_measured_reason) ... ok
+test_every_route_is_accounted_for_exactly_once (design-lab.tests.test_workbench_route_calls.ShippedTreeTests.test_every_route_is_accounted_for_exactly_once) ... ok
+test_the_scan_sees_the_product_not_one_file (design-lab.tests.test_workbench_route_calls.ShippedTreeTests.test_the_scan_sees_the_product_not_one_file) ... ok
+test_the_shipped_tree_agrees_in_both_directions (design-lab.tests.test_workbench_route_calls.ShippedTreeTests.test_the_shipped_tree_agrees_in_both_directions) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 1.997s
+
+OK
+
+$ node apps/workbench/tests/appshell.mjs
+# exit=0
+ok: ⑤ 形状告警渲染在 20 个视图上；3 个路由不读服务：#/collaboration #/states #/components
+ok: ㉔ B10_NAV 从 ROUTE_VIEWS 派生且没有手抄 hash；渲染集合由截图采集在真浏览器里比对
+ok: ⑤ #/domains 读一个路由、缺 packs 说未读回、真实读回上屏带 lang="en" 与原因、空目录照实说尚无
+ok: ⑪ 域包二级入口有独立地址、父级高亮、跨目录动作禁用并说明原因、借用与凭空计数都不出现
+ok: ⑱ §4 可调用能力只收 qualified === true：false 与 null 各自都不算，载入三类取值的读回才分得开这两个谓词
+ok: ⑲ §2→§4 声明领域条件随跳转进入地址（#/capabilities?domain=… 仍解析成能力目录）、条件上屏且分别给出命中数与未分类数、「清除检索条件」不清领域、chip 的 × 才收回条件
+ok: ⑫ §4 资产类型 tabs 跟着真实字段计数、可调用能力不按 kind 充数、空轴共用同一空集并写明、未读回不画 0
+ok: ⑬ 输入与目标的简报写入：构建零 POST、空标题本地拒、一次点击一个请求且只带合同五键、相同内容复用幂等键、改内容换新键、拒绝不谎报已写入
+ok: ⑭ 目标生成包的五种服务端拒绝各说各话且带代码、两种 409 落在不同状态类别、连接失败不冒充业务拒绝、无底图不发包、排队不等于完成、JSON 默认收起
+ok: ① 未连接态 18 个视图报告未读回，9 条实况专属措辞零泄漏
+ok: ④ 真实空读回仍照实报告为空（两个视图正向对照）
+ok: ② 请求失败时 20 个视图只报失败与原因（传输被拒 + 回复不可解析 + 服务错误三条路径都实测到），无旧内容残留
+ok: ⑥ 产物预检列不自动跑、一次点击一个请求、判据与未量项上屏、拒绝替换旧判定、未确认的取消上屏
+ok: ⑦ 证据系统读回裁决/预检/收据：缺字段说未读回不当作空列表、裁决与 lang="en" 上屏、一次点击一个收据请求、404 与 409 两种拒绝各说各话、两框互不覆盖、版本未读回时不发请求
+ok: ⑦b 证据链完整性：构建页面零读回、一次点击一个请求、三个判定各说各话且带 lang="en"、理由分布来自服务端、截断要说明、缺 totals/receipts 说未读回不画数、拒绝带码且不冒充空账本、边界文案与已上线路由不矛盾
+ok: ⑧ 权利门：决定词来自读回且带 lang="en"、无预选、构建页面零 POST、注定被拒的写不发请求、一次点击一个 POST 带契约字段与查询参数替代、成功后读回来自服务端、拒绝替换上一条已提交、证据列读回每人每范围决定与分母/冲突/仅名字核查/does_not_prove、缺分母说未读回不画 0/0、空台账说"没有被问过"不说等待审查
+ok: ⑨ 研究洞察读回已持久化的结论：判定词一个都不画、null 判定给出服务端的说明、置信度选项来自读回且无预选、构建页面零 POST、空正文与无来源两种本地拒绝都不发请求、一次点击一个 POST 且只带契约字段（无 schemaVersion、未勾选的布尔不写成 false）、相同重发沿用 finding_id 而改动必换新 id、替代作为查询参数且只列现行结论、成功后读回来自服务端、拒绝替换上一条已提交、缺计数说未读回不画 0 条
+ok: ⑩ 制作记录读回真实作业：状态词原样出现、领域字段缺失如实说明、取消的 requested 与 ack 分成两段、任务条只数仍在进行/待核对的 2 条而不是 3 条、没人展开就不读 events、展开一行恰好一次读回、最近确认点来自事件而不是猜测
+ok: ⑮ 接续入口只做跳转且真的能点：三条原生作业各一个入口、导入行不给入口、启动/取消仍保持禁用、两次点击都只改 hash 不发请求、简报字段不被谎称带进目标包、声明面板与画出来的控件一致
+ok: ⑯ 运行与恢复现场：ABSENT/空表/未读回三种说法互不混用，占用按 host→attempt 上屏，回执数与记录数分开，预算作为无该字段带理由，does_not_say 逐句成行，面板内没有任何可点动作
+ok: ⑰ 全局搜索的四组对象投影按各自路由的合同字段取行（design_systems 不是 systems），领域行落到 pack 自己的地址
+ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord 的版本链（当前/已被取代、字节数与摘要、权利与核验原词）、空集合说尚无、缺字段说未读回不画 0，并写明本面板只读回不提交改稿
+ok: ㉒ 知识回执与反馈：构建只读一次零写、状态/新鲜度/导出/出站边界全部来自读回、未建的一半写在可见文字里、创建本地拒绝不替人补事实、7 键创建体（无 schemaVersion、created_at=null）、相同重发沿用 candidate_id 而改动换新、6 键 human 裁决与 3 键撤销、成功后读回来自服务端、未读回不画候选数也不提供裁决/撤销控件
+ok: ㉑ D06 截止与取消：读超时（无副作用、可重试）与写超时（结果待核对、禁止盲目重发）彼此可辨，切页只取消读不取消写，401 仍清会话，默认预算读 15s / 写 45s
+ok: ㉓ DL-KB-02/03/04 知识与提示词库：首屏一次检索且词表/许可状态来自读回、列表不带正文哈希路径、详情按需读回、空表单与缺记录人本地拒绝、新增 14 键 POST（无 schemaVersion/created_at、留空来源不编造）、修订带 expected_revision 且旧版本留在历史、写后按返回编号读回、两字检索词走子串回退且无命中只解释不编造、推荐退回旧版本只能靠一条真人判断（缺理由与缺记录人都本地拒绝、七键 POST 不带 recorded_at）、来源失效必须带一个打得开的替代条目
+APPSHELL REGRESSION: all checks passed

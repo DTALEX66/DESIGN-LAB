@@ -125,14 +125,68 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "design-lab/schemas/design-collection-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-collection-v1.schema.json"
 "design-lab/schemas/design-lineage-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-lineage-v1.schema.json"
 "design-lab/schemas/design-layer-rollup-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-layer-rollup-v1.schema.json"
+# DL-KB-07 (2026-10-24): the assistance plan's document, write, readback and list contracts, all
+# opened through repo_resource by `assistance_plan.py` on every route. Without these lines an
+# installed wheel would answer 500 ASSISTANCE_PLAN_CONTRACT_UNREADABLE -- a missing packaged file
+# reported as a verdict about the plan. The state SQL rides the `schemas/state` directory above.
+"design-lab/schemas/assistance-plan-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-v1.schema.json"
+"design-lab/schemas/assistance-plan-write-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-write-v1.schema.json"
+"design-lab/schemas/assistance-plan-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-readback-v1.schema.json"
+"design-lab/schemas/assistance-plan-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-list-v1.schema.json"
+"design-lab/schemas/assistance-plan-output-types-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-output-types-v1.schema.json"
+# DL-KB-09 (2026-10-24): the target profile's five contracts plus the seed registry itself, all
+# opened through repo_resource by `target_profile.py` on every route. An installed wheel that lost
+# any of these would answer 500 TARGET_PROFILE_CONTRACT_UNREADABLE -- a missing packaged file
+# reported as a verdict about somebody else's product. The seed config is the profile data: without
+# it the registry would answer an empty list and look like "no official basis exists".
+"design-lab/schemas/target-profile-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-v1.schema.json"
+"design-lab/schemas/target-profile-write-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-write-v1.schema.json"
+"design-lab/schemas/target-profile-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-list-v1.schema.json"
+"design-lab/schemas/target-profile-axes-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-axes-v1.schema.json"
+"design-lab/schemas/target-profile-validate-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/target-profile-validate-v1.schema.json"
+"design-lab/config/target-profiles.json" = "design_lab/resources/repo/design-lab/config/target-profiles.json"
+# DL-KB-16 (2026-10-24): the three plan-feedback contracts, opened through repo_resource by
+# `plan_feedback.py` on every route. Without these lines an installed wheel would answer 500
+# PLAN_FEEDBACK_CONTRACT_UNREADABLE -- a missing packaged file reported as a verdict about
+# somebody's external experience. The state SQL rides the `schemas/state` directory above.
+"design-lab/schemas/plan-feedback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/plan-feedback-v1.schema.json"
+"design-lab/schemas/plan-feedback-write-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/plan-feedback-write-v1.schema.json"
+"design-lab/schemas/plan-feedback-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/plan-feedback-list-v1.schema.json"
+# DL-KB-11 (2026-10-24): the plan export contract, opened through repo_resource by `plan_export.py`
+# on every export. Without this line an installed wheel would answer 500
+# PLAN_EXPORT_CONTRACT_UNREADABLE -- a file this build forgot to ship, reported to the designer as a
+# verdict about their own plan. The assistance-plan contracts above already carry the shot rows,
+# which live inside the stored document and add no new file.
+"design-lab/schemas/plan-export-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/plan-export-v1.schema.json"
+# DL-KB-12 (2026-10-24): the single-revision read, opened through repo_resource by
+# `assistance_plan.revision()` on every call. Without this line an installed wheel would answer 500
+# ASSISTANCE_PLAN_CONTRACT_UNREADABLE -- a file this build forgot to ship, reported to the designer
+# as a problem with their own plan. The stored document it $refs is already carried by the
+# assistance-plan contract above, so this route adds one envelope file and no second document.
+"design-lab/schemas/assistance-plan-revision-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-revision-v1.schema.json"
 "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
 "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
 
 [tool.hatch.build.targets.sdist]
-# P1-1 (audit 2026-09-21): the sdist ships the same three served workbench
-# files as the wheel (was the whole apps/workbench dir, which dragged the
-# local node_modules into sdist builds too).
-only-include = ["vendor/sources.lock.json", "vendor/sources.revisions.json", "design-lab/readiness/model-radar.json", "research/candidates/CANDIDATE-TAXONOMY.json", "src/design_lab", "design-lab/schemas/state", "design-lab/design-systems", "apps/workbench/index.html", "apps/workbench/style.css", "apps/workbench/build/main.js", "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx", "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx", "packages/capabilities/reconstruction/__init__.py", "packages/capabilities/reconstruction/contracts.py", "packages/capabilities/reconstruction/adobe_job.py", "packages/capabilities/reconstruction/adobe_lowering.py", "design-lab/schemas/reconstruction/reconstruction-ir.schema.json", "design-lab/schemas/reconstruction/reconstruction-run.schema.json", "pyproject.toml"]
+# P1-1 (audit 2026-09-21): the sdist must not carry `apps/workbench` wholesale -- that dragged the
+# local node_modules (30MB / 251 files) into the build, so a wheel built on a dev machine diverged
+# from CI's. That constraint is kept: the three served files are listed by name.
+#
+# Owner audit 2026-10-26 (7671ec70) found the other half of the same rule was never written down:
+# the wheel force-includes 71 repo paths, and this list carried only 17 of them, so the sdist could
+# not rebuild the wheel at all. Reproduced verbatim -- `uv build --sdist` then `uv build --wheel`
+# inside the extracted tree dies at `FileNotFoundError: Forced include not found:
+# …/design-lab/domain-packs` -- which is why CI read green: it built the wheel from the checkout and
+# never from the source distribution it publishes.
+#
+# The list is therefore directory roots covering every force-include source, plus `design-lab/tests`
+# because the acceptance chain that proves the installed package (GET sweep, POST sweep, launch)
+# lives there: a source distribution whose verification cannot be run from it is not a source
+# distribution. `design-lab/scripts/verify_sdist_packaging.py` now re-derives this coverage from the
+# wheel's own map, so adding a force-include without its sdist root fails as a named path instead of
+# surfacing only on a third party's machine.
+only-include = ["src/design_lab", "design-lab/schemas", "design-lab/config", "design-lab/domain-packs", "design-lab/design-systems", "design-lab/production", "design-lab/readiness", "design-lab/scripts", "design-lab/tests", "packages/capabilities", "research/candidates", "vendor", "integrations", "apps/workbench/index.html", "apps/workbench/style.css", "apps/workbench/build/main.js", "pyproject.toml"]
+exclude = ["**/__pycache__", "**/*.pyc", "**/node_modules", "**/.venv*"]
 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]

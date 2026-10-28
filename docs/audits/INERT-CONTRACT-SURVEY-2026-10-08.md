@@ -27,13 +27,15 @@
 {
   "contracts": 32,
   "inertRows": 30,
-  "productFiles": 221,
+  "productFiles": 227,
   "rows": [
     {
-      "best_table": null,
+      "best_table": "assistance_plan",
       "fields": 2,
-      "matched_fields": [],
-      "overlap": 0.0,
+      "matched_fields": [
+        "plan_id"
+      ],
+      "overlap": 0.5,
       "reason": "Nothing implements this. plan_id/jobs appear nowhere in src/. The action-plan boundary that does exist is bound by design-lab/schemas/tool-action-plan.schema.json, checked by design-lab/scripts/verify_tool_action_plan.py against design-lab/evals/tool-action-plan/sample-hero.json -- a different document with a different field vocabulary, which this schema does not describe.",
       "retire_coherent": true,
       "retire_targets": [
@@ -42,10 +44,15 @@
       ],
       "route_references": [],
       "schema": "design-lab/schemas/contracts/action-plan.schema.json",
-      "state": "NO_STATE_COUNTERPART",
-      "table_readers": [],
-      "table_writers": [],
-      "thin_match": false,
+      "state": "TABLE_WRITES_THIS_ACTIVITY",
+      "table_readers": [
+        "src/design_lab/assistance_plan.py",
+        "src/design_lab/plan_feedback.py"
+      ],
+      "table_writers": [
+        "src/design_lab/assistance_plan.py"
+      ],
+      "thin_match": true,
       "version": "design-lab/action-plan/v1"
     },
     {
@@ -84,6 +91,7 @@
       "schema": "design-lab/schemas/contracts/asset-ref.schema.json",
       "state": "NO_STATE_COUNTERPART",
       "table_readers": [
+        "src/design_lab/assistance_plan.py",
         "src/design_lab/assurance/jury_store.py",
         "src/design_lab/assurance/production_preflight.py",
         "src/design_lab/assurance/quality_store.py",
@@ -237,7 +245,7 @@
       "version": "design-lab/delivery-receipt/v1"
     },
     {
-      "best_table": "knowledge_candidate",
+      "best_table": "assistance_plan_choice",
       "fields": 3,
       "matched_fields": [
         "revision"
@@ -253,10 +261,10 @@
       "schema": "design-lab/schemas/contracts/design-context.schema.json",
       "state": "TABLE_WRITES_THIS_ACTIVITY",
       "table_readers": [
-        "src/design_lab/knowledge_review.py"
+        "src/design_lab/assistance_plan.py"
       ],
       "table_writers": [
-        "src/design_lab/knowledge_review.py"
+        "src/design_lab/assistance_plan.py"
       ],
       "thin_match": true,
       "version": "design-lab/design-context/v1"
@@ -730,11 +738,11 @@
   "schemaVersion": "design-lab/inert-contract-survey/v1",
   "stateCounts": {
     "ADJACENT_TABLE_WRITTEN": 2,
-    "NO_STATE_COUNTERPART": 16,
+    "NO_STATE_COUNTERPART": 15,
     "TABLE_EXISTS_UNWRITTEN": 3,
-    "TABLE_WRITES_THIS_ACTIVITY": 9
+    "TABLE_WRITES_THIS_ACTIVITY": 10
   },
-  "tables": 45
+  "tables": 51
 }
 ```
 
@@ -742,7 +750,7 @@
 
 | schema | 声明字段 | 最相近表 | 重合 | 谁在写这张表 | 分类 | 退役可执行 |
 |---|---|---|---|---|---|---|
-| `action-plan.schema.json` | 2 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
+| `action-plan.schema.json` | 2 | assistance_plan | 0.50 | assistance_plan.py | TABLE_WRITES_THIS_ACTIVITY（thin） | 是 |
 | `asset-manifest.schema.json` | 2 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `asset-ref.schema.json` | 6 | asset | 0.17 | — | NO_STATE_COUNTERPART | 是 |
 | `audit-event.schema.json` | 9 | audit_event | 0.44 | asset_store.py | TABLE_WRITES_THIS_ACTIVITY | 是 |
@@ -751,7 +759,7 @@
 | `capability-ref.schema.json` | 2 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `change-set.schema.json` | 3 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `delivery-receipt.schema.json` | 6 | operation_receipt | 0.33 | — | TABLE_EXISTS_UNWRITTEN | 是 |
-| `design-context.schema.json` | 3 | knowledge_candidate | 0.33 | knowledge_review.py | TABLE_WRITES_THIS_ACTIVITY（thin） | 是 |
+| `design-context.schema.json` | 3 | assistance_plan_choice | 0.33 | assistance_plan.py | TABLE_WRITES_THIS_ACTIVITY（thin） | 是 |
 | `design-control-mcp.schema.json` | 2 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `design-diff.schema.json` | 4 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `document-session.schema.json` | 5 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |

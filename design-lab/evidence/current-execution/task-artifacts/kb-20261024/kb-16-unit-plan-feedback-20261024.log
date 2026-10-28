@@ -1,0 +1,32 @@
+--- stderr ---
+test_a_dimension_without_a_closed_verdict_is_refused_not_defaulted (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_a_dimension_without_a_closed_verdict_is_refused_not_defaulted) ... ok
+test_a_feedback_record_states_what_it_does_not_prove (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_a_feedback_record_states_what_it_does_not_prove) ... ok
+test_a_label_that_contradicts_its_own_verdict_cannot_be_stored (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_a_label_that_contradicts_its_own_verdict_cannot_be_stored)
+Two independently valid fields must not be allowed to disagree. ... ok
+test_a_report_carries_per_dimension_verdicts_in_the_card_s_words (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_a_report_carries_per_dimension_verdicts_in_the_card_s_words) ... ok
+test_a_report_must_cite_a_revision_that_was_actually_written (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_a_report_must_cite_a_revision_that_was_actually_written) ... ok
+test_a_report_on_an_unknown_plan_is_a_404_not_an_empty_history (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_a_report_on_an_unknown_plan_is_a_404_not_an_empty_history) ... ok
+test_a_row_cannot_be_rewritten_or_withdrawn_underneath_a_reader (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_a_row_cannot_be_rewritten_or_withdrawn_underneath_a_reader) ... ok
+test_an_empty_collection_says_nothing_was_recorded_without_inventing_a_zero_state (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_an_empty_collection_says_nothing_was_recorded_without_inventing_a_zero_state) ... ok
+test_an_unreported_model_stays_null_with_a_reason_instead_of_being_inferred (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_an_unreported_model_stays_null_with_a_reason_instead_of_being_inferred) ... ok
+test_issue_timecodes_survive_verbatim_and_a_label_is_not_a_timecode (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_issue_timecodes_survive_verbatim_and_a_label_is_not_a_timecode) ... ok
+test_only_a_human_may_report_an_external_outcome (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_only_a_human_may_report_an_external_outcome) ... ok
+test_only_the_three_outcome_words_are_writable (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_only_the_three_outcome_words_are_writable) ... ok
+test_paging_out_of_range_is_refused_at_the_right_layer (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_paging_out_of_range_is_refused_at_the_right_layer) ... ok
+test_recording_feedback_does_not_promote_the_plan_into_trusted_knowledge (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_recording_feedback_does_not_promote_the_plan_into_trusted_knowledge)
+D-边界「采用一次方案不得自动升级为通用可信知识」/ 未反馈既不是失败也不是接受. ... ok
+test_recording_feedback_leaves_the_plan_readback_byte_identical (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_recording_feedback_leaves_the_plan_readback_byte_identical) ... ok
+test_reports_are_a_history_and_a_correction_does_not_erase_the_first (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_reports_are_a_history_and_a_correction_does_not_erase_the_first) ... ok
+test_the_histogram_is_computed_from_the_rows_the_page_lists (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_the_histogram_is_computed_from_the_rows_the_page_lists) ... ok
+test_the_material_binding_is_the_cited_revision_not_the_newest_one (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_the_material_binding_is_the_cited_revision_not_the_newest_one)
+「反馈绑定当时资料与模型版本」: a report about r1 must still say r1 after r2 exists. ... ok
+test_the_route_refuses_a_key_that_would_speak_for_the_system (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_the_route_refuses_a_key_that_would_speak_for_the_system) ... ok
+test_the_same_dimension_cannot_be_reported_twice_in_one_statement (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_the_same_dimension_cannot_be_reported_twice_in_one_statement) ... ok
+test_the_service_serves_the_words_the_contract_declares (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_the_service_serves_the_words_the_contract_declares)
+LANGUAGE-POLICY §5: the screen consumes these pairs instead of hand-copying them. ... ok
+test_the_writer_mints_no_external_identifier (design-lab.tests.test_plan_feedback.PlanFeedbackTests.test_the_writer_mints_no_external_identifier) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 10.926s
+
+OK

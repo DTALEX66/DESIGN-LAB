@@ -21,6 +21,12 @@ are not exotic:
   requires the canonical rows to restore it.
 * **an empty search fills itself with near-matches.** An empty answer must explain why it is empty
   and must not recommend entries the query never matched.
+* **A5 is a mood rather than a measurement.** "Writing, searching, editing and copying still work
+  with no model service" is only worth anything if something checks it: the library's imports are
+  scanned for anything model-, provider- or network-facing (and the scanner is proven on a planted
+  import), the model-selection store is asserted empty, and the four acts are then performed. The
+  copy leg's bytes are compared against what the route answered -- in Chromium for a granted
+  clipboard, and against the refused-clipboard fallback in the DOM harness.
 
 Nothing here proves a model ran, a source was fetched or a person reviewed anything: counts are
 records in a local store. The published performance claim (1,000 entries, p95 <= 300 ms) is measured
@@ -29,10 +35,13 @@ here against the same constant the docs quote.
 from __future__ import annotations
 
 import os
+import sqlite3
+import threading
 import time
 import sys
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 from pathlib import Path
 
@@ -42,6 +51,7 @@ sys.path.insert(0, str(REPO / 'src'))
 from design_lab import knowledge_library                        # noqa: E402
 from design_lab.knowledge_library import (                      # noqa: E402
     KnowledgeLibrary, KnowledgeLibraryError, UNKNOWN)
+from design_lab import model_selection                            # noqa: E402
 from design_lab.service import ProjectService                    # noqa: E402
 
 SOURCE = {'sourceId': 'owner-note', 'origin': 'UNKNOWN', 'author': 'owner',
@@ -257,6 +267,34 @@ class KnowledgeLibraryTests(unittest.TestCase):
             self.library.search(entry_type='NOPE')
         self.assertEqual('KNOWLEDGE_TYPE_INVALID', caught.exception.code)
 
+    def test_the_promised_search_refusals_are_the_words_the_contract_names(self):
+        """`contract-bindings.json` promises five 400 codes on the search route. Three of them
+        (KNOWLEDGE_OFFSET_INVALID, KNOWLEDGE_LIMIT_INVALID, KNOWLEDGE_QUERY_TOO_LONG) had no
+        test anywhere in the repository, so the row was advertising refusals nothing proved --
+        the same class of gap as a bound declared and never read. A word a client cannot rely
+        on is not a contract: this asserts each code, and asserts the declared maximum itself
+        still answers, because a bound that also refuses its own limit is a wall, not a bound.
+        """
+        from design_lab.knowledge_library import MAX_LIMIT, MAX_QUERY
+
+        for offset in (-1, '0', True):
+            with self.assertRaises(KnowledgeLibraryError) as caught:
+                self.library.search(offset=offset)
+            self.assertEqual('KNOWLEDGE_OFFSET_INVALID', caught.exception.code,
+                             f'offset {offset!r} must be refused with the promised word')
+        for limit in (0, MAX_LIMIT + 1, True):
+            with self.assertRaises(KnowledgeLibraryError) as caught:
+                self.library.search(limit=limit)
+            self.assertEqual('KNOWLEDGE_LIMIT_INVALID', caught.exception.code,
+                             f'limit {limit!r} must be refused with the promised word')
+        with self.assertRaises(KnowledgeLibraryError) as caught:
+            self.library.search(query='品' * (MAX_QUERY + 1))
+        self.assertEqual('KNOWLEDGE_QUERY_TOO_LONG', caught.exception.code)
+        self.assertIn(str(MAX_QUERY), caught.exception.detail,
+                      'the refusal must name the bound it applied, not just say too long')
+        self.assertEqual(0, self.library.search(query='品' * MAX_QUERY)['total'],
+                         'a query of exactly the declared maximum is legal and answers')
+
     # -- the index is derived ------------------------------------------------------------
     def test_a_rebuild_restores_a_corrupted_index(self):
         self.library.create(entry())
@@ -353,6 +391,263 @@ class KnowledgeLibraryTests(unittest.TestCase):
             p95, knowledge_library.SEARCH_P95_BUDGET_MS,
             f'p95 {p95:.1f} ms over {len(samples)} searches at 1,000 entries exceeds the '
             f'published budget of {knowledge_library.SEARCH_P95_BUDGET_MS} ms')
+
+
+    # -- A5: no model service stands between a designer and these four acts ---------------
+
+    #: What would put a model, a provider or a network hop between the library and its answer.
+    #: A deny-list, because the claim A5 makes is a negative one: "this path reaches no model".
+    #: Anything on this list appearing in the module's imports makes the claim false, and the
+    #: false-import test below proves the scanner is not decoration.
+    MODEL_FACING = frozenset({
+        'model_selection', 'model_catalog', 'providers', 'provider', 'http_service',
+        'http', 'http.client', 'urllib', 'urllib.request', 'socket', 'requests', 'httpx',
+        'openai', 'anthropic'})
+
+    @staticmethod
+    def _reached_names(source: str) -> set:
+        """Every module this source imports, however deeply nested the import statement is."""
+        import ast
+        names = set()
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, ast.Import):
+                names.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                names.add(node.module)
+                names.update(node.module + '.' + alias.name for alias in node.names)
+        return names
+
+    @classmethod
+    def _model_facing_hits(cls, names):
+        """Which imported names reach a model, a provider or the network.
+
+        Matched on dotted parts, so ``from design_lab.model_selection import X``,
+        ``import design_lab.providers`` and ``from http import client`` all land -- a bare
+        ``name in deny_list`` would let the dotted forms walk straight past it.
+        """
+        return sorted(name for name in names
+                      if name in cls.MODEL_FACING
+                      or set(name.split('.')) & cls.MODEL_FACING)
+
+    def test_the_library_reaches_no_model_layer_and_no_network_at_all(self):
+        source = (REPO / 'src/design_lab/knowledge_library.py').read_text(encoding='utf-8')
+        hits = self._model_facing_hits(self._reached_names(source))
+        self.assertEqual(hits, [],
+                         'the knowledge library now imports something model- or network-facing: '
+                         + str(hits))
+        for call in ('urlopen(', 'HTTPConnection(', 'socket.', 'requests.'):
+            self.assertNotIn(call, source, f'the library calls {call}; A5 says it must not')
+
+    def test_the_offline_scanner_notices_a_model_import(self):
+        # The guard above is only worth what its falsification is worth: a planted import must be
+        # caught by the same function, or the pass above would also pass on a wired-up library.
+        planted = chr(10).join(['from design_lab import model_selection',
+                                'import http.client', ''])
+        self.assertEqual(self._model_facing_hits(self._reached_names(planted)),
+                         ['design_lab.model_selection', 'http.client'],
+                         'the scanner missed a planted model or network import: '
+                         + str(self._reached_names(planted)))
+        # And it must not flag an ordinary package import for being nearby in the namespace.
+        self.assertEqual(self._model_facing_hits({'design_lab', 'design_lab.knowledge_library'}),
+                         [], 'the scanner flagged a plain package import as model-facing')
+
+    def test_writing_searching_editing_and_copying_answer_with_no_model_configured(self):
+        """A5 measured, not assumed: the model store is empty, and all four acts still answer."""
+        with closing(model_selection.connect(
+                self.service.database,
+                project_root=self.service.paths.project_root)) as conn:
+            self.assertEqual(
+                0, conn.execute('SELECT COUNT(*) FROM model_selection').fetchone()[0],
+                'a recorded model selection leaked into this fixture; the run would then prove '
+                'nothing about a machine with no model service')
+        created = self.library.create(entry())['entry']
+        entry_id = created['knowledge_entry_id']
+        found = self.library.search(query='分镜')
+        self.assertIn(entry_id, [row['knowledge_entry_id'] for row in found['entries']],
+                      'with no model configured, the search a designer can actually run stopped '
+                      'answering')
+        revised = self.library.revise(entry_id, entry(
+            body='第一步切节拍。第二步选景别。第三步只在对位处补口型。',
+            created_by='owner', expected_revision=1, recommended=False))['entry']
+        detail = self.library.detail(entry_id)
+        # The copy button puts `current.body` on the clipboard byte for byte, so the bytes the
+        # route answers are the copyable ones -- no model, no rewrite, no composition.
+        self.assertEqual(revised['body'], detail['current']['body'])
+        self.assertEqual(revised['content_sha256'], detail['current']['content_sha256'])
+        self.assertLessEqual(1, len(detail['revisions']))
+
+
+class SupersessionForkIsRefused(unittest.TestCase):
+    """One entry may have at most one successor, and the route that wrote the fork is the point.
+
+    `create` had refused a second successor for as long as the feature existed. `import_entry`
+    validated that `supersedes` was well-formed and that the entry existed, then inserted without
+    asking whether something already replaced it -- so the exact fork the UI blocked was one
+    import away, and the read side picked one of the two rows with `dict.setdefault` over an
+    unordered scan. Owner audit 2026-10-26, finding 2. The acceptance is that both routes refuse
+    in the same words, that the refusal survives a restart, that a concurrent writer cannot slip
+    between the check and the insert, and that the database itself -- not only the Python -- holds
+    the rule.
+    """
+
+    def setUp(self):
+        os.environ.pop('PROJECT_LOCAL_ROOT', None)
+        self.base = Path(tempfile.mkdtemp(dir=REPO / '.project-local' / 'task-runtime'))
+        self.project = self.base / 'project'
+        self.project.mkdir()
+        (self.project / 'AGENTS.md').write_text('# supersession fixture', encoding='utf-8')
+        self.service = ProjectService(self.project)
+        self.service.create_project('Supersession')
+        self.library = KnowledgeLibrary(self.service)
+
+    def import_body(self, **overrides):
+        body = {key: value for key, value in entry().items() if key != 'created_by'}
+        body['imported_by'] = 'owner'
+        body.update(overrides)
+        return body
+
+    def successors_of(self, conn, entry_id):
+        return [row['entry_id'] for row in conn.execute(
+            'SELECT entry_id FROM knowledge_entry WHERE supersedes=?', (entry_id,))]
+
+    def test_the_import_route_refuses_the_fork_the_create_route_already_refused(self):
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        self.library.create(entry(supersedes=first))['entry']['knowledge_entry_id']
+        with self.assertRaises(KnowledgeLibraryError) as caught:
+            self.library.import_entry(self.import_body(
+                source=dict(SOURCE, sourceId='other-note', version='1'), supersedes=first))
+        self.assertEqual(409, caught.exception.status,
+                         'the import answered a different status than the create would have')
+        self.assertEqual('KNOWLEDGE_SUPERSESSION_CONFLICT', caught.exception.code,
+                         'the two routes refused with different words for the same rule, so a '
+                         'caller cannot tell a fork from any other import failure')
+        self.assertIn(first, caught.exception.detail,
+                      'the refusal does not name the entry that is already replaced')
+
+    def test_the_refusal_names_the_existing_successor_not_just_the_conflict(self):
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        successor = self.library.create(entry(supersedes=first))['entry']['knowledge_entry_id']
+        with self.assertRaises(KnowledgeLibraryError) as caught:
+            self.library.create(entry(supersedes=first))
+        self.assertIn(successor, caught.exception.detail,
+                      'the operator is told that a successor exists but not which one, so the '
+                      'only way to find it is to guess')
+
+    def test_the_fork_is_still_one_row_after_the_store_is_reopened(self):
+        """Restart read-back: the refusal must not have half-written anything."""
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        kept = self.library.create(entry(supersedes=first))['entry']['knowledge_entry_id']
+        with self.assertRaises(KnowledgeLibraryError):
+            self.library.import_entry(self.import_body(
+                source=dict(SOURCE, sourceId='late-note', version='1'), supersedes=first))
+        reopened = KnowledgeLibrary(self.service)
+        conn = reopened._connect()
+        try:
+            self.assertEqual([kept], self.successors_of(conn, first),
+                             'the refused import left a second successor row behind')
+            revision_rows = conn.execute(
+                'SELECT COUNT(*) FROM knowledge_entry_revision WHERE entry_id IN'
+                ' (SELECT entry_id FROM knowledge_entry WHERE supersedes=?)', (first,)).fetchone()[0]
+            self.assertEqual(1, revision_rows,
+                             'the refused transaction left revision bytes behind, so the library '
+                             'holds content for an entry row that was never accepted')
+        finally:
+            conn.close()
+        detail = reopened.detail(first)
+        self.assertEqual(kept, detail['superseded_by'],
+                         'the read side is still choosing between two rows')
+
+    def test_the_database_itself_refuses_a_writer_that_skips_the_application_check(self):
+        """The rule lives in the schema, not only in the two routes I remembered to fix.
+
+        A future route that inserts straight into `knowledge_entry` gets the trigger, so "both
+        callers now share the guard" is not the whole guarantee.
+        """
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        self.library.create(entry(supersedes=first))
+        conn = self.library._connect()
+        try:
+            with self.assertRaises(sqlite3.IntegrityError) as caught:
+                conn.execute('INSERT INTO knowledge_entry (entry_id, supersedes, created_at,'
+                             ' created_by) VALUES (?,?,?,?)',
+                             ('kentry' + '0' * 40, first, '2026-10-26T00:00:00Z', 'raw writer'))
+            self.assertIn('at most one successor', str(caught.exception))
+        finally:
+            conn.close()
+
+    def test_two_writers_cannot_both_become_the_successor(self):
+        """Concurrency: the guard reads, then the insert writes -- the window is the defect.
+
+        Both attempts use different routes and different sources, so a fix that only closed the
+        import path (or only ran the check outside the lock) cannot pass this.
+        """
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        barrier = threading.Barrier(2)
+
+        def via_create():
+            barrier.wait()
+            try:
+                self.library.create(entry(supersedes=first))
+                return 'wrote'
+            except KnowledgeLibraryError as exc:
+                return exc.code
+
+        def via_import():
+            barrier.wait()
+            try:
+                self.library.import_entry(self.import_body(
+                    source=dict(SOURCE, sourceId='racer', version='1'), supersedes=first))
+                return 'wrote'
+            except KnowledgeLibraryError as exc:
+                return exc.code
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            outcomes = sorted(f.result() for f in
+                              (pool.submit(via_create), pool.submit(via_import)))
+        self.assertEqual(['KNOWLEDGE_SUPERSESSION_CONFLICT', 'wrote'], outcomes,
+                         'both writers got through, or the loser was refused for the wrong reason:'
+                         ' %s' % outcomes)
+        conn = self.library._connect()
+        try:
+            self.assertEqual(1, len(self.successors_of(conn, first)))
+        finally:
+            conn.close()
+
+
+    def test_the_trigger_fallback_refusal_names_the_successor_too(self):
+        """A writer that reaches the database trigger is refused in the same words, with the id.
+
+        The guard is the polite door; the trigger is the wall behind it. The wall's message used to
+        be vaguer than the door's -- "already superseded by another entry" without saying which -- so
+        the one caller who most needed the id (a race, where the operator already thinks they are the
+        first) got the least. The guard is silenced here on purpose: that is the only way to arrive
+        at the fallback deliberately instead of by losing a race.
+        """
+        first = self.library.create(entry())['entry']['knowledge_entry_id']
+        successor = self.library.create(entry(supersedes=first))['entry']['knowledge_entry_id']
+        real_guard = knowledge_library._supersedes_guard
+        knowledge_library._supersedes_guard = lambda conn, supersedes: None
+        try:
+            with self.assertRaises(KnowledgeLibraryError) as caught:
+                self.library.create(entry(supersedes=first))
+        finally:
+            knowledge_library._supersedes_guard = real_guard
+        self.assertEqual(409, caught.exception.status)
+        self.assertEqual('KNOWLEDGE_SUPERSESSION_CONFLICT', caught.exception.code)
+        self.assertIn(successor, caught.exception.detail,
+                      'the fallback refusal does not name the entry that holds the claim: %s'
+                      % caught.exception.detail)
+        conn = self.library._connect()
+        try:
+            self.assertEqual([successor], sorted(self.successors_of(conn, first)),
+                             'the refused fallback write forked the chain anyway')
+        finally:
+            conn.close()
+        # And the two refusals agree, which is why they share one formatter.
+        with self.assertRaises(KnowledgeLibraryError) as via_guard:
+            self.library.create(entry(supersedes=first))
+        self.assertEqual(via_guard.exception.detail, caught.exception.detail,
+                         'the guard and the trigger fallback describe the same refusal differently')
 
 
 if __name__ == '__main__':

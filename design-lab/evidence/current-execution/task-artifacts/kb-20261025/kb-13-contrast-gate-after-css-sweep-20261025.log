@@ -1,0 +1,155 @@
+w=1440:workbench           checked= 123 belowAA=  0 pseudoLayers= 42 unparsable=0 covered=0 obscured=0 collapsed=17 control=2/2
+w=1440:dashboard           checked=  79 belowAA=  0 pseudoLayers= 34 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:projects            checked=  63 belowAA=  0 pseudoLayers= 18 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:research            checked=2329 belowAA=  0 pseudoLayers=2160 unparsable=0 covered=0 obscured=0 collapsed=1482 control=2/2
+w=1440:brand-systems       checked=  91 belowAA=  0 pseudoLayers= 46 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:domains             checked= 118 belowAA=  0 pseudoLayers= 57 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:tools               checked=  86 belowAA=  0 pseudoLayers= 68 unparsable=0 covered=0 obscured=0 collapsed=9 control=2/2
+w=1440:preflight           checked= 112 belowAA=  0 pseudoLayers= 66 unparsable=0 covered=0 obscured=0 collapsed=34 control=2/2
+w=1440:deliverables        checked=  84 belowAA=  0 pseudoLayers= 37 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:evidence            checked= 129 belowAA=  0 pseudoLayers= 81 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:collaboration       checked=  52 belowAA=  0 pseudoLayers=  8 unparsable=0 covered=0 obscured=0 collapsed=5 control=2/2
+w=1440:settings            checked= 101 belowAA=  0 pseudoLayers= 55 unparsable=0 covered=0 obscured=0 collapsed=17 control=2/2
+w=1440:capabilities        checked=2295 belowAA=  0 pseudoLayers=2131 unparsable=0 covered=0 obscured=0 collapsed=1482 control=2/2
+w=1440:states              checked=  89 belowAA=  0 pseudoLayers=  0 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:components          checked=  96 belowAA=  0 pseudoLayers=  0 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:domain-detail       checked= 147 belowAA=  0 pseudoLayers= 57 unparsable=0 covered=0 obscured=1 collapsed=1 control=2/2
+w=1440:intake              checked=  93 belowAA=  0 pseudoLayers=  0 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:prompt-intelligence checked=  80 belowAA=  0 pseudoLayers= 12 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:model-selection     checked= 281 belowAA=  0 pseudoLayers=239 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:plan                checked=  55 belowAA=  0 pseudoLayers=  0 unparsable=0 covered=0 obscured=0 collapsed=2 control=2/2
+w=1440:analysis            checked=  75 belowAA=  0 pseudoLayers=  8 unparsable=0 covered=0 obscured=0 collapsed=5 control=2/2
+w=1440:knowledge           checked=  61 belowAA=  0 pseudoLayers=  8 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:knowledge+entry-detail checked= 134 belowAA=  0 pseudoLayers= 81 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:assistant           checked=  78 belowAA=  0 pseudoLayers= 33 unparsable=0 covered=0 obscured=0 collapsed=12 control=2/2
+w=1440:assistant+plan-detail checked= 176 belowAA=  0 pseudoLayers=145 unparsable=0 covered=0 obscured=0 collapsed=25 control=2/2
+w=1440:assistant+plan-compare checked= 249 belowAA=  0 pseudoLayers=218 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:assistant+plan-feedback checked= 250 belowAA=  0 pseudoLayers=220 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1440:target-profiles     checked= 117 belowAA=  0 pseudoLayers= 53 unparsable=0 covered=0 obscured=0 collapsed=17 control=2/2
+w=1440:target-profiles+combination checked= 243 belowAA=  0 pseudoLayers=115 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+  STALEROW 1440:target-profiles+combination-after-change moved=tp-software->ElevenLabs profile=flux2--api--image-generation=>elevenlabs--web-app--music text=按新目标重新校验 disabled=0 color=rgb(255, 255, 255) transition-property=transform, border-color, box-shadow bg=rgba(0, 0, 0, 0) + linear-gradient(135deg, rgb(29, 79
+  STALEOWNER 1440:target-profiles+combination-after-change rules=3 [button{color:rgb(255, 255, 255)} | .primary-btn{color:rgb(255, 255, 255)} | #tp-validate{color:rgb(255, 255, 255)}]
+w=1440:target-profiles+combination-after-change checked= 243 belowAA=  0 pseudoLayers=115 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:workbench           checked= 123 belowAA=  0 pseudoLayers= 42 unparsable=0 covered=0 obscured=0 collapsed=17 control=2/2
+w=1920:dashboard           checked=  79 belowAA=  0 pseudoLayers= 34 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:projects            checked=  63 belowAA=  0 pseudoLayers= 18 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:research            checked=2329 belowAA=  0 pseudoLayers=2160 unparsable=0 covered=0 obscured=0 collapsed=1482 control=2/2
+w=1920:brand-systems       checked=  91 belowAA=  0 pseudoLayers= 46 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:domains             checked= 118 belowAA=  0 pseudoLayers= 57 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:tools               checked=  86 belowAA=  0 pseudoLayers= 68 unparsable=0 covered=0 obscured=0 collapsed=9 control=2/2
+w=1920:preflight           checked= 112 belowAA=  0 pseudoLayers= 66 unparsable=0 covered=0 obscured=0 collapsed=34 control=2/2
+w=1920:deliverables        checked=  84 belowAA=  0 pseudoLayers= 37 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:evidence            checked= 129 belowAA=  0 pseudoLayers= 81 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:collaboration       checked=  52 belowAA=  0 pseudoLayers=  8 unparsable=0 covered=0 obscured=0 collapsed=5 control=2/2
+w=1920:settings            checked= 101 belowAA=  0 pseudoLayers= 55 unparsable=0 covered=0 obscured=0 collapsed=17 control=2/2
+w=1920:capabilities        checked=2295 belowAA=  0 pseudoLayers=2131 unparsable=0 covered=0 obscured=0 collapsed=1482 control=2/2
+w=1920:states              checked=  89 belowAA=  0 pseudoLayers=  0 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:components          checked=  96 belowAA=  0 pseudoLayers=  0 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:domain-detail       checked= 145 belowAA=  0 pseudoLayers= 57 unparsable=0 covered=0 obscured=3 collapsed=1 control=2/2
+w=1920:intake              checked=  93 belowAA=  0 pseudoLayers=  0 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:prompt-intelligence checked=  80 belowAA=  0 pseudoLayers= 12 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:model-selection     checked= 281 belowAA=  0 pseudoLayers=239 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:plan                checked=  55 belowAA=  0 pseudoLayers=  0 unparsable=0 covered=0 obscured=0 collapsed=2 control=2/2
+w=1920:analysis            checked=  75 belowAA=  0 pseudoLayers=  8 unparsable=0 covered=0 obscured=0 collapsed=5 control=2/2
+w=1920:knowledge           checked=  61 belowAA=  0 pseudoLayers=  8 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:knowledge+entry-detail checked= 134 belowAA=  0 pseudoLayers= 81 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:assistant           checked=  78 belowAA=  0 pseudoLayers= 33 unparsable=0 covered=0 obscured=0 collapsed=12 control=2/2
+w=1920:assistant+plan-detail checked= 177 belowAA=  0 pseudoLayers=147 unparsable=0 covered=0 obscured=0 collapsed=25 control=2/2
+w=1920:assistant+plan-compare checked= 250 belowAA=  0 pseudoLayers=220 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:assistant+plan-feedback checked= 250 belowAA=  0 pseudoLayers=218 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+w=1920:target-profiles     checked= 117 belowAA=  0 pseudoLayers= 53 unparsable=0 covered=0 obscured=0 collapsed=17 control=2/2
+w=1920:target-profiles+combination checked= 243 belowAA=  0 pseudoLayers=115 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+  STALEROW 1920:target-profiles+combination-after-change moved=tp-software->ElevenLabs profile=flux2--api--image-generation=>elevenlabs--web-app--music text=按新目标重新校验 disabled=0 color=rgb(255, 255, 255) transition-property=transform, border-color, box-shadow bg=rgba(0, 0, 0, 0) + linear-gradient(135deg, rgb(29, 79
+  STALEOWNER 1920:target-profiles+combination-after-change rules=3 [button{color:rgb(255, 255, 255)} | .primary-btn{color:rgb(255, 255, 255)} | #tp-validate{color:rgb(255, 255, 255)}]
+w=1920:target-profiles+combination-after-change checked= 243 belowAA=  0 pseudoLayers=115 unparsable=0 covered=0 obscured=0 collapsed=1 control=2/2
+CT_VEIL_CONTROL caught=yes coveredForeign=1 ratio=1.18 (white text under a 92% white veil must fall below AA)
+CT_MARGIN tightest=4.11 need=3 route=strong :: 1
+  MATH #777777 on #777777 got=1 want=1 ok
+  MATH #FFFFFF on #000000 got=21 want=21 ok
+  MATH #767676 on #FFFFFF got=4.54 want=4.54 ok
+  MATH #777777 on #FFFFFF got=4.48 want=4.48 ok
+  COLOUR oklab(1 0 0) got=255,255,255 want=255,255,255 ok
+  COLOUR oklab(0 0 0) got=0,0,0 want=0,0,0 ok
+  COLOUR oklab(0.62796 0.22486 0.12585) got=255,0,0 want=255,0,0 ok
+  COLOUR oklab(0.45201 -0.03246 -0.31153) got=0,0,255 want=0,0,255 ok
+
+CT_SUMMARY checked=16258 belowAA=0 pseudoLayers=12216 coveredForeign=0 obscured=4 unparsable=0 collapsedOpened=6250 controlMisses=0 strict=1 mathChecks=4 mathBad=0 colourChecks=4 colourBad=0
+CT_SPEC palette=design-lab/dark textRuns=16082 minPx=12 below12=0 in14to16=3338/16082 pxHist=[12=6756 13=5274 13.3=518 14=124 15=206 16=3008 17=58 19=22 21=16 24=6 26=2 32=54 35=38]
+CT_SPEC controls=2932 formControls=1046 formBelow36px=14 formRadiusOver10=992 hHist=[13=86 21=4 29=16 30=4 32=14 37=58 38=8 39=288 40=206 41=286 42=156 43=224 44=2 45=166 47=1348 56=16 58=2 60=2 72=8 83=8 88=22 122=2 141=2 184=2 256=2] rHist=[0=86 7=80 8=440 12=992 14=1334]
+CT_SPEC glass=2 glassOffAllowlist=0 translucentTextHosts=48 unparsableAlpha=0 gradients=1394 bigOver25pct=86 brandBluePaints=44
+  GLASS aside#app-sidebar.sidebar blur(18px)
+  GLASS header.topbar blur(18px)
+CT_SPEC headings=[h1 26px/700/lh0 | h2 21px/700/lh0 | h1 17px/700/lh19.6 | h2 32px/700/lh0 | h3 15px/700/lh0 | h3 13px/700/lh0 | h2 24px/700/lh0 | h3 16px/700/lh0 | h4 16px/700/lh0 | h4 14px/700/lh0] labelled=532 labelAbove=434 errorNodes=0 errorAdjacent=0
+  LABEL-SIDEBY 1440:tools label.project-picker vs select#创作工具-project.project-select dy=-8px
+  LABEL-SIDEBY 1440:preflight label vs input#jury-approve dy=-17px
+  LABEL-SIDEBY 1440:preflight label vs input#jury-reject dy=-17px
+  LABEL-SIDEBY 1440:preflight label vs input#rights-decision-APPROVED dy=-17px
+  LABEL-SIDEBY 1440:preflight label vs input#rights-decision-DENIED dy=-17px
+  LABEL-SIDEBY 1440:preflight label vs input#rights-decision-PENDING_REVIEW dy=-17px
+  LABEL-SIDEBY 1440:preflight label vs input#rights-decision-BLOCKED_BY_LICENSE dy=-17px
+  LABEL-SIDEBY 1440:deliverables label.project-picker vs select#交付中心-project.project-select dy=-8px
+  LABEL-SIDEBY 1440:evidence label.project-picker vs select#证据系统-project.project-select dy=-8px
+  LABEL-SIDEBY 1440:intake label.project-picker vs select#输入与目标-project.project-select dy=-8px
+  NOTSOLID 1440:projects button.ghost-btn a=0.62
+  NOTSOLID 1440:knowledge+entry-detail li.list-item a=0.74
+  NOTSOLID 1440:knowledge+entry-detail li.list-item a=0.74
+  NOTSOLID 1440:knowledge+entry-detail li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-detail li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-detail li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-detail li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-detail li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-detail li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-detail li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-compare li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-compare li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-compare li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-compare li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-compare li.list-item a=0.74
+  NOTSOLID 1440:assistant+plan-compare li.list-item a=0.74
+  FORM-BELOW36 1440:tools 32px select#创作工具-project.project-select
+  FORM-BELOW36 1440:deliverables 32px select#交付中心-project.project-select
+  FORM-BELOW36 1440:evidence 32px select#证据系统-project.project-select
+  FORM-BELOW36 1440:intake 32px select#输入与目标-project.project-select
+  FORM-BELOW36 1440:prompt-intelligence 32px select#提示词工程-project.project-select
+  FORM-BELOW36 1440:plan 32px select#目标生成包-project.project-select
+  FORM-BELOW36 1440:analysis 32px select#分析与方案-project.project-select
+  FORM-BELOW36 1920:tools 32px select#创作工具-project.project-select
+  FORM-BELOW36 1920:deliverables 32px select#交付中心-project.project-select
+  FORM-BELOW36 1920:evidence 32px select#证据系统-project.project-select
+  FORM-BELOW36 1920:intake 32px select#输入与目标-project.project-select
+  FORM-BELOW36 1920:prompt-intelligence 32px select#提示词工程-project.project-select
+  FORM-RADIUS 1440:workbench 12px select#project
+  FORM-RADIUS 1440:workbench 12px input#project-name
+  FORM-RADIUS 1440:dashboard 12px button#openSettings.ghost-btn
+  FORM-RADIUS 1440:dashboard 12px button#openDrawer.ghost-btn
+  FORM-RADIUS 1440:dashboard 12px button.primary-btn
+  FORM-RADIUS 1440:projects 12px button#openSettings.ghost-btn
+  FORM-RADIUS 1440:projects 12px button#openDrawer.ghost-btn
+  FORM-RADIUS 1440:projects 12px button.primary-btn
+  FORM-RADIUS 1440:projects 12px button.ghost-btn
+  FORM-RADIUS 1440:research 12px button#openSettings.ghost-btn
+  FORM-RADIUS 1440:research 12px button#openDrawer.ghost-btn
+  FORM-RADIUS 1440:research 12px select#research-project.input
+  BIGGRADIENT div.grid-bg x2 100%
+  BIGGRADIENT div.panel.research-facts x1 53%
+  BIGGRADIENT div.panel x1 40%
+  BIGGRADIENT div.panel x1 53%
+  BIGGRADIENT section.panel x1 31%
+  BIGGRADIENT div.panel.capability-card x1 29%
+  BIGGRADIENT section#settings-models.panel x1 28%
+  BIGGRADIENT div.panel x1 55%
+  BIGGRADIENT form#as-form.panel.as-form x1 33%
+  BIGGRADIENT section#as-plan.panel.as-detail x1 75%
+  BRANDBLUE button.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#research-submit.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#preflight-run.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#jury-submit.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#rights-submit.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#intake-submit.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#plan-submit.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#analysis-revise.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#kb-search.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#as-submit.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#as-choose.primary-btn rgb(29, 79, 196)
+  BRANDBLUE button#tp-validate.primary-btn rgb(29, 79, 196)
+CT_OK: every measured text run meets WCAG 2.1 AA for its painted background, and every colour the page computes was parsed

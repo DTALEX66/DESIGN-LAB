@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import argparse
 import json
 import re
-from .paths import PROJECT_ROOT, resolve_paths
+from .paths import PathPolicyError, PROJECT_ROOT, resolve_paths
 
 EXPECTED = {
     "uv": ">=0.4",
@@ -183,7 +183,9 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if result['status'] == 'PREVIEW_READY' else 2
     if args.paths:
-        from .paths import PathPolicyError, resolve_paths
+        # No local `from .paths import ... resolve_paths` here. That import once made the name local
+        # to this whole function, so the earlier `--task` branch read it before it was bound and
+        # died with UnboundLocalError on every task id, valid or not. Both names are module-level.
         try:
             result = resolve_paths().describe()
         except (PathPolicyError, OSError) as exc:

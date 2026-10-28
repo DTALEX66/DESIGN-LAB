@@ -29,6 +29,24 @@ def _ledger() -> dict:
     return json.loads(LEDGER.read_text(encoding='utf-8'))
 
 
+def _untracked_artefacts(ledger: dict, tracked: set) -> list:
+    """Rows of `currentExecution` whose artefact exists here but is not in the index.
+
+    `artifact_path` is read from disk by the ledger's consumers, so a file that is merely *present*
+    passes locally and disappears in a clone. Git's index is the only authority on whether the next
+    checkout will have it, and `.project-local/**` is exempt because those paths are gitignored by
+    design -- the gate's whole point is that those two kinds are not the same finding.
+    """
+    offenders = []
+    for row in ledger['currentExecution']['evidence']:
+        path = str(row.get('artifact_path', '')).replace('\\', '/')
+        if not path or path.startswith('.project-local/'):
+            continue
+        if path not in tracked and not (REPO / path).is_dir():
+            offenders.append((row.get('id'), path))
+    return offenders
+
+
 class EvidenceArtifactPresenceTests(unittest.TestCase):
     def test_tracked_artefacts_of_the_real_ledger_all_read_back(self):
         result = gate.evaluate(REPO, _ledger())
@@ -263,16 +281,41 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('src/design_lab/interop/dtcg.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-25, one new pair, and it is a record bound to a test module rather than to
+            # product code: r5-workbench-http-native-ui-reobserved-20261006 hashes
+            # design-lab/tests/test_design_layer_http.py as its artefact, and this round added
+            # `test_unknown_project_id_answers_404_with_the_established_word` to that module after
+            # proving the route previously answered a well-formed-but-absent project id with no
+            # status line at all (http.client.RemoteDisconnected). The older 2026-10-06 observation
+            # is not rewritten -- it stays what it saw -- and this line is what makes its age
+            # visible instead of letting the newer bytes silently absorb it. Re-measured at this
+            # HEAD against the 64 pinned before this line: observed 65 pairs, broken=0, and the
+            # only difference was this artefact; no pair vanished and no existing count moved.
+            ('design-lab/tests/test_design_layer_http.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-26, one new pair, and it is a record bound to a test module: the owner-audit
+            # fix for `doctor --task` added the three format cases to test_doctor.py (refusal names
+            # the expected '<TASKPACK>::<TASK_KEY>' shape and exits 2; success returns the preflight
+            # contract envelope; --paths unchanged), and a record hashes that module as its
+            # artefact. The product file it aged was `src/design_lab/runtime/doctor.py` -- no record
+            # binds that one by hash, which is why only this pair moved. Re-measured against this
+            # file's own spy rather than inherited: observed 66 pairs against the 65 pinned before
+            # this line, broken=0, and the delta was exactly this one name; no pair shrank.
+            ('design-lab/tests/test_doctor.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 64,
+        self.assertEqual(sum(counts.values()), 66,
                          'the total drifted-record count is pinned, not derived '
                          '(59 -> 60 on 2026-10-19: the gate module aged its own binding record; '
                          '60 -> 64 on 2026-10-23: four records aged when their bound code moved to '
-                         'repo_resource so an installed wheel can open its own contracts)')
+                         'repo_resource so an installed wheel can open its own contracts; '
+                         '64 -> 65 on 2026-10-25: one record aged when a 404 test was added to the '
+                         'HTTP module it hashes; 65 -> 66 on 2026-10-26: one record aged when the '
+                         'owner-audit fix for doctor --task added cases to the module it hashes)')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
         ledger = copy.deepcopy(_ledger())
@@ -350,6 +393,56 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
         result = gate.evaluate(REPO, ledger)
         self.assertEqual(result['broken'], [])
         self.assertEqual(len(result['runtime_missing']), 1)
+
+
+    def test_every_dispatched_artefact_the_ledger_names_is_in_git_index(self):
+        """A row whose artefact exists only on my disk is a record that cannot be re-read.
+
+        CI run 40338742258 at `4dc59349` is why this assertion exists: the script that closed the
+        round staged whatever git marked ` M` and left the brand-new `??` receipt out of the commit,
+        so `currentExecution` carried a row pointing at `dl-final-t04-exact-sha-ci-matrix-20261026
+        .json`, which a clone did not have. Two gates read it there -- `CURRENT_EXECUTION` and the
+        `evidence-projection` route, which re-hashes the ledger and answered
+        `500 EVIDENCE_LEDGER_REJECTED` -- and neither could see it here, because the file was on my
+        disk the whole time. Presence on disk is not presence in the delivery.
+        """
+        listing = subprocess.run(['git', 'ls-files', '-z'], cwd=str(REPO), capture_output=True,
+                                 check=True).stdout.decode('utf-8').split('\0')
+        offenders = _untracked_artefacts(_ledger(), set(listing))
+        self.assertEqual([], offenders,
+                         'these ledger rows name an artefact that a clean checkout will not '
+                         'contain: %s' % (offenders,))
+
+    def test_the_index_check_convicts_a_path_that_is_not_in_the_index(self):
+        """Without the plant, the assertion above cannot be told apart from one that never fires.
+
+        Deliberately no file is written: whether the artefact sits on my disk is exactly the
+        distinction the index settles, and dropping a scratch file under `design-lab/evidence/` would
+        let a concurrently running shard enumerate a row that only exists for the length of this
+        test. An untracked path is untracked whether or not it is present.
+        """
+        listing = subprocess.run(['git', 'ls-files', '-z'], cwd=str(REPO), capture_output=True,
+                                 check=True).stdout.decode('utf-8').split('\0')
+        tracked = set(listing)
+        stray = ('design-lab/evidence/current-execution/task-artifacts/kb-20261026/'
+                 '_untracked-probe.json')
+        self.assertNotIn(stray, tracked, 'the probe path is somehow tracked, so it proves nothing')
+        ledger = copy.deepcopy(_ledger())
+        row = {'id': 'probe-row', 'task_id': 'DL-KB-01', 'axis': 'unit', 'outcome': 'PASS',
+               'observed_at': '2026-10-26T00:00:00Z', 'subject_sha': '0' * 40, 'exit_code': 0,
+               'command': 'probe', 'artifact_path': stray, 'artifact_sha256': '0' * 64}
+        ledger['currentExecution']['evidence'].append(row)
+        offenders = _untracked_artefacts(ledger, tracked)
+        self.assertIn('probe-row', [one[0] for one in offenders],
+                      'an artefact outside the index slipped through the check')
+        # And the exemption has to stay an exemption: a gitignored runtime path is a warning in the
+        # gate's own vocabulary, never a missing record in the index.
+        gitignored = copy.deepcopy(ledger)
+        gitignored['currentExecution']['evidence'] = [dict(row,
+                                                           artifact_path='.project-local/x.json')]
+        self.assertEqual([], _untracked_artefacts(gitignored, tracked),
+                         'the check now convicts gitignored runtime paths too, which would make '
+                         'every clean checkout red')
 
 
 if __name__ == '__main__':

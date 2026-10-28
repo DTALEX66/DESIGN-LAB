@@ -18,7 +18,6 @@
   --color-success:#2FC58D;
   --color-warning:#F4B942;
   --color-error:#F05252;
-  --color-info:#4BAFFF;
 
   /* 品牌渐变两端：primary-btn / toolbar .seg button.active / .seg button.active 三处同一对端点 */
   --brand-gradient-from:#1D4FC4;
@@ -32,7 +31,6 @@
   --motion-fast:120ms;
   --motion-base:180ms;
   --motion-slow:280ms;
-  --motion-emphasis:420ms;
 
   /* 层级（此前 12 处字面 z-index、无表）：值逐条从本文件量得，登记在
      design-lab/config/ui-layering.json；新增层层必须先进那张表再用。 */
@@ -69,35 +67,16 @@
      --------------------------------------------------------------------- */
 
   /* 间距标度（B07 base-tokens.css，8 级） */
-  --space-1:4px;
-  --space-2:8px;
-  --space-3:12px;
   --space-4:16px;
-  --space-6:24px;
-  --space-8:32px;
-  --space-12:48px;
-  --space-16:64px;
 
   /* 字号标度（B07 base-tokens.css；body/caption 见 X-1/X-2） */
-  --font-display:48px;
-  --font-h1:36px;
-  --font-h2:28px;
-  --font-h3:22px;
-  --font-body:16px;
   --font-caption:13px;
 
   /* 断点（B07 base-tokens.css） */
-  --bp-mobile:767px;
-  --bp-tablet:1024px;
-  --bp-desktop:1440px;
 
   /* 密度（B04 design_tokens.json density；B07 治理层未承载） */
-  --density-comfortable:68;
-  --density-default:56;
-  --density-compact:44;
 
   /* 圆角补全（B04 radius.xl=20；--radius-sm 见 X-7，不重定义） */
-  --radius-xl:20px;
 
   /* Workbench 内部语义别名（旧变量名保留，值重指到权威色） */
   --ink:var(--color-text);
@@ -120,8 +99,15 @@
      It is a token rather than an asset route because src/design_lab/workbench.py serves
      a fixed three-path allowlist under `img-src data:`; a /workbench/*.png route would
      mean widening both. */
-  /* brand-mark:begin sha256=07cd6e20e17f8e1574aff1c9d48dc0a34bea9594984add01143a66f1e1082f00 */
-  --brand-mark:url("data:image/png;base64,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");
+  /* brand-mark:begin sha256=0dc0a7362f6fc192bb7b6383afec34de08f85d2deff84bd525bcdcac4488f87f */
+  /* Two encodings of the same vector, not two drawings: the glyph must read on the charcoal
+     default and on the two light palettes, and a background-image cannot inherit `currentColor`.
+     A single asset route is not an option either -- workbench.py serves a fixed three-path
+     allowlist under CSP `img-src data:`, so adding /workbench/*.svg would widen both, which is an
+     owner call rather than a convenience. */
+  --brand-mark-paper:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ijc0LjQxIDI0Ljk2IDE2MC4yMiAxNTUuOTciIHdpZHRoPSIxNjAuMjIiIGhlaWdodD0iMTU1Ljk3IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkRFU0lHTi1MQUIiPjxnIGZpbGw9IiNFRUYyRjUiPjxwYXRoIGQ9Ik0xMTguNDYsMzEuMTFjLTAuMzUsMC42MS0wLjAyLDEuMjYtMC4wMiwxLjkxYy0wLjEsMjkuMDUsMC4wOCw1OC4yMSwwLDg3LjE5CgkJYy0wLjA0LDE2LjIxLDIuNDcsMjkuMTItMTIuMDksMzkuNzhjLTcuOCw1LjcxLTE3Ljc0LDguNzUtMjcuMTUsMTAuNTljLTAuNi0wLjUxLDIuNzEtMS42MiwyLjk1LTEuNzUKCQljMTAuMzYtNS40LDE2LjY3LTE0LjM0LDE3LjcxLTI2LjEyVjQxLjI4Qzk4LjA1LDMxLjI0LDg0LjkzLDMwLjcsNzYuODIsMjkuOWwtMC4yNy0wLjE4Yy0wLjE4LTAuNDQtMC4yNS0xLjQ0LDAuMjgtMS42CgkJYzIuNDMsMC4wNSw0Ljg4LTAuMDcsNy4zMi0wLjAzYzEzLjgyLDAuMjIsMjcuNDksMC4xNyw0MS4yOC0wLjIzYzMzLjQ2LTAuOTcsNjYuNDQtNS44OSw4OS42LDIzLjc2CgkJYzMxLjA1LDM5Ljc2LDIwLjE5LDk3LjA5LTI2LjAzLDExOC45N2MtMTguOTgsOC45OC0zMS4wNSw4LjQ0LTUxLjY0LDguMjdjLTE2LjA5LTAuMTMtMzIuMjktMC42Mi00OC4zOS0wLjk0CgkJYy0zLjc5LTAuMDctOCwwLjMzLTExLjcyLTAuMjJjLTEuMTItMC4xNi0xLjA2LTAuODItMC4xOS0xLjMxYzIuNTksMC4wNiw1LjE5LTAuMzksNy43Ny0wLjUzYzE5LjQ3LTEuMDYsMzkuMDctMS4xMiw1OC41MS0yLjI5CgkJYzUwLjctMy4wNCw4OS4wMy01My4zMSw2NC43Ny0xMDEuOTZjLTEwLjAxLTIwLjA5LTI0LjU4LTMwLjExLTQ2LjA4LTM1LjgzQzE0Ny45MywzMi4wMywxMzMuMDUsMzAuNzQsMTE4LjQ2LDMxLjExTDExOC40NiwzMS4xMXoiLz48cGF0aCBkPSJNMjAyLjkxLDEwMi45NGMtMzEuMTMsMy4zNC0zMy44NCw2LjA1LTM3LjE4LDM3LjE4Yy0zLjM0LTMxLjEzLTYuMDUtMzMuODQtMzcuMTgtMzcuMTgKCQljMzEuMTMtMy4zNCwzMy44NC02LjA1LDM3LjE4LTM3LjE4QzE2OS4wNyw5Ni44OSwxNzEuNzgsOTkuNiwyMDIuOTEsMTAyLjk0eiIvPjwvZz48L3N2Zz4K");
+  --brand-mark-ink:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ijc0LjQxIDI0Ljk2IDE2MC4yMiAxNTUuOTciIHdpZHRoPSIxNjAuMjIiIGhlaWdodD0iMTU1Ljk3IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkRFU0lHTi1MQUIiPjxnIGZpbGw9IiMxNzIxMkIiPjxwYXRoIGQ9Ik0xMTguNDYsMzEuMTFjLTAuMzUsMC42MS0wLjAyLDEuMjYtMC4wMiwxLjkxYy0wLjEsMjkuMDUsMC4wOCw1OC4yMSwwLDg3LjE5CgkJYy0wLjA0LDE2LjIxLDIuNDcsMjkuMTItMTIuMDksMzkuNzhjLTcuOCw1LjcxLTE3Ljc0LDguNzUtMjcuMTUsMTAuNTljLTAuNi0wLjUxLDIuNzEtMS42MiwyLjk1LTEuNzUKCQljMTAuMzYtNS40LDE2LjY3LTE0LjM0LDE3LjcxLTI2LjEyVjQxLjI4Qzk4LjA1LDMxLjI0LDg0LjkzLDMwLjcsNzYuODIsMjkuOWwtMC4yNy0wLjE4Yy0wLjE4LTAuNDQtMC4yNS0xLjQ0LDAuMjgtMS42CgkJYzIuNDMsMC4wNSw0Ljg4LTAuMDcsNy4zMi0wLjAzYzEzLjgyLDAuMjIsMjcuNDksMC4xNyw0MS4yOC0wLjIzYzMzLjQ2LTAuOTcsNjYuNDQtNS44OSw4OS42LDIzLjc2CgkJYzMxLjA1LDM5Ljc2LDIwLjE5LDk3LjA5LTI2LjAzLDExOC45N2MtMTguOTgsOC45OC0zMS4wNSw4LjQ0LTUxLjY0LDguMjdjLTE2LjA5LTAuMTMtMzIuMjktMC42Mi00OC4zOS0wLjk0CgkJYy0zLjc5LTAuMDctOCwwLjMzLTExLjcyLTAuMjJjLTEuMTItMC4xNi0xLjA2LTAuODItMC4xOS0xLjMxYzIuNTksMC4wNiw1LjE5LTAuMzksNy43Ny0wLjUzYzE5LjQ3LTEuMDYsMzkuMDctMS4xMiw1OC41MS0yLjI5CgkJYzUwLjctMy4wNCw4OS4wMy01My4zMSw2NC43Ny0xMDEuOTZjLTEwLjAxLTIwLjA5LTI0LjU4LTMwLjExLTQ2LjA4LTM1LjgzQzE0Ny45MywzMi4wMywxMzMuMDUsMzAuNzQsMTE4LjQ2LDMxLjExTDExOC40NiwzMS4xMXoiLz48cGF0aCBkPSJNMjAyLjkxLDEwMi45NGMtMzEuMTMsMy4zNC0zMy44NCw2LjA1LTM3LjE4LDM3LjE4Yy0zLjM0LTMxLjEzLTYuMDUtMzMuODQtMzcuMTgtMzcuMTgKCQljMzEuMTMtMy4zNCwzMy44NC02LjA1LDM3LjE4LTM3LjE4QzE2OS4wNyw5Ni44OSwxNzEuNzgsOTkuNiwyMDIuOTEsMTAyLjk0eiIvPjwvZz48L3N2Zz4K");
+  --brand-mark:var(--brand-mark-paper);
   /* brand-mark:end */
 
   /* ---------------------------------------------------------------------
@@ -168,7 +154,11 @@
   --uif-font-h3:16px;
   --uif-font-body:14px;
   --uif-font-small:12px;
-  --uif-font-micro:11px;
+  /* 20261023 包（09_DESIGN.md / 08_STITCH完整提示词.txt）把最小可读字号写成「元数据至少12px」。
+     11px 曾在渲染文档里被实测到 119 处（导航分组标签、页脚、连接状态行），现在按地板值抬到 12px，
+     与 --uif-font-small 同值：micro 这一档不再是比小字更小，而是同一地板值的别名。对比度尺子在
+     每次改动后重测，见 design-lab/tests/e2e/audit_workbench_contrast.mjs 的 CT_SPEC 段。 */
+  --uif-font-micro:12px;
   --uif-body-line-height:1.65;
   /* 间距（4/8/12/16/24/32/40）与圆角（controls 7 / cards 10 / hero 12） */
   --uif-space-1:4px;  --uif-space-2:8px;  --uif-space-3:12px; --uif-space-4:16px;
@@ -237,7 +227,7 @@ body > header h1{margin:2px 0;font-size:26px}
   box-shadow:var(--glow);
 }
 body > header .badge{margin-left:auto}
-.eyebrow{font-size:10px;letter-spacing:2px;font-weight:750;margin:0 0 10px;color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:2px;font-weight:750;margin:0 0 10px;color:var(--muted)}
 body > header .eyebrow{color:var(--muted)}
 
 body > main{max-width:1240px;margin:28px auto;padding:0 22px}
@@ -276,7 +266,10 @@ button{
    moves one step deeper so the affordance survives the swap. */
   background:var(--accent-hover);color:#fff;
   border:1px solid transparent;cursor:pointer;font-weight:650;
-  transition:background var(--motion-base),box-shadow var(--motion-base);
+  /* No `transition` here. The pack band is 「仅必要的120–180ms opacity/transform」
+     (docs/taskpacks/20261023-ui-kb/source/09_DESIGN.md:21), and this rule changes only
+     paint on hover, so a ramp here would be the interpolated-ink defect class already
+     root-caused in section 5.55 -- the two hover ends each stay a measured pair. */
 }
 /* Legacy page buttons only. This rule predates the B10 shell and sets a solid
    --accent-hover background. Inside `.app` it LEAKED onto B10's buttons: B10's
@@ -296,8 +289,14 @@ button.secondary:hover{box-shadow:var(--glow)}
    报红（2026-10-09 实测：能力详情里"使用此能力"禁用按钮 2.31:1）。可用性提示改由
    **非文字线索**承担：平涂次级底、虚线边、无投影，墨色仍是可读的次级文本色。
    这样"不能点"看得出来，字也读得清；WCAG 对非活动控件的豁免不该变成界面写不清字。 */
+/* 禁用态的墨色取 --text 而不是 --muted。理由是一条只在 CI 上出现的读数：
+   `1440/1920:target-profiles+combination button#tp-validate.primary-btn` 在 ui2026/light 下墨色
+   rgb(203,210,216)、对 4.5 只需 2.11:1——那是 ui2026 的 --muted 压在平涂 --surface-2 上，
+   而这套次级色是给深色底设计的。下面注释早已写明本意是「墨色仍是可读的次级文本色」，
+   取 --text 让这句话在三套配色上都成立；不可点的三条非文字线索（平涂次级底、虚线边、无投影）
+   全部保留，没有改阈值、没有放宽断言。 */
 button:disabled{
-  cursor:not-allowed;color:var(--muted);background:var(--surface-2);
+  cursor:not-allowed;color:var(--text);background:var(--surface-2);
   border:1px dashed var(--border-strong);box-shadow:none;transform:none;
 }
 
@@ -339,7 +338,7 @@ form label{flex:1}
 .section-head,.future{display:flex;justify-content:space-between;align-items:center;gap:18px}
 .badge{
   border:1px solid var(--line);
-  border-radius:30px;padding:7px 12px;font-size:11px;white-space:nowrap;
+  border-radius:30px;padding:7px 12px;font-size:12px;white-space:nowrap;
   color:var(--muted);
 }
 .events{font:12px/1.8 ui-monospace,monospace;overflow-wrap:anywhere}
@@ -351,7 +350,7 @@ form label{flex:1}
 
 body > footer{
   max-width:1240px;margin:30px auto;padding:0 22px 30px;
-  font-size:11px;color:var(--muted);
+  font-size:12px;color:var(--muted);
   display:flex;justify-content:space-between;
 }
 [hidden]{display:none!important}
@@ -415,6 +414,15 @@ body > footer{
   padding:20px 14px;
 }
 .app-nav-brand{font-size:15px;font-weight:800;letter-spacing:1px;color:var(--secondary)}
+/* The owner's monogram, from the same --brand-mark token the two legacy tiles already use, so
+   there is one asset and one sync check rather than a second copy of the glyph. `contain` at 22px
+   is deliberate: the derived mark file is the glyph band only, because the full lockup's wordmark
+   is illegible below roughly 32px -- measured, not assumed. The ink flips with the palette through
+   --brand-mark, so no second rule is needed for the light themes. */
+.app-nav-mark{
+  display:inline-block;width:22px;height:22px;vertical-align:-4px;margin-right:8px;
+  background:var(--brand-mark) center/contain no-repeat;
+}
 .app-nav-item{
   display:block;width:100%;text-align:left;
   background:transparent;border:1px solid transparent;
@@ -427,7 +435,22 @@ body > footer{
   border-color:var(--line);
   box-shadow:inset 3px 0 0 var(--accent);
 }
-.app-nav-meta{font-size:11px;color:var(--muted);padding:0 4px;margin-top:auto}
+.app-nav-meta{font-size:12px;color:var(--muted);padding:0 4px;margin-top:8px}
+/* STITCH 一比一（2026-10-27，基准 `design_lab_2` 的 screen-d01…d04）：画板左栏只露
+   「设计辅助／知识与提示词库／我的方案」三项，设置钉在左下角。次要路由**不删**——
+   `.app-nav-item` 的条数是浏览器 E2E 与 DESIGN.md 那句「导航 N 项」的现数对象，
+   所以折叠只改显示：DOM、路由与可达性一条不少，「全部功能」一键展开，
+   当前路由若被折叠则由 shell.ts 自动展开，侧栏「活动路由可见」那条断言继续成立。 */
+.app-nav-item.is-folded{display:none}
+.app-nav:not(.nav-open) .nav-group{display:none}
+.app-nav-item[data-route="settings"]{margin-top:auto}
+.app-nav-more{
+  display:block;width:100%;text-align:left;background:transparent;
+  border:1px dashed var(--line);color:var(--muted);
+  font-size:12px;font-weight:600;padding:7px 10px;cursor:pointer;
+  border-radius:var(--radius-md);
+}
+.app-nav-more:hover{color:var(--ink);background:var(--surface-2)}
 /* B10 1:1 shell host. The authoritative B10 `.app` grid (280px sidebar + 1fr
    main, defined in the B10 block below) is the ONLY route shell: `main.main`
    carries the 78px `.topbar` and the flex-1 `.content` view slot. The legacy
@@ -466,7 +489,7 @@ body > footer{
   .app-nav-brand,.app-nav-meta{display:none}
   .app-nav-item{
     flex:0 0 auto;width:auto;min-width:max-content;
-    padding:8px 10px;text-align:center;font-size:11px;white-space:nowrap;
+    padding:8px 10px;text-align:center;font-size:12px;white-space:nowrap;
   }
   /* 横向滚动条里的组标签是分隔词，不是一列。基规则没给 flex，默认 0 1 auto 会把它
      压到 32px、四个字竖排成 121px，按钮跟着 stretch 到同一高度，整条底栏吃掉 138px
@@ -514,7 +537,7 @@ body > footer{
   border-radius:var(--radius-lg);padding:16px 18px;
 }
 .kpi-value{font-size:28px;margin:4px 0;font-weight:750;color:var(--ink)}
-.kpi-note{font-size:11px;color:var(--muted);line-height:1.6}
+.kpi-note{font-size:12px;color:var(--muted);line-height:1.6}
 .state-machine{
   display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:10px 0 24px;
 }
@@ -598,12 +621,8 @@ body > footer{
   --muted:var(--color-muted);
   --success:var(--color-success);
   --warning:var(--color-warning);
-  --error:var(--color-error);
-  --info:var(--color-info);
   --grid:rgba(255,255,255,.05);
   --radius:18px;
-  --radius-sm:12px;
-  --blur:18px;
   --shadow:0 20px 80px rgba(0,0,0,.35);
   --shadow-soft:0 12px 48px rgba(0,0,0,.22);
 }
@@ -633,6 +652,15 @@ html,body{margin:0}
   filter:blur(80px);
   z-index:var(--layer-canvas-ambient);
   opacity:.45;
+}
+/* The float is opt-in. `09_DESIGN.md:21` forbids 「无持续循环、自动播放和浮动装饰」 on the
+   static screens, and this glow is mounted on every route (shell.ts renderAppShell), so an
+   unconditional 12s loop here was a pack violation that neither motion ruler could see: both
+   read `transition:`, and this is an `animation:`. motion.ts puts data-motion="enhanced" on
+   <html> only for `?motion=enhanced`, and the OS reduced-motion block below still wins. */
+:root[data-motion="enhanced"] .ambient,
+:root[data-motion="enhanced"] .ambient::before,
+:root[data-motion="enhanced"] .ambient::after{
   animation:floatGlow 12s ease-in-out infinite;
 }
 .ambient{
@@ -648,6 +676,14 @@ html,body{margin:0}
   width:280px;height:280px;left:35vw;bottom:-100px;
   background:color-mix(in srgb,var(--primary) 22%, transparent);
   animation-delay:-7s;
+}
+/* The particle canvas mounts inside `.app` on the same layer the ambient glow already owns, so
+   it sits under every panel and cannot paint over a glyph. Opt-in only: motion.ts creates the
+   element for `?motion=enhanced&particles=static|live` and never under prefers-reduced-motion.
+   No px here, so the literal-px debt count in DESIGN.md does not move. */
+.motion-particles{
+  position:fixed;inset:0;width:100%;height:100%;
+  z-index:var(--layer-canvas-ambient);pointer-events:none;
 }
 .grid-bg{
   position:absolute;inset:0;z-index:var(--layer-canvas-grid);opacity:.22;
@@ -695,7 +731,7 @@ html,body{margin:0}
   filter:drop-shadow(0 0 3px rgba(255,255,255,.5)) drop-shadow(0 0 12px color-mix(in srgb,var(--color-secondary) 45%, transparent));
 }
 .brand h1{margin:0;font-size:17px;line-height:1.15}
-.brand small{display:block;margin-top:4px;color:var(--secondary);font-size:10px;letter-spacing:.12em}
+.brand small{display:block;margin-top:4px;color:var(--secondary);font-size:12px;letter-spacing:.12em}
 .nav{display:flex;flex-direction:column;gap:7px;overflow:auto;padding-right:4px;
   /* Measured 2026-10-19 at 1440/1280/1920: the list always cuts an item in half at its bottom
      edge, and with no gap the identity footer's 1px top border landed exactly on that cut line
@@ -724,7 +760,7 @@ html,body{margin:0}
   background:transparent;
   border:1px solid transparent;
   text-align:left;
-  transition:.22s ease;
+  transition:transform var(--motion-base);
 }
 .nav button:hover{
   background:color-mix(in srgb,var(--surface2) 78%, transparent);
@@ -748,6 +784,15 @@ html,body{margin:0}
   width:10px;height:10px;border-radius:50%;
   border:2px solid currentColor;opacity:.9;flex:0 0 auto;
 }
+/* STITCH 一比一（2026-10-27，基准 design_lab_2 的 screen-d01…d04）：路由页上**看得见**的导航是这条
+   侧栏——`.app-nav` 在 B10 挂载后隐藏，所以折叠规则两边都要有，只写 `.app-nav` 那侧等于改了个没人看的壳。
+   与那侧同一套语义：日常三项 + 设置露出、其余仅折叠不删除（两边的条数都是断言对象），组标题在折叠态隐藏。 */
+#app-sidebar .nav button.is-folded{display:none}
+.nav:not(.nav-open) .nav-group{display:none}
+/* 不试图把「系统设置」钉到轨道最底：实测那条 `margin-top:auto` 在这里解析成 0——`.nav` 是被内容
+   撑开的滚动区，自由空间归 `.sidebar-footer`（sticky 的 `.sidebar` 用 auto margin 把身份块压到底）。
+   画板左下角那个位置本来就归页脚；写一条不生效的规则只会留下"看着做了、其实没做"的装饰。 */
+.nav-fold{width:100%;text-align:left;font-size:var(--uif-font-micro)}
 .sidebar-footer{
   margin-top:auto;
   border-top:1px solid color-mix(in srgb,var(--border) 55%, transparent);
@@ -785,9 +830,25 @@ html,body{margin:0}
 }
 .search:hover{border-color:color-mix(in srgb,var(--primary) 45%, white 3%)}
 .top-actions{display:flex;gap:10px}
+/* 这四类按钮的 `transition` 原先没有属性表，等价于 `transition-property:all`，于是启用/禁用
+   切换时连 `color` 与 `background-color` 一起补间。逐帧采样（1920/stitch-light，rAF 一帧一行）
+   量到墨色走过 rgb(23,33,43) → 74,82,90 → 187,190,193 → 226,227,228 → 251,251,252 → 255,255,255，
+   同时 `background-color` 从实白 `rgba(255,255,255,1)` 褪到透明；其中一帧是 `rgb(187,190,193)` 压在
+   `rgba(255,255,255,.294)` 覆盖的品牌蓝上，按闸门自己的合成算法算出 **1.97:1**。CI 点名的
+   `1920:target-profiles+combination button#tp-validate.primary-btn 1.06:1 fg=rgb(157,161,165)`
+   （stitch）与 `2.6:1 fg=rgb(209,213,217)`（ui2026）就落在这条斜坡上：两个灰值与「白字 ↔ 该主题
+   --text」的线性插值逐通道吻合（stitch #17212B 在 t=0.422，ui2026 #152b3d 在 t=0.198），而枚举
+   `document.styleSheets` 后匹配该元素的三条 `color` 声明全部只写白字——也就是说那条红量的不是
+   任何规则里的颜色，是一帧本来不该被画出来的中间态。Windows 本地每次落在斜坡走完之后，
+   Linux runner 落在里面，这就是「同一提交只有远端红」的全部原因。
+   现在补间只剩 `transform`：`border-color` 与 `box-shadow` 也在 2026-10-25 一并移出，因为包里那条
+   运动规则写的是「仅必要的120–180ms opacity/transform 过渡」，而这两项补的是颜色与阴影，不在允许
+   的属性名单里；时长从 .2s 收到 `--motion-base`（实测定义 =180ms，正好落在带上限）。墨色与底色的
+   启用/禁用切换因此变成瞬时——两端各自是本文件里已实测过的一对（白字压 brand 渐变 7.08:1，
+   --text 压平涂 --surface-2），中间不再存在任何一档不达标的字色。 */
 .ghost-btn,.soft-btn,.primary-btn,.danger-btn{
   border-radius:12px;padding:10px 14px;
-  transition:.2s ease;
+  transition:transform var(--motion-base);
 }
 .ghost-btn,.soft-btn{
   border:1px solid color-mix(in srgb,var(--border) 72%, transparent);
@@ -906,7 +967,7 @@ html,body{margin:0}
   padding:13px 14px;border-radius:14px;
   background:color-mix(in srgb,var(--surface2) 74%, transparent);
   border:1px solid color-mix(in srgb,var(--border) 68%, transparent);
-  transition:.18s ease;
+  transition:transform var(--motion-base);
 }
 /* A row that carries an action has three children, and `space-between` then parks the
    middle one at whatever x the text width leaves behind -- so on #/domains the
@@ -1053,7 +1114,7 @@ html,body{margin:0}
   border:1px solid color-mix(in srgb,var(--primary) 42%, white 3%);
   box-shadow:0 16px 34px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.03);
   user-select:none;cursor:grab;
-  transition:.18s ease;
+  transition:transform var(--motion-base);
 }
 .node:hover{transform:translateY(-2px)}
 .node:active{cursor:grabbing}
@@ -1092,11 +1153,11 @@ html,body{margin:0}
      translateX(540px) reproduces the old right:-540px rect exactly: same 540px,
      same width min(520px,95vw), so every geometry gate reads the same box. */
   visibility:hidden;
-  transition:transform .28s cubic-bezier(.2,0,0,1),visibility 0s linear .28s;
+  transition:transform var(--motion-base) cubic-bezier(.2,0,0,1),visibility 0s linear var(--motion-base);
 }
 .drawer.open{
   visibility:visible;
-  transition:transform .28s cubic-bezier(.2,0,0,1),visibility 0s linear 0s;
+  transition:transform var(--motion-base) cubic-bezier(.2,0,0,1),visibility 0s linear 0s;
 }
 .drawer.open{transform:none}
 .palette{
@@ -1157,7 +1218,7 @@ html,body{margin:0}
   background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 88%, white 1%),color-mix(in srgb,var(--surface) 98%, black 1%));
   box-shadow:var(--shadow-soft);
   opacity:0;transform:translateY(12px) scale(.98);pointer-events:none;
-  transition:.22s ease;
+  transition:opacity var(--motion-base) ease,transform var(--motion-base) ease;
 }
 .toast.show{opacity:1;transform:translateY(0) scale(1)}
 .review-card{
@@ -1166,7 +1227,7 @@ html,body{margin:0}
 }
 .review-inner{
   position:relative;width:100%;height:100%;transform-style:preserve-3d;
-  transition:transform .55s cubic-bezier(.2,.6,.1,1);
+  transition:transform var(--motion-base) cubic-bezier(.2,.6,.1,1);
 }
 .review-card.flipped .review-inner{transform:rotateY(180deg)}
 .review-face{
@@ -1200,7 +1261,7 @@ html,body{margin:0}
   stroke:color-mix(in srgb,var(--secondary) 65%, white 2%);
   stroke-width:2;
   cursor:pointer;
-  transition:.2s ease;
+  transition:transform var(--motion-base) ease;
   filter:drop-shadow(0 0 8px color-mix(in srgb,var(--primary) 18%, transparent));
 }
 .graph-stage circle.node-dot:hover,
@@ -1376,7 +1437,7 @@ html,body{margin:0}
   border:1px solid color-mix(in srgb,var(--border) 70%, transparent);
   background:color-mix(in srgb,var(--surface2) 68%, transparent);
   color:var(--text);padding:10px 12px;border-radius:12px;
-  transition:all var(--motion-fast) cubic-bezier(.2,0,0,1);
+  transition:transform var(--motion-fast) cubic-bezier(.2,0,0,1);
 }
 .seg button:hover{
   border-color:color-mix(in srgb,var(--primary) 38%, white 3%);
@@ -1390,7 +1451,23 @@ html,body{margin:0}
   border-color:color-mix(in srgb,var(--primary) 48%, white 4%);
   color:#fff;
 }
-.seg button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+/* 禁用态不用 opacity 淡化。这一行原来写 `opacity:.45`，把整枚按钮连字一起压淡：CI 的 Linux
+   runner 在 1920 的「目标组合」态上逐字量到 `button#tp-validate.primary-btn` 的有效墨色是
+   rgb(180,190,199)（= #566472 以 .45 压在 #FFFFFF 上）压白底 **1.37:1**，ui2026/light 同处
+   3.59:1，两个配色各红一次。同一份文件在 1900 行附近早就登记过这个陷阱（主题控制器因此不用禁用态）。
+   现在只撤掉 opacity：`button:disabled` 已经给了平涂次级底、虚线边、无投影这三条非文字线索，
+   "不能点"仍然看得出来，字也读得清——WCAG 对非活动控件的豁免不该变成界面写不清字。 */
+.seg button:disabled{cursor:not-allowed;transform:none}
+/* 这条 CTA 的两种状态各有各的底，所以两行的字色都必须钉住，不能只钉一条。
+   CI 在 stitch/light 与 ui2026/light 各报过一次同一个元素：`target-profiles+combination
+   button#tp-validate.primary-btn`，16px，比值 2.11:1 与 1.77:1，而 `opacity=1`——也就是说
+   淡出的不是 alpha，是"字色与它此刻真正的底不配对"：`.primary-btn` 的 brand 两停渐变需要白字
+   （7.08:1／5.42:1 是本文件里已实测过的一对），而禁用态换成平涂次级底之后需要深色字。
+   两条都用 id 级声明钉住，谁都不靠猜：
+   · 可用态＝白字压 brand 渐变；
+   · 禁用态＝--text 压平涂 --surface-2，非文字线索（虚线边、无投影）照旧。 */
+#tp-validate{color:#fff}
+#tp-validate:disabled{color:var(--text);background:var(--surface-2)}
 
 /* Restoration: `.seg button`(0,1,1) also matches `.toolbar .seg button`(0,2,1) for
    the `transition` property, which B10's toolbar rule does not declare -- so the
@@ -1436,7 +1513,6 @@ html,body{margin:0}
   padding:7px 14px;border-radius:var(--radius-md);
   border:1px solid var(--border);background:var(--surface-2);
   color:var(--text);font:var(--font-caption)/1.4 inherit;cursor:pointer;
-  transition:border-color var(--motion-fast),background var(--motion-fast);
 }
 .stage-nav-btn:hover{border-color:var(--accent)}
 .stage-nav-btn.is-current{
@@ -1479,7 +1555,6 @@ html,body{margin:0}
 }
 .version-ring-node{
   fill:var(--surface);stroke:var(--accent);stroke-width:2;
-  transition:r var(--motion-fast);
 }
 .version-ring-node.is-chosen{fill:var(--accent)}
 .version-ring-node:hover{fill:var(--secondary)}
@@ -1706,6 +1781,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 }
 
 :root[data-palette="ui2026"][data-scheme="light"]{
+  --brand-mark:var(--brand-mark-ink);
   color-scheme:light;
   --color-bg:var(--uif-light-bg);
   --color-surface:var(--uif-light-surface);
@@ -1722,7 +1798,6 @@ body[data-local-session="auto"] #connect-form details { display: none; }
      light.accent 就是浅色一侧的对应字色，所以这里重指它，而不是让浅色主题带着
      读不清的小标签上线。仍不动的地板值：--accent-hover、--border-strong、品牌渐变。 */
   --color-secondary:var(--uif-light-accent);
-  --color-info:var(--uif-light-accent);
   --avatar-ink:var(--uif-light-text);
   /* info 药丸的填充端点：浅色主题的墨色是深色，所以填充取包自己声明的 accent
      （#87dcff），两端同值即平涂，不引入第三种蓝。 */
@@ -1731,6 +1806,96 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   /* 浅色下 --bg 是近白，pill 的深色墨不能再跟着 --bg 走。 */
   --tag-ink:var(--uif-dark-accent-text);
 }
+
+/* 20261023 包 `08_STITCH完整提示词.txt` 逐字给的六个值，做成第三套可选色板：
+   强调 #356B92、正文 #17212B、次级 #566472、背景 #F4F6F8、内容 #FFFFFF、边界 #D8DFE5。
+   默认配色一字节不动（owner 裁定：新任务包配色不覆盖既有配色，新值做成可选主题），
+   这套只声明了珍珠白一侧，所以 schemes 里只有 light——暗色不自造，
+   那会把"一比一复刻"变成"照着猜一份"。地板值同样不动：--accent-hover、--border-strong。
+   六个值由 design-lab/tests/test_workbench_stitch_palette.py 逐条钉在这段文本上，
+   并由对比度闸门按每条路由量一遍：改了数字测试红，量出 AA 不过闸门红。 */
+:root[data-palette="stitch"][data-scheme="light"]{
+  --brand-mark:var(--brand-mark-ink);
+  color-scheme:light;
+  --color-bg:#F4F6F8;
+  --color-surface:#FFFFFF;
+  --color-surface-2:#FFFFFF;
+  --color-border:#D8DFE5;
+  --color-text:#17212B;
+  --color-muted:#566472;
+  /* 单一低饱和强调色同时担任 action / focus / selection / info，
+     因为这一版基线写的就是"单一"强调色，不引入第二种蓝。 */
+  --color-primary:#356B92;
+  --accent:#356B92;
+  --color-secondary:#356B92;
+  --secondary:#356B92;
+  /* info 药丸的填充不能跟着强调色走深：这套基线的 warn/success/error 填充都是淡底，
+     药丸墨色必须统一取深色正文，否则白字压淡底实测只有 1.83:1（对比度闸门逐条报红，
+     这条红是它自己量出来的，不是照抄 ui2026 那一段的结论）。 */
+  --tag-info-from:var(--color-bg);
+  --tag-info-to:var(--color-bg);
+  /* 错误字色在珍珠白上必须重指：默认的 --color-error #F05252 压白底实测 3.48:1、
+     压 #F4F6F8 只有 3.21:1，13px 的 `p.error` 被对比度闸门按每条路由报红。这条红是
+     2026-10-26 闸门第一次真的造出拒绝态（清空目标后点 #as-submit）之后才看得见的——
+     在此之前界面上从不显示它，`errors=0` 说的是"没测到"不是"没问题"。
+     取既有已实测值 --uif-light-danger #AB384D（压白 6.17:1、压珍珠白 5.69:1、
+     压浅色 elevate 5.2:1），不新造一支红：包里只给了六个值，没给错误色。
+     默认炭黑一字节不动。 */
+  --color-error:var(--uif-light-danger);
+  --tag-ink:#17212B;
+  --avatar-ink:#17212B;
+  --glow:0 0 14px rgba(53,107,146,.16);
+}
+
+/* 同一份包给的「质感」规则也是数字，所以照同样三条做几何覆盖，默认配色一字节不动。
+   三条都在已渲染的文档上量过（design-lab/tests/e2e/audit_workbench_contrast.mjs 的 CT_SPEC 段），
+   改动前的实测读数写在这里，不是照着描述猜：
+   · 「长文字与列表实底」——珍珠白下列表面与文字按钮的底是 color-mix(…74%/62%, transparent)，
+     一个宽度 1440 的扫描里 23 处列表行／按钮压在半透明白上，这里改成实底。
+   · 「玻璃只给顶栏／导航／临时面板」——本 UI 的 backdrop-filter 实测只有 header.topbar 与
+     aside#app-sidebar 两处，全在允许名单内，所以这条不需要改样式，由尺子把名单钉住。
+   · 「圆角输入／按钮 6–10px、临时面板 12–16px」——表单控件与四枚按钮类实测 12px 与 14px，
+     取带内上限 10px；行卡与面板保持 14px（在 12–16 内），状态药丸不动：包自己的 HTML 用
+     `border-radius:20px` 的 `.status`，药丸不是这条带子的适用对象。 */
+:root[data-palette="stitch"][data-scheme="light"] .row-card,
+:root[data-palette="stitch"][data-scheme="light"] .list-item,
+:root[data-palette="stitch"][data-scheme="light"] .ghost-btn,
+:root[data-palette="stitch"][data-scheme="light"] .soft-btn{
+  background:var(--surface2);
+}
+:root[data-palette="stitch"][data-scheme="light"] :is(.ghost-btn,.soft-btn,.primary-btn,.danger-btn),
+:root[data-palette="stitch"][data-scheme="light"]
+  :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  border-radius:10px;
+}
+/* 「避免大面积渐变」与「长文字与列表实底」在珍珠白下是同一条要求，而包的参照 HTML 自己就是这么
+   写的：`section{background:#fff;border:1px solid var(--line)}`——平涂白卡压 `#f3f5f7` 画布，
+   卡内没有渐变也没有高光层。所以这里把三件装饰性大面域的东西按包落地：
+   · `.panel` 的底是 `linear-gradient(180deg, surface 82%, surface 94%)`，实测可见面积到视口
+     40–75%（一次 1440 扫描里 42 个面板级渐变过阈值），改成平涂；
+   · `.panel::before` 是覆盖整张卡的高光层（`rgba(255,255,255,.03)`→transparent），关掉；
+   · `.grid-bg` 是 `inset:0` 的 32px 装饰网格（opacity .22 + 径向 mask），整块不画。
+   默认炭黑一字节不动：这三处是可选主题内的减法，不是对既有配色的改写。 */
+:root[data-palette="stitch"][data-scheme="light"] .panel{
+  background:var(--surface);
+}
+:root[data-palette="stitch"][data-scheme="light"] .panel::before{
+  background:none;
+}
+:root[data-palette="stitch"][data-scheme="light"] .grid-bg{
+  display:none;
+}
+/* 「单一低饱和强调色 #356B92」这条在珍珠白下**尚未满足**，理由是量出来的，不是推出来的。
+   尺子把 painted 面上出现的 `rgb(29,79,196)`／`rgb(42,99,216)`（brand 两停那对深蓝）计数，
+   stitch/light width 1440 一次扫描读到 **21 处**；把它们压平到包里那一支之后本地（Windows）复测
+   `belowAA=0`，但**同一提交在 CI 的 Linux 跑上报出两条真红**：
+   `1920:target-profiles+combination button#tp-validate.primary-btn 2.86:1 need>=4.5:1 16px
+   fg=rgb(222,224,227)`。按白字反推，那一刻它落到眼睛上的底不是 `#356B92` 而是更亮的一档
+   （L≈0.23，白字也只有 3.79:1），所以我**没有**靠再猜一个色值去追那条远程读数：
+   这三处恢复原状，`brandBluePaints` 从断言里移出、继续作为**登记的债**打印，包里这一句连同
+   CI 读数一起记在 §5.52 与卷宗里，等一次真正的配色裁定（同一 hue 的深阶？还是让按钮文字改深色
+   并放弃这个强调色当填充？）。这与 `project-brand-blue-cannot-carry-white-body-text` 是同一类
+   问题在第三套配色上的重现，不是新 bug。 */
 
 /* ---- 可选主题的几何（2026-10-11 追补）--------------------------------------
    上面那组 --uif-sidebar/--uif-gutter-* 此前被登记却没有任何规则读它，所以"20261009
@@ -1863,7 +2028,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .capability-chip-x{display:inline-grid;place-items:center;min-width:var(--uif-space-4);
   padding:0 var(--uif-space-1);background:transparent;border:0;color:var(--ink);
   font-size:var(--uif-font-body);line-height:1;cursor:pointer}
-.capability-chip-x:hover{color:var(--accent)}
+.capability-chip-x:hover{color:var(--secondary)}
 
 /* R2 §5 详情面板（DL-UI-U03）。地址决定它存不存在，不是隐藏着的浮层；背后列表仍可用，
    所以它是面板而不是 dialog，不改挂 role="dialog"（DESIGN.md §3 第 6 条）。 */
@@ -1880,7 +2045,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .cap-drawer-slot[hidden]{display:none}
 .cap-drawer-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
   justify-content:space-between}
-.cap-drawer-head h3{margin:0;font-size:var(--uif-font-heading);overflow-wrap:anywhere}
+.cap-drawer-head h3{margin:0;font-size:var(--uif-font-h3);overflow-wrap:anywhere}
 .cap-drawer-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--uif-space-2);
   padding:var(--uif-space-1) 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
 .cap-drawer-row:first-of-type{border-top:0}
@@ -1949,9 +2114,15 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .kb-detail-panel{display:grid;gap:var(--uif-space-2);align-content:start}
 .kb-detail-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
   gap:var(--uif-space-2)}
-.kb-detail-head h3{margin:0;font-size:var(--uif-font-heading);overflow-wrap:anywhere}
+.kb-detail-head h3{margin:0;font-size:var(--uif-font-h3);overflow-wrap:anywhere}
 .kb-detail-head p{margin:var(--uif-space-1) 0 0}
 .kb-detail-panel h4{margin:var(--uif-space-3) 0 0;font-size:var(--uif-font-body)}
+/* DL-KB-05 D5（2026-10-24）：推荐判断与来源判断各占一格，并排不下时自动堆叠。
+   宽度只用 ch 与令牌，不新增字面 px —— §4 的存量由 scripts/design_debt_baseline.py 按实测看守。 */
+.kb-judge-grid{display:grid;gap:var(--uif-space-3);
+  grid-template-columns:repeat(auto-fit,minmax(28ch,1fr))}
+.kb-judgements{display:grid;gap:var(--uif-space-2);align-content:start}
+.kb-judgements h4{margin:var(--uif-space-3) 0 0;font-size:var(--uif-font-body)}
 .kb-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1);
   justify-content:flex-end}
 .kb-badges-start{justify-content:flex-start}
@@ -1963,10 +2134,110 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .kb-row-main small{overflow-wrap:anywhere}
 .kb-open{background:none;border:0;padding:0;color:var(--text);font:inherit;
   cursor:pointer;text-align:left;overflow-wrap:anywhere}
-.kb-open:hover{color:var(--accent)}
+/* Hover swaps the ink, so the hovered colour must clear AA on this surface too: --accent
+   (#316CFF) measures 4.08:1 on a row title, and the contrast gate now catches it because it
+   clicks into the entry detail and leaves the pointer on the row it opened. --secondary is the
+   scheme-aware accent this project already uses for small coloured text (see the ui2026/light
+   override, which re-points it rather than shipping unreadable labels in the light theme). */
+.kb-open:hover{color:var(--secondary)}
 .kb-body{margin:var(--uif-space-2) 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .kb-form-fields{margin-top:var(--uif-space-2)}
 .kb-form .field-row{margin-bottom:var(--uif-space-2)}
 .kb-form .field-row .input{width:100%}
 .kb-span{grid-column:1 / -1}
 .kb-form{padding:var(--uif-space-4)}
+
+/* DL-KB-08（2026-10-24）：设计辅助。初始屏只有需求、参考附件与输出类型，结果是服务里的
+   一条方案记录；四态药丸、最近方案行与详情分段沿用既有 .panel/.list-item/.tag/.advanced
+   原语，这里只补排列与几何。宽度用 ch/令牌，不新增字面 px —— 存量由
+   scripts/design_debt_baseline.py 实测看守。 */
+.as-split{align-items:start}
+.as-form{display:grid;gap:var(--uif-space-3);align-content:start}
+.as-form .field-row .input{width:100%}
+.as-more{display:grid;gap:var(--uif-space-2)}
+/* 选中已有工作区时「新工作区名称」整行收起：它只服务于「＋ 新建轻量工作区」那个分支。
+   本规则在文件末尾，与 .field-row 同为 0,1,0，靠顺序压过它的 display:grid；
+   .field-row 没有任何 palette 作用域规则会以更高特异性改写，所以不必用 !important。 */
+.as-hidden{display:none}
+/* 成对字段：工作区/新工作区名称、参考素材/添加参考、输出类型/记录人。窄屏自动落成一列。 */
+.as-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(16ch,1fr));
+  gap:var(--uif-space-3);align-items:end}
+.as-row .input{width:100%;min-width:0}
+.as-row .ghost-btn{align-self:end;justify-self:start}
+.as-refs{margin-top:var(--uif-space-1)}
+/* 屏幕一（STITCH 基准 design_lab_2 / screen-d01）的字段下沿：清空 + 字数 + 换行提示。
+   全部走既有令牌，不新增字面 px——债闸数的是字面量，这里没有需要重钉的理由。 */
+.as-field-meta{display:flex;align-items:center;gap:var(--uif-space-2);
+  margin-top:var(--uif-space-1)}
+.as-count,.as-hint{font-size:var(--uif-font-micro);color:var(--muted)}
+.as-field-meta .ghost-btn{padding:var(--uif-space-1) var(--uif-space-2)}
+/* 屏幕一的输出类型胶囊行（STITCH 基准 design_lab_2 把这一排画成胶囊）。词表来自服务，
+   一颗胶囊一条读回的词；基数按合同（`output_type` 单值）而不是画板那句"多选"。
+   radio 保持可见——藏掉它就同时丢掉键盘方向、无障碍名，和触控目标尺寸闸能量到的那个盒子。
+   999px 与 `.tag` 同一形制（那里已是字面量），不是新发明的圆角；其余全走既有令牌。
+   `tabindex=-1` 在 shell.ts 那边给容器：字段拒绝会把焦点交给这个组，div 自己不可聚焦。 */
+.as-chips{display:flex;flex-wrap:wrap;gap:var(--uif-space-1)}
+.as-chip{display:inline-flex;align-items:center;flex:0 0 auto;gap:var(--uif-space-1);
+  padding:var(--uif-space-1) var(--uif-space-2);border:1px solid var(--line);
+  border-radius:999px;font-size:var(--uif-font-micro);color:var(--text);cursor:pointer;
+  white-space:nowrap;background:var(--surface-2)}
+.as-chip:has(input:checked){color:var(--ink);border-color:var(--accent);background:var(--surface)}
+.as-chip input{accent-color:var(--accent);margin:0}
+.as-chips-empty{font-size:var(--uif-font-micro);color:var(--muted)}
+.as-ref .value-mono{flex:1 1 16ch}
+/* 参考行里的这一格说的是"这条参考指的是什么"：内容全部来自那一类自己的读回，所以空的时候
+   shell.ts 根本不画这个节点。字号与弱化色沿用 .as-count 那一族，不新增字面量。 */
+.as-ref-caption{flex:0 1 auto;min-width:0;color:var(--muted);
+  font-size:var(--uif-font-micro);overflow-wrap:anywhere}
+.as-ref-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
+.as-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
+.as-plan-row{align-items:flex-start}
+/* 整行可点：标题与元数据在左，三枚状态药丸在右；.list-item 的 space-between 正好是这条轴。 */
+.as-plan-open{display:flex;flex-direction:column;gap:var(--uif-space-1);
+  flex:1 1 24ch;min-width:0;background:none;border:0;padding:0;
+  color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.as-plan-open:hover{color:var(--secondary)}
+.as-plan-open small{overflow-wrap:anywhere}
+.as-states{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1);
+  justify-content:flex-end}
+.as-detail{display:grid;gap:var(--uif-space-2);align-content:start;
+  margin-top:var(--uif-space-4);scroll-margin-top:var(--uif-space-4)}
+.as-detail-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
+  gap:var(--uif-space-2)}
+.as-detail-head h3{margin:0;font-size:var(--uif-font-h3);overflow-wrap:anywhere}
+.as-detail-head p{margin:var(--uif-space-1) 0 0}
+.as-detail h4{margin:var(--uif-space-3) 0 0;font-size:var(--uif-font-body)}
+.as-body{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;
+  line-height:var(--uif-body-line-height)}
+.as-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
+  padding:var(--uif-space-2) 0}
+.as-copy-note{margin:0}
+/* 剪贴板被拒时的兜底文本区：它就在说明文字下面，全宽、等宽、可全选。 */
+.as-copy-fallback{display:block;width:100%;margin-top:var(--uif-space-2);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:var(--uif-font-small)}
+.as-choose{display:grid;gap:var(--uif-space-2);flex:1 1 32ch;min-width:0;
+  padding:var(--uif-space-3);border:1px solid var(--line);
+  border-radius:var(--uif-radius-card);background:var(--surface-2)}
+.as-meta{display:grid;gap:var(--uif-space-1);margin-top:var(--uif-space-4)}
+.as-meta p{margin:0}
+
+/* DL-KB-10（2026-10-24）：目标组合选择面板。这一面只有排列与换行是新的：面板、列表、
+   药丸、折叠区、字段行全部复用既有 .panel/.list/.list-item/.tag/.advanced/.field-row/.kb-*
+   原语。宽度一律用 ch 与 --uif-* 令牌，不新增字面 px 或字面色值——§4 的存量由
+   scripts/design_debt_baseline.py 按实测看守，多一处就要连带改契约。
+   .tp-name 的 overflow-wrap:anywhere 是 02:150 / 06:48 那条"长中文型号名不被裁切"在这里的
+   落点：靠换行容纳，不靠缩字号，也不靠 ellipsis 把字藏起来。 */
+.tp-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(22ch,1fr));
+  gap:var(--uif-space-3);align-items:end}
+.tp-row .input{width:100%;min-width:0}
+.tp-line{margin:0;font-size:var(--uif-font-small);line-height:var(--uif-body-line-height);
+  overflow-wrap:anywhere}
+.tp-name{min-width:0;overflow-wrap:anywhere}
+.tp-plan{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
+  font-size:var(--uif-font-small);color:var(--muted)}
+.tp-dimension{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);
+  gap:var(--uif-space-2);align-items:center}
+.tp-dimension-name{display:flex;flex-wrap:wrap;align-items:center;
+  gap:var(--uif-space-1);min-width:0;overflow-wrap:anywhere}
+.tp-dimension .input{width:100%;min-width:0}

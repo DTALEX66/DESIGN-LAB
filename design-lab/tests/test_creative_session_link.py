@@ -92,5 +92,64 @@ class SessionLinkTests(unittest.TestCase):
         self.assertFalse(session_link.unlink(self.conn, link["link_id"]))
 
 
+    def test_a_relink_under_another_source_answers_from_the_row_and_then_refuses(self):
+        """The response and the persisted record must never disagree about who correlated the job.
+
+        `link_session` used to return the CALL ARGUMENT for an existing link while the row is
+        write-once -- no UPDATE exists and UNIQUE(job_id, session_ref) blocks a second insert -- so
+        re-linking the same pair under another source reported that new source while the database
+        kept the first one (owner audit 2026-10-26, finding 7: 「会话关联响应与持久化来源可能不同」).
+        """
+        linked = session_link.link_session(self.conn, self.job_id, session_ref="wl-2026-09-13-002",
+                                           source_system="WORK-LAB")
+        again = session_link.link_session(self.conn, self.job_id, session_ref="wl-2026-09-13-002",
+                                          source_system="WORK-LAB")
+        self.assertEqual(linked["source_system"], again["source_system"])
+        self.assertEqual("WORK-LAB", session_link.links(self.conn, self.job_id)[0]["source_system"],
+                         "the stored row does not carry the source the answer reported")
+        with self.assertRaisesRegex(store.CreativeError, "not rewritten by a second"):
+            session_link.link_session(self.conn, self.job_id, session_ref="wl-2026-09-13-002",
+                                       source_system="ArcheAxis")
+        self.assertEqual(["WORK-LAB"],
+                         [item["source_system"] for item in session_link.links(self.conn,
+                                                                               self.job_id)],
+                         "the refused relink changed the stored provenance anyway")
+        self.assertEqual(1, len(session_link.links(self.conn, self.job_id)),
+                         "the refused relink wrote a second link")
+
+    def test_nothing_reaches_this_module_yet_so_the_divergence_was_not_user_visible(self):
+        """Recorded as an assertion, not as prose, because it decides the evidence level.
+
+        The surface population is enumerated from the git index -- the service routes, the CLI, the
+        workbench sources and the workflow files -- and none of them names this module, so the
+        defect above was latent in an unwired surface: E2 at the module level, not E3 in a real
+        product flow. Inventory files that merely LIST this module (the report index, the creative
+        package's re-export, the CI bookkeeping scripts, the migration table census) are not
+        reachability and are not counted here. The day someone wires a route, this test goes red and
+        that person owes the read-back proof instead of inheriting my claim.
+        """
+        import subprocess
+        listing = subprocess.run(["git", "ls-files", "-z"], cwd=str(ROOT), capture_output=True,
+                                 check=True).stdout.decode("utf-8").split("\0")
+        surface = [rel for rel in listing
+                   if (rel.startswith("src/design_lab/") and rel.endswith(".py")
+                       and rel not in ("src/design_lab/creative/session_link.py",
+                                       "src/design_lab/creative/__init__.py"))
+                   or rel.startswith("apps/workbench/") and rel.endswith((".ts", ".html"))
+                   or rel.startswith(".github/workflows/")]
+        self.assertGreater(len(surface), 60,
+                           "the surface population collapsed to %s files, so this test would be "
+                           "reading an empty set and calling it a pass" % len(surface))
+        reached = []
+        for rel in surface:
+            text = (ROOT / rel).read_text(encoding="utf-8")
+            if "session_link" in text or "link_session" in text:
+                reached.append(rel)
+        self.assertEqual([], reached,
+                         "these reachable-surface files now name session correlation, so the "
+                         "unwired claim above is stale and an E3 read-back is owed: %s"
+                         % sorted(reached))
+
+
 if __name__ == "__main__":
     unittest.main()

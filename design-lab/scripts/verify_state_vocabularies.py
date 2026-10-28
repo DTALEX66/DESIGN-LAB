@@ -55,6 +55,19 @@ def quoted(text: str) -> set[str]:
     return set(re.findall(r"""['"]([A-Z][A-Z0-9_]{2,})['"]""", text))
 
 
+def py_plan_feedback_outcomes(emitter_path: Path) -> set[str]:
+    """Read plan_feedback's OUTCOMES tuple literally, so the contract cannot be judged by a copy.
+
+    A missing tuple returns the empty set: the caller then reports the disagreement as a finding
+    instead of raising, so one malformed source names itself rather than crashing the whole gate.
+    """
+    text = emitter_path.read_text(encoding='utf-8')
+    match = re.search(r'(?m)^OUTCOMES = \((.*?)\)', text, re.S)
+    if not match:
+        return set()
+    return set(re.findall(r"'([A-Z][A-Z0-9_]{2,})'", match.group(1)))
+
+
 def py_attempt_states() -> tuple[set[str], set[str]]:
     text = JOB_STORE.read_text(encoding='utf-8')
     terminal = quoted(re.search(r'^TERMINAL = \{(.*?)\}', text, re.S | re.M).group(1))
@@ -209,6 +222,35 @@ def main() -> int:
     if ui_sets and ui_sets > declared_all:
         errors.append(f'UI triage uses states the service cannot emit: '
                       f'{sorted(ui_sets - declared_all)}')
+
+    # DL-KB-16: the three outcome words are checked against the emitter rather than trusted from
+    # either side -- a hand copy into the screen is exactly the drift this file exists to catch.
+    feedback = contract.get('planFeedback')
+    if feedback is None:
+        errors.append('the contract declares no planFeedback block; the feedback outcome words '
+                      'would be hand-copied into the screen with nothing to compare them to')
+    else:
+        declared_feedback = set(feedback['outcomes'])
+        emitter_path = REPO / feedback['emitter']
+        if not emitter_path.is_file():
+            errors.append(f"planFeedback names {feedback['emitter']} which is not a file")
+        else:
+            emitted_feedback = py_plan_feedback_outcomes(emitter_path)
+            if emitted_feedback != declared_feedback:
+                errors.append(f'plan_feedback OUTCOMES = {sorted(emitted_feedback)} but the '
+                              f'contract says {sorted(declared_feedback)}')
+            emitted_verdicts = re.findall(
+                r"(?m)^DIMENSION_VERDICTS = \((.*?)\)",
+                emitter_path.read_text(encoding='utf-8'), re.S)
+            verdict_words = set(re.findall(r"'([A-Z][A-Z0-9_]{2,})'", emitted_verdicts[0])) \
+                if emitted_verdicts else set()
+            if verdict_words != set(feedback['dimensionVerdicts']):
+                errors.append(f'plan_feedback DIMENSION_VERDICTS = {sorted(verdict_words)} but '
+                              f'the contract says {sorted(feedback["dimensionVerdicts"])}')
+            unused = feedback.get('unusedLiteral')
+            if unused and f"'{unused}'" not in emitter_path.read_text(encoding='utf-8'):
+                errors.append(f'planFeedback declares the unused literal {unused!r} but '
+                              f'{feedback["emitter"]} does not write it')
 
     verdict, states, registry, blocking = py_preflight()
     declared_verdicts = set(contract['taskResourcePreflight']['verdicts'])

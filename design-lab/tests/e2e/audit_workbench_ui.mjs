@@ -39,6 +39,12 @@ const b = await pw.chromium.launch(launchOpts);
 // In-page measurement: contrast is computed from the used colour values,
 // walking up for a non-transparent background the way a browser paints it.
 const PROBE = () => {
+  // A closed `<details>` keeps layout boxes for content Chromium does not paint, so reachability,
+  // legibility and geometry are all judged in the state a person can actually reach. The count is
+  // reported so a wrapper can tell "nothing was collapsed here" from "this expansion step went
+  // away and the numbers describe invisible layout again".
+  const expanded = document.querySelectorAll('details:not([open])').length;
+  for (const host of document.querySelectorAll('details:not([open])')) host.open = true;
   const lum = (c) => {
     const [r, g, bl] = c.map((v) => {
       const s = v / 255;
@@ -158,6 +164,7 @@ const PROBE = () => {
     .map((el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}[role=dialog]`);
   const drawer = document.querySelector('#drawer');
   return {
+    detailsExpanded: expanded,
     contrast, clickableNotReachable, unnamed, images, overflow, targets,
     targetDetail: smallTargets,
     pickers,
@@ -330,7 +337,14 @@ await bootCtx.close();
 const ROUTES = ['', '#/dashboard', '#/projects', `#/projects/${projectId}`, '#/tools',
                 '#/deliverables', '#/evidence', '#/preflight', '#/settings',
                 '#/research', '#/domains', '#/collaboration', '#/brand-systems',
-                '#/prompts', '#/models', '#/knowledge'];
+                '#/prompts', '#/models', '#/knowledge', '#/assistant',
+                // DL-KB-10 (2026-10-24): 目标组合选择面板。五条 /api/target-profile* 路由的第一
+                // 次上屏；两栏对照、最多两条路线与五个选择框都在这一面，不进来就等于从没被量过。
+                '#/target-profiles',
+                // owner 2026-10-28 解冻自动化能力类后的自动化连接器屏。不进这几份清单
+                // 就等于从没被这把闸渲染过，也就永远不会让它失败——这个覆盖洞
+                // 2026-10-07 与本仓 §5.83 各记过一次。
+                '#/automation'];
 
 for (const width of widths) {
   const { ctx, page } = await connect(width);
@@ -615,6 +629,7 @@ for (const [w, h, label] of [[1280, 500, 'short'], [380, 844, 'narrow']]) {
 await b.close();
 
 notes.totalMetrics = metrics.length;
+notes.detailsExpanded = metrics.reduce((n, m) => n + (m.detailsExpanded || 0), 0);
 notes.hardViolations = violations.length;
 console.log(JSON.stringify({ ok: violations.length === 0, violations, notes,
   worst: metrics.filter((m) => m.contrast.length).slice(0, 12) }, null, 2));

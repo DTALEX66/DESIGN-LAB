@@ -145,9 +145,17 @@ def main(argv=None) -> int:
               f"{out} (resolves inside the clone: {inside})")
 
         code, out = run([PYTHON, "-c", "import shutil; print('uv:', shutil.which('uv'))"], CLONE)
+        # The message used to assert "uv is absent" unconditionally, two lines after asking
+        # shutil.which for the answer and printing it in `out`. When uv WAS on PATH the report
+        # stated a falsehood about the machine that produced it. The stage is still
+        # NOT_VERIFIABLE -- no install is attempted and no network is used -- but the reason
+        # now says what was measured rather than what was assumed.
+        found = out.strip().split("uv:")[-1].strip() or "not reported"
+        present = found not in {"None", "not reported"}
         stage("install", "NOT_VERIFIABLE",
-              f"CI runs 'uv sync --locked'; {out}. No install was attempted: uv is absent and no "
-              f"network is used, so a clean-clone install cannot be proven here.")
+              f"CI runs 'uv sync --locked'; probe read uv as: {found}. No install was "
+              f"attempted here{' (so presence is not proof it resolves the lock)' if present else ''}, "
+              f"and no network is used, so a clean-clone install cannot be proven by this run.")
 
         if args.tests:
             for pattern in TEST_PATTERNS:

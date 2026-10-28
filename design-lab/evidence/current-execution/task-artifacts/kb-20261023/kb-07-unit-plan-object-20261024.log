@@ -1,0 +1,23 @@
+test_a_caller_supplied_revision_or_digest_is_refused (test_assistance_plan.AssistancePlanTests.test_a_caller_supplied_revision_or_digest_is_refused) ... ok
+test_a_draft_without_a_creative_is_saved_but_not_provided (test_assistance_plan.AssistancePlanTests.test_a_draft_without_a_creative_is_saved_but_not_provided) ... ok
+test_a_linked_asset_is_reported_linked_only_until_a_reversal_exists (test_assistance_plan.AssistancePlanTests.test_a_linked_asset_is_reported_linked_only_until_a_reversal_exists) ... ok
+test_a_plan_for_an_unknown_project_is_404 (test_assistance_plan.AssistancePlanTests.test_a_plan_for_an_unknown_project_is_404) ... ok
+test_a_plan_is_not_readable_through_another_project (test_assistance_plan.AssistancePlanTests.test_a_plan_is_not_readable_through_another_project) ... ok
+test_a_plan_is_saved_with_its_basis_and_reads_back_after_a_restart (test_assistance_plan.AssistancePlanTests.test_a_plan_is_saved_with_its_basis_and_reads_back_after_a_restart) ... ok
+test_a_plan_revision_without_expected_revision_is_refused (test_assistance_plan.AssistancePlanTests.test_a_plan_revision_without_expected_revision_is_refused) ... ok
+test_a_reference_from_another_project_is_refused (test_assistance_plan.AssistancePlanTests.test_a_reference_from_another_project_is_refused) ... ok
+test_a_reference_that_moved_on_is_reported_changed (test_assistance_plan.AssistancePlanTests.test_a_reference_that_moved_on_is_reported_changed) ... ok
+test_a_stale_revision_is_refused_with_the_actual_number (test_assistance_plan.AssistancePlanTests.test_a_stale_revision_is_refused_with_the_actual_number) ... ok
+test_an_unknown_output_type_is_refused_by_name (test_assistance_plan.AssistancePlanTests.test_an_unknown_output_type_is_refused_by_name) ... ok
+test_an_unstored_reference_is_a_404_not_a_saved_plan (test_assistance_plan.AssistancePlanTests.test_an_unstored_reference_is_a_404_not_a_saved_plan) ... ok
+test_choosing_a_revision_that_does_not_exist_is_refused (test_assistance_plan.AssistancePlanTests.test_choosing_a_revision_that_does_not_exist_is_refused) ... ok
+test_every_served_output_type_is_one_the_create_route_accepts (test_assistance_plan.AssistancePlanTests.test_every_served_output_type_is_one_the_create_route_accepts) ... ok
+test_only_a_named_human_can_choose_a_revision (test_assistance_plan.AssistancePlanTests.test_only_a_named_human_can_choose_a_revision) ... ok
+test_the_output_type_vocabulary_is_served_before_any_project_exists (test_assistance_plan.AssistancePlanTests.test_the_output_type_vocabulary_is_served_before_any_project_exists) ... ok
+test_the_revision_table_refuses_its_own_rewrite (test_assistance_plan.AssistancePlanTests.test_the_revision_table_refuses_its_own_rewrite) ... ok
+test_the_schemas_are_packaged_and_named_by_state_resources (test_assistance_plan.AssistancePlanTests.test_the_schemas_are_packaged_and_named_by_state_resources) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 8.778s
+
+OK

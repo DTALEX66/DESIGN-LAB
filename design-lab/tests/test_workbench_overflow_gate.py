@@ -25,6 +25,7 @@ browser, not an E3 host run, not an E4 human visual jury, and no claim that the
 UI looks good.
 """
 import json
+import re
 import os
 import secrets
 import shutil
@@ -43,7 +44,10 @@ from test_workbench_design_layer_e2e import _find_browser, _find_node_modules_di
 
 ROOT = _TESTS_DIR.parents[1]
 GATE_SCRIPT = _TESTS_DIR / 'e2e' / 'audit_workbench_overflow.mjs'
-WIDTHS = os.environ.get('OV_WIDTHS', '1440,1280,1920')
+# 1440 / 1280 / 1536 / 1920: the last three are the Windows 100 % / 125 % / 150 % zoom cases on a
+# 1920-wide panel (1920 ÷ scale = CSS px), which is what DL-KB-13 asks the geometry receipts to
+# cover; 1440 is the laptop width this product is also used at.
+WIDTHS = os.environ.get('OV_WIDTHS', '1440,1280,1536,1920')
 
 
 def _evidence_dir():
@@ -249,6 +253,16 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
             self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
         code, out, report_path = self._run_gate('workbench-overflow-gate.json')
         report = self._fail_open(code, out, report_path)
+        # A closed <details> keeps layout boxes for text Chromium does not paint, so the geometry
+        # claims below only describe what a person can see if the gate opened those panels first.
+        # The field counts how many each run expanded: zero everywhere means the step has gone and
+        # CLIPPED / STRAY / TINY are once again measuring invisible layout.
+        expanded = {key: value.get('detailsExpanded') for key, value in report['routes'].items()
+                    if value.get('detailsExpanded')}
+        self.assertTrue(expanded,
+                        'no route reported expanding a collapsed detail, so this gate is measuring '
+                        'boxes behind closed panels again: %s'
+                        % sorted(report['routes'])[:3])
         self._assert_heading_order(report)
         self._assert_utility_geometry(report, 'design-lab/dark:')
         # Every named interaction has to have settled on something a reader can tell apart, and at
@@ -256,6 +270,27 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         # every width is well-formed UI over a readback nobody ever saw.
         interactions = {key: value for key, value in report['routes'].items() if '+' in key}
         self.assertTrue(interactions, 'the gate measured no button-gated panel at all')
+        # Both click-opened panels must be measured at EVERY width the gate walks: a panel checked
+        # at 1440 only is not a geometry claim about 1280 or 1920.
+        measured_widths = [w.strip() for w in WIDTHS.split(',') if w.strip()]
+        absent = ['%s:%s' % (w, panel) for w in measured_widths
+                  for panel in ('knowledge+entry-detail', 'assistant+plan-detail',
+                                'assistant+plan-compare', 'assistant+plan-feedback',
+                                'target-profiles+combination')
+                  if '%s:%s' % (w, panel) not in report['routes']]
+        self.assertEqual(absent, [],
+                         'these panel states were never geometry-checked, so their layout is '
+                         'unclaimed rather than good: %s' % absent)
+        # A row in the report is not the same fact as a row the gate graded. The first version of
+        # this extension recorded both panels into the report without feeding the counters, so
+        # clipped/stray/occluded on an opened panel would have been printed and ignored -- a
+        # coverage claim with nothing behind it. The summary's own count must equal the rows.
+        panel_rows = [k for k in report['routes'] if '+' in k]
+        graded = int(re.search(r'interactions=(\d+)', out).group(1))
+        self.assertEqual(graded, len(panel_rows),
+                         'the gate reported %d button-gated panels but graded %s, so a defect in '
+                         'the ungraded ones would print and pass: %s'
+                         % (len(panel_rows), graded, sorted(panel_rows)))
         for key, value in sorted(interactions.items()):
             self.assertIn(value.get('state'), ('read', 'refused'),
                           f'{key} settled on {value.get("state")!r}, which is neither a read-back '
@@ -263,25 +298,40 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         self.assertIn('read', {value.get('state') for value in interactions.values()},
                       'no width ever displayed the readback itself; the gate would have passed on '
                       'an error card, so the rendered panel is unverified')
-        # The brand tile at every width the gate walked. `decode` is the load-bearing one:
-        # it is the browser reporting the natural size of the bitmap the inlined data URI
-        # actually produced, which is the only proof here that the stylesheet carries the
-        # mark rather than a declaration pointing at nothing.
+        # The brand mark at every width the gate walked. `decode` is the load-bearing one: it is
+        # the browser reporting that the inlined data URI loaded as an SVG document, how many
+        # paths it carries, and which brand ink it was drawn in -- the only proof here that the
+        # stylesheet paints the mark rather than a declaration pointing at nothing. It used to
+        # read `144x144`, the natural size of the superseded bitmap cut-out, and a bloom on the
+        # tile; both belonged to the retired pipeline.
         brand = report.get('brand', {})
         measured = [w.strip() for w in WIDTHS.split(',') if w.strip()]
         self.assertEqual(sorted(brand, key=str), sorted(measured, key=str),
-                         'the gate reported the brand tile for some widths and not others')
+                         'the gate reported the brand mark for some widths and not others')
         for width, seen in brand.items():
-            self.assertTrue(seen.get('present'), f'{width}: no .brand-mark was mounted')
+            self.assertTrue(seen.get('present'), f'{width}: no .app-nav-mark was mounted')
             self.assertEqual(seen.get('text', 'x'), '',
-                             f'{width}: the tile carries text, so a screen reader says the name twice')
+                             f'{width}: the figure carries text, so a screen reader says the name twice')
             self.assertEqual(seen.get('ariaHidden'), 'true',
-                             f'{width}: the decorative tile is exposed to assistive tech')
-            self.assertEqual(seen.get('decode'), '144x144',
-                             f'{width}: the inlined mark decoded as {seen.get("decode")}')
-            self.assertGreater(seen.get('uriChars', 0), 1000,
+                             f'{width}: the decorative figure is exposed to assistive tech')
+            decoded = seen.get('decode') or {}
+            self.assertTrue(decoded.get('loads'),
+                            f'{width}: the inlined data uri did not load as an image at all')
+            self.assertTrue(decoded.get('svg'),
+                            f'{width}: the inlined mark is not an svg document')
+            self.assertEqual(decoded.get('paths'), 2,
+                             f'{width}: the mark decoded with {decoded.get("paths")} paths, not the '
+                             'two of the tracked monogram')
+            self.assertEqual(decoded.get('fills'), ['#EEF2F5'],
+                             f'{width}: the default palette should paint the paper glyph, got '
+                             f'{decoded.get("fills")}')
+            self.assertGreater(seen.get('uriChars', 0), 500,
                                f'{width}: the data URI is a stub, not the mark')
-            self.assertTrue(seen.get('glow'), f'{width}: the mark has no bloom')
+            self.assertIn('DESIGN-LAB', seen.get('name', ''),
+                          f'{width}: the wordmark is missing beside the figure')
+            if seen.get('size', [0, 0])[0]:
+                self.assertEqual(seen['size'], [22, 22],
+                                 f'{width}: the mark box is {seen["size"]}, not the declared 22px')
 
 
     def test_the_ui2026_light_theme_is_graded_by_the_same_geometry_gate(self):
@@ -316,6 +366,41 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
             if seen.get('size', [0])[0]:
                 self.assertEqual([48, 48], seen['size'],
                                  f'ui2026/light @{width}: the tile is {seen["size"]}, not 48x48')
+
+
+    def test_the_stitch_pearl_theme_is_graded_by_the_same_geometry_gate(self):
+        """Same rule the 20261009 baseline established, applied to the 20261023 pack's palette:
+        an unmeasured theme is an unshipped theme.
+
+        The stitch palette re-points the neutral family (background, surface, border, text, muted)
+        and the accent, so it can change what fits as well as what is readable -- and it ships as an
+        additive third choice, which is exactly the case a geometry gate must not skip.
+        """
+        if not GATE_SCRIPT.is_file():
+            self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
+        code, out, report_path = self._run_gate(
+            'workbench-overflow-gate-stitch-light.json',
+            {'UI_PALETTE': 'stitch', 'UI_SCHEME': 'light'})
+        report = self._fail_open(code, out, report_path)
+        self._assert_utility_geometry(report, 'stitch/light:')
+        self.assertEqual('stitch', report['uiPalette'])
+        self.assertEqual('light', report['uiScheme'])
+        for width, edge in sorted(report['navEdge'].items()):
+            self.assertGreaterEqual(
+                edge['gap'], 6,
+                f'stitch/light @{width}: footer hairline {edge["gap"]}px under the nav cut '
+                f'line{" with a group label half-cut on it" if edge["labelStraddling"] else ""}')
+        # The panels this round started opening must be graded under the new palette too, not only
+        # under the two themes that were already measured: a panel checked in one palette only is
+        # an untested surface in the others.
+        measured_widths = [w.strip() for w in WIDTHS.split(',') if w.strip()]
+        absent = ['%s:%s' % (w, panel) for w in measured_widths
+                  for panel in ('knowledge+entry-detail', 'assistant+plan-detail',
+                                'assistant+plan-compare', 'assistant+plan-feedback')
+                  if '%s:%s' % (w, panel) not in report['routes']]
+        self.assertEqual(absent, [],
+                         'these panels were never geometry-checked under the stitch theme: %s'
+                         % absent)
 
 
 if __name__ == '__main__':
