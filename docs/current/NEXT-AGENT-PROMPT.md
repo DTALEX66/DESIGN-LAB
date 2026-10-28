@@ -505,8 +505,7 @@ connectors=11 adapters=41` → OK。wheel 体积 `1,254,358 → 1,272,996 B`（+
 真 Chromium 对**服务出去的那一页**读回 `{"link":true,"type":"image/svg+xml","dataUri":true,"bytes":1618,
 "loaded":true,"naturalWidth":160,"naturalHeight":156}`，并在 16/32/48 三档 × 亮/暗两种工具条底色下截图看过：
 16px 亮底时暗块与浅色 D 都立得住，暗底时方块与 chrome 融成一片、由浅色字形独自承重——两种都读得清，
-这正是翻墨色的目的。两张判定用的渲染已随回执入仓（`…/kb-20261028/render/favicon-16-on-light.png`、
-`favicon-48-on-light.png`），其余四张留在 `.project-local/`，不随 Git 克隆。
+这正是翻墨色的目的。**渲染件没有入仓，这里要如实说**：两张判定用的 PNG 一度被提交，随后在同一轮里退回`git rm --cached`。原因是 `DL-AST-001`：受跟踪的二进制必须带 `asset-sidecar/v1`，而 `redistributable:false` 的二进制还要带**具名人工批准的、未过期的** exception；品牌标志自己的 sidecar 写的就是 `redistributable:false`，它的一次 Chromium 渲染继承这个属性，而**本轮会话不能替 owner 签这份批准**。所以六张图留在 `.project-local/`（不随克隆），回执里以 sha256+bytes 点名，谁都能重跑探针再导出同一批图；这条同时记下：**往仓库加二进制之前先读资产治理规则**，我加了两个文件却只跑了 counts/path-refs/structure 三把便宜闸，没重跑 77 项聚合与 license coverage，于是 CI 替我发现了它。
 
 **一处要如实记下的自造缺陷**：新用例第一次跑就红，成因是我拼接的正则把结尾写成 `);"` 而不是 `");`——
 它在 CSS 里找一个不存在的顺序。修法是抽出 `_css_encodings()` 一处读，别在两个类里各写一份正则；

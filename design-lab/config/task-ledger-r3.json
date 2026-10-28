@@ -12877,7 +12877,7 @@
         "observed_at": "2026-10-28T16:03:09Z",
         "subject_sha": "7663bf4639ccb09b306cdcdee5fe725824cce0cc",
         "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-browser-tab-icon-derived-from-the-tracked-mark-20261028.json",
-        "artifact_sha256": "4d5d951b312971ba25810959bf1c261c0706429d8e7c22ac5dc23161d8e1f591",
+        "artifact_sha256": "68917b731d6de491af3a1a87c7ab8f1df7b6993b2c7ad35c6abf4cbe988c207f",
         "exit_code": 0,
         "command": "render_brand_asset.py --sync-favicon then --check; unittest test_workbench_brand_asset; rasterise the served icon at 16/32/48 in real Chromium and read the images"
       },

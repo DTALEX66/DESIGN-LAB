@@ -8,23 +8,41 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-28T16:14:59+00:00",
+  "generatedAt": "2026-10-28T16:33:42+00:00",
   "git": {
     "branch": "qoder/designlab-wheel-packaging-20261028",
     "origin_main": "aa65fc70f32fe46020601e652a37d73b3a18e9ed",
-    "sha": "f9c6c236f4974526ac042a076fa982be2e0b654c",
+    "sha": "145c197c1d5efb9023c3fd437a5822e793d11538",
     "source_worktree_clean": false,
-    "tracked_files": 4035,
+    "tracked_files": 4034,
     "worktree_changes": [
       {
-        "content": "sha256:298a39d84f54e3eb876d4c1b41d1511a4f260fd35a0bba6682e3d4d0810df1c5",
+        "kind": "D",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/render/favicon-16-on-light.png"
+      },
+      {
+        "kind": "D",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/render/favicon-48-on-light.png"
+      },
+      {
+        "content": "sha256:197ea61166a644e6c82e50ff3c38949234ee9409138034df9c90f68bd1e70f37",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:46515b61166de97a8cdad7ec8aa14995c86aee78fd4b71522a3861f4ebc9f1c9",
+        "content": "sha256:68917b731d6de491af3a1a87c7ab8f1df7b6993b2c7ad35c6abf4cbe988c207f",
+        "kind": "M",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-browser-tab-icon-derived-from-the-tracked-mark-20261028.json"
+      },
+      {
+        "content": "sha256:9cd8f11a4eb50606eb55cc0c874726aa7959caf145c2c4393f8cfcf785d8422d",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
+      },
+      {
+        "content": "sha256:a9b6c02a032c4f1f7c7e796469e25d38c5a00a4af23a0a89f6453d914445abac",
+        "kind": "M",
+        "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
@@ -40,14 +58,9 @@
         "content": "sha256:8f249df76a08d480e164091ac147c11d4ede0280e5afe1366d45ed6748b7ad2c",
         "kind": "U",
         "path": "apps/workbench/brand/index-synthetic.html"
-      },
-      {
-        "content": "sha256:9afb504087c1675ffd2824b08a818087fcd6cfd6d434e6489af6f2e63116663e",
-        "kind": "U",
-        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-final-t04-pr-run-read-at-7663bf46-20261028.json"
       }
     ],
-    "worktree_digest": "sha256:53e0f2a508f278b584ad35678ac8b6152b1166a4ecc787fc2f77f627368dc803"
+    "worktree_digest": "sha256:0e73f3d646cf71768f56ba441c80d6a42c79ec0a60c4066462e52576ed80bffc"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -63,7 +76,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "f9c6c236f4974526ac042a076fa982be2e0b654c",
+  "subjectSha": "145c197c1d5efb9023c3fd437a5822e793d11538",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -83,5 +96,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:53e0f2a508f278b584ad35678ac8b6152b1166a4ecc787fc2f77f627368dc803"
+  "worktreeDigest": "sha256:0e73f3d646cf71768f56ba441c80d6a42c79ec0a60c4066462e52576ed80bffc"
 }
