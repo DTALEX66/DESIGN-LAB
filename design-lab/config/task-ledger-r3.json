@@ -12808,6 +12808,18 @@
         "artifact_sha256": "c5902e14b7c623f8e51769147df85ff0c6dcfd906ab466a7f87d359877759920",
         "exit_code": 0,
         "command": "measure the served key set and the painted text in a real browser, then register and clean as owner 2026-10-28 instructed; readings are in the bound artefact"
+      },
+      {
+        "id": "dl-kb-06-automation-connectors-read-only-projection-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "contract",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:21:21Z",
+        "subject_sha": "037369ee0d22ad08022f5bb7390aa4a180ba7c5a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json",
+        "artifact_sha256": "6fc1ad082927d2b6a8778df0b13c98bb2d9abab2871fdd4e644c19a191aadffe",
+        "exit_code": 0,
+        "command": "build the read-only connector projection behind GET /api/automation-connectors, sweep it over live HTTP, and run the aggregate CI runs"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

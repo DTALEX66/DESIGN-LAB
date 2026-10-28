@@ -573,6 +573,10 @@ class StandaloneChainTests(unittest.TestCase):
         '/api/capabilities': ['/api/capabilities'],
         '/api/domains': ['/api/domains'],
         '/api/models': ['/api/models'],
+        # owner 2026-10-28 unfroze the automation capability class. The read is the registered
+        # roster: no id to construct, nothing launched, and the sweep asserts the served body
+        # answers NOT_PROBED with enabled:false rather than letting a page invent either.
+        '/api/automation-connectors': ['/api/automation-connectors'],
         # DL-KB-02/04 (batch K). Two reads of the search route on purpose: the bare path is the
         # browse branch, and the query is a two-character Chinese word the trigram index cannot
         # answer, so this sweep measures the fallback the product actually ships.
