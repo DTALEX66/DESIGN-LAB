@@ -12820,6 +12820,18 @@
         "artifact_sha256": "6fc1ad082927d2b6a8778df0b13c98bb2d9abab2871fdd4e644c19a191aadffe",
         "exit_code": 0,
         "command": "build the read-only connector projection behind GET /api/automation-connectors, sweep it over live HTTP, and run the aggregate CI runs"
+      },
+      {
+        "id": "dl-kb-06-automation-menu-rendered-and-rail-reachable-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:45:21Z",
+        "subject_sha": "af3ae3e69cbdc622e4334f01b6c3de1757c51c0d",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-menu-rendered-and-rail-reachable-20261028.json",
+        "artifact_sha256": "44d03f2dbb893944d79bab8269ec75bf84c16803147c1f4453e76843feff8d49",
+        "exit_code": 0,
+        "command": "render #/automation in real Chromium against the live route, register the eleven connectors as declared adapters, and clear the stale BACKEND_ONLY row the aggregate convicted"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
