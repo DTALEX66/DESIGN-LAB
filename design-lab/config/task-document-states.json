@@ -86,6 +86,13 @@
       "role": "RECORD",
       "basis": "2026-10-23 桌面 UI 与知识库任务包的 owner 逐字裁决与来源登记：17 名成员的字节/sha256/crc32 逐份登记在 SOURCE-MANIFEST.json（外部 HTML 与包内同名成员同哈希，只留一份规范副本）；采纳后逐字节冻结，不因后续会话改写。",
       "replacement": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md"
+    },
+    {
+      "glob": "docs/taskpacks/20261028-automation/**",
+      "state": "FROZEN",
+      "role": "RECORD",
+      "basis": "owner 2026-10-28 会话内指令的逐字裁决件（无外部包、无源哈希，不得虚构包摘要）；与 20261020-unfreeze 与 20261023-ui-kb 两个决定目录同形：原件逐字节冻结，后续会话只改活面与账本，不改写它。",
+      "replacement": null
     }
   ],
   "documents": [

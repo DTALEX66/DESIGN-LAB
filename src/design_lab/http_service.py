@@ -145,6 +145,7 @@ ROUTES = (
     Route('GET', '/api/environment', '_environment', exact=True),
     Route('GET', '/api/capabilities', '_capabilities', exact=True),
     Route('GET', '/api/models', '_models', exact=True),
+    Route('GET', '/api/automation-connectors', '_automation_connectors', exact=True),
     Route('GET',
           r'/api/projects/([0-9a-f]{32})/model-selection',
           '_read_model_selection'),
@@ -817,6 +818,15 @@ def make_server(service, token, port=0, *, local_session=False):
             except ModelCatalogError as exc:
                 return self.send_json(503, {'status': 'ERROR', 'error': 'MODEL_CATALOG_UNAVAILABLE',
                                             'detail': str(exc)})
+
+        def _automation_connectors(self, match):
+            # owner 2026-10-28 lifted the freeze on the automation capability class, so the
+            # first surface for it is a read of what is REGISTERED, not a control panel that
+            # offers to launch something. The projection opens two committed JSON records and
+            # no process: every connector answers NOT_PROBED with enabled:false until a probe
+            # is actually run and receipted, which is a per-action Human Gate decision.
+            from . import automation_connectors
+            return self.send_json(200, automation_connectors.build())
 
         def _domains(self, match):
             # Same class of read as /api/capabilities: committed repository

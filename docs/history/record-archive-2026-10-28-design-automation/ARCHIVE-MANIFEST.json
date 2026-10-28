@@ -1022,5 +1022,143 @@
       "sha256": "67ce884791a5d91b761e915374b2bc69aa2354feb9828f36574009e30fa426a0",
       "in_pack_manifest": true
     }
-  ]
+  ],
+  "connectors": {
+    "derived_from_members": [
+      "design-automation/config/connections.json",
+      "design-automation/evidence/release-check-20261028T094750801Z/bridge-catalogs.json"
+    ],
+    "derivation": "lifted from the ZIP that this manifest pins, so a clean checkout can answer the same table from tracked bytes; the values are the pack's own readings and are NOT a DESIGN-LAB probe.",
+    "state_vocabulary": {
+      "design_lab_state": "NOT_PROBED means this project has never opened the connector; it is not a claim that the connector is unavailable",
+      "pack_handshake": "the pack reports MCP_READY/UNAVAILABLE only from a tools/list try/except, which never proves the host app is usable"
+    },
+    "rows": [
+      {
+        "id": "sketchup",
+        "transport": "tcp",
+        "target": "loopback tcp 127.0.0.1:9876",
+        "tools_listed_in_pack_evidence": 8,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "grasshopper",
+        "transport": "http",
+        "target": "http://localhost:26929/mcp",
+        "tools_listed_in_pack_evidence": null,
+        "handshaked_in_pack_evidence": false,
+        "native_tool_called": null,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "autocad",
+        "transport": "stdio",
+        "target": "{python} {kit}/vendor/Settings/Skills/AutoCADMCP/cad_mcp_launcher.py",
+        "tools_listed_in_pack_evidence": 7,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "rhino",
+        "transport": "stdio",
+        "target": "{python} {kit}/adapters/rhino_entry.py",
+        "tools_listed_in_pack_evidence": 38,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "blender",
+        "transport": "stdio",
+        "target": "{python} {kit}/vendor/Settings/Skills/BlenderMCP/blender_mcp_launcher.py",
+        "tools_listed_in_pack_evidence": 28,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "3dsmaxMCP",
+        "transport": "stdio",
+        "target": "{python} {kit}/vendor/Settings/Skills/3dsmaxMCP/3dsmaxMCP_launcher.py",
+        "tools_listed_in_pack_evidence": 151,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "indesign",
+        "transport": "stdio",
+        "target": "{python} {kit}/vendor/Settings/Skills/InDesignMCP/indesign_mcp_launcher.py",
+        "tools_listed_in_pack_evidence": 27,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "revit",
+        "transport": "stdio",
+        "target": "{node} --loader {kitURL}/adapters/vendor-loader.mjs",
+        "tools_listed_in_pack_evidence": 138,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "photoshop",
+        "transport": "stdio",
+        "target": "{node} --loader {kitURL}/adapters/vendor-loader.mjs",
+        "tools_listed_in_pack_evidence": 80,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "illustrator",
+        "transport": "stdio",
+        "target": "{node} {kit}/adapters/illustrator-entry.mjs",
+        "tools_listed_in_pack_evidence": 66,
+        "handshaked_in_pack_evidence": true,
+        "native_tool_called": false,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      },
+      {
+        "id": "windows",
+        "transport": "stdio",
+        "target": "{python} {kit}/adapters/windows_entry.py",
+        "tools_listed_in_pack_evidence": null,
+        "handshaked_in_pack_evidence": false,
+        "native_tool_called": null,
+        "design_lab_state": "NOT_PROBED",
+        "design_lab_enabled": false
+      }
+    ],
+    "declared_connections": 11,
+    "tools_listed_total_in_pack_evidence": 543,
+    "not_activated": [
+      "sketchup",
+      "grasshopper",
+      "autocad",
+      "rhino",
+      "blender",
+      "3dsmaxMCP",
+      "indesign",
+      "revit",
+      "photoshop",
+      "illustrator",
+      "windows"
+    ]
+  }
 }
