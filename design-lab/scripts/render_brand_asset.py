@@ -35,11 +35,14 @@ PNG_PATH = BRAND_DIR / 'design-lab-mark.png'
 MARK_PATH = BRAND_DIR / 'design-mark.svg'
 PROVENANCE = BRAND_DIR / 'PROVENANCE.json'
 CSS_PATH = REPO / 'apps' / 'workbench' / 'style.css'
+HTML_PATH = REPO / 'apps' / 'workbench' / 'index.html'
 CANVAS = 144          # square output canvas; the tile renders it at 48px (3x)
 GLYPH_FILL = 0.86     # fraction of the canvas the glyph occupies
 LO, HI = 64.0, 192.0  # luminance ramp: below LO is transparent, above HI is solid
 BEGIN = '/* brand-mark:begin sha256='
 END = '/* brand-mark:end */'
+FAVICON_BEGIN = '<!-- brand-favicon:begin sha256='
+FAVICON_END = '<!-- brand-favicon:end -->'
 
 
 def bands(mask: np.ndarray) -> list[tuple[int, int]]:
@@ -142,10 +145,80 @@ def patch_css(text: str, block: str) -> str:
     return REGION.sub(lambda _: block, text, count=1)
 
 
+#: The two inks the managed CSS block is checked for. They are not restated here as a free choice:
+#: `--check` below asserts the stylesheet carries exactly these, so the favicon and the stylesheet
+#: cannot drift into two different brand colours without one of the two failing.
+BRAND_INKS = {'paper': '#EEF2F5', 'ink': '#17212B'}
+PATH_TOKEN = b'<path '
+VIEW_BOX = re.compile(r'viewBox="([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+)"')
+FAVICON_REGION = re.compile(r'[ \t]*' + re.escape(FAVICON_BEGIN) + r'[0-9a-f]{64} -->.*?'
+                            + re.escape(FAVICON_END) + r'\n?', re.S)
+
+
+def favicon_svg(mark: bytes) -> bytes:
+    """Compose the tab icon out of the tracked vector, adding no new drawing.
+
+    Exactly two things change relative to `apps/workbench/brand/design-mark.svg`, and both are
+    derived rather than typed:
+
+    * the ink flips from `#17212B` to `#EEF2F5`, because a glyph is invisible on a browser tab
+      whose chrome can be either light or dark; the tile carries the colour instead;
+    * one `<rect>` is inserted as the tile, its `x/y/width/height` read straight out of the
+      tracked `viewBox` and its `rx` one third of the shorter side -- the same ratio the shipped
+      48px tile uses in CSS (`border-radius:16px`), so the icon is the mark the interface already
+      draws, not a second interpretation of the brand.
+
+    The `<path d=...>` payload is left byte-identical on purpose, which is what lets
+    `design-lab/tests/test_workbench_brand_asset.py` assert both surfaces come from one source
+    instead of trusting a comment that says so.
+    """
+    match = VIEW_BOX.search(mark.decode('utf-8'))
+    if not match:
+        raise SystemExit('BRAND_FAVICON_SOURCE_UNREADABLE the tracked svg carries no parseable '
+                         'viewBox, so no tile geometry can be derived from it')
+    x, y, width, height = (float(v) for v in match.groups())
+    rx = round(min(width, height) / 3, 2)
+    text = mark.decode('utf-8')
+    if f'fill="{BRAND_INKS["ink"]}"' not in text:
+        raise SystemExit(f'BRAND_FAVICON_SOURCE_UNREADABLE the tracked svg does not carry '
+                         f'{BRAND_INKS["ink"]}, so the ink flip has nothing to flip')
+    reinked = text.replace(f'fill="{BRAND_INKS["ink"]}"', f'fill="{BRAND_INKS["paper"]}"')
+    tile = (f'<rect x="{x}" y="{y}" width="{width}" height="{height}" rx="{rx}" '
+            f'fill="{BRAND_INKS["ink"]}"/>')
+    head, _, body = reinked.partition('>')
+    composed = f'{head}>{tile}{body}'
+    if composed.count('<path ') != mark.count(b'<path '):
+        raise SystemExit('BRAND_FAVICON_GEOMETRY_MOVED the composed icon no longer carries the '
+                         'tracked path count; this composes, it does not redraw')
+    return composed.encode('utf-8')
+
+
+def favicon_block(svg: bytes) -> str:
+    """The managed HTML region: a `data:` URI, so no new served path and no CSP widening."""
+    digest = hashlib.sha256(svg).hexdigest()
+    uri = 'data:image/svg+xml;base64,' + base64.b64encode(svg).decode('ascii')
+    return (f'{FAVICON_BEGIN}{digest} -->\n'
+            f'<link rel="icon" type="image/svg+xml" href="{uri}">\n'
+            f'{FAVICON_END}\n')
+
+
+def patch_html(text: str, block: str) -> str:
+    if FAVICON_REGION.search(text):
+        found = FAVICON_REGION.findall(text)
+        if len(found) != 1:
+            raise SystemExit(f'BRAND_FAVICON_REGION_COUNT={len(found)} (exactly one is required)')
+        return FAVICON_REGION.sub(lambda _: block, text, count=1)
+    if text.count('<title>') != 1:
+        raise SystemExit('BRAND_FAVICON_ANCHOR_UNSAFE <title> is not unique, so the region '
+                         'cannot be placed deterministically')
+    return text.replace('<title>', block + '<title>', 1)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--source', type=Path)
     ap.add_argument('--check', action='store_true')
+    ap.add_argument('--sync-favicon', action='store_true')
     args = ap.parse_args(argv)
 
     if args.check:
@@ -203,8 +276,55 @@ def main(argv=None) -> int:
         if problems:
             print('BRAND_CSS_STALE: ' + '; '.join(problems))
             return 1
+        # The tab icon is covered by the same command as the stylesheet token, because the two
+        # surfaces fail in the same way: someone edits one copy and the managed digest still
+        # matches the source it names. Checking only the CSS would leave the favicon free to drift
+        # into a second drawing of the brand, which is the outcome the owner list reserves for a
+        # ruling -- so the check recomposes the icon from the tracked vector and compares bytes.
+        html = HTML_PATH.read_text(encoding='utf-8')
+        fmatch = re.search(r'[ \t]*' + re.escape(FAVICON_BEGIN) + r'([0-9a-f]{64}) -->\n'
+                          r'<link rel="icon" type="image/svg\+xml" '
+                          r'href="data:image/svg\+xml;base64,([A-Za-z0-9+/=]*)">\n'
+                          + re.escape(FAVICON_END), html)
+        if fmatch is None:
+            print('BRAND_FAVICON_REGION_UNREADABLE index.html does not carry exactly one managed '
+                  'favicon region in the shape this check expects')
+            return 1
+        if html.count(FAVICON_BEGIN) != 1:
+            print(f'BRAND_FAVICON_REGION_COUNT={html.count(FAVICON_BEGIN)} '
+                  '(exactly one is required)')
+            return 1
+        claimed_favicon = base64.b64decode(fmatch.group(2))
+        expected = favicon_svg(mark)
+        fproblems = []
+        if hashlib.sha256(claimed_favicon).hexdigest() != fmatch.group(1):
+            fproblems.append('the pinned digest does not match the pinned bytes')
+        if claimed_favicon != expected:
+            fproblems.append('the icon in index.html is not what the tracked vector composes to '
+                             'now -- one copy moved and the other did not')
+        if claimed_favicon.count(b'<path ') != mark.count(b'<path '):
+            icon_paths = claimed_favicon.count(PATH_TOKEN)
+            source_paths_in_mark = mark.count(PATH_TOKEN)
+            fproblems.append(f'the icon carries {icon_paths} paths, the tracked svg has '
+                             f'{source_paths_in_mark}')
+        if fproblems:
+            print('BRAND_FAVICON_STALE: ' + '; '.join(fproblems))
+            return 1
         print(f'BRAND_ASSET=OK svg={len(mark)}B paths={source_paths} encodings=2 '
-              f'default={default_variant} light_flips={light_flips}')
+              f'default={default_variant} light_flips={light_flips} '
+              f'favicon={len(claimed_favicon)}B composed_from_source=yes')
+        return 0
+
+    if args.sync_favicon:
+        if not MARK_PATH.is_file():
+            print('BRAND_ASSET_MISSING design-mark.svg is not on disk')
+            return 1
+        mark = MARK_PATH.read_bytes()
+        html = HTML_PATH.read_text(encoding='utf-8')
+        patched = patch_html(html, favicon_block(favicon_svg(mark)))
+        HTML_PATH.write_text(patched, encoding='utf-8', newline='')
+        print(f'BRAND_FAVICON=SYNCED bytes={len(html)} -> {len(patched)} '
+              f'region={"replaced" if FAVICON_REGION.search(html) else "inserted"}')
         return 0
 
     if not args.source or not args.source.is_file():

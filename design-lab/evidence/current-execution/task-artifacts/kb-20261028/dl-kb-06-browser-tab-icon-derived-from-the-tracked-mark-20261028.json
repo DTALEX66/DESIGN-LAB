@@ -1,0 +1,54 @@
+{
+  "id": "dl-kb-06-browser-tab-icon-derived-from-the-tracked-mark-20261028",
+  "task_id": "DL-KB-06",
+  "axis": "implementation",
+  "outcome": "PASS",
+  "observed_at": "2026-10-28T16:03:09Z",
+  "subject_sha": "7663bf4639ccb09b306cdcdee5fe725824cce0cc",
+  "owner_instruction": "四刀里未做的两刀之一：浏览器标签图标从同一个被跟踪矢量派生",
+  "delivered": "apps/workbench/index.html now carries one managed `brand-favicon:begin sha256=` region with a `data:image/svg+xml;base64` link, composed by design-lab/scripts/render_brand_asset.py from apps/workbench/brand/design-mark.svg. The composition changes exactly two things about the source: the ink flips to the paper value and one tile <rect> is inserted whose x/y/width/height are read out of the tracked viewBox and whose rx is a third of the shorter side, the same ratio the 48px rail tile uses. The `<path d=...>` payload is left byte-identical.",
+  "why_inlined_not_a_route": "workbench.py serves a fixed three-path allowlist under CSP img-src data:, so a favicon URL would widen both -- an owner security decision, not a convenience. That reason is asserted as a test, not left in a comment.",
+  "browser_reading_from_the_served_page": {
+    "link": true,
+    "type": "image/svg+xml",
+    "dataUri": true,
+    "bytes": 1618,
+    "loaded": true,
+    "naturalWidth": 160,
+    "naturalHeight": 156
+  },
+  "rendered_and_looked_at": {
+    "tool": "real Chromium (headless shell) against the loopback service, page served by workbench.py",
+    "sizes_measured": [
+      16,
+      32,
+      48
+    ],
+    "backgrounds": [
+      "light toolbar #f2f4f8",
+      "dark toolbar #12151c"
+    ],
+    "tracked_renditions": {
+      "favicon-16-on-light.png": "a51a86bcdb691f95411426edd9c73b9e404a4b8ab142ebd084c1fcb5246b1180",
+      "favicon-48-on-light.png": "f15b75dbed9d426fe642c328131cf61cbaadfb4c894e9700ae9864aeab4b16ae"
+    },
+    "reading": "at 16px on a light toolbar the dark tile and the light D both read; on a dark toolbar the tile merges into the chrome and the light glyph carries the mark alone -- legible in both, which is the point of flipping the ink"
+  },
+  "falsification": {
+    "command": "D:\\All projects\\DESIGN-LAB\\.venv\\Scripts\\python.exe -m unittest design-lab.tests.test_workbench_brand_asset",
+    "result": [
+      "----------------------------------------------------------------------",
+      "Ran 24 tests in 0.033s",
+      "OK"
+    ],
+    "cases_added": 8,
+    "what_can_fail": "swapped icon payload, stale digest claim, a page with no managed region at all, a tile whose numbers were typed rather than derived, an ink that no longer matches the stylesheet encodings, a second managed region, an icon moved out of <head>, and the allowlist widening to four served paths",
+    "pre_fix_state_recorded_as_a_case": "before --sync-favicon existed, --check printed BRAND_ASSET=OK for a page with no icon, because it only read the stylesheet; test_a_page_without_the_icon_is_refused_not_passed keeps that blindness from returning"
+  },
+  "generator_check_reading": {
+    "command": "D:\\All projects\\DESIGN-LAB\\.venv\\Scripts\\python.exe design-lab/scripts/render_brand_asset.py --check",
+    "result": "BRAND_ASSET=OK svg=1110B paths=2 encodings=2 default=paper light_flips=2 favicon=1194B composed_from_source=yes"
+  },
+  "not_claimed": "No new graphic was authored and no second brand colour introduced; this composes bytes that are already in the repository. No release, no installed-artefact distribution, no host launch. CI has not read these bytes yet -- the next PR run at the head carrying this file is the authoritative verdict, and it must be quoted with its own SHA.",
+  "boundaries_unchanged": "CSP untouched; served allowlist still three paths; the rail mark and its two encodings untouched; E 盘不动; mobile excluded; old 34 rows FROZEN_DEFERRED; windows connector NOT ACTIVATED"
+}

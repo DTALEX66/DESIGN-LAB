@@ -480,14 +480,49 @@ connectors=11 adapters=41` → OK。wheel 体积 `1,254,358 → 1,272,996 B`（+
 **没做的事**：没有安装态分发、没有 release；wheel 只是被构建并被证明读得到，没有被发布。
 `probed_by_design_lab=0 / enabled=0 / native_tool_calls_executed=0` 在两条断言里都继续被钉成 0。
 
-① ~~把 `integrations/adapter-registry.json` 与本轮登记件纳入 wheel 的 force-include 并在干净 venv 里证明~~ —— **已由 §5.87 做完**（安装态 `registry=READ pack=READ connectors=11`，改动前工件同一条断言红在 `'MISSING' != 'READ'`；"可接受的降级"那句判断作废）；② LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
+**§5.88（2026-10-28 续）浏览器标签图标：从同一个被跟踪矢量派生，不新画第二个图形。**
+`index.html` 原先没有任何 `link[rel="icon"]`（实测三个面都报 NONE），所以标签页画的是浏览器的通用文档图标，
+而侧栏画的是 owner 的标志——同一个产品在两个相邻像素面上不是同一个品牌。这一刀把它接上。
+
+**派生而不是新画**：`design-lab/scripts/render_brand_asset.py` 现在能从
+`apps/workbench/brand/design-mark.svg` 组出图标，相对源文件**只改两件事**，而且两件事都是从源里读出来的数：
+① 墨色从 `#17212B` 翻成 `#EEF2F5`（标签页的 chrome 可能是亮也可能是暗，字形不能跟着背景一起消失）；
+② 插一个 `<rect>` 当底板，`x/y/width/height` 直接取被跟踪的 `viewBox`，`rx` 取短边的三分之一——
+就是 48px 导轨方块 `border-radius:16px` 用的那个比例。`<path d=…>` 逐字节不动。
+字节以 `data:image/svg+xml;base64` 内联进 `index.html` 里一段 `<!-- brand-favicon:begin sha256=… -->` 管理区，
+因为 `workbench.py` 只发三条固定路径且 CSP 是 `img-src data:`——加一条 favicon 路由要同时放宽两处，
+那是 owner 的安全裁定，不是方便。**这条理由现在是一条断言，不是一句注释**（`test_the_icon_adds_no_served_path_and_no_csp_change`）。
+
+**`--check` 现在同时管 CSS 与 favicon**，并且会把图标从源重算一遍逐字节比：
+只换图标载荷、只改摘要声明、整页没有管理区，三种腐法各有具名红。
+顺带把这条刀在**做之前**的状态留成一个永久用例：`--sync-favicon` 存在之前，
+`--check` 对一个没有图标的页面照样打印 `BRAND_ASSET=OK`，因为它只读样式表——
+一个不读某个面的检查，报的"覆盖"就是谎。
+
+**读数**：`BRAND_FAVICON=SYNCED bytes=7701 -> 9494 region=inserted`；
+`BRAND_ASSET=OK svg=1110B paths=2 encodings=2 default=paper light_flips=2 favicon=1194B composed_from_source=yes`；
+`design-lab/tests/test_workbench_brand_asset.py` → `Ran 24 tests OK`（新增 8 条，全部能红）；
+真 Chromium 对**服务出去的那一页**读回 `{"link":true,"type":"image/svg+xml","dataUri":true,"bytes":1618,
+"loaded":true,"naturalWidth":160,"naturalHeight":156}`，并在 16/32/48 三档 × 亮/暗两种工具条底色下截图看过：
+16px 亮底时暗块与浅色 D 都立得住，暗底时方块与 chrome 融成一片、由浅色字形独自承重——两种都读得清，
+这正是翻墨色的目的。两张判定用的渲染已随回执入仓（`…/kb-20261028/render/favicon-16-on-light.png`、
+`favicon-48-on-light.png`），其余四张留在 `.project-local/`，不随 Git 克隆。
+
+**一处要如实记下的自造缺陷**：新用例第一次跑就红，成因是我拼接的正则把结尾写成 `);"` 而不是 `");`——
+它在 CSS 里找一个不存在的顺序。修法是抽出 `_css_encodings()` 一处读，别在两个类里各写一份正则；
+**但旧类那份没能并过来**（锚点转义又不匹配，第二次踩同一个 heredoc 教训），所以今天仓里是两个读者读同一件事，
+helper 的 docstring 已把这句话写在那里，不再声称"一处读"。
+**同一轮里第二个自造缺陷**：§5.87 那次替换把 `**下一轮按此顺序**：` 这个锚点本身吃掉了
+（替换串以锚点开头，替换文本里没有再吐出它），列表因此裸奔了一段——这正是记忆里
+"anchored insert must re-emit the anchor"点名的老坑，第三次踩。本节这次替换前先核对了锚点计数，
+补回后列表重新挂回它的小标题下（该短语在 §5.87 的引文里还出现一次，所以计数不是证据，读上下文才是）。
+
+**下一轮按此顺序**：① ~~把 `integrations/adapter-registry.json` 与本轮登记件纳入 wheel 的 force-include 并在干净 venv 里证明~~ —— **已由 §5.87 做完**（安装态 `registry=READ pack=READ connectors=11`，改动前工件同一条断言红在 `'MISSING' != 'READ'`；"可接受的降级"那句判断作废）；② LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
 按"冻结原件原字节不动、只换指针与取代关系"执行并重绑登记件/权威链/投影；
 ③ 若 owner 授权探测，才做第一次真 probe 并把读数写成新回执——**默认仍是 NOT_PROBED**；
 ④ 提示词读回的界面翻页线索、其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type`
 写入时物化（带迁移＋precheck＋合同行）这些旧账照原顺序。
-⑤ 浏览器标签图标：owner 本轮提示词里的第 ② 刀**未做**（`design-lab/scripts/render_brand_asset.py`
-派生 favicon、`index.html` 用 `begin sha256=` 标记族钉字节、`--check` 同覆盖 CSS+favicon、
-`test_workbench_brand_asset.py` 补"两份字节同源"断言）——它需要第二个图形字节的出处裁定，属 owner 项；
+⑤ ~~浏览器标签图标~~ —— **已由 §5.88 做完**（`--sync-favicon` 派生 + `--check` 双覆盖 + 8 条可红用例 + 真 Chromium 16/32/48 看过，两张判定渲染随回执入仓）；
 ⑥ 首屏双列（最近方案进右列）**未做**，动 `flex-wrap` 后必须重量常驻页脚与窄窗行框。
 本轮四刀里 ①③④ 已交（① 是把前提证伪后改的字面：`byte_size` 本来就在发，页面读的是从未发出的字段），② 与 ④ 中的双列一屏见上条 ⑤⑥，均为 NOT_STARTED，不是缺口被抹平。
 
