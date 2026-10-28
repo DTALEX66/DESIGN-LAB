@@ -394,6 +394,48 @@ CI 抓到 `no-undeclared-task-document`（`VERIFY_DESIGN_LAB=FAIL total=77 faile
 `el('ul', { class: 'list'` 的调用数 73，新增一屏变 74。**推送前的本地检查必须包含这一步**，
 抬数按该钉的既有惯例：具名说出新增的那个容器，并说明为什么空态不占一个列表。
 
+**§5.86（2026-10-28 续）CI 的两个新红：一个是我写的登记行，一个是闸门量了没画出来的字。**
+本轮最终 head 的 PR run **40694692860** 收口读数（逐字从作业日志取，不是 wrapper 状态）：
+`conclusion=failure`，11 个作业 **9 success / 2 failure / 2 skipped**，红的是
+`Python gate (V3 verifiers + unit tests)` 与 `Workbench browser E2E`。两条独立成因，都在这一节里结清。
+
+**成因 A 是我自己造的，且 CI 与本地读数一致。** 我加的 11 行 `adapter-delivery-*` 被两个既有契约拒绝：
+① `hostAdapter` 在 `design-lab/schemas/adapter-contract.schema.json` 里**不是 required**，出现时必须是
+`minLength:1` 的字符串，而我写成 `null`（30 条既有行里只有 1 条带这个键）——修法是**删掉这个键**，
+不是给它补一个编造的主机名；② 本仓的大工具守卫
+`design-lab/tests/test_oda4_0206_adapters.py::test_large_tools_process_isolated` 断言
+`"Blender" in tool` 的行必须 `status == "missing"`（注释原文 "honest: not proven"），我的行写的是
+`declared`。**我没有改断言，我把行的声明降级到它该说的词**：Blender 行现在是 `missing` + `fallback: none yet`，
+其余 10 行仍是 `declared`（`declared`/`missing` 都不是可用性词，`runtime`/`structural` 才是）。
+同轮我自己写的 `test_automation_connectors.py` 也被这条改动判红过一次——它原先断言 11 行**全** `declared`，
+而那正是与守卫矛盾的说法，现在它断言规则（状态 ∈ {declared, missing}、禁止可用性词）并单独钉住
+Blender 必须是 `missing`。读数：`test_oda4_0206_adapters` 10/10 OK，`test_automation_connectors` 11/11 OK，
+`DOCUMENTED_COUNTS=PASS claims=21 route_views=25 cli=24 adapters=41 routes=89`（**8 条无界路由** 逐字不变），
+`STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`。
+
+**成因 B 是闸门的盲区，我加的那一项只是第一个被它照到的页面。** `Workbench E2E` 报
+`CT_FAIL: 14 text run(s) below WCAG 2.1 AA contrast`，全部是 `span :: 项目`，`fg=rgb(245, 247, 252)`、`got=1.5`。
+逐条查下来（本地真 Chromium + 真环回服务复现，非猜测）：`.nav{overflow:auto}` 是侧栏唯一滚动容器
+（`sidebarTop=0`、`navTop=817`），`scrollIntoView` 把当前项滚到底之后，**「项目」这一项被滚出了 `.nav` 自己的框**——
+标签 rect `[55,20,32,21]` 对上 nav 框 `[18,125,243,616]`，`elementFromPoint` 在那一点返回的是 `div.brand`。
+也就是说这个像素上**一个字都没画**，而闸门仍拿祖先栈里那层 `a=0.86` 的半透明侧栏渐变去合成它，于是判了一条看不见的 1.5:1。
+基线 `58abdc69` 在同一台 Linux runner 上 `LOWCONTRAST=0`，所以这不是平台差，是**一条一直存在、被我 +1 个导航项推进到可达位置的量测缺陷**。
+修法在闸门而不界面：`audit_workbench_contrast.mjs` 现在先做**裁剪判定**再入人口——某元素的框与某个真会裁剪它的祖先
+（`overflow` 非 visible；`position:fixed` 后代除非法则获得包含块，否则会误删搜索面板这类固定层）完全不交，
+就不进 `checked`，计为 `clippedOutOfScroller` 并**逐个报名**（`CLIPPED_OUT <route> <节点> by <裁剪者>`，绿了也打印）。
+这同它已有的 `display:none` / `collapsed` / `obscured` 三档跳过是一类决定，WCAG 1.4.3 管的是看得见的字。
+两侧都钉住：新植入 `#ct-clipped`（零高 `overflow:hidden` 宿主里的白字白底，**必须被排除**）与既有
+`#ct-control`（同一份颜色、开在明处，**必须仍然被判红**），再加一条反空集断言——排除数不得达到人口的一半，
+`checked` 仍须 ≥500。本地读数：`checked 52,138 → 48,819`（减 3,319，全部点名，除植入项外只有
+`nav.nav.nav-open.has-scroll-more` 的导航标签），`productFails 14 → 0`，
+`Ran 2 tests ... OK`。**须如实说的比较缺陷**：52,138/48,819 是本机 Windows 一次运行内由回执自己的字段推出来的
+（旧代码把被排除项也计入 `checked`），而"14→0"的另一半是 CI Linux 的读数，两个数不同平台；
+CI 对新 head 的 `BROWSER_E2E` 读数由下一轮自己取，不要抄本节任何一个数字。
+
+**本轮自己造的第三个错（没进 CI，但值得记）**：用 heredoc 生成 Python 测试源码时 `\n` 被折叠成真换行，
+写出来的 `self.assertEqual(..., '...run:\n%s')` 成了未闭合字符串。`ast.parse` 在运行前抓住了它。
+教训沿用既有那条：**生成源码要落文件再改，别把转义寄望于 shell**。
+
 **下一轮按此顺序**：① 把 `integrations/adapter-registry.json` 与本轮登记件纳入 wheel 的 force-include
 并在干净 venv 里证明——现在装好的 wheel 会诚实报 `registry_state=MISSING`，这是可接受的降级，
 但"吸收"应当让安装态也读得到；② LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
@@ -401,6 +443,11 @@ CI 抓到 `no-undeclared-task-document`（`VERIFY_DESIGN_LAB=FAIL total=77 faile
 ③ 若 owner 授权探测，才做第一次真 probe 并把读数写成新回执——**默认仍是 NOT_PROBED**；
 ④ 提示词读回的界面翻页线索、其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type`
 写入时物化（带迁移＋precheck＋合同行）这些旧账照原顺序。
+⑤ 浏览器标签图标：owner 本轮提示词里的第 ② 刀**未做**（`design-lab/scripts/render_brand_asset.py`
+派生 favicon、`index.html` 用 `begin sha256=` 标记族钉字节、`--check` 同覆盖 CSS+favicon、
+`test_workbench_brand_asset.py` 补"两份字节同源"断言）——它需要第二个图形字节的出处裁定，属 owner 项；
+⑥ 首屏双列（最近方案进右列）**未做**，动 `flex-wrap` 后必须重量常驻页脚与窄窗行框。
+本轮四刀里 ①③④ 已交（① 是把前提证伪后改的字面：`byte_size` 本来就在发，页面读的是从未发出的字段），② 与 ④ 中的双列一屏见上条 ⑤⑥，均为 NOT_STARTED，不是缺口被抹平。
 
 **逐字基线**（本轮最终 head 的 CI 读数由下一轮自己读，不要抄这里的数字）：
 `PYTHON_TESTS_UNION=OK expected=3415 …` 是 `58abdc69`/`766f48d2` 时代的人口，本轮新增 11 条自动化用例后
@@ -1086,7 +1133,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 `design-lab/config/ui-off-palette-colours.json` 实测为准，本文件不复述数字）、品牌 `#316CFF` 能否承载白字——owner 原话「我现在看不见」，属**挂起项而非开工前提**，不要为它们反复请示；本轮按「设计规范按照网上最专业的先收入库里」把业界规范作为参考素材入库，落地验收由 owner 自行测试。
 - **"保留标准通用的接入接口"具体保留到哪一层（2026-10-19 逐层实测，别把"有合同"读成"能接入"）**：
   官方 API/SDK 层有代码（`adapters/photoshop_com.py`、`adapters/illustrator_com.py`、`adapters/spi.py`、`interop/penpot.py`、`generators/comfy_*.py`），等级以 E0/E1 为主，ComfyUI 的 E2/E3 证据是 2026-08 的、未在当前树复验；
-  原生插件层有注册表与清单（`integrations/adapter-registry.json` 41 条（2026-10-28 由 30 增至 41：投递包 11 个连接器按 `declared` 登记，闸门 `ADAPTER_REGISTRY=PASS`；每一行都写明 DESIGN-LAB 未探测、未启用、未调用任何工具，`adapter-delivery-*` 是这批行的前缀），`integrations/hosts|generators/*/adapter.manifest.json`），闸门 `ADAPTER_REGISTRY=PASS`、`ADAPTER_MATRIX=PASS matrix=9`、`ADAPTER_LOCATOR_AUDIT=PASS`；
+  原生插件层有注册表与清单（`integrations/adapter-registry.json` 41 条（2026-10-28 由 30 增至 41：投递包 11 个连接器登记（10 行 `declared`，Blender 行 `missing`——本仓大工具守卫不允许它读成可用），闸门 `ADAPTER_REGISTRY=PASS`；每一行都写明 DESIGN-LAB 未探测、未启用、未调用任何工具，`adapter-delivery-*` 是这批行的前缀），`integrations/hosts|generators/*/adapter.manifest.json`），闸门 `ADAPTER_REGISTRY=PASS`、`ADAPTER_MATRIX=PASS matrix=9`、`ADAPTER_LOCATOR_AUDIT=PASS`；
   脚本/CLI 层有 24 个子命令（`src/design_lab/cli.py` 的 `add_parser` 实数）；
   **MCP 层只有合同没有服务**——`schemas/contracts/design-control-mcp.schema.json` 与 contract-bindings 那一行在，但 `docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md` 记它 `state=NO_STATE_COUNTERPART`、`route_references=[]`、`table_readers=[]`、`table_writers=[]`；
   **受控 UI 自动化层在 `src/` 内没有任何模块**（`ui_automation|controlled.ui|accessibility tree|屏幕坐标` 全 0 命中），它只作为策略分层出现在本文件 §上一行。

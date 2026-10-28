@@ -12832,6 +12832,18 @@
         "artifact_sha256": "44d03f2dbb893944d79bab8269ec75bf84c16803147c1f4453e76843feff8d49",
         "exit_code": 0,
         "command": "render #/automation in real Chromium against the live route, register the eleven connectors as declared adapters, and clear the stale BACKEND_ONLY row the aggregate convicted"
+      },
+      {
+        "id": "dl-kb-06-ci-reds-adapter-rows-and-clipped-contrast-run-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T13:58:15Z",
+        "subject_sha": "b5804dd527331e15d15dfb2d5a186aacad898b27",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-ci-reds-adapter-rows-and-clipped-contrast-run-20261028.json",
+        "artifact_sha256": "16d081ed51dcf96cd2742e5012d5da63ed8f05eb4353d8bddf3733e90dfbfdb5",
+        "exit_code": 0,
+        "command": "read CI run 40694692860 job logs, correct the eleven adapter rows against the adapter contract and the large-tools guard, teach the contrast gate to skip runs an ancestor clips away, and prove the skip in both directions"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

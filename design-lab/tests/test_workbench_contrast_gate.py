@@ -364,6 +364,60 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         self.assertIs(recorded.get('auditKnowledgeSeed', {}).get('product_data'), False,
                       'the seeded knowledge entry must be recorded as synthetic scaffolding')
 
+    def test_a_run_clipped_by_its_own_scroller_is_excluded_and_named(self):
+        """The clip rule has to be able to fail in BOTH directions, or it is not a rule.
+
+        A text run that an ancestor's `overflow` has scrolled entirely out of that ancestor's box
+        paints nothing, so grading it invents an offender. The shipped rail produced exactly that:
+        `.nav{overflow:auto}` scrolled to y=817 left a nav label laid out at y=20 while the nav's
+        own box starts at y=125, and the gate composited that invisible label against the
+        semi-transparent sidebar gradient it happened to overlap and convicted it at 1.5:1.
+
+        Excluding unpainted text is only honest if the sweep keeps grading the text that IS
+        painted, so one run is planted clipped (must be named in `clippedOutExamples`, must never
+        become a product row) and one is planted in the open (must still be convicted) in the same
+        measurement. A gate that dropped everything would pass the first half and fail this one.
+        """
+        import json
+        code, out, report_path = _run_gate({})
+        low = [l for l in out.splitlines() if l.strip().startswith('LOWCONTRAST')]
+        self.assertEqual(code, 0, 'the AA sweep still convicts a non-rendered run; first '
+                                  'offenders=%s' % low[:6])
+        recorded = json.loads(report_path.read_text(encoding='utf-8'))
+        total = (recorded.get('run') or {}).get('clippedOutOfScroller')
+        self.assertIsInstance(total, int,
+                              'the receipt does not publish how many runs the clip rule excluded, '
+                              'so the exclusion could not be audited: %s' % recorded.get('run'))
+        self.assertGreaterEqual(total, 1,
+                                'the clip rule excluded nothing at all, which means it is dead '
+                                'code and the rail offender is still being graded')
+        routes = recorded.get('routes') or {}
+        examples = [e for row in routes.values() for e in row.get('clippedOutExamples') or []]
+        self.assertTrue(any('#ct-clipped' in e for e in examples),
+                        'the planted zero-height-overflow control was not excluded, so the rule '
+                        'does not fire on a fully clipped run: %s' % examples[:6])
+        product = [f_ for row in routes.values() for f_ in row.get('productFails') or []]
+        self.assertFalse([f_ for f_ in product if 'ct-clipped' in f_['el']],
+                         'the clipped control was graded anyway, so the exclusion is a label '
+                         'and not a skip: %s' % product[:4])
+        convicted = [f_ for row in routes.values() for f_ in row.get('fails') or []
+                     if '#ct-control' in f_['el']]
+        self.assertTrue(convicted,
+                        'the open white-on-white control stopped being convicted at the same '
+                        'moment the new skip started working -- the sweep has stopped measuring')
+        # The anti-blanket guard. Every excluded run is published, and the share is capped, so a
+        # future page that clips its whole body cannot turn this gate green by measuring nothing.
+        # `checked + clippedOut` is the population this pass looked at; the pre-skip number is
+        # recovered from the receipt's own fields rather than from a remembered baseline.
+        checked = sum(row.get('checked', 0) for row in routes.values())
+        self.assertGreaterEqual(checked, 500,
+                                'the sweep graded only %d runs after the clip rule, so coverage '
+                                'collapsed rather than being corrected' % checked)
+        self.assertLess(total * 2, checked + total,
+                        'the clip rule now excludes at least half of the population it sees '
+                        '(clipped=%d vs graded=%d); name what it is dropping before trusting '
+                        'the green' % (total, checked))
+
     def test_ui2026_light_theme_is_graded_by_the_same_aa_gate(self):
         """DL-UI-U02 (2026-10-09): the 20261009 baseline ships as a *theme*, so it has
         to clear the same AA bar as the default one -- an unmeasured theme is an

@@ -769,7 +769,6 @@
     {
       "adapter_id": "adapter-delivery-sketchup",
       "tool": "SketchUp MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -802,7 +801,6 @@
     {
       "adapter_id": "adapter-delivery-grasshopper",
       "tool": "Grasshopper MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -835,7 +833,6 @@
     {
       "adapter_id": "adapter-delivery-autocad",
       "tool": "AutoCAD MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -868,7 +865,6 @@
     {
       "adapter_id": "adapter-delivery-rhino",
       "tool": "Rhino MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -901,7 +897,6 @@
     {
       "adapter_id": "adapter-delivery-blender",
       "tool": "Blender MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -912,10 +907,10 @@
           "supported": false
         }
       ],
-      "status": "declared",
+      "status": "missing",
       "mode": "process-isolated",
       "license": "mixed per upstream component; NOT adjudicated -- the pack's NOTICE.md declines a single licence for the whole set and the materials derive from the commercial app JZXZ 1.1.27 (Rights gate)",
-      "fallback": "none",
+      "fallback": "none yet",
       "evidence": {
         "level": "E1",
         "runtime_version": "delivery pack jzxz-portable-windows-x64-20261028 (zip sha256 d0daeb54ea13b499…)",
@@ -927,14 +922,13 @@
           "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
           "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-automation-connectors-read-only-projection-20261028.json"
         ],
-        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 28 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here."
+        "note": "registered from the delivery pack's own records: the pack handshook this bridge and listed 28 tools with nativeToolCalled:false; DESIGN-LAB has probed nothing (NOT_PROBED), enabled nothing, and called no tool. Listed tools are not a capability count, and no E3 host run, E4 human acceptance or release is claimed here.  the row's status is `missing`, not `declared`, because this repository's large-tools guard (design-lab/tests/test_oda4_0206_adapters.py::test_large_tools_process_isolated) refuses to present a Blender adapter as available while nothing has been proven here."
       },
       "rollback": "remove or disable this registry row and the MCP client entry; no project state or host document is written by registering it"
     },
     {
       "adapter_id": "adapter-delivery-3dsmaxMCP",
       "tool": "3ds Max MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -967,7 +961,6 @@
     {
       "adapter_id": "adapter-delivery-indesign",
       "tool": "InDesign MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -1000,7 +993,6 @@
     {
       "adapter_id": "adapter-delivery-revit",
       "tool": "Revit MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -1033,7 +1025,6 @@
     {
       "adapter_id": "adapter-delivery-photoshop",
       "tool": "Photoshop MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -1066,7 +1057,6 @@
     {
       "adapter_id": "adapter-delivery-illustrator",
       "tool": "Illustrator MCP (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",
@@ -1099,7 +1089,6 @@
     {
       "adapter_id": "adapter-delivery-windows",
       "tool": "Windows desktop automation (delivery pack)",
-      "hostAdapter": null,
       "capabilities": [
         {
           "name": "connect",

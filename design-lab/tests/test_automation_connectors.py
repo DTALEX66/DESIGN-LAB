@@ -101,8 +101,13 @@ class ProjectionFollowsTheRegisteredRoster(unittest.TestCase):
                     if str(row.get('adapter_id', '')).startswith('adapter-delivery-')]
         self.assertEqual(len(delivery), 11)
         for row in delivery:
-            self.assertEqual(row['status'], 'declared', row['adapter_id'])
-            self.assertNotEqual(row['status'], 'available', row['adapter_id'])
+            # `declared` and `missing` are both non-availability words in this registry; what must
+            # never appear is a status that reads as usable. Blender specifically has to be
+            # `missing`, because test_oda4_0206_adapters refuses any Blender row that claims more
+            # than registration -- asserting `declared` here would have contradicted that guard.
+            self.assertIn(row['status'], ('declared', 'missing'), row['adapter_id'])
+            self.assertNotIn(row['status'], ('runtime', 'structural', 'available'),
+                             f"{row['adapter_id']} claims a readiness its E1 record cannot carry")
             self.assertEqual(row['evidence']['level'], 'E1', row['adapter_id'])
             self.assertTrue([c for c in row['capabilities'] if not c['supported']],
                             f"{row['adapter_id']} presents an unsupported capability as there")
@@ -118,6 +123,10 @@ class ProjectionFollowsTheRegisteredRoster(unittest.TestCase):
         # requires process isolation, so the row must satisfy both.
         blender = [row for row in delivery if row['adapter_id'] == 'adapter-delivery-blender'][0]
         self.assertEqual(blender['mode'], 'process-isolated')
+        self.assertEqual(blender['status'], 'missing',
+                         'the large-tools guard reads a `declared` Blender row as an availability '
+                         'claim, so this row has to say the weaker word')
+        self.assertTrue(blender['fallback'], 'a `missing` row must name its fallback')
         windows = [row for row in delivery if row['adapter_id'] == 'adapter-delivery-windows'][0]
         self.assertIn('NOT ACTIVATED', windows['evidence']['note'])
 

@@ -263,6 +263,25 @@ const MEASURE = () => {
     document.body.append(host);
   }
 
+  // The exclusion control for the clip rule, and it is the *other* half of the proof. A skip that
+  // only ever removes rows looks identical to a gate that has stopped measuring, so this plants a
+  // white-on-white run inside a zero-height `overflow:hidden` host: it would be a real 1:1
+  // offender if graded, and the correct answer is that no eye can reach it. The assertion that
+  // makes this falsifiable lives beside `#ct-control`, which is planted in the open and MUST still
+  // be convicted -- one fixture excluded, one graded, so the rule cannot silently widen.
+  {
+    const host = document.createElement('div');
+    host.id = 'ct-clipped-host';
+    host.style.cssText = 'position:fixed;left:-10000px;top:60px;width:220px;height:0;overflow:hidden';
+    const control = document.createElement('div');
+    control.id = 'ct-clipped';
+    control.style.cssText = 'width:220px;height:40px;background:color(srgb 1 1 1);'
+      + 'color:rgb(255, 255, 255);font-size:16px;font-weight:400';
+    control.textContent = 'AA CLIPPED CONTROL';
+    host.append(control);
+    document.body.append(host);
+  }
+
   // Runs inside a closed detail are not painted; open every detail first, then collect, so the
   // population is exactly "text a person can be shown" and never "text a snapshot happens to
   // have expanded". `collapsed` keeps the number of runs this decision brought into the sweep.
@@ -281,6 +300,47 @@ const MEASURE = () => {
   }
 
   // Every element that paints text of its own.
+  //
+  // A run whose box lies entirely outside the clip box of an ancestor that actually clips it
+  // paints nothing, so it has no contrast for an eye to read and WCAG 1.4.3 does not reach it.
+  // This is the same decision the file already makes for `display:none` (skipped above), for
+  // runs inside a closed <details> (`collapsed`) and for runs under an opaque owner
+  // (`obscured`) -- and it was missing. The rail exposed it: `.nav{overflow:auto}` scrolls its
+  // items, so after `scrollIntoView` an item can sit at y=20 while the nav's own box starts at
+  // y=125. Its rect is still real, `elementFromPoint` there returns `div.brand`, and the gate
+  // graded that invisible label against the semi-transparent sidebar gradient it happened to
+  // overlap -- 1.5:1 for text nobody can see.
+  const tagOf = (n) => `${n.tagName.toLowerCase()}${n.id ? '#' + n.id : ''}`
+    + (typeof n.className === 'string' && n.className.trim()
+      ? '.' + n.className.trim().split(/\s+/).join('.') : '');
+  // `overflow` does not clip a `position:fixed` descendant unless that ancestor is the
+  // descendant's containing block; treating every clipper as universal would drop real fixed
+  // overlays (the search palette, the scrim) from the population, which is the opposite error.
+  const isFixedContainingBlock = (s) => s.position === 'fixed'
+    || (s.transform && s.transform !== 'none')
+    || (s.filter && s.filter !== 'none')
+    || (s.backdropFilter && s.backdropFilter !== 'none')
+    || (s.perspective && s.perspective !== 'none')
+    || /paint|layout|strict|content/.test(s.contain || '')
+    || /transform|filter|backdrop-filter|perspective/.test(s.willChange || '');
+  const clipperThatHides = (el, box) => {
+    let escapes = getComputedStyle(el).position === 'fixed';
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const s = getComputedStyle(p);
+      const clips = s.overflowX !== 'visible' || s.overflowY !== 'visible';
+      if (clips && !(escapes && !isFixedContainingBlock(s))) {
+        const r = p.getBoundingClientRect();
+        // The ancestor's border box, not its padding box: a slightly too generous clip can only
+        // under-exclude, and under-excluding keeps a real offender in the population.
+        if (Math.min(box.right, r.right) - Math.max(box.left, r.left) < 1
+          || Math.min(box.bottom, r.bottom) - Math.max(box.top, r.top) < 1) return tagOf(p);
+      }
+      if (escapes && isFixedContainingBlock(s)) escapes = false;
+    }
+    return null;
+  };
+  let clippedOut = 0;
+  const clippedOutExamples = [];
   const targets = [];
   for (const el of document.querySelectorAll('body *')) {
     const own = Array.from(el.childNodes).some((n) =>
@@ -292,6 +352,15 @@ const MEASURE = () => {
     const box = el.getBoundingClientRect();
     if (box.width < 1 || box.height < 1) continue;
     if (parseFloat(cs.opacity) === 0) continue;
+    const hiddenBy = clipperThatHides(el, box);
+    if (hiddenBy) {
+      clippedOut += 1;
+      if (clippedOutExamples.length < 4) {
+        const txt = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+        clippedOutExamples.push(`${tagOf(el)} :: ${txt} by ${hiddenBy}`);
+      }
+      continue;
+    }
     targets.push({ el, cs, box });
   }
 
@@ -473,12 +542,14 @@ const MEASURE = () => {
     if (row) control.reported += 1;
     control.detail.push({ id, reported: !!row, ratio: row ? row.got : null });
   }
-  for (const id of [...CONTROL_IDS, 'ct-collapsed-host']) document.querySelector('#' + id)?.remove();
+  for (const id of [...CONTROL_IDS, 'ct-collapsed-host', 'ct-clipped-host'])
+    document.querySelector('#' + id)?.remove();
   return { checked, fails: fails.slice(0, 60), failCount: fails.length, controlRows,
            productCount: productRows.length, productFails: productRows.slice(0, 12),
            math, colour,
            pseudoLayers, unknown, control, margin, collapsed,
-           coveredForeign, coveredExamples, obscured, obscuredExamples };
+           coveredForeign, coveredExamples, obscured, obscuredExamples,
+           clippedOut, clippedOutExamples };
 };
 
 // The 20261023 pack writes its visual rules as numbers, so the replication is graded against
@@ -863,7 +934,8 @@ async function paintTheme(p) {
   }, [uiPalette, uiScheme, refusalWords]);
 }
 let failTotal = 0, checkedTotal = 0, unknownTotal = 0, pseudoTotal = 0;
-let coveredTotal = 0, obscuredTotal = 0, collapsedTotal = 0;
+let coveredTotal = 0, obscuredTotal = 0, collapsedTotal = 0, clippedTotal = 0;
+const clippedSamples = [];
 let controlsExpected = 0, controlsReported = 0;
 const mathChecks = [];
 const colourChecks = [];
@@ -1494,6 +1566,12 @@ const absorb = (key, m) => {
   coveredTotal += m.coveredForeign;
   obscuredTotal += m.obscured;
   collapsedTotal += m.collapsed;
+  clippedTotal += m.clippedOut;
+  // Named, not just counted: a skip whose members nobody can read is how this file would turn a
+  // coverage hole into a green number, which is the failure mode its own comments warn about.
+  for (const c of m.clippedOutExamples) {
+    if (clippedSamples.length < 12) clippedSamples.push(`${key} ${c}`);
+  }
   if (m.control.reported < m.control.planted) controlBad.push(`${key} ${JSON.stringify(m.control.detail)}`);
   for (const u of m.unknown) if (unknownSamples.length < 12) unknownSamples.push(`${key} ${u}`);
   const s = m.spec;
@@ -1553,7 +1631,7 @@ const absorb = (key, m) => {
   console.log(`w=${key.padEnd(24)} checked=${String(m.checked).padStart(4)} `
     + `belowAA=${String(m.failCount - m.controlRows).padStart(3)} `
     + `pseudoLayers=${String(m.pseudoLayers).padStart(3)} unparsable=${m.unknown.length} `
-    + `covered=${m.coveredForeign} obscured=${m.obscured} collapsed=${m.collapsed} `
+    + `covered=${m.coveredForeign} obscured=${m.obscured} collapsed=${m.collapsed} clipped=${m.clippedOut} `
     + `control=${m.control.reported}/${m.control.planted}`);
 };
 
@@ -1776,6 +1854,7 @@ report.run = {
   gitSha: process.env.CT_GIT_SHA || 'unknown',
   productFails: failTotal,
   plantedControls: controlsExpected,
+  clippedOutOfScroller: clippedTotal,
   note: 'configuration of this single run; a falsification run and a baseline run are separate '
     + 'files whose fields differ, so neither can stand in for the other',
 };
@@ -1819,6 +1898,7 @@ if (mathBad.length > 0) {
 console.log('');
 console.log(`CT_SUMMARY checked=${checkedTotal} belowAA=${failTotal} pseudoLayers=${pseudoTotal}`
   + ` coveredForeign=${coveredTotal} obscured=${obscuredTotal} unparsable=${unknownTotal}`
+  + ` clippedOutOfScroller=${clippedTotal}`
   + ` collapsedOpened=${collapsedTotal}`
   + ` controlMisses=${controlsExpected - controlsReported} strict=${strict ? 1 : 0}`
   + ` mathChecks=${mathChecks.length} mathBad=${mathChecks.filter((c) => !c.ok).length}`
@@ -1917,6 +1997,11 @@ if (controlBad.length > 0) {
     + `${controlBad.length} route(s) -- the colour parser is blind to a background the page `
     + 'actually paints, so the pass counts are not trustworthy');
   process.exit(1);
+}
+// Every run this pass declined to grade because an ancestor clips it away, printed even when
+// the gate is green: the number alone cannot be checked, the names can.
+if (clippedTotal > 0) {
+  for (const c of clippedSamples) console.log(`  CLIPPED_OUT ${c}`);
 }
 if (unknownTotal > 0) {
   for (const u of unknownSamples) console.log(`  UNPARSABLE ${u}`);
