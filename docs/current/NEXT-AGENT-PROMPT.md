@@ -746,7 +746,22 @@ receipts=7 excluded=0 findings=0`、`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gz
 
 **教训只有一句**：登记"覆盖范围"的那句话，必须是机器数出来的，不能是我按目录想出来的。
 
-**下一轮按此顺序**：① `docs/audits` 的字节去重仍**待 owner 裁**，工程上没有第二件可做的事——现数：
+**补两条 CI 逐字读数（两把尺子，不是我说一致就一致）**：承载 `f9689fa7` 的 PR run 40776458027
+`conclusion=success`（12 作业 10 success / 2 skipped / 0 failed），那一步的 CROSSWAVE 行还是六波旧数
+`manifests=6 distinct=340 crossWave=48 inClone=34 outsideClone=14 tracked=643`；承载补全后普查的
+`feb23a11` 的 PR run 40779786064 同样 `conclusion=success`（10/2/0），同一行读成
+`CROSSWAVE=OK manifests=8 distinct=510 crossWave=49 inClone=35 outsideClone=14 tracked=1625`，
+`PYTHON_TESTS_UNION=OK expected=3466 distinct=3466 ran=3466 duplicates=0 missing=0 unexpected=0`、
+`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21 receipts=7 excluded=0 findings=0`、
+`STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`。两行差集就是上表那六个 delta，
+在 Linux 干净检出上复现——**被漏掉的两波是仓的属性，不是我这台机器上的目录树现象**。
+回执：`dl-final-t04-pr-run-read-at-f9689fa7-20261028`、`dl-final-t04-pr-run-read-at-feb23a11-20261028`，
+账本 340 → 342。
+
+**下一轮按此顺序**：⓪ 先读承载本轮最后那条"只含派生记录"的 head 的 PR run 全矩阵并逐字记账
+（本节写到这里时它还在跑，本轮不替它预填绿；用 `gh run list --branch <工作分支> --limit 2
+--json databaseId,headSha,status,conclusion,event` 点名那个 SHA，别看旧 run）；
+① `docs/audits` 的字节去重仍**待 owner 裁**，工程上没有第二件可做的事——现数：
 842 个受跟踪文件 / 8,141,995 字节（按 blob 计，不按工作树），其中逐字节相同的只有 77 组 / 牵涉 256 个文件 /
 冗余 179 份 / **545,455 字节**；全仓被文本点名的 `docs/audits` 路径共 27 条（25 条解析到受跟踪文件，2 条不解析），
 点名者有 28 个文件在 `docs/audits` 之外，而**这 179 份重复里没有任何一份被点名**（按文件名取交集为 0），
