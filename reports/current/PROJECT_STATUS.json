@@ -8,16 +8,16 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-28T19:35:20+00:00",
+  "generatedAt": "2026-10-28T20:35:24+00:00",
   "git": {
     "branch": "qoder/designlab-first-screen-two-col-20261028",
     "origin_main": "9882a89c21fe52507ec64e14b83ff4c3477cbe85",
-    "sha": "f4ae9374f2c315803f38754e5567ca243b93f0f2",
+    "sha": "29c22b571c147cf254cfee5aafe56a24a956c507",
     "source_worktree_clean": false,
-    "tracked_files": 4038,
+    "tracked_files": 4042,
     "worktree_changes": [
       {
-        "content": "sha256:4ea593beb39ef7df8c1e5931f4240a11b245290628a8c4fa288cef857642e88c",
+        "content": "sha256:d7ff40089449a112d7e2a3b74ab52465d6809d575f4a74ce282491290784a06d",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
@@ -32,7 +32,7 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:94157695a3dbf4a9b7ca724232d13773adb9c77ec0055135a4a7a0af50762e5f"
+    "worktree_digest": "sha256:6c26e8181c183464a631953f4f8228f6553df4bd5935af189818e1c225606900"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -48,7 +48,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "f4ae9374f2c315803f38754e5567ca243b93f0f2",
+  "subjectSha": "29c22b571c147cf254cfee5aafe56a24a956c507",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "DONE": 13,
@@ -64,9 +64,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 3453,
+    "definedTestMethodCount": 3466,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:94157695a3dbf4a9b7ca724232d13773adb9c77ec0055135a4a7a0af50762e5f"
+  "worktreeDigest": "sha256:6c26e8181c183464a631953f4f8228f6553df4bd5935af189818e1c225606900"
 }
