@@ -832,6 +832,55 @@ class StandaloneChainTests(unittest.TestCase):
         for route, kind, reason in unmeasured:
             print('GET_SWEEP_UNMEASURED ' + kind + ' ' + route + ' :: ' + reason)
 
+    def test_the_automation_projection_answers_from_the_records_it_ships(self):
+        """The connector table must come from bytes the artefact itself carries.
+
+        This route answers 200 either way, so the status code cannot separate "the package ships the
+        registry" from "the package found nothing and said so". Measured before pyproject gained the
+        two force-include lines, an installed wheel returned
+        `registry_state=MISSING pack_state=MISSING connectors=0`, because the module derived the
+        repository root from its own location and three levels above an installed package is the
+        interpreter's `Lib`. An empty connector table is not a mild degradation here: it reads as
+        "no connector is registered", which is a false statement about the repository. CI's
+        clean-wheel job runs this module under `DL_LAUNCH_INSTALLED=1`, so the assertion is made
+        against the installed package and the layout is printed with it.
+
+        The id comparison is a real cross-check only in the installed layout, where the answer comes
+        from the packaged copy while this test reads the committed one; in a source checkout both
+        sides are the same file, which is why the layout rides on the printed line.
+        """
+        import json as _json
+        status, answer = self.call('GET', '/api/automation-connectors')
+        self.assertEqual(status, 200, f'the connector projection refused: {answer}')
+        self.assertEqual(answer['registry_state'], 'READ',
+                         'the projection could not open the adapter registry from where it is '
+                         'running -- a packaged record is missing, not a verdict about hosts')
+        self.assertEqual(answer['pack_state'], 'READ',
+                         'the projection could not open the delivery pack manifest')
+        served = sorted(row['id'] for row in answer['connectors'])
+        self.assertEqual(len(served), 11,
+                         'the registered connector population moved from 11 without this test '
+                         'being told: ' + str(served))
+        self.assertEqual(answer['counts']['connectors'], len(served),
+                         'the count and the table disagree about the same payload')
+        committed = _json.loads(
+            (ROOT / 'docs/history/record-archive-2026-10-28-design-automation'
+             / 'ARCHIVE-MANIFEST.json').read_text(encoding='utf-8'))
+        self.assertEqual(served, sorted(r['id'] for r in committed['connectors']['rows']),
+                         'the answer is not the committed roster: a row was dropped, added or '
+                         'renamed between the record and the route')
+        # Nothing about this is allowed to read as capability, in either layout.
+        self.assertEqual(answer['counts']['probed_by_design_lab'], 0)
+        self.assertEqual(answer['counts']['enabled'], 0)
+        self.assertEqual(answer['counts']['native_tool_calls_executed'], 0)
+        self.assertFalse([row for row in answer['connectors'] if row['design_lab_enabled']],
+                         'an installed package offered a connector as enabled')
+        print('AUTOMATION_READBACK layout=' + ('installed' if INSTALLED_MODE else 'source')
+              + ' registry=' + answer['registry_state']
+              + ' pack=' + answer['pack_state']
+              + ' connectors=' + str(len(served))
+              + ' adapters=' + str(answer['counts']['project_adapters']))
+
     def status_and_code(self, path):
         """Status plus the error code (or byte count), without assuming the body is JSON.
 

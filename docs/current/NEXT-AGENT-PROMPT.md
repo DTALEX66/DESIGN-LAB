@@ -436,9 +436,51 @@ CI 对新 head 的 `BROWSER_E2E` 读数由下一轮自己取，不要抄本节�
 写出来的 `self.assertEqual(..., '...run:\n%s')` 成了未闭合字符串。`ast.parse` 在运行前抓住了它。
 教训沿用既有那条：**生成源码要落文件再改，别把转义寄望于 shell**。
 
-**下一轮按此顺序**：① 把 `integrations/adapter-registry.json` 与本轮登记件纳入 wheel 的 force-include
-并在干净 venv 里证明——现在装好的 wheel 会诚实报 `registry_state=MISSING`，这是可接受的降级，
-但"吸收"应当让安装态也读得到；② LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
+**§5.87（2026-10-28 续）安装态真正读得到登记表：上一轮那句"可接受的降级"被实测否掉了。**
+owner 说"持续推进 不要再问了"，所以按上一轮写下的下一轮第①项开工，做完并证明了三方读数。
+
+**先说追正**：§5.86 的"下一轮按此顺序"里写 `现在装好的 wheel 会诚实报 registry_state=MISSING，这是可接受的降级`。
+这句的判断是错的。实测（把本轮改动前的树 build 成 wheel、装进干净 venv、直接调用投影）：
+`registry_state=MISSING pack_state=MISSING connectors=0 project_adapters=0`——不是一行少一个字段，
+是**整张表空了**，而这一页存在的唯一理由就是"把已登记的连接器摆出来"。空表在任何读者眼里都等于"没有登记"，
+那是对仓库的假陈述。成因与 `domain_packs.py` 当年一样：模块把自己往上第三层当仓库根，
+装在 wheel 里那就是解释器自己的 `Lib`。
+
+**做了什么**：① `src/design_lab/automation_connectors.py` 改用 `runtime/state_resources.repo_resource()`
+（打包优先、其次本 checkout，并且只有当这个模块真的是 checkout 里的那份才回退，所以安装态永远不会
+去敲邻居项目的门），`build(root=...)` 的植入根保留给缺失态用例；② `pyproject.toml` 加两条
+force-include（`integrations/adapter-registry.json`、
+`docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json`，都落到
+`design_lab/resources/repo/…`），sdist 的 `only-include` 同步补上那条 docs 根；
+③ `design-lab/tests/test_standalone_chain_http.py` 新增一条**内容**断言并在 CI 的 clean-wheel 作业里
+以 `layout=installed` 跑（该作业本来就用 `DL_LAUNCH_INSTALLED=1` 走这条链）。这条断言之所以必要，
+是因为这个路由两种情况都回 200：状态码分不开"包装了这个记录"和"什么都没找到但如实说了"。
+
+**三方读数（同一份测试文件，只换被测工件）**：
+`AUTOMATION_READBACK layout=source registry=READ pack=READ connectors=11 adapters=41` → OK；
+装在**改动前** wheel 里 → `FAILED (failures=1) AssertionError: 'MISSING' != 'READ'`（这就是它能红）；
+装在**改动后** wheel 里 → `AUTOMATION_READBACK layout=installed registry=READ pack=READ
+connectors=11 adapters=41` → OK。wheel 体积 `1,254,358 → 1,272,996 B`（+18,638）。
+`SDIST_PACKAGING=OK wheel_sources=73 covered=73 missing=0 sdist_roots=18 mode=build`——
+即从发布出去的源码包能重建出带这两条记录的 wheel，这正是 2026-10-26 那次审计点名过的旧缺口。
+
+**顺带把一个工具盲区补上，并因此暴露一条既存真相**：`design-lab/scripts/audit_repo_root_reads.py`
+原先写明"根先存进变量就不追"，而我的模块正是这个拼法，所以它一直看不见自己该看见的东西。
+现在 `root_names_of()` 会追模块内任何位置的根绑定（含 `x = a or ROOT` 传递闭包），
+`string_constants_of()` 会解 `NAME = Path('…')` 常量，`is_shipped()` 也不再只按 `design-lab/` 前缀比对
+（只认一个前缀的工具，对 `integrations/…`、`docs/…` 永远只能说"没打包"，它的绿就不是证据）。
+**加严之后 live 报告从 paths=1 变 paths=2**：新冒出来那条是
+`adapters/illustrator_com.py → integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx`，
+和 Photoshop 那条同类、字节本来就在 `design_lab/resources/adobe/` 打包着——即它**一直是既存事实**，
+只是旧检测器看不见。处置是把它并进那条豁免名单并写明理由（不是删断言），并把正对照从"计数"改成
+"具名对"：`CONTROL evidence=4 hits=4 / CONTROL=OK every pre-fix reader was found`，
+其中两条就是我自己这份改动前字节，用 `git show aa65fc70:` 取真字节，证明加强后的检测器确实能看见
+当初藏住这个缺陷的拼法。
+
+**没做的事**：没有安装态分发、没有 release；wheel 只是被构建并被证明读得到，没有被发布。
+`probed_by_design_lab=0 / enabled=0 / native_tool_calls_executed=0` 在两条断言里都继续被钉成 0。
+
+① ~~把 `integrations/adapter-registry.json` 与本轮登记件纳入 wheel 的 force-include 并在干净 venv 里证明~~ —— **已由 §5.87 做完**（安装态 `registry=READ pack=READ connectors=11`，改动前工件同一条断言红在 `'MISSING' != 'READ'`；"可接受的降级"那句判断作废）；② LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
 按"冻结原件原字节不动、只换指针与取代关系"执行并重绑登记件/权威链/投影；
 ③ 若 owner 授权探测，才做第一次真 probe 并把读数写成新回执——**默认仍是 NOT_PROBED**；
 ④ 提示词读回的界面翻页线索、其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type`
