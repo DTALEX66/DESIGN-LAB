@@ -25,7 +25,6 @@ import type {
 } from './contracts.js';
 
 import { loadDesignSystems, refreshDesign, resetDesignRevision } from './design.js';
-import { shapeFieldMissing } from './ui-primitives.js';
 
 export const byId = <T extends HTMLElement = HTMLElement>(id: string): T =>
   document.getElementById(id) as T;
@@ -476,9 +475,9 @@ export async function recentPlans(): Promise<void> {
     return;
   }
   if (current !== epoch || request !== plansRequest || owner !== project) return;
-  if (shapeFieldMissing(data, 'plans')) {
+  if (!Array.isArray(data?.plans)) {
     list.replaceChildren();
-    info.textContent = '未读回：响应缺少 plans 字段，因此不能说这个项目没有方案。';
+    info.textContent = '未读回：响应里没有 plans 数组，因此不能说这个项目没有方案。';
     return;
   }
   const rows = data.plans;

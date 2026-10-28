@@ -467,82 +467,6 @@ function resetDesignRevision() {
   byId("direction-lineage-title").textContent = "";
   byId("design-binding-active").textContent = "";
 }
-function el(tag, attrs = {}, ...children) {
-  const node = document.createElement(tag);
-  for (const [key, value] of Object.entries(attrs)) {
-    if (value === null || value === void 0) continue;
-    if (key === "class") node.className = String(value);
-    else if (key === "dataset") for (const [dk, dv] of Object.entries(value)) node.dataset[dk] = String(dv);
-    else if (key.startsWith("on") || key === "type" || key === "value" || key === "placeholder")
-      node[key] = value;
-    else if (key === "style" && node.style) node.style.cssText = String(value);
-    else node.setAttribute(key, String(value));
-  }
-  node.append(...children);
-  return node;
-}
-function en(text) {
-  return el("span", { lang: "en" }, text);
-}
-const SHAPE_MISSING = Symbol.for("design-lab/shape-missing");
-const DISCONNECTED = Symbol.for("design-lab/disconnected");
-function normaliseShape(live, template, prefix = "") {
-  if (template === null || typeof template !== "object") return [];
-  const missing = [];
-  for (const [key, want] of Object.entries(template)) {
-    const field = prefix ? `${prefix}.${key}` : key;
-    if (Array.isArray(want)) {
-      if (!Array.isArray(live[key])) {
-        live[key] = [];
-        missing.push(field);
-      }
-    } else if (want !== null && typeof want === "object") {
-      if (live[key] === null || typeof live[key] !== "object") {
-        live[key] = {};
-        missing.push(field);
-      }
-      missing.push(...normaliseShape(live[key], want, field));
-    }
-  }
-  return missing;
-}
-function shapeNoticeRows(...values) {
-  const notes = values.map(shapeNotice).filter(Boolean);
-  return notes.length ? [el("p", { class: "error" }, notes.join("；"))] : [];
-}
-function shapeNotice(value) {
-  const missing = value?.[SHAPE_MISSING];
-  return Array.isArray(missing) && missing.length ? `未读回：响应缺少 ${missing.join("、")}` : "";
-}
-function shapeFieldMissing(value, field) {
-  const missing = value?.[SHAPE_MISSING];
-  return Array.isArray(missing) && missing.includes(field);
-}
-function markDisconnected(payload) {
-  const mark = (target) => {
-    Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
-  };
-  mark(payload);
-  for (const value of Object.values(payload)) {
-    if (value !== null && typeof value === "object") mark(value);
-  }
-  return payload;
-}
-function disconnectedNotice(value) {
-  return value?.[DISCONNECTED] === true ? "未读回：未连接本机设计服务" : "";
-}
-function emptyWording(value, noun, hint) {
-  const offline = disconnectedNotice(value);
-  return offline ? ["未读回", offline] : [noun, hint];
-}
-function emptyLi(value, noun, hint) {
-  const [head, note] = emptyWording(value, noun, hint);
-  return el("li", { class: "list-item" }, el("div", {}, el("strong", {}, head), el("small", {}, note)));
-}
-function emptyTd(value, noun, hint, colspan) {
-  const [head, note] = emptyWording(value, noun, hint);
-  return el("td", { colspan: String(colspan) }, `${head} ${note}`);
-}
 const byId = (id) => document.getElementById(id);
 let token = "";
 let connected = false;
@@ -904,9 +828,9 @@ async function recentPlans() {
     return;
   }
   if (current !== epoch || request !== plansRequest || owner !== project) return;
-  if (shapeFieldMissing(data, "plans")) {
+  if (!Array.isArray(data?.plans)) {
     list.replaceChildren();
-    info2.textContent = "未读回：响应缺少 plans 字段，因此不能说这个项目没有方案。";
+    info2.textContent = "未读回：响应里没有 plans 数组，因此不能说这个项目没有方案。";
     return;
   }
   const rows = data.plans;
@@ -1208,6 +1132,82 @@ byId("more-events").onclick = () => {
 byId("more-native").onclick = () => {
   void nativeAssets(true).catch((e) => setStatus(errMsg(e), true));
 };
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value === null || value === void 0) continue;
+    if (key === "class") node.className = String(value);
+    else if (key === "dataset") for (const [dk, dv] of Object.entries(value)) node.dataset[dk] = String(dv);
+    else if (key.startsWith("on") || key === "type" || key === "value" || key === "placeholder")
+      node[key] = value;
+    else if (key === "style" && node.style) node.style.cssText = String(value);
+    else node.setAttribute(key, String(value));
+  }
+  node.append(...children);
+  return node;
+}
+function en(text) {
+  return el("span", { lang: "en" }, text);
+}
+const SHAPE_MISSING = Symbol.for("design-lab/shape-missing");
+const DISCONNECTED = Symbol.for("design-lab/disconnected");
+function normaliseShape(live, template, prefix = "") {
+  if (template === null || typeof template !== "object") return [];
+  const missing = [];
+  for (const [key, want] of Object.entries(template)) {
+    const field = prefix ? `${prefix}.${key}` : key;
+    if (Array.isArray(want)) {
+      if (!Array.isArray(live[key])) {
+        live[key] = [];
+        missing.push(field);
+      }
+    } else if (want !== null && typeof want === "object") {
+      if (live[key] === null || typeof live[key] !== "object") {
+        live[key] = {};
+        missing.push(field);
+      }
+      missing.push(...normaliseShape(live[key], want, field));
+    }
+  }
+  return missing;
+}
+function shapeNoticeRows(...values) {
+  const notes = values.map(shapeNotice).filter(Boolean);
+  return notes.length ? [el("p", { class: "error" }, notes.join("；"))] : [];
+}
+function shapeNotice(value) {
+  const missing = value?.[SHAPE_MISSING];
+  return Array.isArray(missing) && missing.length ? `未读回：响应缺少 ${missing.join("、")}` : "";
+}
+function shapeFieldMissing(value, field) {
+  const missing = value?.[SHAPE_MISSING];
+  return Array.isArray(missing) && missing.includes(field);
+}
+function markDisconnected(payload) {
+  const mark = (target) => {
+    Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
+  };
+  mark(payload);
+  for (const value of Object.values(payload)) {
+    if (value !== null && typeof value === "object") mark(value);
+  }
+  return payload;
+}
+function disconnectedNotice(value) {
+  return value?.[DISCONNECTED] === true ? "未读回：未连接本机设计服务" : "";
+}
+function emptyWording(value, noun, hint) {
+  const offline = disconnectedNotice(value);
+  return offline ? ["未读回", offline] : [noun, hint];
+}
+function emptyLi(value, noun, hint) {
+  const [head, note] = emptyWording(value, noun, hint);
+  return el("li", { class: "list-item" }, el("div", {}, el("strong", {}, head), el("small", {}, note)));
+}
+function emptyTd(value, noun, hint, colspan) {
+  const [head, note] = emptyWording(value, noun, hint);
+  return el("td", { colspan: String(colspan) }, `${head} ${note}`);
+}
 const PROJECT_DETAIL_RE = /^#\/projects\/([^/?#]+)$/;
 const PROJECT_ID_RE = /^[0-9a-f]{32}$/;
 function projectDetailId(hash) {

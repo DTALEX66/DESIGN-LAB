@@ -282,6 +282,28 @@ def assert_single_declaration(contracts_ts: str, shell_ts: str) -> list[str]:
     return problems
 
 
+def assert_guard_precedes_dereference(source: str) -> list[str]:
+    """The array guard must come before anything reads `.plans` — CI caught the reverse order.
+
+    `api()` does not normalise a short answer, so a 200 without `plans` reaches the view as an
+    object whose `plans` is undefined. The seam-aware `shapeFieldMissing` cannot see that (it only
+    reports what `apiOrEmpty` invented), and `data.plans.length` on the strength of the type
+    annotation is what made `test_workbench_native_ui` fail at the first cloud run of this cut.
+    """
+    guard = source.find('Array.isArray(data?.plans)')
+    read = source.find('const rows = data.plans;')
+    if read < 0:
+        return ['the plan column no longer reads data.plans through a named local; this check '
+                'cannot tell guard order from absence']
+    if guard < 0:
+        return ['the column dereferences data.plans without an array guard, so a 200 answer that '
+                'omits plans throws instead of saying 未读回']
+    if guard > read:
+        return [f'the array guard sits at {guard}, after the dereference at {read}: the crash it '
+                'exists to prevent happens first']
+    return []
+
+
 class LandingStructureTests(unittest.TestCase):
     def test_the_shipped_landing_passes_its_own_check(self):
         self.assertEqual(assert_landing_structure(INDEX.read_text(encoding='utf-8')), [])
@@ -310,6 +332,10 @@ class LandingStructureTests(unittest.TestCase):
         self.assertEqual(assert_single_declaration(
             CONTRACTS_TS.read_text(encoding='utf-8'),
             SHELL_TS.read_text(encoding='utf-8')), [])
+
+    def test_the_plans_array_is_guarded_before_anything_reads_it(self):
+        self.assertEqual(assert_guard_precedes_dereference(
+            WORKBENCH_TS.read_text(encoding='utf-8')), [])
 
 
 class PlantedFaultsAreConvicted(unittest.TestCase):
@@ -375,6 +401,19 @@ class PlantedFaultsAreConvicted(unittest.TestCase):
         findings = assert_bounded_read(self.source.replace(
             'export const RECENT_PLANS_LIMIT = 5;', 'export const RECENT_PLANS_LIMIT = 500;'), 50)
         self.assertTrue([f for f in findings if 'outside' in f], findings)
+
+    def test_reading_the_plans_array_before_the_guard_is_convicted(self):
+        """The exact defect the first cloud run of this cut caught, planted both ways."""
+        guard = '  if (!Array.isArray(data?.plans)) {\n    return;\n  }\n'
+        read = '  const rows = data.plans;\n'
+        self.assertEqual(assert_guard_precedes_dereference(guard + read), [])
+        self.assertTrue([f for f in assert_guard_precedes_dereference(read)
+                         if 'without an array guard' in f])
+        self.assertTrue([f for f in assert_guard_precedes_dereference(read + guard)
+                         if 'happens first' in f])
+        self.assertTrue(assert_guard_precedes_dereference('export async function f() {}\n'),
+                        'a column that stopped reading the envelope at all must not pass')
+        self.assertEqual(assert_guard_precedes_dereference(self.source), [])
 
     def test_a_second_copy_of_the_envelope_is_convicted(self):
         contracts = CONTRACTS_TS.read_text(encoding='utf-8')
