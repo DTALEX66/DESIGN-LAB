@@ -12,6 +12,8 @@ import type {
   BriefRevisionResponse,
   BundleListResponse,
   BriefListResponse,
+  AssistancePlanListView,
+  AssistancePlanRow,
   BundleRecord,
   DesignBrief,
   DesignDirection,
@@ -4733,26 +4735,8 @@ interface AssistancePlanReadback {
   states: { saved: boolean; provided: boolean; chosen: boolean; externally_verified: boolean };
   does_not_say: string[];
 }
-interface AssistancePlanRow {
-  plan_id: string;
-  revision: number;
-  objective: string;
-  output_type: string;
-  created_at: string;
-  created_by: string;
-  reference_count: number;
-  provided: boolean;
-  chosen_revision: number | null;
-}
-interface AssistancePlanListView {
-  schemaVersion: string;
-  total: number;
-  offset: number;
-  limit: number;
-  returned: number;
-  next_offset: number | null;
-  plans: AssistancePlanRow[];
-}
+// The list envelope's two shapes moved to contracts.ts (2026-10-28) because the first screen now
+// reads the same route; declaring them twice is the drift this repo convicts, not a convenience.
 interface AssistanceWriteView {
   schemaVersion: string;
   status: string;

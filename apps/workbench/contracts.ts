@@ -744,3 +744,32 @@ export interface DomainListResponse {
   packs: DomainPackRecord[];
 }
 
+// --- Assistance plan readback: GET /api/projects/{id}/assistance-plans ------
+// Key set measured against src/design_lab/assistance_plan.py::AssistancePlans.list, which
+// selects the LATEST revision of every plan in the project and orders it
+// `created_at DESC, plan_id DESC`. That ordering is why a page may call this list 最近方案:
+// it is the service's own recency reading, not a client-side sort. The row carries no
+// verdict words — `provided` and `chosen_revision` are facts the page computes its own
+// sentence from, and the choice row is a separate table the list joins in.
+export interface AssistancePlanRow {
+  plan_id: string;
+  revision: number;
+  objective: string;
+  output_type: string;
+  created_at: string;
+  created_by: string;
+  reference_count: number;
+  provided: boolean;
+  chosen_revision: number | null;
+}
+
+export interface AssistancePlanListView {
+  schemaVersion: string;
+  total: number;
+  offset: number;
+  limit: number;
+  returned: number;
+  next_offset: number | null;
+  plans: AssistancePlanRow[];
+}
+

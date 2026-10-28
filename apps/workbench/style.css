@@ -310,6 +310,15 @@ form label{flex:1}
 .toolbar form{width:100%;padding-top:12px;border-top:1px solid var(--line)}
 
 .grid{display:grid;grid-template-columns:1fr 1.35fr;gap:20px}
+/* 首屏的两列：每一列自己是一个纵向网格，列内面板按自身高度排，不是一格一个面板。
+   `gap:inherit` 而不是在这里再写一遍数值——列间距是 .grid 定的，写两份就会在下次改间距时
+   只改到一份。`align-content:start` 让矮的那列不被拉伸成一块空面板；`min-width:0` 让长中文
+   目标在窄列里换行，而不是把文档顶出横向滚动（那正是溢出闸要定罪的形状）。 */
+.grid>.col{display:grid;gap:inherit;align-content:start;min-width:0}
+/* 方案行：目标一行、时间与记录人一行。排成一行时 1100px 档会把 `2026-10-28T…` 从连字符处折断，
+   读起来像两个字段；分两行以后，短的那个片段自己就是不可再分的一行。 */
+.plan-line{display:flex;flex-direction:column;gap:var(--uif-space-1);min-width:0}
+.plan-line small{color:var(--muted);font-size:var(--uif-font-micro)}
 .preview{
   min-height:280px;display:grid;place-items:center;
   /* 暗色棋盘（替代原浅色） */

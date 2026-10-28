@@ -219,6 +219,47 @@ const MEASURE = () => {
     tableW: table ? Math.round(table.getBoundingClientRect().width) : null,
     drawerW: drawer ? Math.round(drawer.getBoundingClientRect().width) : null,
   };
+  // 首屏双列（owner 2026-10-28 那一刀：最近方案进右列）。这条只在遗留工作台那面有值，其余路由
+  // 返回 null，因为 `#workspace` 在路由页是隐藏的——隐藏不等于"这一列不存在"，所以下游读的是
+  // null 与非 null 的分布，而不是把 null 当成通过。它量的是"两列是否真在两侧、方案面板是否
+  // 真在第二列里、那块说法文字是否真的画出来了"：光看 markup 里有 `.col` 不能证明浏览器把它
+  // 排成了两列（media query 与 grid-template 都能在没有报错的情况下把它变回一列）。
+  out.firstScreen = (() => {
+    const grid = document.querySelector('#workspace .grid');
+    if (!grid) return null;
+    const gridBox = grid.getBoundingClientRect();
+    if (gridBox.width < 1) return null;
+    const box = (node) => {
+      const r = node.getBoundingClientRect();
+      return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width),
+        h: Math.round(r.height), right: Math.round(r.right), bottom: Math.round(r.bottom) };
+    };
+    const cols = Array.from(grid.children);
+    const list = document.querySelector('#recent-plans');
+    const panel = list ? list.closest('.panel') : null;
+    const info = document.querySelector('#recent-plans-info');
+    const first = cols.length ? box(cols[0]) : null;
+    const second = cols.length > 1 ? box(cols[1]) : null;
+    return {
+      colCount: cols.length,
+      colBoxes: cols.map(box),
+      tracks: getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length,
+      sideBySide: Boolean(first && second && second.x > first.x + 1),
+      plansFound: Boolean(panel),
+      plansInSecondCol: Boolean(panel && cols.length > 1 && cols[1].contains(panel)),
+      plansBox: panel ? box(panel) : null,
+      // Rows of content, not sentences inside the list: the empty state is a real <li> too (a bare
+      // text node in a <ul> is the WCAG 4.1.1 defect this repo already fixed once), and counting it
+      // as a plan row would make the painted number and the painted list disagree on purpose.
+      rowCount: list ? list.querySelectorAll('li:not(.empty)').length : -1,
+      firstRow: (list && list.children.length)
+        ? (list.children[0].textContent || '').trim().slice(0, 60) : null,
+      infoText: info ? (info.textContent || '').trim() : null,
+      infoBox: info ? box(info) : null,
+      viewport: [innerWidth, innerHeight],
+      pageWide: document.documentElement.scrollWidth - innerWidth,
+    };
+  })();
   // A panel painted over a global control is invisible to every other check here: nothing
   // is clipped, nothing leaves the viewport, no text is small -- the control simply stops
   // answering. Hit-test the affordances that must always be reachable. An element that is

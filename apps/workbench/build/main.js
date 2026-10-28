@@ -467,6 +467,82 @@ function resetDesignRevision() {
   byId("direction-lineage-title").textContent = "";
   byId("design-binding-active").textContent = "";
 }
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value === null || value === void 0) continue;
+    if (key === "class") node.className = String(value);
+    else if (key === "dataset") for (const [dk, dv] of Object.entries(value)) node.dataset[dk] = String(dv);
+    else if (key.startsWith("on") || key === "type" || key === "value" || key === "placeholder")
+      node[key] = value;
+    else if (key === "style" && node.style) node.style.cssText = String(value);
+    else node.setAttribute(key, String(value));
+  }
+  node.append(...children);
+  return node;
+}
+function en(text) {
+  return el("span", { lang: "en" }, text);
+}
+const SHAPE_MISSING = Symbol.for("design-lab/shape-missing");
+const DISCONNECTED = Symbol.for("design-lab/disconnected");
+function normaliseShape(live, template, prefix = "") {
+  if (template === null || typeof template !== "object") return [];
+  const missing = [];
+  for (const [key, want] of Object.entries(template)) {
+    const field = prefix ? `${prefix}.${key}` : key;
+    if (Array.isArray(want)) {
+      if (!Array.isArray(live[key])) {
+        live[key] = [];
+        missing.push(field);
+      }
+    } else if (want !== null && typeof want === "object") {
+      if (live[key] === null || typeof live[key] !== "object") {
+        live[key] = {};
+        missing.push(field);
+      }
+      missing.push(...normaliseShape(live[key], want, field));
+    }
+  }
+  return missing;
+}
+function shapeNoticeRows(...values) {
+  const notes = values.map(shapeNotice).filter(Boolean);
+  return notes.length ? [el("p", { class: "error" }, notes.join("；"))] : [];
+}
+function shapeNotice(value) {
+  const missing = value?.[SHAPE_MISSING];
+  return Array.isArray(missing) && missing.length ? `未读回：响应缺少 ${missing.join("、")}` : "";
+}
+function shapeFieldMissing(value, field) {
+  const missing = value?.[SHAPE_MISSING];
+  return Array.isArray(missing) && missing.includes(field);
+}
+function markDisconnected(payload) {
+  const mark = (target) => {
+    Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
+  };
+  mark(payload);
+  for (const value of Object.values(payload)) {
+    if (value !== null && typeof value === "object") mark(value);
+  }
+  return payload;
+}
+function disconnectedNotice(value) {
+  return value?.[DISCONNECTED] === true ? "未读回：未连接本机设计服务" : "";
+}
+function emptyWording(value, noun, hint) {
+  const offline = disconnectedNotice(value);
+  return offline ? ["未读回", offline] : [noun, hint];
+}
+function emptyLi(value, noun, hint) {
+  const [head, note] = emptyWording(value, noun, hint);
+  return el("li", { class: "list-item" }, el("div", {}, el("strong", {}, head), el("small", {}, note)));
+}
+function emptyTd(value, noun, hint, colspan) {
+  const [head, note] = emptyWording(value, noun, hint);
+  return el("td", { colspan: String(colspan) }, `${head} ${note}`);
+}
 const byId = (id) => document.getElementById(id);
 let token = "";
 let connected = false;
@@ -485,6 +561,7 @@ let verificationRequest = 0;
 let taskRequest = 0;
 let nativeRequest = 0;
 let refreshRequest = 0;
+let plansRequest = 0;
 let submittedPlan = null;
 let planBusy = false;
 let patchSource = null;
@@ -625,9 +702,11 @@ function resetProject() {
     "design-directions",
     "design-bindings",
     "brief-lineage",
-    "direction-lineage"
+    "direction-lineage",
+    "recent-plans"
   ])
     byId(id).replaceChildren();
+  byId("recent-plans-info").textContent = "未选项目，因此这一列没有读过任何方案。";
   resetDesignRevision();
   for (const id of ["preview", "retry-import", "more-tasks", "more-events", "more-native"]) byId(id).hidden = true;
   byId("preview").removeAttribute("src");
@@ -789,7 +868,7 @@ async function refresh() {
   const current = epoch;
   const request = ++refreshRequest;
   setStatus("正在读取项目资产与任务…");
-  const result = await Promise.all([api(`/projects/${project}/assets`), tasks(), nativeAssets()]).catch((error) => {
+  const result = await Promise.all([api(`/projects/${project}/assets`), tasks(), nativeAssets(), recentPlans()]).catch((error) => {
     if (current !== epoch || request !== refreshRequest) return null;
     throw error;
   });
@@ -800,6 +879,53 @@ async function refresh() {
     button("assets", `${asset.width} × ${asset.height} · ${asset.media_type} · ${asset.id.slice(-10)}`, () => preview(asset.id));
   populateReferencePicker(data.assets.map((asset) => asset.id));
   setStatus("已读取持久化状态。参考素材权利仍需审查。");
+}
+const RECENT_PLANS_LIMIT = 5;
+async function recentPlans() {
+  const info2 = byId("recent-plans-info");
+  const list = byId("recent-plans");
+  if (!project) {
+    list.replaceChildren();
+    info2.textContent = "未选项目，因此这一列没有读过任何方案。";
+    return;
+  }
+  const current = epoch;
+  const owner = project;
+  const request = ++plansRequest;
+  let data;
+  try {
+    data = await api(
+      `/projects/${owner}/assistance-plans?limit=${RECENT_PLANS_LIMIT}`
+    );
+  } catch (error) {
+    if (current !== epoch || request !== plansRequest) return;
+    list.replaceChildren();
+    info2.textContent = `最近方案没读到：${errMsg(error)}。这不代表这个项目没有方案。`;
+    return;
+  }
+  if (current !== epoch || request !== plansRequest || owner !== project) return;
+  if (shapeFieldMissing(data, "plans")) {
+    list.replaceChildren();
+    info2.textContent = "未读回：响应缺少 plans 字段，因此不能说这个项目没有方案。";
+    return;
+  }
+  const rows = data.plans;
+  if (!rows.length) {
+    setListNotice("recent-plans", "还没有方案记录。设计辅助里可以立第一条。");
+    info2.textContent = `这一页读到 ${data.returned} 条，这个项目共 ${data.total} 条。`;
+    return;
+  }
+  list.replaceChildren(...rows.map((row) => {
+    const li = document.createElement("li");
+    li.className = "plan-line";
+    const title = document.createElement("strong");
+    title.textContent = row.objective;
+    const meta = document.createElement("small");
+    meta.textContent = `${row.created_at} · ${row.created_by}`;
+    li.append(title, meta);
+    return li;
+  }));
+  info2.textContent = `这一页读到 ${data.returned} 条，服务按写入时间倒序发回；这个项目共 ${data.total} 条` + (data.total > rows.length ? `，还有 ${data.total - rows.length} 条在这一页之外。` : "。");
 }
 function populateReferencePicker(assetIds) {
   const picker = byId("reference-picker");
@@ -956,6 +1082,10 @@ byId("refresh").onclick = () => {
   void loadDesignSystems().catch((e) => setStatus(errMsg(e), true));
   void refreshDesign().catch((e) => setStatus(errMsg(e), true));
 };
+byId("open-assistant").onclick = () => {
+  if (typeof window === "undefined" || !window.location) return;
+  window.location.hash = "#/assistant";
+};
 let creatingProject = false;
 byId("create-form").onsubmit = async (event) => {
   event.preventDefault();
@@ -1078,82 +1208,6 @@ byId("more-events").onclick = () => {
 byId("more-native").onclick = () => {
   void nativeAssets(true).catch((e) => setStatus(errMsg(e), true));
 };
-function el(tag, attrs = {}, ...children) {
-  const node = document.createElement(tag);
-  for (const [key, value] of Object.entries(attrs)) {
-    if (value === null || value === void 0) continue;
-    if (key === "class") node.className = String(value);
-    else if (key === "dataset") for (const [dk, dv] of Object.entries(value)) node.dataset[dk] = String(dv);
-    else if (key.startsWith("on") || key === "type" || key === "value" || key === "placeholder")
-      node[key] = value;
-    else if (key === "style" && node.style) node.style.cssText = String(value);
-    else node.setAttribute(key, String(value));
-  }
-  node.append(...children);
-  return node;
-}
-function en(text) {
-  return el("span", { lang: "en" }, text);
-}
-const SHAPE_MISSING = Symbol.for("design-lab/shape-missing");
-const DISCONNECTED = Symbol.for("design-lab/disconnected");
-function normaliseShape(live, template, prefix = "") {
-  if (template === null || typeof template !== "object") return [];
-  const missing = [];
-  for (const [key, want] of Object.entries(template)) {
-    const field = prefix ? `${prefix}.${key}` : key;
-    if (Array.isArray(want)) {
-      if (!Array.isArray(live[key])) {
-        live[key] = [];
-        missing.push(field);
-      }
-    } else if (want !== null && typeof want === "object") {
-      if (live[key] === null || typeof live[key] !== "object") {
-        live[key] = {};
-        missing.push(field);
-      }
-      missing.push(...normaliseShape(live[key], want, field));
-    }
-  }
-  return missing;
-}
-function shapeNoticeRows(...values) {
-  const notes = values.map(shapeNotice).filter(Boolean);
-  return notes.length ? [el("p", { class: "error" }, notes.join("；"))] : [];
-}
-function shapeNotice(value) {
-  const missing = value?.[SHAPE_MISSING];
-  return Array.isArray(missing) && missing.length ? `未读回：响应缺少 ${missing.join("、")}` : "";
-}
-function shapeFieldMissing(value, field) {
-  const missing = value?.[SHAPE_MISSING];
-  return Array.isArray(missing) && missing.includes(field);
-}
-function markDisconnected(payload) {
-  const mark = (target) => {
-    Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
-  };
-  mark(payload);
-  for (const value of Object.values(payload)) {
-    if (value !== null && typeof value === "object") mark(value);
-  }
-  return payload;
-}
-function disconnectedNotice(value) {
-  return value?.[DISCONNECTED] === true ? "未读回：未连接本机设计服务" : "";
-}
-function emptyWording(value, noun, hint) {
-  const offline = disconnectedNotice(value);
-  return offline ? ["未读回", offline] : [noun, hint];
-}
-function emptyLi(value, noun, hint) {
-  const [head, note] = emptyWording(value, noun, hint);
-  return el("li", { class: "list-item" }, el("div", {}, el("strong", {}, head), el("small", {}, note)));
-}
-function emptyTd(value, noun, hint, colspan) {
-  const [head, note] = emptyWording(value, noun, hint);
-  return el("td", { colspan: String(colspan) }, `${head} ${note}`);
-}
 const PROJECT_DETAIL_RE = /^#\/projects\/([^/?#]+)$/;
 const PROJECT_ID_RE = /^[0-9a-f]{32}$/;
 function projectDetailId(hash) {
