@@ -107,6 +107,10 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # bytes are NOT touched — it stays frozen lineage, superseded in part by the newer owner clause):
 #   AUTHORITY.md                        4f7bd6c0… -> 7cd2db03…
 #   authority-index.json                7658dfc5… -> fd01ce37…
+# 2026-10-28 second re-pin (AUTHORITY §17: the same adoption; reason = the first AUTHORITY.md bytes wrote a pack-internal file path as if it were a repository path, and scripts/verify_path_refs.py resolves every backticked ref in AUTHORITY.md/AGENTS.md -- PATH_REF_GATE=FAIL checks=10 failed=['path-refs-resolve'] named evidence/relocation.json; the reference was reworded to say it is a file inside the delivered pack, not a repo path, rather than adding it to the allowlist_missing policy, which would have taught the gate to ignore a genuinely wrong reference; superseded = the first 2026-10-28 digests; impact = AUTHORITY.md bytes only, authority-index.json unchanged this time):
+#   AUTHORITY.md                        e31fb1fa… -> 2bec69fc
+# 2026-10-28 second re-pin (AUTHORITY §17: the same adoption; reason = the first AUTHORITY.md bytes wrote a pack-internal file path as if it were a repository path, and scripts/verify_path_refs.py resolves every backticked ref in AUTHORITY.md/AGENTS.md -- PATH_REF_GATE=FAIL checks=10 failed=['path-refs-resolve'] named evidence/relocation.json; the reference was reworded to say it is a file inside the delivered pack, not a repo path, rather than adding it to the allowlist_missing policy, which would have taught the gate to ignore a genuinely wrong reference; superseded = the first 2026-10-28 digests; impact = AUTHORITY.md bytes only, authority-index.json unchanged this time):
+#   AUTHORITY.md                        e31fb1fa… -> 2bec69fc
 # 2026-10-28 re-pin (AUTHORITY §17: owner intent = 「取消冻结的自动化任务  （D:\All projects\Record\新建文件夹     把这里的内容吃透）」「前端也同步上去自动化的菜单导航等」「并行执行 项目体积清理与规范化  执行合并迁移清理等相关执行，任何过时的陈旧的冗余的，该归档的归档 包括目录子文件夹等」「全部吸收融入本项目  和原先冻结的自动化任务进行合并」; reason = 外部软件自动化由冻结项转为可派工能力类、外来移植包按逐字节登记吸收、派生物清理与PR 收口获授权; superseded = the 2026-10-23 digests, and within desktopKbAdoption.stillFrozen the single entry EXTERNAL_SOFTWARE_AUTOMATION; impact = AUTHORITY.md gains the AUTOMATION-20261028-R1 adoption block and marks the 2026-10-23 「外部软件自动操作属未来能力」 sentence as a dated reading rather than deleting it, and authority-index.json gains automationAdoption and moves authorityRevision. HISTORY-FREEZE-RULES.md and the three pinned taskpacks are NOT touched -- the direction and desktop-KB packs stay byte-frozen and pinned, superseded in one clause each, never rewritten. Neither pin move removes a check:
 #   AUTHORITY.md                        00126066… -> e31fb1fa
 #   authority-index.json                9a0e1a58… -> 7ffe85d1)
@@ -121,7 +125,7 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 #   AUTHORITY.md                        7cd2db03… -> 00126066
 #   authority-index.json                fd01ce37… -> 9a0e1a58
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "e31fb1faa904427dbf3a9f842e4946408d4391473c4c9f020b5574d427a3e543",
+    "AUTHORITY.md": "2bec69fcc77939d82476ab12d5316c439469c4e7c53ceef0270fcd8ffa139fce",
     ".project/governance/authority-index.json": "7ffe85d1f4043c10940f889a84c9cebc30b36597b044da7f0cc95bc2a5c5051b",
     "docs/current/HISTORY-FREEZE-RULES.md": "3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",

@@ -7,7 +7,7 @@
 > 历史条目在 `docs/history/next-agent-prompts/`，逐份登记于 `docs/history/next-agent-prompts/PROMPT-LINEAGE.json`。
 > `verify_task_document_states.py` 的 `entry-not-dated-again` 会在有人重新铸日期副本时直接失败。
 
-- **updatedAt**: 2026-10-27
+- **updatedAt**: 2026-10-28
 - **writtenAtSha**: 自己读 `git rev-parse HEAD`（不要抄任何文档里的数字；本文件也不例外）
 
 ## 0. 这份文件是什么
@@ -334,9 +334,82 @@ CI 在承载全部字节的 head 上把它们一次跑红（§5.83 记了三条�
 已读回 `conclusion=success`（10 success + 2 skipped，逐字读数见 §5.84）；**只剩一件事**——
 自己 `git rev-parse HEAD` 取当下 head，读它那条 PR run：绿就收，红就按 §5.83 那三条的查法查明根因；
 `3a2b6565`…`5e52fa97` 没有各自的 run，别把它们说成"每个 SHA 都单独验过"。
+（本段是 2026-10-27 收口时的指针，保留原文；本轮之后的 head 与读数见下文 §5.85 末段。）
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
 不是把那些任务重新派工。
+
+**§5.85（2026-10-28）自动化解冻、包吸收、派生物清理与附件 tile 的真缺陷。**
+
+本轮 owner 三条指令逐字：「取消冻结的自动化任务  （D:\All projects\Record\新建文件夹     把这里的内容吃透）」
+「前端也同步上去自动化的菜单导航等」「并行执行 项目体积清理与规范化  执行合并迁移清理等相关执行，任何过时的
+陈旧的冗余的，该归档的归档 包括目录子文件夹等」；范围答复逐字：清理＝只清派生物＋仓库内历史归档合并＋
+PR #277 合并与分支收口；包＝「全部吸收融入本项目  和原先冻结的自动化任务进行合并」。
+裁决件 `docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md`；权威修订 `AUTOMATION-20261028-R1`
+（`AUTHORITY.md 00126066…→e31fb1fa…`、`authority-index.json 9a0e1a58…→7ffe85d1…`，
+`AUTHORITY-PIN-CHANGE.json` 第 11 条 revision，纯插入）。
+
+**逐字节实测（本轮现算，不是抄包）**：ZIP `371,678,561 B` / sha256 `d0daeb54ea13b4996368970368483dc0046f6cfe8df7753ddfc287c4e62a9ca4`、
+29,382 成员、解包 662,244,361 B；包自带 MANIFEST 29,380 行逐成员重算 **matched=29380 mismatch=0 missing=0**，
+未列 2 条＝它 `excluded[]` 自述的自身与 `evidence/relocation.json`；8 个散件与包内同名成员逐字节相同；
+11 个连接器 id 与 543 条已列工具（9 个握手过，逐条 `nativeToolCalled:false`）从被钉住的 ZIP 提进受跟踪登记件。
+独立抽查 5 个最大成员（194,652,336 B / 0.492 s）5/5 相符——所以 2.6 s 跑完 29,380 条是真数不是空转。
+
+**清理账**：`.project-local/` 10,457.5 MiB → 2,099 MiB，释放 **8,359.4 MiB（79.93%）**、27,970 条目；
+两个陈旧 worktree 先按内容比对确认是更旧草稿（手机端仍写 `FROZEN_DEFERRED`，HEAD 已是排除项）才移除。
+保留清单与理由写在 `docs/audits/DESIGN-LAB-DERIVATIVE-CLEANUP-2026-10-28.md`：`projects/`（持久作品）、
+`record-archive-2026-10-23/-27/-28`（受跟踪 manifest 点名要能按摘要补回的 owner 原件）、
+`task-artifacts/`（254 条冻结区回执指它）、`cache/vendor`（37 个 lock 源唯一本地持有）、
+`task-runtime/playwright/npm-cache`（删了五把浏览器闸会静默 SKIP 而不是判红）。
+**第一遍清理在写完账目之前崩在只读的 `.git/objects` 上**，那一段字节没有逐条记录——这条如实写在审计件里。
+
+**附件 tile 的前提被实测改写**：简报说"库里 f.path 与 f.byte_size 已在，是投影没带出来"。实测是
+`/api/projects/<id>/assets` **今天就在发 `byte_size`**（`src/design_lab/image_assets.py:84`），
+而 `apps/workbench/contracts.ts:37` 的 `AssetRecord` **多声明了两个路由从不发的字段** `kind`/`version_no`；
+删掉幽灵字段后 `tsc` 自己定罪两处调用点——真浏览器里参考选择器画 `undefined · img-…`、`#/intake` 画 `vundefined`。
+**名称没有数据可发**：`image_assets.py:144`/`native_tasks.py:172`/`bundle_store.py:121` 写的是发布常量
+（`reference.png`/`reference.jpg`/`native.<ext>`/`delivery.zip`），不是用户起的名字；
+且 `assistance_plan.py:367` 明确拒绝 reference 带多余键。所以 tile 显示 `media_type · W×H · 大小` +
+各来源已读回的标题，"要不要给参考加一句人写的标题"是合同决定，不是我能替 owner 加的字段。
+
+**自动化菜单已上线**：次级入口 `#/automation`（`shell.ts:9955` 的 `B10_NAV` 从 `ROUTE_VIEWS` 派生，
+`shell.ts:9985` 折叠时按 `NAV_DAILY_VIEWS` 隐藏非日常项），读 `GET /api/automation-connectors`。
+真 Chromium 渲染实测：11 行、KPI `11 / 0 / 0 / 0`、`windows` 行写「owner 明确不启用 · 包内证据：未握手 ·
+权利 OUT_OF_SCOPE_THIS_ROUND」、`consoleErrors=0`、`1440 == 1440` 无横向溢出。
+11 个连接器按 `declared` 进 `integrations/adapter-registry.json`（30→41，`ADAPTER_REGISTRY=PASS`），
+状态词只用 `NOT_PROBED`/未启用，屏上没有任何启动动作。
+
+**本轮自己造又自己结清的红（下一轮别再犯）**：① 新决定文件没在 `task-document-states.json` 声明定态，
+CI 抓到 `no-undeclared-task-document`（`VERIFY_DESIGN_LAB=FAIL total=77 failed=1` at `737307f3`），
+而我本地只跑了四条闸——**改受跟踪文件必须先跑聚合，不是先跑相关闸**；
+② `inert_contract_survey.py --check` 因新增产品文件过时（`productFiles 226→227`），本地聚合抓到；
+③ 前端一旦真调用该路由，先前挂的 `BACKEND_ONLY` 豁免就成了反向谎报
+（`STALE_BACKEND_ONLY`，闸两个方向都查）；④ `same_named_project_adapters` 会把 `adapter-delivery-*`
+自己那行也 join 进来→恒真，已排除并加断言；⑤ 回执 `exit_code` 被我写成字符串，成因是**看格式化回显而不是原文件**，
+`verify_task_ledger_contract.py` 判红 `'0' is not of type 'integer'`。
+
+**下一轮按此顺序**：① 把 `integrations/adapter-registry.json` 与本轮登记件纳入 wheel 的 force-include
+并在干净 venv 里证明——现在装好的 wheel 会诚实报 `registry_state=MISSING`，这是可接受的降级，
+但"吸收"应当让安装态也读得到；② LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
+按"冻结原件原字节不动、只换指针与取代关系"执行并重绑登记件/权威链/投影；
+③ 若 owner 授权探测，才做第一次真 probe 并把读数写成新回执——**默认仍是 NOT_PROBED**；
+④ 提示词读回的界面翻页线索、其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type`
+写入时物化（带迁移＋precheck＋合同行）这些旧账照原顺序。
+
+**逐字基线**（本轮最终 head 的 CI 读数由下一轮自己读，不要抄这里的数字）：
+`PYTHON_TESTS_UNION=OK expected=3415 …` 是 `58abdc69`/`766f48d2` 时代的人口，本轮新增 11 条自动化用例后
+人口会变，**必须重取**；`VERIFY_DESIGN_LAB=OK total=77 failed=0`；`BROWSER_E2E ran=44 skipped=0 failed=0`；
+`DOCUMENTED_COUNTS=PASS claims=21 route_views=25 cli=24 adapters=41 routes=89`，**8 条无界路由** 这句必须逐字保持。
+
+**边界逐字不变**：只做桌面端，手机端是**排除项**；三方素材与字库在项目范围外；E 盘不动；
+不部署模型、不自行下载权重、不宣称推理已验证；`UNKNOWN` 不写成合格；云端选项必须披露离开本机的数据；
+编号由用户填写或显式选 `UNUSED`；验收与签字只认具名真人；候选导出是读回不是发送；
+AAOS 不是依赖、门或待排期联调项；release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 继续冻结；
+旧 34 项仍 `FROZEN_DEFERRED`；**`windows` 桌面 UI 自动化连接器未启用，启用需 owner 另给明确授权**；
+包内 21 个真实公司名品牌模板与各上游组件许可归属仍待 Rights gate；21 份 `SKILL.md` 与 install 字样是惰性素材，
+不进指令面、prompt、工具发现或能力计数；不得靠改断言、删接口、硬改能力标记或把失败改成演示成功来通过；
+`.codebuddy/` 与 `.cursor/` 永不暂存；**#277 的合并与分支收口由 owner 2026-10-28 明确授权并已在本轮执行**，
+之后任何新的合并、推送、发布仍分别判断授权。
 
 **台账读数（2026-10-26 第二十五轮收口时现数，取代上面第二十四轮那一段的"当下"身份）**：本轮把上一轮欠的三件事全部落到"有实测读数"而不是"已实现"。① **精确 SHA 的 CI 矩阵读通了**：run 40211581088（PR，head `f9683930`）`conclusion=success`，10 个非 skipped 作业全绿，逐字 `PYTHON_TESTS_UNION=OK expected=3363 distinct=3363 ran=3363 duplicates=0 missing=0 unexpected=0`、`BROWSER_E2E ran=27 skipped=0 failed=0`。§5.59 那句"CI 已绿"曾被 §5.61 追正——它引的是换 logo **之前**的 SHA，教训写进记忆：**结清一轮的 CI 账必须点名叫到承载该变更的那个 SHA**。② **增强面对量过**：把 `.ambient` 的动画冻在关键帧每一档（0/3000/6000/9000/12000ms）后用同一个 `MEASURE` 谓词逐档量，`CT_MOTION_PASS poses=5 routes=24 checked=34170 belowAA=0 distinctTransforms=4`；四个不同变换（不是五个）恰因 0% 与 100% 同声明停靠点，这一条同时是"尺子在动"的反证。③ **`errors=0` 原来是空集**，且有两个不同成因：`.error[role=alert]` 那族（`#as-form-error`）选择器一直覆盖，缺的是**没人让界面拒绝一次**；`p.view-hint` 那族（知识/评审/权利/研究的 outcome 行）连 `role` 都没有，既是尺子盲区也是**读屏盲区**。现在闸门**自己点一次**空表单造出真失败（`CT_REFUSAL_PROVED … role=alert`），词表从 `shell.ts` 现数 6 个前缀经 `CT_REFUSAL_WORDS` 传入，**空词表时闸门拒绝开跑**；`RefusalPopulationIsGraded` 三条断言里有一条在它该红的时候红过（旧回执没有 `+refusal` 行）。
 

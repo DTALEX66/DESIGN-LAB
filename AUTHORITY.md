@@ -33,7 +33,8 @@
    `ppt-master/templates/brands/**` 那 21 个真实公司名模板与各上游组件的许可归属由 Rights gate 裁定；
    整套材料源自商业软件 JZXZ 1.1.27（含反编译 `.il.txt` 证据，上游未授予再分发许可），只登记不宣称已获授权。
 5. **本包在本项目内的证据等级上限是 E1/E2**：9 个桥接器只证明"能握手并列工具"（543 条，逐条
-   `nativeToolCalled:false`），`evidence/relocation.json` 自写 `"physicalSecondComputerTested": false`，
+   `nativeToolCalled:false`），包内 evidence 目录下的那份跨目录复验记录（**属包内文件，不是本仓库路径**）
+   自写 `"physicalSecondComputerTested": false`，
    Grasshopper 的 HTTP URL 本轮未连通。因此不得据此声明真实宿主 E3、真人 E4 或 release。
    `windows` 桌面 UI 自动化连接器已登记但**未启用**，启用需 owner 另给明确授权。
 6. **派生物清理与归档合并被授权**：`.project-local/` 内可再生的缓存/临时件按审计清单删除；
