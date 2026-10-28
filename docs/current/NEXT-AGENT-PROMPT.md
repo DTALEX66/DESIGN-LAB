@@ -619,6 +619,20 @@ route-calls、weight、structure-contracts、debt、counts、overflow、contrast
 驱动这个函数，把那些套件写进推送前清单。修后复跑：native_ui 15 OK、first_screen_columns 16 OK、
 tsc 干净、unit/appshell/shape-notice 全过，四档几何与折叠线读数与修复前逐字一致。
 
+**这条刀的 CI 读回（承载 head `81c46439` 的 PR run 40752513010，`conclusion=success`，
+12 个作业 10 success / 2 skipped / 0 failed）**，逐字：
+`PYTHON_TESTS_UNION=OK expected=3453 distinct=3453 ran=3453 duplicates=0 missing=0 unexpected=0`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=46 skipped=0 failed=0`、
+`STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`、`LICENSE_COVERAGE=OK (source headers +
+binary sidecars complete)`、`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=21 problems=0`、
+`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21 receipts=7 excluded=0 findings=0`、
+`AUTHORITY_GATES=PASS gates=7 failed=none`、`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=167038`、
+`WORKBENCH PACKAGING: all 5 Build-Output-Truth / packaging checks passed`。
+人口从 3451 涨到 3453 就是守卫顺序那两条新用例，`missing=0 unexpected=0` 说明新模块被分片发现且没重复。
+回执 `dl-final-t04-pr-run-read-at-81c46439-20261028`，账本 `currentExecution.evidence` 335 → 336。
+`DOCUMENTED_COUNTS` / overflow / contrast 三处 CI 不单独打印判定行（它们跑在聚合里），
+回执里如实写 `ABSENT`，不拿本地读数冒充云上读数。
+
 **下一轮按此顺序**：① LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
 按"冻结原件原字节不动、只换指针与取代关系"执行并重绑登记件/权威链/投影；
 ② 其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type` 写入时物化
