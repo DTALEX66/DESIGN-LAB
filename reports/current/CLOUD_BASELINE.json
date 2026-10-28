@@ -9,24 +9,19 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-28T13:03:15+00:00",
+  "generatedAt": "2026-10-28T13:58:42+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "9eeadd1c85593221482943b815b85fe34fae5989",
-    "sha": "2aab189d77461af39bc7e366291f458310127f81",
+    "sha": "3410aeeff3d203224b6214ed705af43eb81322e5",
     "source_worktree_clean": false,
-    "tracked_files": 4029,
+    "tracked_files": 4030,
     "worktree_changes": [
       {
-        "content": "sha256:6f101502959425ed7ab5610b9b47ba695aba4870faf288fd753bd0785f31f86e",
+        "content": "sha256:6f11439dd1a267cdb02d758f6e25f95071ec34f95719103c0f17d08451bd2e42",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
-      },
-      {
-        "content": "sha256:7a6656bc501147bf3ff5374a2236d66b5e87314308d1fcbeb4f0832be90d59c2",
-        "kind": "M",
-        "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json"
       },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
@@ -39,13 +34,13 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:3875145b2be862fe3dd9e1ade5f04ca61ea7dd76b36dc4ca45c156855ae76b36"
+    "worktree_digest": "sha256:b71589ecc83a1a8dddfa8507c7b94c17de763c6b62a576cb425af0f98a19a721"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2aab189d77461af39bc7e366291f458310127f81",
+  "subjectSha": "3410aeeff3d203224b6214ed705af43eb81322e5",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -60,5 +55,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:3875145b2be862fe3dd9e1ade5f04ca61ea7dd76b36dc4ca45c156855ae76b36"
+  "worktreeDigest": "sha256:b71589ecc83a1a8dddfa8507c7b94c17de763c6b62a576cb425af0f98a19a721"
 }
