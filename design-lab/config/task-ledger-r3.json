@@ -12912,7 +12912,7 @@
         "outcome": "PASS",
         "subject_sha": "e5a930b5bb8792766cde2885c9599c2b80383bca",
         "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-first-screen-two-columns-recent-plans-right-20261028.json",
-        "artifact_sha256": "157ac88b8c4a23a139340a50616f0622c06188c0ee58f45e18200e21acd7568d",
+        "artifact_sha256": "260e269bf6827711a444bd9f5b8c34767805874334355d35fdc1eb5ca28e1c9d",
         "command": "vite build + tsc --noEmit + unit/appshell/shape-notice; unittest test_workbench_first_screen_columns test_workbench_overflow_gate test_workbench_css_single_definition test_workbench_route_calls test_workbench_weight test_workbench_contrast_gate; run_structure_contracts.py; design_debt_baseline.py --check; verify_documented_counts.py; seed 7 real plans and measure the landing at 1440/1280/1100/700 in real Chromium",
         "exit_code": 0,
         "observed_at": "2026-10-28T18:38:46Z"

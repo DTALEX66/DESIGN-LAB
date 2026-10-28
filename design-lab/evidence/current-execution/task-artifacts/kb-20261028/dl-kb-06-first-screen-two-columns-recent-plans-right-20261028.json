@@ -3,8 +3,18 @@
   "task_id": "DL-KB-06",
   "axis": "implementation",
   "outcome": "PASS",
-  "observed_at": "2026-10-28T18:38:46Z",
+  "observed_at": "2026-10-28T19:04:38Z",
   "subject_sha": "e5a930b5bb8792766cde2885c9599c2b80383bca",
+  "follow_up_sha": "b3f193cfa1b60a0f482aaa9e1b8b4065fc76b4dc",
+  "ci_red_at_first_run": {
+    "run": "PR #279 run 40747812300, job \"Python gate (V3 verifiers + unit tests)\" 123026179192",
+    "failing_case": "test_workbench_native_ui.WorkbenchNativeUiTests.test_list_responses_and_errors_cannot_overwrite_newer_refresh (function=refresh, both the success and the error direction)",
+    "raise_site": "bundle recentPlans: TypeError: Cannot read properties of undefined (reading 'length')",
+    "root_cause": "我用错了工具：shapeFieldMissing 报的是 apiOrEmpty 那道 seam 自己补过的字段（它读 SHAPE_MISSING 符号），而这一列走 api()，不做形状归一化。一个 200 但没有 plans 数组的答复因此绕过所有检查，直接撞上 data.plans.length。类型注解读不到运行时。",
+    "fix": "换成运行时真检查 Array.isArray(data?.plans)，不成就说\"未读回：响应里没有 plans 数组\"，与另外两条\"没读到\"同形；为此引入的 shapeFieldMissing 导入撤掉。新增 assert_guard_precedes_dereference 钉\"守卫必须在读之前\"，三种缺陷各自定罪（没有守卫 / 守卫在读之后 / 整列不再读信封）。",
+    "attribution": "这条红是我的，不是夹具的也不是偶发：推送前我跑了 css-single-def、route-calls、weight、structure-contracts、debt、counts、overflow、contrast 八处，唯独没跑**直接驱动被我改动的 refresh()** 的那个 vm 合同套件。把一次读加进共享函数时，先 grep 谁在驱动这个函数，把那些套件列进推送前清单。",
+    "post_fix_rerun": "native_ui 15 OK、first_screen_columns 16 OK、tsc 干净、vite build 632344B、unit/appshell/shape-notice 全过；真 Chromium 四档重测两列几何与折叠线读数与修复前逐字一致。"
+  },
   "owner_instruction": "owner 原本四刀里未做的最后一刀：首屏双列（最近方案进右列），动 flex-wrap 后必须重量常驻页脚与窄窗行框。",
   "premise_corrected_before_writing_code": "入口把这一刀记为 NOT_STARTED，而 #/assistant 早就是双列且最近方案在右列（as-split 由 2d9372fb 于 2026-10-24 引入，git log -S 核过）。真 Chromium 对照两面才定下主语：默认路由 ''（遗留工作台）的 .grid 只有 01 导入与 02 读回预览，右列是一块从未导入过东西的棋盘占位，03 执行历史在 900px 折叠线以下。所以这一刀改的是应用打开时的第一面，不是设计辅助那屏。",
   "delivered": "apps/workbench/index.html：.grid 的两个面板包进左 .col（导入 → 读回预览仍上下相邻），右 .col 是新的 最近方案 面板（eyebrow RECENT PLANS，不带 01–05 编号，那条序列是导入→读回→记录→产物→设计层，方案列不在其中）。apps/workbench/style.css：.grid>.col{display:grid;gap:inherit;align-content:start;min-width:0} —— gap 用 inherit 而不是再写一遍数值，列间距是 .grid 的财产；.plan-line 把每条方案分成两行。apps/workbench/workbench.ts：recentPlans() 读 GET /api/projects/{id}/assistance-plans?limit=5（RECENT_PLANS_LIMIT），在 refresh() 的同一批读回里，切项目/断开时由 resetProject() 清列并把初始句写回。",
@@ -13,7 +23,7 @@
   "bounded_read_not_a_ninth_unbounded_route": "这一列带 limit=5 进查询串；scripts/measure_workbench_weight.py 的无界登记 （test_workbench_weight.py UNBOUNDED_REGISTER）读的是服务端 store 的默认界限，本轮没有新增无界面，DOCUMENTED_COUNTS 那句「8 条无界路由」逐字未动。",
   "falsification": {
     "static_module": "design-lab/tests/test_workbench_first_screen_columns.py",
-    "reading": "Ran 14 tests OK",
+    "reading": "Ran 16 tests OK",
     "what_can_fail": [
       "第三个面板被直接加进 .grid（自动落成一列三格）",
       "方案面板被搬进左列 / 读回行 id 丢失",
@@ -104,33 +114,33 @@
     "tracked_renditions": {
       "filled-1100-fold.png": {
         "path": ".project-local/task-runtime/twocol/shots/filled-1100-fold.png",
-        "sha256": "sha256:8e1006e812ad40971e9648c2cbb05a2323238d6b1cdaa27734448af437f59104",
-        "bytes": 137654
+        "sha256": "sha256:d2d5e45cbc5692f59bfa288422b8ac4d4e729cf83a46d867eb599f5171c796cb",
+        "bytes": 136811
       },
       "filled-1100-full.png": {
         "path": ".project-local/task-runtime/twocol/shots/filled-1100-full.png",
-        "sha256": "sha256:9fd85a865617eb2e09c644191509a4ef588522c6d9e9273f9aeedf4a2a880521",
-        "bytes": 395556
+        "sha256": "sha256:8aa93f408b2f215b4494df31920ef96128bdbf5d059a6b169f2d68c41f3034f1",
+        "bytes": 394709
       },
       "filled-1280-fold.png": {
         "path": ".project-local/task-runtime/twocol/shots/filled-1280-fold.png",
-        "sha256": "sha256:91b3541c585280020c9c1bf1e5282273f99ce731399e558a047be45dc9789c52",
-        "bytes": 140385
+        "sha256": "sha256:0189d0289464a5f41159050714d84dcdafb4b8875b473cee4957c5b268e0a9b8",
+        "bytes": 139755
       },
       "filled-1280-full.png": {
         "path": ".project-local/task-runtime/twocol/shots/filled-1280-full.png",
-        "sha256": "sha256:b678c128857942883b90b558d98b54ba039163c879f09cc796e31304cc387864",
-        "bytes": 391118
+        "sha256": "sha256:1f2d4d6d3289703aee1c3ef519f3755f28e2e711db2ec51837079b4a3de5705e",
+        "bytes": 390479
       },
       "filled-1440-fold.png": {
         "path": ".project-local/task-runtime/twocol/shots/filled-1440-fold.png",
-        "sha256": "sha256:fce294534963b4f0085e26121cde7ae30da1a92ee3493acf2dd4b8c6b2db07fb",
-        "bytes": 143312
+        "sha256": "sha256:a316c0b9d86b6ec001228a8372868819b3d63241a988c232331a7440adc8f3d8",
+        "bytes": 142644
       },
       "filled-1440-full.png": {
         "path": ".project-local/task-runtime/twocol/shots/filled-1440-full.png",
-        "sha256": "sha256:0341b1cb7f72e75f7d994f600c2207c2152a45da3e3ebb537b2de80bc10c268f",
-        "bytes": 395079
+        "sha256": "sha256:0f79db5db80a6fcb903bcda619ab0a45a85abb9aa36d32ae38a8627c16e5f5d2",
+        "bytes": 394540
       },
       "filled-700-fold.png": {
         "path": ".project-local/task-runtime/twocol/shots/filled-700-fold.png",
@@ -139,18 +149,18 @@
       },
       "filled-700-full.png": {
         "path": ".project-local/task-runtime/twocol/shots/filled-700-full.png",
-        "sha256": "sha256:cfa1076f334e9ccb0a10b498da34e65a962fddaba14c8a05eac63d20ca41d83b",
-        "bytes": 375482
+        "sha256": "sha256:73b6867ab008d3cdd3343a7f1ed84f19d351d7b33a09b49ae8c5572c73e0496a",
+        "bytes": 374791
       },
       "routed-assistant.png": {
         "path": ".project-local/task-runtime/twocol/shots/routed-assistant.png",
-        "sha256": "sha256:9b610143ab77109849c5101af8c92918fbc9c32bf115e48b77e2c6c4e979a75a",
-        "bytes": 250633
+        "sha256": "sha256:da0e62accc3604edc88e0ea8ef5aa19205775c0d9ef37bd0d62f2c18e7dea011",
+        "bytes": 250513
       }
     },
     "provenance_note": "这些 PNG 留在被忽略的运行根里，不在 clone 中。理由与上一轮同一把闸：DL-AST-001 要求受跟踪二进制带 asset-sidecar/v1，而品牌标志自己的 sidecar 写着 redistributable:false，它的一次 Chromium 渲染继承这个属性，本轮会话不能替 owner 签那份具名人工批准。摘要列在下面，谁都能重跑 .project-local/task-runtime/twocol/landing.py 再导出同一批图。"
   },
   "defect_found_and_repaired_in_passing": "起手 git status 露出 apps/workbench/brand/index-synthetic.html：test_workbench_brand_asset.py 的夹具每次运行往受跟踪素材目录写一个文件且从不删，派生投影还把它登记成证据主体路径（reports/current/PROJECT_STATUS.json、CLOUD_BASELINE.json、design-lab/config/current-report-index.json 都点名一个 clone 里不存在的文件）——\"存在不等于交付\"那一类。夹具改到 .project-local 忽略根并跑完即删 （commit 8a4f37771e4e06a161fa95120e55a7100991e27a），24 条仍全绿；那三份投影里的旧路径由本轮重生成步骤清掉。",
-  "not_claimed": "没有新增路由、没有新增无界面、没有改 CSP 或服务路径白名单；没有宣称真人验收、宿主运行或发布。CI 还没读这些字节——承载本文件的 head 的那条 PR run 才是权威读数，必须由下一份回执带着自己的 SHA 逐字引用。",
+  "not_claimed": "没有新增路由、没有新增无界面、没有改 CSP 或服务路径白名单；没有宣称真人验收、宿主运行或发布。本刀的第一条 PR run 是红的（见 ci_red_at_first_run），修好之后的 head 才是权威读数：承载最新 head 的那条 PR run 必须由下一份回执带着自己的 SHA 逐字引用。",
   "boundaries_unchanged": "只做桌面端，手机端仍是排除项；三方素材与字库在项目范围外；E 盘不动；不部署模型、不宣称推理已验证；编号仍由人填或显式选 UNUSED；验收与签字只认具名真人；候选导出是读回不是发送；AAOS 不是依赖或门；release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 继续冻结；旧 34 项仍 FROZEN_DEFERRED；windows 桌面 UI 自动化连接器仍未启用；21 个品牌模板许可归属仍待 Rights gate；.codebuddy/ 与 .cursor/ 未暂存。"
 }

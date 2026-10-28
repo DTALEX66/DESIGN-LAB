@@ -604,6 +604,21 @@ failed=0`（在记录入仓前跑的，收口后须复跑）。
 记录指向的东西必须按 `git ls-files` 核，不是按 `Path.exists()`。夹具改到忽略根并跑完即删
 （`8a4f37771e4e06a161fa95120e55a7100991e27a`），24 条仍全绿。
 
+**这一刀自己造了一条 CI 红，成因如实写在这里。** PR #279 第一条 run（40747812300）的 Python gate
+红一条：`test_workbench_native_ui…test_list_responses_and_errors_cannot_overwrite_newer_refresh`
+（`function='refresh'`，success 与 error 两个方向都红），raise site 是 bundle 里
+`recentPlans` 的 `TypeError: Cannot read properties of undefined (reading 'length')`。
+根因是**我用错工具**：`shapeFieldMissing` 报的是 `apiOrEmpty` 那道 seam 自己补过的字段（它读
+`SHAPE_MISSING` 符号），而这一列走的是 `api()`，不做形状归一化——于是一个 200 但没有 `plans`
+数组的答复绕过所有检查，直接撞上 `data.plans.length`。类型注解读不到运行时。修法换成运行时真检查
+`Array.isArray(data?.plans)`，说"未读回：响应里没有 plans 数组"，并新增
+`assert_guard_precedes_dereference` 钉住"守卫必须在读之前"（没有守卫 / 守卫在读后 / 整列不再读
+信封，三种各自定罪）。**流程上的缺口才是这条红真正要记的东西**：推送前我跑了 css-single-def、
+route-calls、weight、structure-contracts、debt、counts、overflow、contrast 八处，唯独没跑
+**直接驱动被我改动的 `refresh()`** 的那个 vm 合同套件。把一次读加进共享函数之前，先 grep 谁在
+驱动这个函数，把那些套件写进推送前清单。修后复跑：native_ui 15 OK、first_screen_columns 16 OK、
+tsc 干净、unit/appshell/shape-notice 全过，四档几何与折叠线读数与修复前逐字一致。
+
 **下一轮按此顺序**：① LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
 按"冻结原件原字节不动、只换指针与取代关系"执行并重绑登记件/权威链/投影；
 ② 其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type` 写入时物化
