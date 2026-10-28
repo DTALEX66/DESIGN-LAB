@@ -12892,6 +12892,18 @@
         "artifact_sha256": "9afb504087c1675ffd2824b08a818087fcd6cfd6d434e6489af6f2e63116663e",
         "exit_code": 0,
         "command": "gh run view 40720081143 --log; gh api runs/40720081143/jobs"
+      },
+      {
+        "id": "dl-final-t04-pr-run-read-at-33c4f789-20261028",
+        "task_id": "DL-FINAL-T04",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T17:08:04Z",
+        "subject_sha": "33c4f789b5d8a31cec2ea1db866c00b06b2db3cf",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-final-t04-pr-run-read-at-33c4f789-20261028.json",
+        "artifact_sha256": "6c1ca667918a7654478e94247a158b40e3a70d18d2448bac41ed723e96dc19bc",
+        "exit_code": 0,
+        "command": "gh run view 40729083013 --log; gh api runs/40729083013/jobs"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
