@@ -121,7 +121,7 @@
     "irreversible asset deletion",
     "license acceptance"
   ],
-  "authorityRevision": "DESKTOP-KB-20261023-R1",
+  "authorityRevision": "AUTOMATION-20261028-R1",
   "ownerAdoption": {
     "date": "2026-10-09",
     "decision": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
@@ -197,5 +197,59 @@
       "EXTERNAL_SOFTWARE_AUTOMATION"
     ],
     "natureOfThisDelivery": "规划、权威与派工的覆盖替换；不是功能实现，不是 E3/E4/release 证据"
+  },
+  "automationAdoption": {
+    "date": "2026-10-28",
+    "authorityRevision": "AUTOMATION-20261028-R1",
+    "decision": "docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md",
+    "sourceManifest": "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
+    "sourceKind": "OWNER_IN_SESSION_INSTRUCTION_PLUS_DELIVERED_DIRECTORY_NO_PACKAGE_SIGNATURE",
+    "source_root": "D:/All projects/Record/新建文件夹",
+    "ownerVerbatim": [
+      "取消冻结的自动化任务  （D:\\All projects\\Record\\新建文件夹     把这里的内容吃透）",
+      "前端也同步上去自动化的菜单导航等",
+      "并行执行 项目体积清理与规范化  执行合并迁移清理等相关执行，任何过时的陈旧的冗余的，该归档的归档 包括目录子文件夹等",
+      "全部吸收融入本项目  和原先冻结的自动化任务进行合并"
+    ],
+    "supersedesInPart": "desktopKbAdoption.stillFrozen 中的 EXTERNAL_SOFTWARE_AUTOMATION，以及 AUTHORITY.md 2026-10-23 第 3 条「外部软件自动操作属未来能力」；其余条款不变",
+    "unfrozenCapabilityClass": "EXTERNAL_SOFTWARE_AUTOMATION —— 解冻的是能力类，不是逐次宿主操作：真启动软件与写原生文档仍走 Human Gate，默认状态 NOT_PROBED",
+    "connectorVocabulary": "gateway 的 tools/list._meta.connectorStatus 只有 MCP_READY / UNAVAILABLE 两值，含义是握手与列工具成功，不等于宿主可用；本轮 9 个桥接器共列 543 条工具，逐条 nativeToolCalled:false",
+    "notActivated": [
+      "windows 桌面 UI 自动化连接器（config/connections.json 第 11 个 id）",
+      "任何宿主真启动或 tools/call 写原生文档",
+      "ppt-master/templates/brands/** 的 21 个真实公司名模板（商标，属 Rights gate）"
+    ],
+    "inertInstructionBlobs": "包内 21 份 SKILL.md 与 prompt 注册表、pip/npm 安装字样按 AGENTS.md 的 inert source blob 处置，不进根指令、prompt、工具发现或能力计数",
+    "evidenceCeilingThisRound": "E1/E2 —— evidence/relocation.json 自写 physicalSecondComputerTested:false，Grasshopper HTTP URL 本轮未连通；不得据此声明真实宿主 E3、真人 E4 或 release",
+    "packIdentity": {
+      "zip": "jzxz-portable-windows-x64-20261028.zip",
+      "bytes": 371678561,
+      "sha256": "d0daeb54ea13b4996368970368483dc0046f6cfe8df7753ddfc287c4e62a9ca4",
+      "members": 29382,
+      "innerManifestRows": 29380,
+      "verification": "matched=29380 mismatch=0 missing=0"
+    },
+    "cleanupAuthorisation": {
+      "scope": [
+        "DERIVATIVE_CLEANUP_IN_PROJECT_LOCAL",
+        "IN_REPO_HISTORY_ARCHIVE_MERGING",
+        "MERGE_PR_277_AND_CLOSE_BRANCH"
+      ],
+      "account": "docs/audits/DESIGN-LAB-DERIVATIVE-CLEANUP-2026-10-28.md",
+      "rule": "删前逐个证明可再生或被受跟踪清单按摘要钉住；冻结原件原字节不动，只换指针与取代关系"
+    },
+    "stillFrozen": [
+      "RELEASE",
+      "INSTALLED_DISTRIBUTION",
+      "REAL_HOST_E3",
+      "HUMAN_E4",
+      "COMFYUI",
+      "MINIMAX_H3",
+      "MODEL_DEPLOYMENT_OR_WEIGHT_DOWNLOAD",
+      "DESKTOP_UI_AUTOMATION_CONNECTOR",
+      "THIRD_PARTY_BRAND_TEMPLATE_RIGHTS_ADJUDICATION"
+    ],
+    "natureOfThisDelivery": "能力类的解冻、外来材料的逐字节登记与清理授权；不是宿主已连通、不是能力已验收、不是 E3/E4/release 证据",
+    "adopted_at": "2026-10-28T12:07:33Z"
   }
 }

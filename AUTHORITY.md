@@ -7,6 +7,51 @@
 
 > 本文件是 DESIGN-LAB 所有人类、GPT、Codex、DeepSeek、Hermes、CI/Agent 在审计、规划和修改项目时的第一权威入口。
 
+## 2026-10-28 OWNER ADOPTION — 外部软件自动化解冻、移植包吸收、派生物清理与分支收口
+
+本条根据 owner 2026-10-28 直接指令生效，优先于下文 2026-10-23 / 10-20 / 10-19 / 10-09 的冲突条款；Authority 稳定 ID 保留，
+修订号 `AUTOMATION-20261028-R1`。Owner 原话：**「取消冻结的自动化任务  （D:\All projects\Record\新建文件夹     把这里的
+内容吃透）」「前端也同步上去自动化的菜单导航等」「并行执行 项目体积清理与规范化  执行合并迁移清理等相关执行，任何过时的
+陈旧的冗余的，该归档的归档 包括目录子文件夹等」**，以及选项面板内的两句范围答复（清理＝派生物＋仓库内历史归档合并＋PR #277
+合并与分支收口；包＝**全部吸收融入本项目  和原先冻结的自动化任务进行合并**）。逐字转录与解释见
+`docs/taskpacks/20261028-automation/OWNER-DECISION-2026-10-28.md`；投递的 9 个原件逐字节登记在
+`docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json`，规范本地根
+`.project-local/record-archive-2026-10-28-design-automation/`。
+
+1. **`外部软件自动化` 不再是冻结项**。下文 2026-10-23 采纳条款第 4 条与第 3 条里"外部软件自动操作属未来能力"、
+   `authority-index.json` `desktopKbAdoption.stillFrozen` 中的 `EXTERNAL_SOFTWARE_AUTOMATION`，
+   在本条生效的范围内被取代。这与 2026-10-19 已确立的分层工具策略不矛盾
+   （`官方 API/SDK → 原生插件 → MCP → 脚本/CLI → 受控 UI 自动化` 本来就是本项目的能力面）。
+2. **解冻的是能力类，不是逐次宿主操作**。每一次真启动专业软件、每一次写原生文档的动作仍走 Human Gate；
+   默认状态必须是"未探测"（`NOT_PROBED`），不是"可用"。`production` 模式不得把这个 gate 设为空。
+3. **交付形态未变**：本项目是专业设计知识管理、跨媒介创意方案与模型应用辅助系统，生成可交外部软件实施的专业材料；
+   不建第二套 Agent／模型网关／画布／3D 编辑器／剪辑时间线，也不接管制作落地与成品交付。
+   吸收外来自动化包＝在本项目内建立版本化公共合同（登记、只读投影、有界桥接客户端），**不是**把它的 runtime
+   当成本项目的第二运行时。
+4. **外来指令体与权利未判定素材按 inert 处置**。包内 21 份 `SKILL.md`、prompt 注册表与
+   `pip install` / `npm install -g` 字样不进入根指令、prompt、工具发现或能力计数；
+   `ppt-master/templates/brands/**` 那 21 个真实公司名模板与各上游组件的许可归属由 Rights gate 裁定；
+   整套材料源自商业软件 JZXZ 1.1.27（含反编译 `.il.txt` 证据，上游未授予再分发许可），只登记不宣称已获授权。
+5. **本包在本项目内的证据等级上限是 E1/E2**：9 个桥接器只证明"能握手并列工具"（543 条，逐条
+   `nativeToolCalled:false`），`evidence/relocation.json` 自写 `"physicalSecondComputerTested": false`，
+   Grasshopper 的 HTTP URL 本轮未连通。因此不得据此声明真实宿主 E3、真人 E4 或 release。
+   `windows` 桌面 UI 自动化连接器已登记但**未启用**，启用需 owner 另给明确授权。
+6. **派生物清理与归档合并被授权**：`.project-local/` 内可再生的缓存/临时件按审计清单删除；
+   仓库内过时件按"原字节不动、只换指针与取代关系"归档合并；PR #277 合并与分支收口由 owner 本条授权，
+   且只在承载全部字节的 head 的 PR run 读回 success 之后执行。
+7. **一条都没放松的其他边界**：手机端仍是排除项；三方素材与字库仍在范围外；E 盘不动；模型不锁死但默认
+   fail-closed、`UNKNOWN` 不写成合格、云端选项必须披露离开本机的数据、本轮不部署模型也不自行下载权重；
+   编号仍由用户填写或显式选 `UNUSED`；验收与签字仍只接受具名真人；候选导出仍是读回不是发送；AAOS 仍只是
+   未来合同；release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 继续冻结；
+   `currentExecution` 原 34 项仍 `FROZEN_DEFERRED`；`DESIGN.md` 在 owner 真实测试前不进入已批准状态。
+
+Authority §17 变化依据：owner intent 落仓于上文裁决件；reason=外部软件自动化解冻、外来移植包按摘要吸收、
+派生物清理与 PR 收口获授权；superseded=2026-10-23 条款中"外部软件自动操作属未来能力/继续冻结"的这一项、
+以及活动阅读面上"本轮不做自动化"的表述；impact=同步 AUTHORITY.md、authority-index.json（新增
+`automationAdoption`）、AGENTS.md、PRODUCT_DEFINITION.md 与 `docs/current/NEXT-AGENT-PROMPT.md`，
+冻结原件与历史证据字节不改写，re-pin 见 `docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json`
+revisions[] 末条。
+
 ## 2026-10-23 OWNER ADOPTION — 桌面 UI 与知识库进入当前派工
 
 本条根据 owner 2026-10-23 直接指令生效，优先于下文 2026-10-20 / 10-19 / 10-09 的冲突条款；Authority 稳定 ID 保留，
@@ -25,6 +70,9 @@
 3. **定位按本包采纳**：面向职业设计的**专业设计知识管理、跨媒介创意方案与模型应用辅助系统**，覆盖平面/品牌/UIUX/
    3D/2D 动效/粒子/视频/音频/短剧/漫剧/小说/广告/说唱。本项目生成可交外部软件实施的专业材料，不负责制作落地与成品
    交付，不建第二套 Agent／模型网关／画布／3D 编辑器／剪辑时间线；外部软件自动操作属未来能力。
+   （本句是 2026-10-23 当日原文，保留不改写；其中"外部软件自动操作属未来能力"已由上文 2026-10-28
+   采纳条款在**能力类**层面取代——它现在进入当前派工，但逐次宿主操作、真启动与写原生文档仍走 Human Gate，
+   默认状态是 `NOT_PROBED`。）
 4. **一条都没放松**：手机端仍是排除项；三方素材与字库仍在范围外；模型不锁死但默认 fail-closed、显式选择只是被记录、
    `UNKNOWN` 不写成合格、云端选项必须披露离开本机的数据、**本轮不部署模型也不自行下载权重**；编号仍由用户填写或显式
    选择"不使用"；验收与签字仍只接受具名真人；候选导出仍是读回不是发送；AAOS 仍只是未来合同而非依赖或门；E 盘不动；
