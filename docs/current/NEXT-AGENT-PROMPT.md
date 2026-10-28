@@ -7,7 +7,7 @@
 > 历史条目在 `docs/history/next-agent-prompts/`，逐份登记于 `docs/history/next-agent-prompts/PROMPT-LINEAGE.json`。
 > `verify_task_document_states.py` 的 `entry-not-dated-again` 会在有人重新铸日期副本时直接失败。
 
-- **updatedAt**: 2026-10-26
+- **updatedAt**: 2026-10-27
 - **writtenAtSha**: 自己读 `git rev-parse HEAD`（不要抄任何文档里的数字；本文件也不例外）
 
 ## 0. 这份文件是什么
@@ -330,9 +330,9 @@ CI 在承载全部字节的 head 上把它们一次跑红（§5.83 记了三条�
 `VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=44 skipped=0 failed=0`。
 更早 `924af2fb` 的 run 只剩两条红（权威链旧 + 它从测试面的那次复现），`5388b62f` 的 run 四条红里
 三条都是同一个"派生物没跟着字节重算"，只有浏览器 E2E 那条是真的测试竞态，并在 `924af2fb` 单独转绿。
-**下一轮起手不要重跑套件**：`28a14b93`（第 323 行回执 + 三份派生物重绑）的 PR run 40542844974 已读回
-`conclusion=success`（同一组逐字读数见 §5.84）；**只剩一件事**——读承载本段那句读数的最后一条 run
-（推送顺序决定它是哪一个 head），绿就收，红就按 §5.83 那三条的查法查明根；
+**下一轮起手不要重跑套件**：`307cc6e5` 是本文件最后一次收口时 `git rev-parse HEAD` 的读数，它的 PR run 40553954732
+已读回 `conclusion=success`（10 success + 2 skipped，逐字读数见 §5.84）；**只剩一件事**——
+自己 `git rev-parse HEAD` 取当下 head，读它那条 PR run：绿就收，红就按 §5.83 那三条的查法查明根因；
 `3a2b6565`…`5e52fa97` 没有各自的 run，别把它们说成"每个 SHA 都单独验过"。
 旧 34 项状态一字未改：这些证据挂在语义主人
 `DL-KB-02`／`DL-KB-06`／`DL-FINAL-T04` 下，`state` 仍是 `FROZEN_DEFERRED`——审计授权的是修缺陷，
