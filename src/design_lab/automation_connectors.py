@@ -32,10 +32,18 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+from design_lab.runtime.state_resources import repo_resource
+
 REGISTRY_REL = Path('integrations/adapter-registry.json')
 PACK_REL = Path('docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json')
 
+#: Both inputs are repository-committed records, so an installed wheel has to carry them. Before
+#: this module used `repo_resource`, it computed the repository root as `parents[2]` of itself --
+#: which inside a wheel is the interpreter's own `Lib`, measured as
+#: `registry_state=MISSING pack_state=MISSING connectors=0`. An empty table on this page is not a
+#: mild degradation: it reads as "no connector is registered", which is a false statement about
+#: the repo. The pyproject force-include lines named `automation projection inputs` are what make
+#: the installed answer the committed one.
 MEANING = ('已登记的自动化连接器清单。这一页只读被跟踪的登记记录：不启动宿主软件、不打开端口、'
            '不拉起桥接进程、不调用任何工具。')
 UNPROBED_MEANS = ('NOT_PROBED＝本项目从未探测过它，不等于"不可用"。包里 MCP_READY/UNAVAILABLE '
@@ -47,9 +55,24 @@ UNPROBED_MEANS = ('NOT_PROBED＝本项目从未探测过它，不等于"不可�
 NOT_ACTIVATED_BY_OWNER = ('windows',)
 
 
-def _read_json(path: Path) -> tuple[dict | None, str]:
-    if not path.is_file():
+def _resource(rel: Path, root: Path | None) -> tuple[Path | None, str]:
+    """Where to open one committed record: a planted root first, else packaged-then-checkout.
+
+    `root` exists because the absence tests plant their own tree; it is never inferred from the
+    caller's working directory, which is the mistake `repo_resource` was written to prevent.
+    """
+    if root is not None:
+        candidate = root / rel
+        return (candidate, 'STAGED') if candidate.is_file() else (None, 'MISSING')
+    try:
+        return Path(repo_resource(str(rel), source_root=())), 'RESOLVED'
+    except FileNotFoundError:
         return None, 'MISSING'
+
+
+def _read_json(path: Path | None, state: str) -> tuple[dict | None, str]:
+    if path is None:
+        return None, state
     try:
         return json.loads(path.read_text(encoding='utf-8')), 'READ'
     except (OSError, ValueError):
@@ -57,9 +80,8 @@ def _read_json(path: Path) -> tuple[dict | None, str]:
 
 
 def build(root: Path | None = None) -> dict:
-    base = root or REPO_ROOT
-    registry, registry_state = _read_json(base / REGISTRY_REL)
-    pack, pack_state = _read_json(base / PACK_REL)
+    registry, registry_state = _read_json(*_resource(REGISTRY_REL, root))
+    pack, pack_state = _read_json(*_resource(PACK_REL, root))
 
     adapters = (registry or {}).get('adapters') or []
     # Token match on the project's own adapter ids. This says "a row of the same name is

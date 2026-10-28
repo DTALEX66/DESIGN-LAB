@@ -48,23 +48,56 @@ rba = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(rba)
 
 
-def _check(png: Path, css: Path) -> tuple[int, str]:
-    """Run the script's own --check against a chosen pair of files.
+def _check(png: Path, css: Path, html: Path | None = None) -> tuple[int, str]:
+    """Run the script's own --check against a chosen set of files.
 
     `png` is the mark the check hashes. It was the bitmap until 2026-10-25 and is now
     `MARK_PATH`, the owner's vector; patching the wrong constant is what let a missing-asset
-    case pass on green, so all three of the paths the checker reads are swapped together.
+    case pass on green, so every path the checker reads is swapped together -- including
+    `HTML_PATH`, which the tab-icon half of the check reads. Leaving it real would mean a
+    swapped mark still "passed" the icon against the shipped page, i.e. the case would grade
+    two different subjects and call the agreement a result.
+
+    `html` defaults to a page carrying the icon composed from `png`, so the pre-existing
+    stylesheet cases keep testing exactly what they tested before the icon joined the check.
     """
     import contextlib
     out = io.StringIO()
-    png_real, css_real, mark_real = rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH
-    rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH = png, css, png
+    if html is None:
+        synthetic = png.parent / 'index-synthetic.html'
+        try:
+            synthetic.write_text('<html><head>' + rba.favicon_block(rba.favicon_svg(png.read_bytes()))
+                                 + '</head><body></body></html>', encoding='utf-8')
+        except (SystemExit, OSError):
+            # An unreadable or uncomposable subject gets a page with no icon region, so the
+            # checker reaches its own named refusal instead of crashing inside the harness.
+            synthetic.write_text('<html><head></head><body></body></html>', encoding='utf-8')
+        html = synthetic
+    real = (rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH, rba.HTML_PATH)
+    rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH, rba.HTML_PATH = png, css, png, html
     try:
         with contextlib.redirect_stdout(out):
             code = rba.main(['--check'])
     finally:
-        rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH = png_real, css_real, mark_real
+        (rba.PNG_PATH, rba.CSS_PATH, rba.MARK_PATH, rba.HTML_PATH) = real
     return code, out.getvalue().strip()
+
+
+def _css_encodings(css_text=None):
+    """The two decoded `--brand-mark-*` SVG encodings the managed block declares.
+
+    The favicon cases read the brand through here. An attempt to fold the older class onto this
+    helper was abandoned because its own pattern is already correct and pinned; the duplication
+    that leaves is two readers of one fact, so a future change to the declaration must update
+    both -- which is exactly the kind of thing this docstring exists to say out loud.
+    """
+    css = rba.CSS_PATH.read_text(encoding='utf-8') if css_text is None else css_text
+    found = {}
+    for name in ('paper', 'ink'):
+        match = re.search(r'--brand-mark-%s:url\("data:image/svg\+xml;base64,'
+                          r'([A-Za-z0-9+/=]*)"\);' % name, css)
+        found[name] = base64.b64decode(match.group(1)).decode('utf-8') if match else None
+    return found
 
 
 class BrandAssetSyncTests(unittest.TestCase):
@@ -298,6 +331,146 @@ class _temp_pair:
     def __exit__(self, *exc):
         self.dir.cleanup()
         return False
+
+
+class BrandFaviconTests(unittest.TestCase):
+    """The tab icon is the same tracked vector, and `--check` now owns that claim.
+
+    Before this cut the served page had no `link[rel=icon]` at all (measured: three surfaces
+    reported NONE), so the browser drew a generic document glyph while the rail drew the owner's
+    mark. The icon is composed, not drawn: one ink flip plus one tile rect whose numbers come out
+    of the tracked `viewBox`, leaving the `<path>` payload untouched. These cases are what stop
+    "composed" from quietly becoming "a second logo somebody typed".
+    """
+
+    def _served_icon(self) -> bytes:
+        html = rba.HTML_PATH.read_text(encoding='utf-8')
+        found = re.search(r'href="data:image/svg\+xml;base64,([A-Za-z0-9+/=]*)"', html)
+        self.assertIsNotNone(found, 'the served page carries no svg data-uri icon to read')
+        return base64.b64decode(found.group(1))
+
+    def _pair_with_page(self, html_text, body):
+        with _temp_pair(rba.CSS_PATH.read_bytes(), rba.MARK_PATH.read_bytes()) as (m, c):
+            h = m.parent / 'index.html'
+            h.write_text(html_text, encoding='utf-8')
+            return _check(m, c, h)
+
+    def test_the_icon_and_the_tracked_mark_share_one_path_payload(self):
+        """The one-source claim, measured on bytes rather than asserted in a comment."""
+        mark = rba.MARK_PATH.read_bytes()
+        icon = self._served_icon()
+        paths_in_mark = re.findall(rb'<path[^>]*>', mark)
+        paths_in_icon = re.findall(rb'<path[^>]*>', icon)
+        self.assertEqual(len(paths_in_mark), 2, 'expected the two-path glyph')
+        self.assertEqual(paths_in_icon, paths_in_mark,
+                         'the tab icon no longer carries the tracked path payload verbatim, so it '
+                         'is a second drawing rather than the same mark on a tile')
+        self.assertEqual(icon.count(b'<rect'), 1, 'the icon is supposed to add exactly one tile')
+
+    def test_the_tile_geometry_and_both_inks_are_derived_not_typed(self):
+        mark = rba.MARK_PATH.read_bytes().decode('utf-8')
+        box = re.search(r'viewBox="([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+)"', mark)
+        x, y, width, height = (float(v) for v in box.groups())
+        icon = self._served_icon().decode('utf-8')
+        expected = ('<rect x="' + str(x) + '" y="' + str(y) + '" width="' + str(width)
+                    + '" height="' + str(height) + '" rx="'
+                    + str(round(min(width, height) / 3, 2)) + '" fill="'
+                    + rba.BRAND_INKS['ink'] + '"/>')
+        self.assertIn(expected, icon,
+                      'the tile is no longer derived from the tracked viewBox and the shipped '
+                      'border-radius ratio, so somebody is typing these numbers')
+        self.assertIn('fill="' + rba.BRAND_INKS['paper'] + '"', icon,
+                      'the glyph lost the light ink it needs on a tab of unknown chrome colour')
+
+    def test_the_inks_are_the_same_two_the_stylesheet_check_claims(self):
+        """One vocabulary for both surfaces, or the brand has two colours by accident.
+
+        The stylesheet never spells these hex values as plaintext -- they live inside the two
+        base64 encodings, which is exactly why this reads the decoded payloads instead of
+        grepping the file. A grep would have passed on a token of the same name and failed on a
+        correct file, which is the difference between checking the ink and checking a string.
+        """
+        css = rba.CSS_PATH.read_text(encoding='utf-8')
+        decoded = _css_encodings(css)
+        for name in ('paper', 'ink'):
+            self.assertIsNotNone(decoded[name],
+                                 f'the stylesheet no longer declares --brand-mark-{name}')
+        icon = self._served_icon().decode('utf-8')
+        self.assertIn('fill="' + rba.BRAND_INKS['paper'] + '"', icon,
+                      'the glyph on the tab is not drawn in the paper ink the stylesheet uses')
+        self.assertIn('fill="' + rba.BRAND_INKS['ink'] + '"', icon,
+                      'the tab tile is not drawn in the ink the stylesheet uses')
+        self.assertIn(rba.BRAND_INKS['paper'], decoded['paper'],
+                      'BRAND_INKS and the shipped paper encoding disagree; the check below would '
+                      'still pass because it reads its own constant')
+        self.assertIn(rba.BRAND_INKS['ink'], decoded['ink'],
+                      'BRAND_INKS and the shipped ink encoding disagree')
+
+    def test_a_swapped_icon_payload_is_caught(self):
+        """Tamper only the icon and the command must say so -- not report a clean tree."""
+        html = rba.HTML_PATH.read_text(encoding='utf-8')
+        good = self._served_icon()
+        other = (b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">'
+                 b'<path fill="#EEF2F5" d="M0 0h10v10H0z"/></svg>')
+        swapped = html.replace(base64.b64encode(good).decode('ascii'),
+                               base64.b64encode(other).decode('ascii'))
+        self.assertNotEqual(swapped, html, 'the icon payload was not findable in the page, so '
+                                         'this case would be comparing the file to itself')
+        code, line = self._pair_with_page(swapped, None)
+        self.assertEqual(code, 1, 'a redrawn tab icon passed the check: ' + line)
+        self.assertIn('BRAND_FAVICON_STALE', line)
+
+    def test_a_stale_icon_digest_is_caught(self):
+        html = rba.HTML_PATH.read_text(encoding='utf-8')
+        claimed = re.search(re.escape(rba.FAVICON_BEGIN) + r'([0-9a-f]{64})', html)
+        self.assertIsNotNone(claimed)
+        code, line = self._pair_with_page(html.replace(claimed.group(1), '0' * 64), None)
+        self.assertEqual(code, 1, 'a digest claim matching nothing passed the check: ' + line)
+        self.assertIn('BRAND_FAVICON_STALE', line)
+
+    def test_a_page_without_the_icon_is_refused_not_passed(self):
+        """The pre-fix state of this cut, kept as a permanent case.
+
+        Before `--sync-favicon` existed, index.html had no managed region and `--check` still
+        printed `BRAND_ASSET=OK`, because the command only ever looked at the stylesheet. A check
+        that stays silent about a surface it does not read is how "covered" becomes a lie, so the
+        absence is now a named refusal.
+        """
+        html = rba.HTML_PATH.read_text(encoding='utf-8')
+        stripped = re.sub(re.escape(rba.FAVICON_BEGIN) + '.*?' + re.escape(rba.FAVICON_END),
+                          '', html, flags=re.S)
+        self.assertNotEqual(stripped, html, 'no managed icon region was found to strip, so this '
+                                         'case would be comparing the page to itself')
+        self.assertNotIn(rba.FAVICON_BEGIN, stripped)
+        code, line = self._pair_with_page(stripped, None)
+        self.assertEqual(code, 1, 'a page with no tab icon passed the check: ' + line)
+        self.assertIn('BRAND_FAVICON_REGION_UNREADABLE', line)
+
+    def test_the_page_carries_exactly_one_managed_region_inside_the_head(self):
+        html = rba.HTML_PATH.read_text(encoding='utf-8')
+        self.assertEqual(html.count(rba.FAVICON_BEGIN), 1,
+                         'two managed regions would mean the generator rewrites one and the page '
+                         'reads the other')
+        self.assertLess(html.find(rba.FAVICON_BEGIN), html.find('<title>'),
+                        'the icon link must sit in the head; workbench.py serves this file '
+                        'verbatim, so a link after the body starts is a page-order bug')
+        self.assertIn('<link rel="icon" type="image/svg+xml"', html)
+
+    def test_the_icon_adds_no_served_path_and_no_csp_change(self):
+        """Inlining is still the only option, so the icon may not quietly become an asset route.
+
+        `workbench.py` serves a fixed three-path allowlist under CSP `img-src data:`. A favicon
+        fetched from a new URL would widen both, which the owner list reserves as a security
+        decision rather than a convenience -- this asserts the shipped icon is a data URI and that
+        the allowlist still has exactly three entries.
+        """
+        from design_lab import workbench
+        self.assertEqual(len(workbench.ROUTES), 3,
+                         'the served allowlist changed shape; the reason the brand is inlined has '
+                         'to be re-argued, not inherited')
+        self.assertNotIn('/workbench/favicon', ' '.join(workbench.ROUTES))
+        self.assertIn('href="data:image/svg+xml;base64,',
+                      rba.HTML_PATH.read_text(encoding='utf-8'))
 
 
 if __name__ == '__main__':

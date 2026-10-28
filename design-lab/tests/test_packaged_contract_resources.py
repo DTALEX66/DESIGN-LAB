@@ -104,8 +104,16 @@ class RouteReachableRootReadTests(unittest.TestCase):
     SCRIPT = REPO / 'design-lab' / 'scripts' / 'audit_repo_root_reads.py'
     # The Adobe bridges resolve packaged-first under a deliberately different prefix
     # (design_lab/resources/adobe/), and they are opened only on a real host dispatch, which is
-    # frozen. They are the whole known NOT-SHIPPED population; anything joining them is a finding.
-    KNOWN = {'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx'}
+    # frozen. They are not shipped under `resources/repo/`, which is the only prefix
+    # `repo_resource()` looks in, so the audit reports them as undeclared by design.
+    # Both rows are listed because the parked-variable form is followed now: the Illustrator bridge
+    # was in the same category all along and the old detector never walked into it (measured
+    # 2026-10-28: the live report went paths=1 -> paths=2 when the walk got stronger, and the new
+    # row is `adapters/illustrator_com.py`, whose bytes ARE force-included at
+    # design_lab/resources/adobe/reconstruction-assemble.jsx). Anything else joining this set is a
+    # finding, and the two behavioural gates below are what an installed wheel is actually judged by.
+    KNOWN = {'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx',
+             'integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx'}
 
     def run_audit(self, *args):
         result = subprocess.run([sys.executable, str(self.SCRIPT), *args], cwd=str(REPO),

@@ -15,12 +15,12 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-28T14:37:07+00:00",
+  "generatedAt": "2026-10-28T17:08:34+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/release-readiness/v2",
   "status": "NOT_RELEASED",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "407a2a1372c55d5fe555a33ba7a22abd66dfc081",
+  "subjectSha": "33c4f789b5d8a31cec2ea1db866c00b06b2db3cf",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -29,5 +29,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:3fed4b517acbe18d38720c2ef252fe69d641312d9ade85d27f8558116c5890ce"
+  "worktreeDigest": "sha256:0f8e934d5549f54f1cb6166567a9faf331edca0412cde0a61348defb48e25a19"
 }

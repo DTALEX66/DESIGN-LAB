@@ -166,6 +166,18 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "design-lab/schemas/assistance-plan-revision-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/assistance-plan-revision-v1.schema.json"
 "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
 "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
+# automation projection inputs (2026-10-28): `src/design_lab/automation_connectors.py` reads two
+# committed records -- the adapter registry it joins connectors against, and the delivery pack's
+# archive manifest that carries the eleven connector rows. Measured before these two lines, in a
+# wheel built from this tree and installed into a clean venv: `registry_state=MISSING
+# pack_state=MISSING connectors=0 project_adapters=0`, because the module derived the repository
+# root from its own location and three levels above an installed package is the interpreter's `Lib`.
+# An empty connector table is not a mild degradation on this page -- it reads as "nothing is
+# registered", which is a false statement about the repository, so the records ship with the
+# package instead. `design-lab/tests/test_standalone_chain_http.py` asserts the answer in the
+# installed layout too, so removing either line turns the wheel job red by name.
+"integrations/adapter-registry.json" = "design_lab/resources/repo/integrations/adapter-registry.json"
+"docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json" = "design_lab/resources/repo/docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json"
 
 [tool.hatch.build.targets.sdist]
 # P1-1 (audit 2026-09-21): the sdist must not carry `apps/workbench` wholesale -- that dragged the
@@ -185,7 +197,7 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 # distribution. `design-lab/scripts/verify_sdist_packaging.py` now re-derives this coverage from the
 # wheel's own map, so adding a force-include without its sdist root fails as a named path instead of
 # surfacing only on a third party's machine.
-only-include = ["src/design_lab", "design-lab/schemas", "design-lab/config", "design-lab/domain-packs", "design-lab/design-systems", "design-lab/production", "design-lab/readiness", "design-lab/scripts", "design-lab/tests", "packages/capabilities", "research/candidates", "vendor", "integrations", "apps/workbench/index.html", "apps/workbench/style.css", "apps/workbench/build/main.js", "pyproject.toml"]
+only-include = ["src/design_lab", "design-lab/schemas", "design-lab/config", "design-lab/domain-packs", "design-lab/design-systems", "design-lab/production", "design-lab/readiness", "design-lab/scripts", "design-lab/tests", "packages/capabilities", "research/candidates", "vendor", "integrations", "docs/history/record-archive-2026-10-28-design-automation", "apps/workbench/index.html", "apps/workbench/style.css", "apps/workbench/build/main.js", "pyproject.toml"]
 exclude = ["**/__pycache__", "**/*.pyc", "**/node_modules", "**/.venv*"]
 
 [tool.pytest.ini_options]
