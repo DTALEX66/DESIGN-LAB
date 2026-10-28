@@ -485,6 +485,7 @@ let verificationRequest = 0;
 let taskRequest = 0;
 let nativeRequest = 0;
 let refreshRequest = 0;
+let plansRequest = 0;
 let submittedPlan = null;
 let planBusy = false;
 let patchSource = null;
@@ -625,9 +626,11 @@ function resetProject() {
     "design-directions",
     "design-bindings",
     "brief-lineage",
-    "direction-lineage"
+    "direction-lineage",
+    "recent-plans"
   ])
     byId(id).replaceChildren();
+  byId("recent-plans-info").textContent = "未选项目，因此这一列没有读过任何方案。";
   resetDesignRevision();
   for (const id of ["preview", "retry-import", "more-tasks", "more-events", "more-native"]) byId(id).hidden = true;
   byId("preview").removeAttribute("src");
@@ -789,7 +792,7 @@ async function refresh() {
   const current = epoch;
   const request = ++refreshRequest;
   setStatus("正在读取项目资产与任务…");
-  const result = await Promise.all([api(`/projects/${project}/assets`), tasks(), nativeAssets()]).catch((error) => {
+  const result = await Promise.all([api(`/projects/${project}/assets`), tasks(), nativeAssets(), recentPlans()]).catch((error) => {
     if (current !== epoch || request !== refreshRequest) return null;
     throw error;
   });
@@ -800,6 +803,53 @@ async function refresh() {
     button("assets", `${asset.width} × ${asset.height} · ${asset.media_type} · ${asset.id.slice(-10)}`, () => preview(asset.id));
   populateReferencePicker(data.assets.map((asset) => asset.id));
   setStatus("已读取持久化状态。参考素材权利仍需审查。");
+}
+const RECENT_PLANS_LIMIT = 5;
+async function recentPlans() {
+  const info2 = byId("recent-plans-info");
+  const list = byId("recent-plans");
+  if (!project) {
+    list.replaceChildren();
+    info2.textContent = "未选项目，因此这一列没有读过任何方案。";
+    return;
+  }
+  const current = epoch;
+  const owner = project;
+  const request = ++plansRequest;
+  let data;
+  try {
+    data = await api(
+      `/projects/${owner}/assistance-plans?limit=${RECENT_PLANS_LIMIT}`
+    );
+  } catch (error) {
+    if (current !== epoch || request !== plansRequest) return;
+    list.replaceChildren();
+    info2.textContent = `最近方案没读到：${errMsg(error)}。这不代表这个项目没有方案。`;
+    return;
+  }
+  if (current !== epoch || request !== plansRequest || owner !== project) return;
+  if (!Array.isArray(data?.plans)) {
+    list.replaceChildren();
+    info2.textContent = "未读回：响应里没有 plans 数组，因此不能说这个项目没有方案。";
+    return;
+  }
+  const rows = data.plans;
+  if (!rows.length) {
+    setListNotice("recent-plans", "还没有方案记录。设计辅助里可以立第一条。");
+    info2.textContent = `这一页读到 ${data.returned} 条，这个项目共 ${data.total} 条。`;
+    return;
+  }
+  list.replaceChildren(...rows.map((row) => {
+    const li = document.createElement("li");
+    li.className = "plan-line";
+    const title = document.createElement("strong");
+    title.textContent = row.objective;
+    const meta = document.createElement("small");
+    meta.textContent = `${row.created_at} · ${row.created_by}`;
+    li.append(title, meta);
+    return li;
+  }));
+  info2.textContent = `这一页读到 ${data.returned} 条，服务按写入时间倒序发回；这个项目共 ${data.total} 条` + (data.total > rows.length ? `，还有 ${data.total - rows.length} 条在这一页之外。` : "。");
 }
 function populateReferencePicker(assetIds) {
   const picker = byId("reference-picker");
@@ -955,6 +1005,10 @@ byId("refresh").onclick = () => {
   void refresh().catch((e) => setStatus(errMsg(e), true));
   void loadDesignSystems().catch((e) => setStatus(errMsg(e), true));
   void refreshDesign().catch((e) => setStatus(errMsg(e), true));
+};
+byId("open-assistant").onclick = () => {
+  if (typeof window === "undefined" || !window.location) return;
+  window.location.hash = "#/assistant";
 };
 let creatingProject = false;
 byId("create-form").onsubmit = async (event) => {

@@ -8,6 +8,7 @@
 import type {
   AssetContentResponse,
   AssetListResponse,
+  AssistancePlanListView,
   BundleDownloadResponse,
   EventListResponse,
   NativeAssetListResponse,
@@ -45,6 +46,7 @@ export let verificationRequest = 0;
 export let taskRequest = 0;
 export let nativeRequest = 0;
 export let refreshRequest = 0;
+export let plansRequest = 0;
 export let submittedPlan: { owner: string; identity: string; key: string } | null = null;
 export let planBusy = false;
 export let patchSource: { owner: string; job: string; attempt: string } | null = null;
@@ -254,8 +256,11 @@ export function resetProject() {
   byId<HTMLParagraphElement>('native-info').textContent = '';
   for (const id of ['assets', 'tasks', 'events', 'native-assets', 'reference-picker',
                     'design-briefs', 'design-directions', 'design-bindings',
-                    'brief-lineage', 'direction-lineage'])
+                    'brief-lineage', 'direction-lineage', 'recent-plans'])
     byId<HTMLUListElement>(id).replaceChildren();
+  // The sentence below must stay byte-identical to #recent-plans-info in index.html, which is
+  // what it reads before this page runs any script; test_workbench_first_screen_columns.py pins it.
+  byId<HTMLParagraphElement>('recent-plans-info').textContent = '未选项目，因此这一列没有读过任何方案。';
   // F-2b: a project switch also drops the design-layer revision state + its DOM,
   // which design.js owns. The single cross-module call below keeps cross-module
   // state writes at zero (everything else resetProject clears is workbench-local).
@@ -427,7 +432,7 @@ export async function refresh() {
   const current = epoch;
   const request = ++refreshRequest;
   setStatus('正在读取项目资产与任务…');
-  const result = await Promise.all([api<AssetListResponse>(`/projects/${project}/assets`), tasks(), nativeAssets()]).catch((error) => {
+  const result = await Promise.all([api<AssetListResponse>(`/projects/${project}/assets`), tasks(), nativeAssets(), recentPlans()]).catch((error) => {
     if (current !== epoch || request !== refreshRequest) return null;
     throw error;
   });
@@ -441,6 +446,58 @@ export async function refresh() {
   // actually imported into THIS project — the backend fails closed otherwise.
   populateReferencePicker(data.assets.map((asset) => asset.id));
   setStatus('已读取持久化状态。参考素材权利仍需审查。');
+}
+
+// 首屏右列：最近方案。"最近"是服务的读数（assistance_plan.py::AssistancePlans.list 按
+// created_at DESC 发回每个计划的最新修订），不是页面自己排的序。三种"没读到"与一种"读到 0 条"
+// 各写各的句子：把前三句写成第四句，就是这个仓库反复定罪的那种谎。
+export const RECENT_PLANS_LIMIT = 5;
+
+export async function recentPlans(): Promise<void> {
+  const info = byId<HTMLParagraphElement>('recent-plans-info');
+  const list = byId<HTMLUListElement>('recent-plans');
+  if (!project) {
+    list.replaceChildren();
+    info.textContent = '未选项目，因此这一列没有读过任何方案。';
+    return;
+  }
+  const current = epoch;
+  const owner = project;
+  const request = ++plansRequest;
+  let data: AssistancePlanListView;
+  try {
+    data = await api<AssistancePlanListView>(
+      `/projects/${owner}/assistance-plans?limit=${RECENT_PLANS_LIMIT}`);
+  } catch (error) {
+    if (current !== epoch || request !== plansRequest) return;
+    list.replaceChildren();
+    info.textContent = `最近方案没读到：${errMsg(error)}。这不代表这个项目没有方案。`;
+    return;
+  }
+  if (current !== epoch || request !== plansRequest || owner !== project) return;
+  if (!Array.isArray(data?.plans)) {
+    list.replaceChildren();
+    info.textContent = '未读回：响应里没有 plans 数组，因此不能说这个项目没有方案。';
+    return;
+  }
+  const rows = data.plans;
+  if (!rows.length) {
+    setListNotice('recent-plans', '还没有方案记录。设计辅助里可以立第一条。');
+    info.textContent = `这一页读到 ${data.returned} 条，这个项目共 ${data.total} 条。`;
+    return;
+  }
+  list.replaceChildren(...rows.map((row) => {
+    const li = document.createElement('li');
+    li.className = 'plan-line';
+    const title = document.createElement('strong');
+    title.textContent = row.objective;
+    const meta = document.createElement('small');
+    meta.textContent = `${row.created_at} · ${row.created_by}`;
+    li.append(title, meta);
+    return li;
+  }));
+  info.textContent = `这一页读到 ${data.returned} 条，服务按写入时间倒序发回；这个项目共 ${data.total} 条`
+    + (data.total > rows.length ? `，还有 ${data.total - rows.length} 条在这一页之外。` : '。');
 }
 
 // P0-05: one checkbox per imported asset; checked ids are what submitBrief sends.
@@ -609,6 +666,13 @@ byId<HTMLButtonElement>('refresh').onclick = () => {
   void refresh().catch((e) => setStatus(errMsg(e), true));
   void loadDesignSystems().catch((e) => setStatus(errMsg(e), true));
   void refreshDesign().catch((e) => setStatus(errMsg(e), true));
+};
+
+// 首屏右列的唯一动作：把这一列的完整列表打开。这里只写 hash，不复制路由表——shell.ts 的
+// ROUTE_VIEWS 才是目的地的主人，那条 hash 由 test_workbench_first_screen_columns.py 逐字核对。
+byId<HTMLButtonElement>('open-assistant').onclick = () => {
+  if (typeof window === 'undefined' || !window.location) return;
+  window.location.hash = '#/assistant';
 };
 
 let creatingProject = false;

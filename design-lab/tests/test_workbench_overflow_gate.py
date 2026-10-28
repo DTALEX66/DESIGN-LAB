@@ -248,6 +248,145 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
             print(f'NOTE {label} computed only {seen}; not rendered under this fixture: {missing} '
                   '(guarded statically by scripts/verify_utility_class_conflicts.py)')
 
+    #: The three states a first-screen plan column can be in, and the one sentence shape that
+    #: would be a lie in the first two. Each marker is a phrase workbench.ts actually writes:
+    #: 没有读过 (no project selected), 没读到 (the read was refused), 未读回 (the answer had no
+    #: `plans` field). '没有方案记录' or '共 0 条' says the *project* has none, which only the
+    #: real zero state may say.
+    UNREAD_MARKERS = ('没有读过', '没读到', '未读回')
+    ZERO_CLAIM_MARKERS = ('没有方案记录', '共 0 条')
+
+    def _assert_first_screen_columns(self, report, label):
+        """首屏两列：asserted on the painted boxes, not on the markup.
+
+        The cut moved the two import panels into a left column and put 最近方案 in the right one.
+        Whether a browser actually lays that out as two columns is a computed-style fact that a
+        static check cannot see: a media query or a missing `min-width:0` collapses it back to one
+        column without any error, and the panel then sits below the fold instead of beside it. The
+        landing is the only route whose reading is non-null, because `#workspace` is hidden on
+        every route view -- so an absent reading is graded here as a hole, not skipped.
+        """
+        landings = [key for key in report['routes']
+                    if ':' in key and key.split(':', 1)[-1] == 'workbench' and '+' not in key]
+        self.assertGreaterEqual(len(landings), 2,
+                                f'{label}: the landing was geometry-measured at only '
+                                f'{landings} width(s), so this pass covers nothing')
+        for key in sorted(landings):
+            screen = report['routes'][key].get('firstScreen')
+            self.assertIsNotNone(screen,
+                                 f'{label} {key}: the landing produced no first-screen reading, '
+                                 'so the two columns were never looked at')
+            self.assertEqual(screen['colCount'], 2,
+                             f'{label} {key}: `.grid` has {screen["colCount"]} column child(ren), '
+                             'expected the two `.col` wrappers')
+            self.assertEqual(screen['tracks'], 2,
+                             f'{label} {key}: the landing computes {screen["tracks"]} grid '
+                             f'track(s) over {screen["viewport"][0]}px, so the cut is one column '
+                             f'({screen["colBoxes"]})')
+            self.assertTrue(screen['sideBySide'],
+                            f'{label} {key}: the two columns do not sit side by side: '
+                            f'{screen["colBoxes"]}')
+            first, second = screen['colBoxes'][0], screen['colBoxes'][1]
+            self.assertLessEqual(first['right'], second['x'] + 1,
+                                 f'{label} {key}: the columns overlap: {screen["colBoxes"]}')
+            self.assertTrue(screen['plansFound'],
+                            f'{label} {key}: no panel wraps #recent-plans on the landing')
+            self.assertTrue(screen['plansInSecondCol'],
+                            f'{label} {key}: 最近方案 is not inside the second column, so the cut '
+                            'this gate exists for did not land')
+            box = screen['plansBox']
+            self.assertLessEqual(box['right'], screen['viewport'][0],
+                                 f'{label} {key}: the plan panel runs past the viewport edge '
+                                 f'({box["right"]} > {screen["viewport"][0]})')
+            self.assertLessEqual(screen['pageWide'], 0,
+                                 f'{label} {key}: the document is {screen["pageWide"]}px wider '
+                                 'than the viewport with the landing showing')
+            # Painted, not merely present: a box with no height is a sentence nobody reads.
+            self.assertGreater(screen['infoBox']['w'], 0, f'{label} {key}: the meta line is unplaced')
+            self.assertGreater(screen['infoBox']['h'], 0, f'{label} {key}: the meta line is unplaced')
+            text = screen['infoText'] or ''
+            rows = screen['rowCount']
+            unread = any(mark in text for mark in self.UNREAD_MARKERS)
+            if rows > 0:
+                self.assertTrue(screen['firstRow'],
+                                f'{label} {key}: {rows} row(s) were counted but none carries text')
+                self.assertFalse(unread,
+                                 f'{label} {key}: the column paints {rows} plan row(s) and its own '
+                                 f'line says it read nothing: {text!r}')
+                self.assertIn('读到 %d 条' % rows, text,
+                              f'{label} {key}: the printed count and the painted list disagree -- '
+                              f'{rows} row(s) are on screen, the line says {text!r}')
+            else:
+                self.assertTrue(unread or '读到 0 条' in text,
+                                f'{label} {key}: with nothing painted the line must say either '
+                                f'that it read nothing or that the project has zero plans, and it '
+                                f'says {text!r}')
+                if unread:
+                    self.assertFalse(any(mark in text for mark in self.ZERO_CLAIM_MARKERS),
+                                     f'{label} {key}: a column that never got an answer claims the '
+                                     f'project has no plans: {text!r}')
+
+    def test_the_first_screen_column_assertion_can_fail(self):
+        """Both directions are planted, so this guard cannot pass by being unconditional."""
+        base_box = {'x': 0, 'y': 400, 'w': 600, 'h': 700, 'right': 600, 'bottom': 1100}
+        good = {'firstScreen': {
+            'colCount': 2, 'colBoxes': [base_box, dict(base_box, x=620, right=1220)],
+            'tracks': 2, 'sideBySide': True, 'plansFound': True, 'plansInSecondCol': True,
+            'plansBox': dict(base_box, x=620, right=1220, h=250, bottom=650),
+            'rowCount': 1, 'firstRow': '为秋季新品做一张克制的主视觉海报',
+            'infoText': '这一页读到 1 条，服务按写入时间倒序发回；这个项目共 1 条。',
+            'infoBox': {'x': 640, 'y': 460, 'w': 500, 'h': 20, 'right': 1140, 'bottom': 480},
+            'viewport': [1440, 900], 'pageWide': 0}}
+        report = {'routes': {'1440:workbench': good, '1280:workbench': good}}
+        self._assert_first_screen_columns(report, 'planted/good:')
+
+        stacked = {'firstScreen': dict(good['firstScreen'], tracks=1, sideBySide=False,
+                                       colBoxes=[base_box, dict(base_box, x=0, right=600)])}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_first_screen_columns(
+                {'routes': {'1440:workbench': stacked, '1280:workbench': stacked}},
+                'planted/stacked:')
+        self.assertIn('grid track', str(raised.exception))
+
+        wrong_col = {'firstScreen': dict(good['firstScreen'], plansInSecondCol=False)}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_first_screen_columns(
+                {'routes': {'1440:workbench': wrong_col, '1280:workbench': wrong_col}},
+                'planted/wrong-col:')
+        self.assertIn('second column', str(raised.exception))
+
+        miscounted = {'firstScreen': dict(
+            good['firstScreen'], rowCount=2,
+            infoText='这一页读到 5 条，服务按写入时间倒序发回；这个项目共 5 条。')}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_first_screen_columns(
+                {'routes': {'1440:workbench': miscounted, '1280:workbench': miscounted}},
+                'planted/miscounted:')
+        self.assertIn('disagree', str(raised.exception))
+
+        silent_rows = {'firstScreen': dict(
+            good['firstScreen'], infoText='未选项目，因此这一列没有读过任何方案。')}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_first_screen_columns(
+                {'routes': {'1440:workbench': silent_rows, '1280:workbench': silent_rows}},
+                'planted/silent-rows:')
+        self.assertIn('says it read nothing', str(raised.exception))
+
+        lying = {'firstScreen': dict(good['firstScreen'], rowCount=0, firstRow=None,
+                                     infoText='未选项目，这一列没有读过任何方案；'
+                                              '所以这个项目还没有方案记录。')}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_first_screen_columns(
+                {'routes': {'1440:workbench': lying, '1280:workbench': lying}},
+                'planted/lying:')
+        self.assertIn('claims the', str(raised.exception))
+
+        blind = {'routes': {'1440:workbench': {'firstScreen': None},
+                            '1280:workbench': {'firstScreen': None}}}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_first_screen_columns(blind, 'planted/blind:')
+        self.assertIn('never looked at', str(raised.exception))
+
     def test_no_clipped_or_unreachable_text_in_real_browser(self):
         if not GATE_SCRIPT.is_file():
             self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
@@ -265,6 +404,7 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
                         % sorted(report['routes'])[:3])
         self._assert_heading_order(report)
         self._assert_utility_geometry(report, 'design-lab/dark:')
+        self._assert_first_screen_columns(report, 'design-lab/dark:')
         # Every named interaction has to have settled on something a reader can tell apart, and at
         # least one has to have actually read the ledger back: a panel that renders a refusal at
         # every width is well-formed UI over a readback nobody ever saw.
@@ -352,6 +492,7 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         # The receipt has to name the theme it describes, or a green file is ambiguous about
         # which subject was actually cleared.
         self._assert_utility_geometry(report, 'ui2026/light:')
+        self._assert_first_screen_columns(report, 'ui2026/light:')
         self.assertEqual('ui2026', report['uiPalette'])
         self.assertEqual('light', report['uiScheme'])
         # The sidebar boundary that started this: the nav's cut line must not sit on the
@@ -383,6 +524,7 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
             {'UI_PALETTE': 'stitch', 'UI_SCHEME': 'light'})
         report = self._fail_open(code, out, report_path)
         self._assert_utility_geometry(report, 'stitch/light:')
+        self._assert_first_screen_columns(report, 'stitch/light:')
         self.assertEqual('stitch', report['uiPalette'])
         self.assertEqual('light', report['uiScheme'])
         for width, edge in sorted(report['navEdge'].items()):

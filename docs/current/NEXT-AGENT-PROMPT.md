@@ -522,7 +522,10 @@ helper 的 docstring 已把这句话写在那里，不再声称"一处读"。
 ④ 提示词读回的界面翻页线索、其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type`
 写入时物化（带迁移＋precheck＋合同行）这些旧账照原顺序。
 ⑤ ~~浏览器标签图标~~ —— **已由 §5.88 做完**（`--sync-favicon` 派生 + `--check` 双覆盖 + 8 条可红用例 + 真 Chromium 16/32/48 看过，两张判定渲染随回执入仓）；
-⑥ 首屏双列（最近方案进右列）**未做**，动 `flex-wrap` 后必须重量常驻页脚与窄窗行框。
+⑥ ~~首屏双列（最近方案进右列）**未做**，动 `flex-wrap` 后必须重量常驻页脚与窄窗行框~~ ——
+**已由 §5.89 做完**（改的是默认路由 `''` 那一面，不是早已双列的 `#/assistant`；右列真读
+`?limit=5` 的方案列表，三条"没读到"与一条"读到 0 条"分开写；本轮没有新增 `flex-wrap`，
+页脚与窄窗仍按那句要求重量了，读数在 §5.89）。
 本轮四刀里 ①③④ 已交（① 是把前提证伪后改的字面：`byte_size` 本来就在发，页面读的是从未发出的字段），② 与 ④ 中的双列一屏见上条 ⑤⑥，均为 NOT_STARTED，不是缺口被抹平。
 
 **逐字基线**（本轮最终 head 的 CI 读数由下一轮自己读，不要抄这里的数字）：
@@ -539,6 +542,243 @@ AAOS 不是依赖、门或待排期联调项；release、安装态分发、真�
 不进指令面、prompt、工具发现或能力计数；不得靠改断言、删接口、硬改能力标记或把失败改成演示成功来通过；
 `.codebuddy/` 与 `.cursor/` 永不暂存；**#277 的合并与分支收口由 owner 2026-10-28 明确授权并已在本轮执行**，
 之后任何新的合并、推送、发布仍分别判断授权。
+
+**§5.89（2026-10-28 续）首屏双列：最近方案进右列——先把"哪一屏"量出来再动手。**
+owner 那一刀的原文是"首屏双列（最近方案进右列）"，入口记为未做。但仓里 `#/assistant` **早就是**
+双列且方案在右列（`.split as-split` 由 `2d9372fb` 于 2026-10-24 引入，`git log -S` 核过，早于这条
+"未做"的读数），所以照字面再改一遍就是重复施工。真 Chromium 对照两面才定下主语：默认路由 `''`
+（应用打开时的第一面，遗留工作台）的 `.grid` 只有 01 导入与 02 读回预览，两栏 512/692 各剩约
+250px 空白，右栏那块是一个从未导入过东西的棋盘占位，03 执行历史在 900px 折叠线以下。**这一刀改的是
+那一面**，回执 `dl-kb-06-first-screen-two-columns-recent-plans-right-20261028`。
+
+**改法**：`.grid` 的两个面板包进左 `.col`（导入 → 读回预览仍上下相邻），右 `.col` 是新的
+最近方案面板（eyebrow `RECENT PLANS`，**不占 01–05 编号**——那条序列是导入→读回→记录→产物→
+设计层，方案列不在其中）。CSS 只加 `.grid>.col{display:grid;gap:inherit;align-content:start;min-width:0}`
+与 `.plan-line`：`gap` 用 `inherit` 而不是再写一遍数值（列间距是 `.grid` 的财产，写两份下次只改到
+一份），所以债闸读数一字未动（`literal_px` 仍 526、`literal_colors` 仍 26）。新列读
+`GET /api/projects/{id}/assistance-plans?limit=5`——**有界**，`「8 条无界路由」` 那句逐字未动，
+`DOCUMENTED_COUNTS=PASS claims=21 route_views=25 cli=24 adapters=41 routes=89`。
+
+**说法是三条不是一条**：未选项目 / 读被拒 / 响应缺 `plans` 字段各有一句，只说"这一列没读到"；
+只有服务真发回 0 条才说"这个项目共 0 条"。排序写成"服务按写入时间倒序发回"，因为
+`assistance_plan.py::AssistancePlans.list` 自己就是 `ORDER BY r.created_at DESC` 取每计划的最新
+修订——"最近"是服务的读数，页面不替它下结论；`total/returned/一页之外` 三个数逐字挂在读回上。
+第二个读者出现时，方案列表信封的 TS 形状不能留两份：`AssistancePlanRow`/`AssistancePlanListView`
+从 `shell.ts` 的局部声明**移进** `contracts.ts`，`shell.ts` 改从 `contracts.js` 导入。
+
+**证伪**：新增 `design-lab/tests/test_workbench_first_screen_columns.py`（14 条，其中 8 条植入
+各自定罪：第三个面板被直接加进 `.grid`、方案面板被搬进左列、id 丢失、`.grid>.col` 出现第二份
+或被改写死长度、`.plan-line` 被降级、未读态说成"没有方案记录"、初始句两处写手漂移、目的地不在
+`ROUTE_VIEWS` 里、读回失去界限、信封长出第二份声明）。几何那半在 overflow 闸里加 `firstScreen`
+读数（列数/轨道数/是否并排/面板是否真在第二列/那句话是否真被画出来/文档是否变宽），
+`_assert_first_screen_columns` 在三套主题下都读它，并配 6 个植入方向证明它不是无条件通过。
+**这条断言在上线前被真实运行判红过一次**：第一版写死"折叠线上必须说没读过"，而闸的夹具在交互步骤
+里建了一条真方案，首屏读到的是 1 条不是 0 条——改成与状态无关的一致性检查（画出行数 N 就必须印
+"读到 N 条"，没有行才允许说没读到），它才既管得住谎也管得住自己的假设。
+
+**读数**：`tsc --noEmit` 干净、`vite build` 632344B（服务出去的字节与工作树逐字节同摘要
+`aff3697ca5c9e609515c3c73cbbe5dd6b99ef60a932c1313d67a6171469cbb7a`）、unit/appshell/shape-notice
+全过（seam 仍 62 处且每处有报告）；`test_workbench_css_single_definition` 17 OK（`.plan-line` 与
+`.plan-line small` 不算重复定义）、`test_workbench_route_calls` 23 OK、`test_workbench_weight`
+22 OK、`STRUCTURE_CONTRACTS=PASS tests=31`（这一步不在聚合那 77 条里）、
+`Ran 5 tests in 406.417s OK`（overflow 闸，三套主题各一次真 Chromium，报告
+`dcefafc669ed3f5b1e6bf54a1f109e8ef492463aa03aefd3aae0a20ba8307392`）、
+`Ran 32 tests in 303.413s OK`（对比度闸：新行的正文与 `--muted` 小字三套配色都过——**本地是
+Windows，云上 Linux 的读数仍要由承载本 head 的 PR run 自己说**）、`VERIFY_DESIGN_LAB=OK total=77
+failed=0`（在记录入仓前跑的，收口后须复跑）。
+
+**看过**：播种 7 条真方案（`limit=5` 所以必然出现"还有 2 条在这一页之外"），1440/1280/1100 三档
+两列并排、方案面板在第二列、底边 862/862/882 均在 900 折叠线内；700 档（≤760 媒体查询）自动落回
+一列；每档 `docScrollWidth` 等于视口宽、`consoleErrors=0`；点「在设计辅助中查看全部方案」确实换到
+`#/assistant` 并读到 7 行。**页脚这条按 owner 的要求重量了**：本轮**没有新增 `flex-wrap`**，
+量到的事实是——首屏那面 `.sidebar-footer` 画的是 `0×0`（B10 侧栏在遗留工作台路由不画），随内容
+下移的是 `body > footer`（静态、非吸附，1440 档实测 `y=3090`、700 档 `y=4659` 且 `wrap` 生效时
+仍是一行）；改动前的同一点没量过，所以这里只报改后读数，不给差值。侧栏页脚与导航切线的 6px
+底线仍由 overflow 闸在三种主题下量着。渲染件按 `DL-AST-001` 不入仓（品牌标志 sidecar 写着
+`redistributable:false`，本轮会话不能替 owner 签那份具名批准），九张图以 sha256+bytes 在回执里点名。
+
+**顺手抓到并修掉的一处旧缺陷**：起手 `git status` 露出 `apps/workbench/brand/index-synthetic.html`
+——`test_workbench_brand_asset.py` 的夹具每次运行往**受跟踪素材目录**写文件且从不删，派生投影还把
+它登记成证据主体路径（`reports/current/PROJECT_STATUS.json`、`CLOUD_BASELINE.json`、
+`current-report-index.json` 都点名一个 clone 里不存在的文件）。这正是"存在不等于交付"那一类：
+记录指向的东西必须按 `git ls-files` 核，不是按 `Path.exists()`。夹具改到忽略根并跑完即删
+（`8a4f37771e4e06a161fa95120e55a7100991e27a`），24 条仍全绿。
+
+**这一刀自己造了一条 CI 红，成因如实写在这里。** PR #279 第一条 run（40747812300）的 Python gate
+红一条：`test_workbench_native_ui…test_list_responses_and_errors_cannot_overwrite_newer_refresh`
+（`function='refresh'`，success 与 error 两个方向都红），raise site 是 bundle 里
+`recentPlans` 的 `TypeError: Cannot read properties of undefined (reading 'length')`。
+根因是**我用错工具**：`shapeFieldMissing` 报的是 `apiOrEmpty` 那道 seam 自己补过的字段（它读
+`SHAPE_MISSING` 符号），而这一列走的是 `api()`，不做形状归一化——于是一个 200 但没有 `plans`
+数组的答复绕过所有检查，直接撞上 `data.plans.length`。类型注解读不到运行时。修法换成运行时真检查
+`Array.isArray(data?.plans)`，说"未读回：响应里没有 plans 数组"，并新增
+`assert_guard_precedes_dereference` 钉住"守卫必须在读之前"（没有守卫 / 守卫在读后 / 整列不再读
+信封，三种各自定罪）。**流程上的缺口才是这条红真正要记的东西**：推送前我跑了 css-single-def、
+route-calls、weight、structure-contracts、debt、counts、overflow、contrast 八处，唯独没跑
+**直接驱动被我改动的 `refresh()`** 的那个 vm 合同套件。把一次读加进共享函数之前，先 grep 谁在
+驱动这个函数，把那些套件写进推送前清单。修后复跑：native_ui 15 OK、first_screen_columns 16 OK、
+tsc 干净、unit/appshell/shape-notice 全过，四档几何与折叠线读数与修复前逐字一致。
+
+**这条刀的 CI 读回（承载 head `81c46439` 的 PR run 40752513010，`conclusion=success`，
+12 个作业 10 success / 2 skipped / 0 failed）**，逐字：
+`PYTHON_TESTS_UNION=OK expected=3453 distinct=3453 ran=3453 duplicates=0 missing=0 unexpected=0`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=46 skipped=0 failed=0`、
+`STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`、`LICENSE_COVERAGE=OK (source headers +
+binary sidecars complete)`、`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=21 problems=0`、
+`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21 receipts=7 excluded=0 findings=0`、
+`AUTHORITY_GATES=PASS gates=7 failed=none`、`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=167038`、
+`WORKBENCH PACKAGING: all 5 Build-Output-Truth / packaging checks passed`。
+人口从 3451 涨到 3453 就是守卫顺序那两条新用例，`missing=0 unexpected=0` 说明新模块被分片发现且没重复。
+回执 `dl-final-t04-pr-run-read-at-81c46439-20261028`，账本 `currentExecution.evidence` 335 → 336。
+`DOCUMENTED_COUNTS` / overflow / contrast 三处 CI 不单独打印判定行（它们跑在聚合里），
+回执里如实写 `ABSENT`，不拿本地读数冒充云上读数。
+**收口 head `67639cc9`（只含派生记录的那次重切）自己也过了全矩阵**：PR run 40755717217
+`conclusion=success`，12 作业 10 success / 2 skipped / 0 failed——本轮到此结清，下一轮不必再为
+这一刀重跑 CI。另记一次自己造的噪音：本地 union 里 `test_projection_freshness` 两条红
+（`test_it_writes_no_tracked_file`、`test_the_gate_passes_and_prints_its_verdict_last`），
+成因是我在 union 还在跑的时候并发跑了重生成脚本，读的一方看到写的一方留下的脏树；
+安静树上一条命令复跑 `Ran 25 tests OK` 证伪了"这是产品缺陷"那个读法——**归因要有复跑，不要有推断**。
+
+### 5.90 LAYER 2 的可执行那一半：跨波次指针登记（承载 head `32ac0bd5`）
+
+owner 目标 ② 那句"冻结原件原字节、只换指针与取代关系"在两个面上成立度完全不同，上一轮只现数了
+`docs/audits` 那一半（结论：待裁）。这一轮做另一半：`docs/history/**` 六波归档清单之间的**指针与取代关系**。
+
+**现数（全部由 `python design-lab/scripts/verify_record_archive_crosswave.py --check` 复算，登记件在
+`design-lab/config/record-archive-crosswave.json`；下面这组数**已被 §5.91 取代**——那一版只普查了
+`docs/history/` 下的六份清单，第八份之后的正确读数是 8 清单 / 566 行 / 510 摘要 / 49 跨波次）**：
+6 份清单 / 391 条成员行 / 340 个不同摘要 /
+**48 个被两个及以上波次同时声称**，其中 **34 个**在 clone 里有受跟踪副本、**14 个**没有字节
+（大对象按 `AGENTS.md` 留在 `.project-local/`，登记件单独成节并写明"不是不存在，也不是通过"）。
+扫描面 643 个受跟踪 `docs/history` 文件。**摘的一律是 blob 摘要**（`git cat-file blob HEAD:<path>`），
+不是工作树字节——`core.autocrlf=true` 让两者不同，记工作树就是把登记件绑在自己机器上。
+
+**这一刀量出来的两条反直觉读数，比"做了什么"更值得传下去**：
+① **34 行 in-clone 的 `canonicalPaths` 每一条都只有一个路径（>1 的有 0 条）**，且每一行恰好被 **2**
+个波次声称（没有 3 个及以上的）。所以 `docs/history` 里根本不存在"同一份字节有两份受跟踪副本"，
+重复的是**声称**不是**文件**——这一半同样没有可折叠的字节，能写的只有关系。这与上一轮 `docs/audits`
+那个结论是同一个形状，两次独立现数都指向：**这个仓的历史归档问题不是体积问题，是可读性问题。**
+② **6 波里只有 1 波带 `supersedes`**（r2 任务包那份，且它写的是三段结构而不是一个 bool），其余 5 波为
+`null`。所以"取代关系"本来就不是普遍缺失的字段，登记件把它原样带出、不替 owner 补写——
+把 5 个 `null` 填成"取代了某某"就是编造来源。
+
+**证伪（同模块 13 条，6 个植入方向）**：丢登记件必须失败而不是空集通过；只认一种清单形状必须漏到
+被定罪；成员行不带摘要不能算一条声称；34+14≠48 的分裂必须被拒；把包记成 owner 盘上的绝对路径必须被拒；
+普查"看不见东西"时人口地板必须开火，而且**地板开火时 `--write` 必须拒绝落盘**——这一条是先写下才想到的：
+一个能在自己瞎掉的时候把半个登记件写进仓的脚本，会把"没有读数"洗成"读数就是这样"。
+每条 `canonicalPaths` 都被测试重新哈希回它被记的那个摘要，这是登记件唯一的价值所在。
+
+**边界**：一个冻结字节都没动（回执里那条断言是从 `git show --name-only 32ac0bd5` 现读的：4 个路径，
+落在 `docs/history/` 下 0 个）。这不是"历史归档已合并"。旧 34 项仍 `FROZEN_DEFERRED`，`docs/audits`
+那一半仍待 owner 裁，release/E3/E4/真宿主/手机端/E 盘一律不动。
+
+**这一刀自己发了一条 CI 红，读数与归因逐字写在回执
+`dl-kb-06-ci-red-orphaned-crosswave-gate-run-20261028` 里**：承载 `32ac0bd5` 的 PR run 40763980787
+`conclusion=failure`，12 个作业 **9 success / 2 skipped / 1 failed**，红的是
+`STRUCTURE_CONTRACTS=FAIL tests=31 failures=1 errors=0` 那一步的
+`test_gate_reachability.ReadOnlyModeTests.test_every_read_only_form_is_invoked_or_declared_with_its_measured_verdict`，
+断言行 `AssertionError: Lists differ: ['verify_record_archive_crosswave.py'] != []`。
+**根因**：我写了一个声明 `--check` 的新闸，却没有把它接到任何 CI 步骤上——这个仓里有一条专门管这件事的测试
+（"一个没人调用的 `--check` 只是纸面闸门"）。同一条 by-name 规则**没有**报警，因为我自己那份新测试提到了这个脚本，
+所以抓住它的只有"模式级"那条规则。这也是为什么**不能靠加豁免修**：豁免等于登记"这闸在 CI 里不可要求"，
+而它其实有一个干净、便宜、只依赖标准库的家——就在隔壁那条 `Archive-wave record register gate` 后面。
+修法：`.github/workflows/canonical-verify.yml` 的 `top-authority-gate` 作业加一步
+`python design-lab/scripts/verify_record_archive_crosswave.py --check`，本地按 CI 原样复跑
+`scripts/run_structure_contracts.py` 读回 `STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`。
+
+**两轮连续两条 CI 红是同一个形状，这条比红本身更该传下去**：我跑的都是**给我这次改动打分的那些闸**，
+没跑**我这次改动会扰动的全仓不变量**。上一轮是驱动共享函数的那个 vm 合同套件，这一轮是审计闸门的那条测试。
+推送前清单应该是后者——尤其这四条治理级测试：`test_gate_reachability`、`test_path_ref_gate`、
+`test_documented_counts`（经 `verify_documented_counts.py`）、以及任何按 `glob==EXPECTED` 钉人口的清单测试。
+另记两条诚实的边界：这条红停在 Early structure contracts 那一步，所以**这一轮 union 根本没跑**，
+人口 3453 → 3466 仍只是预测，要等修好的 head 读回；我在本地起了整轮 union 复现，跑到 40 分钟仍未出读数，
+而且中途我改了 `canonical-verify.yml`（正是那条测试要读的文件），那份读数的树已经不是我起步的树，
+**判为不可引用后停掉了进程**，没有拿它当证据，也没有拿"本地没红"当"云上会绿"。
+
+**修好之后的 CI 读回（承载 head `e0455c3b` 的 PR run 40772321348，`conclusion=success`，
+12 个作业 10 success / 2 skipped / 0 failed）**，逐字取自 `gh run view --log`：
+`CROSSWAVE=OK manifests=6 distinct=340 crossWave=48 inClone=34 outsideClone=14 tracked=643`
+（**这条就是本次新接上的那一步真在 CI 里跑过**——同一份读数在本地与 Linux 干净检出上逐字相同）、
+`STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`、
+`PYTHON_TESTS_UNION=OK expected=3466 distinct=3466 ran=3466 duplicates=0 missing=0 unexpected=0`
+（上一段那个 3453 → 3466 的预测在这里被云上读数证实，`missing=0 unexpected=0` 说明新模块被分片发现且没重复）、
+`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=21 problems=0`、`PATH_REF_GATE=PASS checks=10 failed=[]`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=46 skipped=0 failed=0`、
+`AUTHORITY_GATES=PASS gates=7 failed=none`、`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21
+receipts=7 excluded=0 findings=0`、`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=167038`、
+`WORKBENCH PACKAGING: all 5 Build-Output-Truth / packaging checks passed`、
+`LICENSE_COVERAGE=OK (source headers + binary sidecars complete)`。
+`DOCUMENTED_COUNTS` 与 `TASK_DOC_STATE_GATE` 两处 CI 不单独打印判定行（它们跑在聚合里），回执里如实写
+`ABSENT`，不拿本地读数冒充云上读数。回执 `dl-final-t04-pr-run-read-at-e0455c3b-20261028`，
+账本 `currentExecution.evidence` 338 → 339。
+
+### 5.91 追正：§5.90 那份普查漏了两波，它漏的正是它自己要防的那类缺陷（承载 head `622c157c`）
+
+收口之后我没有把 §5.90 当成"做完"，而是问了一句它最容易被问倒的话：**"六份清单"是这仓里全部，还是我
+记得的那六份？** 现数回答是八份——`docs/taskpacks/20261019-direction/SOURCE-MANIFEST.json` 与
+`docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json` 这两波住在冻结家族 `docs/history/` 之外，
+`MANIFESTS` 是手写的六条，于是整波没被打开过。补全后的两组读数（各自从两个提交里的登记件读出，差值是
+对两份产物做算术不是回忆）：
+
+| | 6 波（`f9689fa7`） | 8 波（`622c157c`） | 差 |
+|---|---|---|---|
+| 清单 | 6 | 8 | +2 |
+| 成员行 | 391 | 566 | +175 |
+| 不同摘要 | 340 | 510 | +170 |
+| 跨波次 | 48 | **49** | **+1** |
+| 有字节在 clone | 34 | 35 | +1 |
+| 扫描面 | 643 | 1625 | +982 |
+
+**漏的不只是数字，是一条真实关系**：`docs/taskpacks/20261023-ui-kb/source/`
+`DESIGN-LAB_今日完整需求与可行性方案_20261023.html`（59,898 字节）同时被 2026-10-23 的归档清单与
+20261023 任务包的来源清单登记为同一份字节——这正是 `AGENTS.md` 里"HTML 与包内同名成员逐字节相同，
+只留一份"那句话的摘要级证据。在此之前它只是散文，谁也证不了；能证它的那份普查恰好没打开那个文件。
+
+**第二次自打脸，值得单独记**：我做这个核查用的第一版探针自己也是错的——它只认顶层 `members` 键，
+对着登记件的 340 报出 152。同一个缺陷类低了一层的复现。所以修法不是"我把六改成都对了"，而是
+**取消手写人口**：`discover_manifests()` 从 `git ls-files -z -- docs` 现数，
+与声明的 tuple 两个方向不一致各自拒绝（`MANIFEST_NOT_CENSUSED` / `MANIFEST_DECLARED_BUT_ABSENT`），
+测试里两个方向各种植一次，再加一条正对照断言"声明必须等于 git 现数，且 `docs/taskpacks` 出现在根里"。
+`members_of()` 补第三种形状，`PATH_KEYS` 补 `landingPath`/`name`；地板按新读数重设
+（1625/510/49 → 1200/450/40），注释里写明被取代的那组数是被范围限制出来的。测试 13 → 16 条。
+回执 `dl-kb-06-crosswave-census-scope-corrected-20261028`（含 before/after/delta 与那条新配对的逐字出处），
+账本 339 → 340。**一个冻结字节仍然没动，49 行里 `canonicalPaths`>1 的仍是 0 行，每行仍恰好被 2 波声称。**
+
+**教训只有一句**：登记"覆盖范围"的那句话，必须是机器数出来的，不能是我按目录想出来的。
+
+**补两条 CI 逐字读数（两把尺子，不是我说一致就一致）**：承载 `f9689fa7` 的 PR run 40776458027
+`conclusion=success`（12 作业 10 success / 2 skipped / 0 failed），那一步的 CROSSWAVE 行还是六波旧数
+`manifests=6 distinct=340 crossWave=48 inClone=34 outsideClone=14 tracked=643`；承载补全后普查的
+`feb23a11` 的 PR run 40779786064 同样 `conclusion=success`（10/2/0），同一行读成
+`CROSSWAVE=OK manifests=8 distinct=510 crossWave=49 inClone=35 outsideClone=14 tracked=1625`，
+`PYTHON_TESTS_UNION=OK expected=3466 distinct=3466 ran=3466 duplicates=0 missing=0 unexpected=0`、
+`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21 receipts=7 excluded=0 findings=0`、
+`STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`。两行差集就是上表那六个 delta，
+在 Linux 干净检出上复现——**被漏掉的两波是仓的属性，不是我这台机器上的目录树现象**。
+回执：`dl-final-t04-pr-run-read-at-f9689fa7-20261028`、`dl-final-t04-pr-run-read-at-feb23a11-20261028`，
+账本 340 → 342。
+
+**下一轮按此顺序**：⓪ 先读承载本轮最后那条"只含派生记录"的 head 的 PR run 全矩阵并逐字记账
+（本节写到这里时它还在跑，本轮不替它预填绿；用 `gh run list --branch <工作分支> --limit 2
+--json databaseId,headSha,status,conclusion,event` 点名那个 SHA，别看旧 run）；
+① `docs/audits` 的字节去重仍**待 owner 裁**，工程上没有第二件可做的事——现数：
+842 个受跟踪文件 / 8,141,995 字节（按 blob 计，不按工作树），其中逐字节相同的只有 77 组 / 牵涉 256 个文件 /
+冗余 179 份 / **545,455 字节**；全仓被文本点名的 `docs/audits` 路径共 27 条（25 条解析到受跟踪文件，2 条不解析），
+点名者有 28 个文件在 `docs/audits` 之外，而**这 179 份重复里没有任何一份被点名**（按文件名取交集为 0），
+且 73/77 组的重复是**同一个冻结导入包内部**的形状
+（`DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/` 的 `harness/tmp-*`、`ui-kit/` 与 `ui-originals/` 两份、
+`hermes-legacy` 的 `.staging-*` 目录与 `runtime/` 合同副本）。
+所以要动的只能是"删 179 份重复、省 0.52 MiB"这个决定本身，而它直接撞那条"原字节不动、不批量搬迁或修改冻结原件"。
+现数脚本与读数留在 `.project-local/task-runtime/twocol/measure_layer2.py` 与
+`layer2-measure.json`（不随克隆），谁要复核一条命令就能重跑；`docs/history` 的指针层已由 §5.90 落完、
+普查面由 §5.91 补全到全部 8 份清单（人口改由 `git ls-files` 现数，新增一波会先红
+`MANIFEST_NOT_CENSUSED`，不再靠人记目录）；后续只在新增归档波次时重跑
+`verify_record_archive_crosswave.py --write` 并按哈希链重切一次；
+② 其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type` 写入时物化
+（带迁移＋precheck＋合同行）、提示词读回的界面翻页线索，照原顺序；
+③ owner 原本四刀**至此全部交完**（① 磁贴名称/大小、③ 浏览器标签图标、④ 首屏双列已落，
+② 缩略图与静态资源路由＋CSP 放宽仍是 owner 的安全决定，不顺手做）；
+④ 真宿主第一次 probe 仍默认 `NOT_PROBED`，要 owner 明确授权探测才做。
 
 **台账读数（2026-10-26 第二十五轮收口时现数，取代上面第二十四轮那一段的"当下"身份）**：本轮把上一轮欠的三件事全部落到"有实测读数"而不是"已实现"。① **精确 SHA 的 CI 矩阵读通了**：run 40211581088（PR，head `f9683930`）`conclusion=success`，10 个非 skipped 作业全绿，逐字 `PYTHON_TESTS_UNION=OK expected=3363 distinct=3363 ran=3363 duplicates=0 missing=0 unexpected=0`、`BROWSER_E2E ran=27 skipped=0 failed=0`。§5.59 那句"CI 已绿"曾被 §5.61 追正——它引的是换 logo **之前**的 SHA，教训写进记忆：**结清一轮的 CI 账必须点名叫到承载该变更的那个 SHA**。② **增强面对量过**：把 `.ambient` 的动画冻在关键帧每一档（0/3000/6000/9000/12000ms）后用同一个 `MEASURE` 谓词逐档量，`CT_MOTION_PASS poses=5 routes=24 checked=34170 belowAA=0 distinctTransforms=4`；四个不同变换（不是五个）恰因 0% 与 100% 同声明停靠点，这一条同时是"尺子在动"的反证。③ **`errors=0` 原来是空集**，且有两个不同成因：`.error[role=alert]` 那族（`#as-form-error`）选择器一直覆盖，缺的是**没人让界面拒绝一次**；`p.view-hint` 那族（知识/评审/权利/研究的 outcome 行）连 `role` 都没有，既是尺子盲区也是**读屏盲区**。现在闸门**自己点一次**空表单造出真失败（`CT_REFUSAL_PROVED … role=alert`），词表从 `shell.ts` 现数 6 个前缀经 `CT_REFUSAL_WORDS` 传入，**空词表时闸门拒绝开跑**；`RefusalPopulationIsGraded` 三条断言里有一条在它该红的时候红过（旧回执没有 `+refusal` 行）。
 
@@ -1232,6 +1472,17 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 `test_record_import_fidelity`。改前先 `python scripts/record_import_verify.py --head` 看这一行动没动；
 红了用 `declare_record_evolution.py` 走登记机制，别改断言。2026-10-19 这一轮就两次踩它：
 先是 `BOUNDARY_CONTRACT.md`，后是 `LOCAL_ENVIRONMENT.md`——两次都不是内容缺陷，是清单没跟上。
+
+**"相关闸"这个词两轮都把我带偏了，按下面这句理解**：它不止指给我这次改动打分的那些闸，还包括
+**我这次改动会扰动的全仓不变量**。2026-10-28 两条 CI 红同源于此——上一轮漏了驱动被我改动的共享函数的
+vm 合同套件，这一轮漏了审计闸门可达性的 `test_gate_reachability`（新写一个带 `--check` 的闸必须同刀
+给它一个 CI 步骤，加豁免等于谎报"这闸不可要求"）。代价最小的兜底是把 CI 那几步便宜的检查原样跑一遍，
+每条都是现读过的命令与读数：
+`python scripts/run_structure_contracts.py`（现读 `modules=3 tests=31`，它按名字枚举
+`test_workbench_css_single_definition`、`test_workbench_stage_nav_reachability`、
+`test_gate_reachability`——注意它**不含** `test_path_ref_gate`，所以那条要单独跑
+`python scripts/verify_path_refs.py`）与 `python scripts/verify_documented_counts.py`。
+这四条不能替代全量套件，只是不让"少跑了一个模块"再变成一次云上红。
 
 **本地结论永远不是 CI 结论。** 读 CI 时按作业读，不要只看总结论。
 上一轮 owner 明确要求：不要无限跑各类全量测试和大型闸门；需要显式授权时先申请。

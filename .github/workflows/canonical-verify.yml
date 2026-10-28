@@ -205,6 +205,14 @@ jobs:
         # own full-digest bullet, or a path that does not resolve in the document whose
         # purpose is to stop stale paths being re-indexed, all fail the run.
         run: python scripts/verify_archive_record_register.py
+      - name: Cross-wave archive pointer register gate
+        # Read-only, stdlib-only: re-derives design-lab/config/record-archive-crosswave.json from the
+        # six archive manifests and the committed blobs under docs/history/** (--check never writes).
+        # It is the register that says which archived material several waves claim and where the
+        # committed bytes actually sit, so a wave that starts pointing at a digest no tracked file
+        # carries, or a register that quietly stops matching its own inputs, fails the run. Frozen
+        # originals are never opened for writing by anything in this chain.
+        run: python design-lab/scripts/verify_record_archive_crosswave.py --check
 
   node-gate:
     name: MiniGame node gate (+ drift check)
