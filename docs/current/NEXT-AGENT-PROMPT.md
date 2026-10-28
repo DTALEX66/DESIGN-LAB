@@ -693,6 +693,23 @@ owner 目标 ② 那句"冻结原件原字节、只换指针与取代关系"在�
 而且中途我改了 `canonical-verify.yml`（正是那条测试要读的文件），那份读数的树已经不是我起步的树，
 **判为不可引用后停掉了进程**，没有拿它当证据，也没有拿"本地没红"当"云上会绿"。
 
+**修好之后的 CI 读回（承载 head `e0455c3b` 的 PR run 40772321348，`conclusion=success`，
+12 个作业 10 success / 2 skipped / 0 failed）**，逐字取自 `gh run view --log`：
+`CROSSWAVE=OK manifests=6 distinct=340 crossWave=48 inClone=34 outsideClone=14 tracked=643`
+（**这条就是本次新接上的那一步真在 CI 里跑过**——同一份读数在本地与 Linux 干净检出上逐字相同）、
+`STRUCTURE_CONTRACTS=PASS tests=31 failures=0 errors=0`、
+`PYTHON_TESTS_UNION=OK expected=3466 distinct=3466 ran=3466 duplicates=0 missing=0 unexpected=0`
+（上一段那个 3453 → 3466 的预测在这里被云上读数证实，`missing=0 unexpected=0` 说明新模块被分片发现且没重复）、
+`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=21 problems=0`、`PATH_REF_GATE=PASS checks=10 failed=[]`、
+`VERIFY_DESIGN_LAB=OK total=77 failed=0`、`BROWSER_E2E ran=46 skipped=0 failed=0`、
+`AUTHORITY_GATES=PASS gates=7 failed=none`、`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21
+receipts=7 excluded=0 findings=0`、`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gzip=167038`、
+`WORKBENCH PACKAGING: all 5 Build-Output-Truth / packaging checks passed`、
+`LICENSE_COVERAGE=OK (source headers + binary sidecars complete)`。
+`DOCUMENTED_COUNTS` 与 `TASK_DOC_STATE_GATE` 两处 CI 不单独打印判定行（它们跑在聚合里），回执里如实写
+`ABSENT`，不拿本地读数冒充云上读数。回执 `dl-final-t04-pr-run-read-at-e0455c3b-20261028`，
+账本 `currentExecution.evidence` 338 → 339。
+
 **下一轮按此顺序**：① `docs/audits` 的字节去重仍**待 owner 裁**，工程上没有第二件可做的事——现数：
 842 个受跟踪文件 / 8,141,995 字节（按 blob 计，不按工作树），其中逐字节相同的只有 77 组 / 牵涉 256 个文件 /
 冗余 179 份 / **545,455 字节**；全仓被文本点名的 `docs/audits` 路径共 27 条（25 条解析到受跟踪文件，2 条不解析），
