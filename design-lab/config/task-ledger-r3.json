@@ -12772,6 +12772,42 @@
         "artifact_sha256": "111636810c631a1f79e47b7ff8565c510aeac2e0ae028a6021e0c172405d092a",
         "exit_code": 0,
         "command": "read the Canonical Verify runs at 924af2fb and 19ffd0d1 verbatim, and rebind the three derived bindings (archive register, authority chain, current reports) that landing receipts had moved"
+      },
+      {
+        "id": "dl-kb-06-reference-tile-stops-reading-unserved-fields-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:02:10Z",
+        "subject_sha": "766f48d2c91724797854f562f0f6c252bb52df5a",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-reference-tile-stops-reading-unserved-fields-20261028.json",
+        "artifact_sha256": "b4b3d793c8568b9c5e08e6122583befb2e144b8247a2e6ba93d7b642cf804e02",
+        "exit_code": 0,
+        "command": "measure the served key set and the painted text in a real browser, then register and clean as owner 2026-10-28 instructed; readings are in the bound artefact"
+      },
+      {
+        "id": "dl-kb-06-design-automation-pack-registered-by-digest-20261028",
+        "task_id": "DL-KB-06",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:02:10Z",
+        "subject_sha": "337a6d2e6df43fb097d90ff1392080924ff8ba7c",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-design-automation-pack-registered-by-digest-20261028.json",
+        "artifact_sha256": "5694253de8019f0570d17f406877f24c0b8dac40dcef3370ea23b5328f652b0e",
+        "exit_code": 0,
+        "command": "measure the served key set and the painted text in a real browser, then register and clean as owner 2026-10-28 instructed; readings are in the bound artefact"
+      },
+      {
+        "id": "dl-final-t04-derivative-cleanup-measured-and-attested-20261028",
+        "task_id": "DL-FINAL-T04",
+        "axis": "verification",
+        "outcome": "PASS",
+        "observed_at": "2026-10-28T12:02:10Z",
+        "subject_sha": "337a6d2e6df43fb097d90ff1392080924ff8ba7c",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-final-t04-derivative-cleanup-measured-and-attested-20261028.json",
+        "artifact_sha256": "c5902e14b7c623f8e51769147df85ff0c6dcfd906ab466a7f87d359877759920",
+        "exit_code": 0,
+        "command": "measure the served key set and the painted text in a real browser, then register and clean as owner 2026-10-28 instructed; readings are in the bound artefact"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"
