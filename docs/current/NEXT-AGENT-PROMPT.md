@@ -645,7 +645,9 @@ owner 目标 ② 那句"冻结原件原字节、只换指针与取代关系"在�
 `docs/audits` 那一半（结论：待裁）。这一轮做另一半：`docs/history/**` 六波归档清单之间的**指针与取代关系**。
 
 **现数（全部由 `python design-lab/scripts/verify_record_archive_crosswave.py --check` 复算，登记件在
-`design-lab/config/record-archive-crosswave.json`）**：6 份清单 / 391 条成员行 / 340 个不同摘要 /
+`design-lab/config/record-archive-crosswave.json`；下面这组数**已被 §5.91 取代**——那一版只普查了
+`docs/history/` 下的六份清单，第八份之后的正确读数是 8 清单 / 566 行 / 510 摘要 / 49 跨波次）**：
+6 份清单 / 391 条成员行 / 340 个不同摘要 /
 **48 个被两个及以上波次同时声称**，其中 **34 个**在 clone 里有受跟踪副本、**14 个**没有字节
 （大对象按 `AGENTS.md` 留在 `.project-local/`，登记件单独成节并写明"不是不存在，也不是通过"）。
 扫描面 643 个受跟踪 `docs/history` 文件。**摘的一律是 blob 摘要**（`git cat-file blob HEAD:<path>`），
@@ -710,6 +712,40 @@ receipts=7 excluded=0 findings=0`、`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gz
 `ABSENT`，不拿本地读数冒充云上读数。回执 `dl-final-t04-pr-run-read-at-e0455c3b-20261028`，
 账本 `currentExecution.evidence` 338 → 339。
 
+### 5.91 追正：§5.90 那份普查漏了两波，它漏的正是它自己要防的那类缺陷（承载 head `622c157c`）
+
+收口之后我没有把 §5.90 当成"做完"，而是问了一句它最容易被问倒的话：**"六份清单"是这仓里全部，还是我
+记得的那六份？** 现数回答是八份——`docs/taskpacks/20261019-direction/SOURCE-MANIFEST.json` 与
+`docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json` 这两波住在冻结家族 `docs/history/` 之外，
+`MANIFESTS` 是手写的六条，于是整波没被打开过。补全后的两组读数（各自从两个提交里的登记件读出，差值是
+对两份产物做算术不是回忆）：
+
+| | 6 波（`f9689fa7`） | 8 波（`622c157c`） | 差 |
+|---|---|---|---|
+| 清单 | 6 | 8 | +2 |
+| 成员行 | 391 | 566 | +175 |
+| 不同摘要 | 340 | 510 | +170 |
+| 跨波次 | 48 | **49** | **+1** |
+| 有字节在 clone | 34 | 35 | +1 |
+| 扫描面 | 643 | 1625 | +982 |
+
+**漏的不只是数字，是一条真实关系**：`docs/taskpacks/20261023-ui-kb/source/`
+`DESIGN-LAB_今日完整需求与可行性方案_20261023.html`（59,898 字节）同时被 2026-10-23 的归档清单与
+20261023 任务包的来源清单登记为同一份字节——这正是 `AGENTS.md` 里"HTML 与包内同名成员逐字节相同，
+只留一份"那句话的摘要级证据。在此之前它只是散文，谁也证不了；能证它的那份普查恰好没打开那个文件。
+
+**第二次自打脸，值得单独记**：我做这个核查用的第一版探针自己也是错的——它只认顶层 `members` 键，
+对着登记件的 340 报出 152。同一个缺陷类低了一层的复现。所以修法不是"我把六改成都对了"，而是
+**取消手写人口**：`discover_manifests()` 从 `git ls-files -z -- docs` 现数，
+与声明的 tuple 两个方向不一致各自拒绝（`MANIFEST_NOT_CENSUSED` / `MANIFEST_DECLARED_BUT_ABSENT`），
+测试里两个方向各种植一次，再加一条正对照断言"声明必须等于 git 现数，且 `docs/taskpacks` 出现在根里"。
+`members_of()` 补第三种形状，`PATH_KEYS` 补 `landingPath`/`name`；地板按新读数重设
+（1625/510/49 → 1200/450/40），注释里写明被取代的那组数是被范围限制出来的。测试 13 → 16 条。
+回执 `dl-kb-06-crosswave-census-scope-corrected-20261028`（含 before/after/delta 与那条新配对的逐字出处），
+账本 339 → 340。**一个冻结字节仍然没动，49 行里 `canonicalPaths`>1 的仍是 0 行，每行仍恰好被 2 波声称。**
+
+**教训只有一句**：登记"覆盖范围"的那句话，必须是机器数出来的，不能是我按目录想出来的。
+
 **下一轮按此顺序**：① `docs/audits` 的字节去重仍**待 owner 裁**，工程上没有第二件可做的事——现数：
 842 个受跟踪文件 / 8,141,995 字节（按 blob 计，不按工作树），其中逐字节相同的只有 77 组 / 牵涉 256 个文件 /
 冗余 179 份 / **545,455 字节**；全仓被文本点名的 `docs/audits` 路径共 27 条（25 条解析到受跟踪文件，2 条不解析），
@@ -719,8 +755,10 @@ receipts=7 excluded=0 findings=0`、`WORKBENCH_WEIGHT_GATE=OK remote=0 bundle_gz
 `hermes-legacy` 的 `.staging-*` 目录与 `runtime/` 合同副本）。
 所以要动的只能是"删 179 份重复、省 0.52 MiB"这个决定本身，而它直接撞那条"原字节不动、不批量搬迁或修改冻结原件"。
 现数脚本与读数留在 `.project-local/task-runtime/twocol/measure_layer2.py` 与
-`layer2-measure.json`（不随克隆），谁要复核一条命令就能重跑；`docs/history` 的指针层已由 §5.90 落完，
-后续只在新增归档波次时重跑 `verify_record_archive_crosswave.py --write` 并按哈希链重切一次；
+`layer2-measure.json`（不随克隆），谁要复核一条命令就能重跑；`docs/history` 的指针层已由 §5.90 落完、
+普查面由 §5.91 补全到全部 8 份清单（人口改由 `git ls-files` 现数，新增一波会先红
+`MANIFEST_NOT_CENSUSED`，不再靠人记目录）；后续只在新增归档波次时重跑
+`verify_record_archive_crosswave.py --write` 并按哈希链重切一次；
 ② 其余 8 条无界路由、五份 CSS 花括号扫描器收敛、附件 `width/height/media_type` 写入时物化
 （带迁移＋precheck＋合同行）、提示词读回的界面翻页线索，照原顺序；
 ③ owner 原本四刀**至此全部交完**（① 磁贴名称/大小、③ 浏览器标签图标、④ 首屏双列已落，
