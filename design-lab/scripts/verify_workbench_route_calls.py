@@ -125,13 +125,6 @@ SPECIAL_ROUTES = {
 #: Each reason names the measured consumer (a test or the aggregate route the page does use),
 #: because "nobody calls it" and "the UI reads the same data another way" are different claims.
 BACKEND_ONLY: dict[tuple[str, str], str] = {
-    ('GET', r'/api/automation-connectors'):
-        'the route shipped first, the menu second: owner 2026-10-28 asked for both the unfreeze '
-        'and 「前端也同步上去自动化的菜单导航」, and this repo\'s nav is a measured surface -- a '
-        'ROUTE_VIEWS entry without a wired screen trips the route-derivation gate and would have '
-        'put an empty page behind a menu label. The projection is exercised live by '
-        'design-lab/tests/test_automation_connectors.py, which is also the read the Workbench '
-        'screen will bind to next.',
     ('POST', r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/analysis'):
         'the Workbench cannot supply observations for this route: no local OCR backend is qualified '
         '(design-lab/readiness/model-radar.json reports QUALIFIED_LOCAL=0 with every entry '
