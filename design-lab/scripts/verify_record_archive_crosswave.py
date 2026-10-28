@@ -4,13 +4,23 @@
 its bytes actually are.
 
 Why this exists instead of a merge that moves files: `docs/history/**` is frozen byte-for-byte by
-`design-lab/config/task-document-states.json` (prefixRule, basis HISTORY-FREEZE-RULES), and six
-archive manifests each declare their own member list. Four of those waves re-register material an
-earlier wave already archived, so a reader who lands on the older row cannot tell whether the bytes
-exist twice or whether they are looking at an alias of one canonical copy. Measured before writing
-this: 340 distinct member digests across the six manifests, 48 of them claimed by more than one
-wave. Deleting anything to "merge" the waves would rewrite frozen originals for 0.5 MiB; that is an
-owner ruling, not an engineering gap. So this script writes the pointer layer only.
+`design-lab/config/task-document-states.json` (prefixRule, basis HISTORY-FREEZE-RULES), and eight
+archive/source manifests each declare their own member list. Several of those waves re-register
+material an earlier wave already archived, so a reader who lands on the older row cannot tell
+whether the bytes exist twice or whether they are looking at an alias of one canonical copy.
+Measured 2026-10-28 over the whole tracked `docs/` population: 566 member rows, 510 distinct
+digests, 49 of them claimed by more than one wave. Deleting anything to "merge" the waves would
+rewrite frozen originals for a fraction of a MiB; that is an owner ruling, not an engineering gap.
+So this script writes the pointer layer only.
+
+The census spans all of `docs/`, not the frozen family alone, and that is a correction rather than
+a widening for its own sake: the first cut listed six manifests by hand, all under `docs/history`,
+and the two it missed sit in `docs/taskpacks`. Together they hid 175 member rows, 170 digests and
+one real cross-wave claim (the 2026-10-23 requirement HTML, 59,898 bytes, claimed both by
+`docs/history/record-archive-2026-10-23/ARCHIVE-MANIFEST.json` and by
+`docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json`). `discover_manifests` now enumerates the
+tracked population and refuses in both directions, so the scope cannot silently come back down to
+a directory someone happened to think of.
 
 Every digest here is read from `git cat-file blob HEAD:<path>`, never from the worktree, because
 `core.autocrlf=true` on this machine means a checked-out file is not the committed bytes -- a
@@ -34,8 +44,12 @@ REPO = Path(__file__).resolve().parents[2]
 REGISTER = REPO / 'design-lab' / 'config' / 'record-archive-crosswave.json'
 SCHEMA = 'design-lab/record-archive-crosswave/v1'
 
-#: The six archive manifests that enumerate archived material. A seventh wave must be added here,
-#: and test_record_archive_crosswave.py convicts a manifest that is on disk but not declared.
+#: Every archive/source manifest that enumerates archived material, whatever directory it lives in.
+#: Two of these waves sit in `docs/taskpacks/`, not in the frozen `docs/history/` family, and the
+#: first cut of this register read only the six under `docs/history` -- a census that stops at one
+#: directory reports "no overlap" about waves it never opened. `discover_manifests` below now
+#: enumerates the tracked population and refuses if this tuple and that set ever disagree, so a
+#: ninth wave cannot be forgotten the way these two were.
 MANIFESTS = (
     'docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json',
     'docs/history/record-archive-2026-10-23/ARCHIVE-MANIFEST.json',
@@ -43,8 +57,13 @@ MANIFESTS = (
     'docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json',
     'docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json',
     'docs/history/taskpacks/20261009-r2-inputs/ui-r2/ARCHIVE-MANIFEST.json',
+    'docs/taskpacks/20261019-direction/SOURCE-MANIFEST.json',
+    'docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json',
 )
-SCOPE_ROOT = 'docs/history'
+#: Canonical copies are searched across all of `docs/`, because the two `docs/taskpacks` waves point
+#: at tracked files inside their own taskpack directory, not under `docs/history`.
+SCOPE_ROOT = 'docs'
+MANIFEST_BASENAMES = ('ARCHIVE-MANIFEST.json', 'SOURCE-MANIFEST.json')
 
 
 def committed_blobs():
@@ -97,13 +116,17 @@ def members_of(document):
     """Every declared member of one manifest, as (package_or_None, row).
 
     The record-archive waves carry a top-level `source_files`; the taskpack waves nest members
-    under `packages`. Reading only one shape would silently drop a whole wave from the census, and
-    a census that drops a wave reports "no overlap" as a true fact about a population it never read.
+    under `packages`; the two `docs/taskpacks` SOURCE-MANIFEST waves put `members` at the top
+    level. Reading only one shape would silently drop a whole wave from the census, and a census
+    that drops a wave reports "no overlap" as a true fact about a population it never read.
     """
     found = []
     direct = document.get('source_files')
     if isinstance(direct, list):
         found.extend((None, row) for row in direct if isinstance(row, dict))
+    top = document.get('members')
+    if isinstance(top, list):
+        found.extend((None, row) for row in top if isinstance(row, dict))
     packages = document.get('packages')
     if isinstance(packages, list):
         for package in packages:
@@ -118,9 +141,15 @@ def members_of(document):
 
 #: Per-wave key spellings, read from the manifests themselves rather than guessed. The record-archive
 #: waves describe where a member landed (`landed_as`); the taskpack waves carry both the ZIP-internal
-#: name (`member`) and the tracked in-repo copy of the same bytes (`repository_text`). A register that
-#: dropped those would say "two waves claim this" without saying what either of them pointed at.
-PATH_KEYS = ('repository_text', 'landed_as', 'path', 'source_relative', 'member')
+#: name (`member`) and the tracked in-repo copy of the same bytes (`repository_text`); the
+#: `docs/taskpacks` SOURCE-MANIFEST waves use `landingPath` / `path` for the tracked copy and
+#: `member` / `archiveName` for the ZIP-internal name. A register that dropped those would say
+#: "two waves claim this" without saying what either of them pointed at.
+PATH_KEYS = ('repository_text', 'landed_as', 'landingPath', 'path', 'source_relative', 'member',
+             'name')
+#: The pack-internal spelling, kept separate from `pointsAt` because the two are different claims:
+#: one is "where the bytes are in the clone", the other is "what the delivery called them".
+PACKAGE_NAME_KEYS = ('member', 'name', 'archiveName')
 
 
 def claim_of(manifest, package, row):
@@ -138,8 +167,11 @@ def claim_of(manifest, package, row):
         if isinstance(row.get(key), str):
             claim['pointsAt'] = row[key]
             break
-    for key, label in (('member', 'insidePackage'), ('source_relative', 'sourceRelative'),
-                       ('bytes', 'bytes'), ('local_copy', 'outsideCloneCopy')):
+    for key in PACKAGE_NAME_KEYS:
+        if isinstance(row.get(key), str):
+            claim.setdefault('insidePackage', row[key])
+    for key, label in (('source_relative', 'sourceRelative'), ('bytes', 'bytes'),
+                       ('local_copy', 'outsideCloneCopy')):
         if isinstance(row.get(key), (str, int)):
             claim[label] = row[key]
     if isinstance(package, dict) and isinstance(package.get('source'), str):
@@ -148,6 +180,34 @@ def claim_of(manifest, package, row):
         # register would only add a second place for it to be wrong.
         claim['package'] = package['source'].replace('\\', '/').rsplit('/', 1)[-1]
     return digest, claim
+
+
+def discover_manifests():
+    """Every tracked archive/source manifest in the repository, enumerated from git.
+
+    This is the guard the first cut only claimed to have. The census is a claim about *all* the
+    waves, so its population cannot come from a hand-maintained tuple: the six that were read lived
+    under `docs/history`, and the two that were missed lived under `docs/taskpacks` -- a scope named
+    after a directory, instead of the thing itself.
+    """
+    listing = subprocess.run(
+        ['git', 'ls-files', '-z', '--', 'docs'],
+        cwd=str(REPO), capture_output=True, check=True).stdout.decode('utf-8', 'replace')
+    return sorted(path for path in listing.split('\0')
+                  if path and path.rsplit('/', 1)[-1] in MANIFEST_BASENAMES)
+
+
+def manifest_enumeration_problems():
+    declared = sorted(MANIFESTS)
+    on_disk = discover_manifests()
+    problems = []
+    missing = sorted(set(on_disk) - set(declared))
+    stale = sorted(set(declared) - set(on_disk))
+    if missing:
+        problems.append('MANIFEST_NOT_CENSUSED %s' % missing)
+    if stale:
+        problems.append('MANIFEST_DECLARED_BUT_ABSENT %s' % stale)
+    return problems
 
 
 def build():
@@ -167,7 +227,8 @@ def build():
             claims.setdefault(digest, []).append(claim)
             rows.append(digest)
         waves.append({'manifest': manifest, 'declaredMembers': len(rows),
-                      'date': document.get('date') or document.get('recordedAt'),
+                      'date': (document.get('date') or document.get('recordedAt')
+                               or document.get('adoptedAt')),
                       'supersedes': document.get('supersedes')})
     digests = committed_blobs()
     tracked = sorted(digests)
@@ -199,6 +260,10 @@ def build():
         'freezeRule': 'docs/history/** is byte-for-byte frozen by '
                       'design-lab/config/task-document-states.json (prefixRule, HISTORY-FREEZE-RULES), '
                       'so a cross-wave relation may only be written here.',
+        'censusScope': 'Every tracked ARCHIVE-MANIFEST/SOURCE-MANIFEST under docs/, found by '
+                       'git ls-files and checked against the declared tuple on every run; canonical '
+                       'copies are searched across all of docs/ because two waves land inside their '
+                       'own docs/taskpacks directory.',
         'digestSource': 'git cat-file blob HEAD:<path> (never the worktree: core.autocrlf makes a '
                         'checked-out file differ from the committed bytes)',
         'waves': waves,
@@ -214,7 +279,7 @@ def build():
         'crossWave': list(shared.values()),
         'crossWaveOutsideClone': list(unbacked.values()),
         'crossWaveOutsideCloneMeans': 'Two or more waves claim these bytes and no tracked file '
-                                      'under docs/history carries them. That is the large-object '
+                                      'under docs/ carries them. That is the large-object '
                                       'state AGENTS.md records for these packs (the originals live '
                                       'in .project-local/ and do not travel with the clone), so a '
                                       'machine migration must fetch them by digest. It is not '
@@ -237,15 +302,16 @@ def main() -> int:
     payload = serialise(document)
     counts = document['counts']
     # Population guards first: a register built from a census that read nothing is not a pass.
-    problems = []
+    problems = manifest_enumeration_problems()
     if counts['manifests'] != len(MANIFESTS):
         problems.append('MANIFEST_POPULATION %s' % counts['manifests'])
-    # Floors are set below the measured population on purpose (643 tracked files under
-    # docs/history, 340 distinct declared digests, 48 of them cross-wave as of 2026-10-28): their
-    # job is to convict a scanner that silently stops seeing a subtree, not to pin today's count.
-    if counts['trackedFilesScanned'] < 500:
+    # Floors are set below the measured population on purpose (1625 tracked files under docs/,
+    # 510 distinct declared digests, 49 of them cross-wave as of 2026-10-28, from 8 manifests):
+    # their job is to convict a scanner that silently stops seeing a subtree, not to pin today's
+    # count. The first cut of this file measured 643/340/48 because it censused only docs/history.
+    if counts['trackedFilesScanned'] < 1200:
         problems.append('TRACKED_POPULATION %d' % counts['trackedFilesScanned'])
-    if counts['distinctDigests'] < 300:
+    if counts['distinctDigests'] < 450:
         problems.append('DIGEST_POPULATION %d' % counts['distinctDigests'])
     if counts['crossWaveDigests'] < 40:
         problems.append('CROSSWAVE_POPULATION %d' % counts['crossWaveDigests'])

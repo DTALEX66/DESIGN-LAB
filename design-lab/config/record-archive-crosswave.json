@@ -2,6 +2,7 @@
   "schemaVersion": "design-lab/record-archive-crosswave/v1",
   "purpose": "Pointer layer only: which archived material several waves claim, and where its committed bytes actually sit. No frozen original is moved, renamed or rewritten by anything in this file.",
   "freezeRule": "docs/history/** is byte-for-byte frozen by design-lab/config/task-document-states.json (prefixRule, HISTORY-FREEZE-RULES), so a cross-wave relation may only be written here.",
+  "censusScope": "Every tracked ARCHIVE-MANIFEST/SOURCE-MANIFEST under docs/, found by git ls-files and checked against the declared tuple on every run; canonical copies are searched across all of docs/ because two waves land inside their own docs/taskpacks directory.",
   "digestSource": "git cat-file blob HEAD:<path> (never the worktree: core.autocrlf makes a checked-out file differ from the committed bytes)",
   "waves": [
     {
@@ -18,13 +19,13 @@
     },
     {
       "manifest": "docs/history/record-archive-2026-10-27-stitch-boards/ARCHIVE-MANIFEST.json",
-      "declaredMembers": 2,
+      "declaredMembers": 33,
       "date": "2026-10-27",
       "supersedes": null
     },
     {
       "manifest": "docs/history/record-archive-2026-10-28-design-automation/ARCHIVE-MANIFEST.json",
-      "declaredMembers": 9,
+      "declaredMembers": 132,
       "date": "2026-10-28",
       "supersedes": null
     },
@@ -43,18 +44,51 @@
         "kept_from_r1": "交互细节、文案与验收语义仍在 specs/r1/ 的既有归档里",
         "crosswalk": "docs/taskpacks/20261009-r2-ui/CROSSWALK.md"
       }
+    },
+    {
+      "manifest": "docs/taskpacks/20261019-direction/SOURCE-MANIFEST.json",
+      "declaredMembers": 4,
+      "date": null,
+      "supersedes": null
+    },
+    {
+      "manifest": "docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json",
+      "declaredMembers": 17,
+      "date": "2026-10-23",
+      "supersedes": null
     }
   ],
   "counts": {
-    "manifests": 6,
-    "declaredMemberRows": 391,
-    "distinctDigests": 340,
-    "crossWaveDigests": 48,
-    "crossWaveWithBytesInClone": 34,
+    "manifests": 8,
+    "declaredMemberRows": 566,
+    "distinctDigests": 510,
+    "crossWaveDigests": 49,
+    "crossWaveWithBytesInClone": 35,
     "crossWaveWithoutBytesInClone": 14,
-    "trackedFilesScanned": 643
+    "trackedFilesScanned": 1625
   },
   "crossWave": [
+    {
+      "sha256": "614b4a7c15bfb6497823aa5d2f818a651b96b84d5bfbe2394ecee55143e893da",
+      "canonicalPaths": [
+        "docs/taskpacks/20261023-ui-kb/source/DESIGN-LAB_今日完整需求与可行性方案_20261023.html"
+      ],
+      "bytes": 59898,
+      "claimedBy": [
+        {
+          "manifest": "docs/history/record-archive-2026-10-23/ARCHIVE-MANIFEST.json",
+          "pointsAt": "docs/taskpacks/20261023-ui-kb/source/DESIGN-LAB_今日完整需求与可行性方案_20261023.html",
+          "sourceRelative": "DESIGN-LAB_今日完整需求与可行性方案_20261023.html",
+          "bytes": 59898
+        },
+        {
+          "manifest": "docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json",
+          "pointsAt": "docs/taskpacks/20261023-ui-kb/source/DESIGN-LAB_今日完整需求与可行性方案_20261023.html",
+          "insidePackage": "DESIGN-LAB_完整方案_20261023/DESIGN-LAB_今日完整需求与可行性方案_20261023.html",
+          "bytes": 59898
+        }
+      ]
+    },
     {
       "sha256": "c275000ab87644bbfe04a844824b036090210197d35128b23062743fbfa51ebf",
       "canonicalPaths": [
@@ -1182,5 +1216,5 @@
       ]
     }
   ],
-  "crossWaveOutsideCloneMeans": "Two or more waves claim these bytes and no tracked file under docs/history carries them. That is the large-object state AGENTS.md records for these packs (the originals live in .project-local/ and do not travel with the clone), so a machine migration must fetch them by digest. It is not \"the material does not exist\" and it is not a pass."
+  "crossWaveOutsideCloneMeans": "Two or more waves claim these bytes and no tracked file under docs/ carries them. That is the large-object state AGENTS.md records for these packs (the originals live in .project-local/ and do not travel with the clone), so a machine migration must fetch them by digest. It is not \"the material does not exist\" and it is not a pass."
 }

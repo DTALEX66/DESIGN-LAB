@@ -1,12 +1,16 @@
 # SPDX-License-Identifier: MIT
 """Teeth for design-lab/scripts/verify_record_archive_crosswave.py.
 
-The register it guards is the pointer layer over six frozen archive manifests: which archived
-material two or more waves both claim, and where the committed bytes actually are. Three ways that
-go quietly wrong, and each is driven here with a planted fault:
+The register it guards is the pointer layer over every tracked archive/source manifest under
+`docs/`: which archived material two or more waves both claim, and where the committed bytes
+actually are. Four ways that go quietly wrong, and each is driven here with a planted fault:
 
 * a reader that only understands one manifest shape reports a smaller census, and a smaller census
   says "no overlap" about material it never looked at;
+* a census whose population is a hand-kept tuple drifts behind the repository: the first cut of
+  this register listed the six manifests under `docs/history` and missed the two in
+  `docs/taskpacks`, which hid 175 member rows and one genuine cross-wave claim. The enumeration
+  guard is tested in both directions here;
 * a canonical path that no longer carries the digest it names would send a migration to the wrong
   file, so every `canonicalPaths` entry is re-hashed from the committed blob in these tests;
 * a verdict that is unconditional passes on an empty population, so the floors and the drift check
@@ -101,17 +105,54 @@ class ShippedRegisterTests(unittest.TestCase):
                                 'the outside-clone half went empty, so the register now hides the '
                                 'material a migration has to fetch by digest')
 
+    def test_the_census_covers_every_tracked_manifest_not_one_directory(self):
+        """Positive control for the guard: the shipped scope must be the whole population."""
+        self.assertEqual(MODULE.manifest_enumeration_problems(), [])
+        discovered = MODULE.discover_manifests()
+        self.assertGreaterEqual(len(discovered), 8,
+                                'only %d manifests enumerated -- a tracked wave is invisible again'
+                                % len(discovered))
+        roots = {path.split('/')[1] for path in discovered}
+        self.assertIn('taskpacks', roots,
+                      'every censused wave sits under docs/history, which is how the two '
+                      'docs/taskpacks waves got missed the first time')
+        self.assertEqual(sorted(discovered), sorted(MODULE.MANIFESTS))
+
 
 class PlantedFaultsAreConvicted(unittest.TestCase):
     def test_a_reader_that_only_knows_one_shape_is_convicted(self):
         document = {'source_files': [{'sha256': 'a' * 64, 'source_relative': 'x.md', 'bytes': 3}],
+                    'members': [{'sha256': 'd' * 64, 'landingPath': 'docs/taskpacks/p/z.md',
+                                 'bytes': 11, 'archiveName': 'p/z.md'}],
                     'packages': [{'source': 'C:/somewhere/p.zip',
                                   'members': [{'sha256': 'b' * 64, 'member': 'p/y.md',
                                                'repository_text': 'docs/history/y.md'}]}]}
         rows = MODULE.members_of(document)
-        self.assertEqual(len(rows), 2, 'one of the two shapes was not read: %s' % rows)
+        self.assertEqual(len(rows), 3, 'one of the three shapes was not read: %s' % rows)
         digests = [MODULE.claim_of('m', pkg, row) for pkg, row in rows]
-        self.assertEqual(sorted(d[0] for d in digests if d), sorted(['a' * 64, 'b' * 64]))
+        self.assertEqual(sorted(d[0] for d in digests if d),
+                         sorted(['a' * 64, 'b' * 64, 'd' * 64]))
+        claims = {d[0]: d[1] for d in digests if d}
+        self.assertEqual(claims['d' * 64]['pointsAt'], 'docs/taskpacks/p/z.md',
+                         'a wave that names its tracked copy as `landingPath` would be registered '
+                         'with no pointer at all')
+        self.assertEqual(claims['d' * 64]['insidePackage'], 'p/z.md')
+
+    def test_a_wave_on_disk_that_the_tuple_does_not_declare_is_convicted(self):
+        """The exact defect the first cut shipped: a manifest nobody added to MANIFESTS."""
+        extra = sorted(list(MODULE.discover_manifests())
+                       + ['docs/taskpacks/2026-99-99-fake/SOURCE-MANIFEST.json'])
+        with mock.patch.object(MODULE, 'discover_manifests', return_value=extra):
+            code, out = invoke(MODULE, ['--check'])
+        self.assertEqual(code, 1, out)
+        self.assertIn('MANIFEST_NOT_CENSUSED', out)
+
+    def test_a_declared_manifest_that_is_no_longer_on_disk_is_convicted(self):
+        short = MODULE.discover_manifests()[1:]
+        with mock.patch.object(MODULE, 'discover_manifests', return_value=short):
+            code, out = invoke(MODULE, ['--check'])
+        self.assertEqual(code, 1, out)
+        self.assertIn('MANIFEST_DECLARED_BUT_ABSENT', out)
 
     def test_a_member_row_without_a_digest_is_not_counted_as_a_claim(self):
         self.assertIsNone(MODULE.claim_of('m', None, {'source_relative': 'z.md', 'bytes': 9}))
