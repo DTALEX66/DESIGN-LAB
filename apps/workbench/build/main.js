@@ -6048,6 +6048,18 @@ async function renderKnowledgeLibrary(target) {
 }
 const ASSIST_UNKNOWN = "UNKNOWN";
 const ASSIST_UNUSED = "UNUSED";
+function formatByteSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  const text = unit === 0 ? String(Math.round(value)) : value.toFixed(value >= 10 ? 0 : 1);
+  return `${text} ${units[unit]}`;
+}
 function assistanceWords(value) {
   return value.split(/[、,，\n]/).map((part) => part.trim()).filter(Boolean);
 }
@@ -6608,8 +6620,13 @@ async function renderDesignAssistant(target) {
         "ASSET",
         "本工作区素材",
         assets.map((asset) => ({
+          // Every word here is a field the route served. There is no name to show: the stored
+          // filename is a publish-time constant (`image_assets.py:144` writes reference.png or
+          // reference.jpg; native_tasks.py:172 writes native.<ext>), never the name the designer
+          // gave the file, so printing it would look like a caption while saying nothing.
+          // The short id tail is what distinguishes two same-size images from each other.
           id: asset.id,
-          text: `${asset.kind === "raster" ? "图片" : asset.kind} · ${asset.id}`
+          text: `${asset.media_type} · ${asset.width}×${asset.height} · ${formatByteSize(asset.byte_size)} · ${asset.id.slice(0, 12)}…`
         })),
         assetsNotice || "这个工作区还没有素材"
       ),
@@ -6658,12 +6675,24 @@ async function renderDesignAssistant(target) {
       ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)
     ]);
     const kindLabel = (kind) => REFERENCE_KIND_LABELS[kind] ?? kind;
+    const assetById = new Map(assets.map((asset) => [asset.id, asset]));
+    const choiceById = new Map(projectChoices.map((choice) => [`${choice.kind}:${choice.id}`, choice]));
+    const knowledgeById = new Map(knowledgeChoices.map((entry) => [entry.id, entry]));
+    const captionOf = (kind, id) => {
+      if (kind === "ASSET") {
+        const asset = assetById.get(id);
+        return asset ? `${asset.media_type} · ${asset.width}×${asset.height} · ${formatByteSize(asset.byte_size)}` : "";
+      }
+      if (kind === "KNOWLEDGE") return knowledgeById.get(id)?.title ?? "";
+      return choiceById.get(`${kind}:${id}`)?.label ?? "";
+    };
     syncObjectiveMeta();
     referenceCount.textContent = `已关联 ${references.length} 项参考`;
     referenceList.replaceChildren(...references.length ? references.map((reference) => el(
       "li",
       { class: "list-item as-ref" },
       el("span", { class: "tag neutral" }, kindLabel(reference.kind)),
+      ...captionOf(reference.kind, reference.id) ? [el("span", { class: "as-ref-caption" }, captionOf(reference.kind, reference.id))] : [],
       el("span", { class: "value-mono" }, reference.id),
       el(
         "span",
@@ -10487,17 +10516,12 @@ function renderReferencePanel(id) {
   };
   const assetRow = (a) => {
     const rights = a.rights === "NOT_REVIEWED" ? el("span", { class: "tag warn" }, "权利未审查") : el("span", { class: "tag info" }, a.rights);
-    const headline = [
-      a.width !== void 0 && a.height !== void 0 ? `${a.width} × ${a.height}` : null,
-      a.media_type,
-      a.kind
-    ].filter(Boolean).join(" · ");
+    const headline = `${a.media_type} · ${a.width} × ${a.height} · ${formatByteSize(a.byte_size)}`;
     const provenance = [
-      a.id,
-      a.version_no !== void 0 ? `版本 ${a.version_no}` : null,
-      a.version_id ? `version_id ${a.version_id.slice(0, 12)}…` : null,
-      a.sha256 ? `sha256 ${String(a.sha256).replace(/^sha256:/, "").slice(0, 16)}…` : null
-    ].filter(Boolean).join(" · ");
+      `版本记录 ${a.version_id.slice(0, 12)}…`,
+      `sha256 ${a.sha256.replace(/^sha256:/, "").slice(0, 16)}…`,
+      a.id
+    ].join(" · ");
     return el(
       "li",
       { class: "list-item" },
@@ -12867,7 +12891,7 @@ function referencePickerForProject(projectId) {
           "label",
           { class: "intake-check" },
           el("input", { type: "checkbox", name: "intake-reference-asset", value: asset.id }),
-          el("span", {}, `${asset.media_type} · ${asset.width}×${asset.height} · ${asset.id.slice(-8)} · 权利 ${asset.rights} · v${asset.version_no}；导入与读回不等于获得素材使用权。`)
+          el("span", {}, `${asset.media_type} · ${asset.width}×${asset.height} · ${asset.id.slice(-8)} · 权利 ${asset.rights} · 版本 ${asset.version_id.slice(0, 12)}…；导入与读回不等于获得素材使用权。`)
         )
       ))));
     } catch (error) {
@@ -13964,7 +13988,7 @@ function planComposer(projectId) {
           "div",
           {},
           el("strong", {}, "底图 · 用户勾选，非推断"),
-          el("small", {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height} · 权利 ${asset.rights} · ${asset.version_no !== void 0 ? `v${asset.version_no}` : `版本 ${asset.version_id.slice(0, 12)}…`}`)
+          el("small", {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height} · 权利 ${asset.rights} · 版本 ${asset.version_id.slice(0, 12)}…`)
         )
       ),
       el(

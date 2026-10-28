@@ -1149,8 +1149,12 @@ console.log('ok: ⑬ 输入与目标的简报写入：构建零 POST、空标题
 // ⑭ DL-UI-U05 · 目标生成包的拒绝种类。U05 的验收把 error / forbidden / conflict / timeout
 // 列为不同状态，而 native_submissions.py 确实用五个代码、三种状态码回答。此前 #/plan 把它们
 // 全画成一张"未受理"卡片，读者无法判断该重试、该换键还是该换素材。
+// The fixture carries the key set the live route serves (contracts.ts::AssetRecord, measured
+// 2026-10-28): byte_size and version_id are in it, `kind` and `version_no` never were -- a
+// fixture that keeps the phantom keys lets the page pass on fields no response can produce.
 const PLAN_ASSET = { assets: [{ id: 'img-' + 'a'.repeat(62), media_type: 'image/png',
-  width: 1080, height: 1920, rights: 'UNVERIFIED', version_no: 1 }] };
+  width: 1080, height: 1920, rights: 'UNVERIFIED', byte_size: 2411520,
+  version_id: 'v-' + 'b'.repeat(32), sha256: 'sha256:' + 'c'.repeat(64) }] };
 const byAria = (root, label) => {
   let hit = null;
   walkNodes(root, (node) => {

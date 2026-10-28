@@ -2185,6 +2185,10 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .as-chip input{accent-color:var(--accent);margin:0}
 .as-chips-empty{font-size:var(--uif-font-micro);color:var(--muted)}
 .as-ref .value-mono{flex:1 1 16ch}
+/* 参考行里的这一格说的是"这条参考指的是什么"：内容全部来自那一类自己的读回，所以空的时候
+   shell.ts 根本不画这个节点。字号与弱化色沿用 .as-count 那一族，不新增字面量。 */
+.as-ref-caption{flex:0 1 auto;min-width:0;color:var(--muted);
+  font-size:var(--uif-font-micro);overflow-wrap:anywhere}
 .as-ref-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
 .as-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1)}
 .as-plan-row{align-items:flex-start}

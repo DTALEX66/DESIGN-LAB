@@ -35,15 +35,21 @@ export interface EventRecord {
 }
 
 export interface AssetRecord {
+  // Key set measured against the live route, not copied from an assumption:
+  // src/design_lab/image_assets.py::_verified returns exactly
+  // id, version_id, sha256, byte_size, rights, width, height, media_type for both the list and
+  // the single-read branch. `kind` and `version_no` used to be declared here and were never
+  // emitted, so the reference picker painted the literal word "undefined" in front of every
+  // asset. The raster-only scope is a WHERE clause on the route (asset_kind='raster'), so the
+  // page may not read a kind off the row; it reads what the service actually says.
   id: string;
-  kind: string;
-  version_no: number;
   version_id: string;
-  media_type: string;
+  sha256: string;
+  byte_size: number;
+  rights: string;
   width: number;
   height: number;
-  rights: string;
-  sha256: string;
+  media_type: string;
 }
 
 export interface NativeAssetRecord {

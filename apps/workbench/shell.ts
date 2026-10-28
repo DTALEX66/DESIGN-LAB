@@ -4693,6 +4693,21 @@ interface AssistanceExportView {
 const ASSIST_UNKNOWN = 'UNKNOWN';
 const ASSIST_UNUSED = 'UNUSED';
 
+//: byte_size 是 /assets 真读回的一个字段，所以大小可以照实说；名称不行——库里每一行的文件名字节
+//: 是发布时的固定量（reference.png / reference.jpg / native.<ext> / delivery.zip），不是用户起的名字。
+function formatByteSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  const text = unit === 0 ? String(Math.round(value)) : value.toFixed(value >= 10 ? 0 : 1);
+  return `${text} ${units[unit]}`;
+}
+
 function assistanceWords(value: string): string[] {
   return value.split(/[、,，\n]/).map((part) => part.trim()).filter(Boolean);
 }
@@ -5193,7 +5208,14 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     const groups = [
       referenceGroup('ASSET', '本工作区素材',
         assets.map((asset) => ({
-          id: asset.id, text: `${asset.kind === 'raster' ? '图片' : asset.kind} · ${asset.id}`,
+          // Every word here is a field the route served. There is no name to show: the stored
+          // filename is a publish-time constant (`image_assets.py:144` writes reference.png or
+          // reference.jpg; native_tasks.py:172 writes native.<ext>), never the name the designer
+          // gave the file, so printing it would look like a caption while saying nothing.
+          // The short id tail is what distinguishes two same-size images from each other.
+          id: asset.id,
+          text: `${asset.media_type} · ${asset.width}×${asset.height}`
+            + ` · ${formatByteSize(asset.byte_size)} · ${asset.id.slice(0, 12)}…`,
         })), assetsNotice || '这个工作区还没有素材'),
       referenceGroup('BRIEF', '本工作区的需求 Brief',
         ofKind('BRIEF').map((choice) => ({ id: choice.id, text: `${choice.label} · ${choice.id}` })),
@@ -5226,6 +5248,23 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
       ...projectChoices.map((choice) => `${choice.kind}:${choice.id}`),
       ...knowledgeChoices.map((entry) => `KNOWLEDGE:${entry.id}`)]);
     const kindLabel = (kind: string): string => REFERENCE_KIND_LABELS[kind] ?? kind;
+    // A row reads as the thing it points at, not as a hash. Each caption comes from the list this
+    // page actually read back for that kind; an ASSET contributes its served media type, pixel
+    // size and byte size, and a reference the page cannot resolve stays caption-less under the tag
+    // that already says it is not in the current list -- inventing a name for it is not available.
+    const assetById = new Map(assets.map((asset) => [asset.id, asset]));
+    const choiceById = new Map(projectChoices.map((choice) => [`${choice.kind}:${choice.id}`, choice]));
+    const knowledgeById = new Map(knowledgeChoices.map((entry) => [entry.id, entry]));
+    const captionOf = (kind: string, id: string): string => {
+      if (kind === 'ASSET') {
+        const asset = assetById.get(id);
+        return asset
+          ? `${asset.media_type} · ${asset.width}×${asset.height} · ${formatByteSize(asset.byte_size)}`
+          : '';
+      }
+      if (kind === 'KNOWLEDGE') return knowledgeById.get(id)?.title ?? '';
+      return choiceById.get(`${kind}:${id}`)?.label ?? '';
+    };
     // Both counters are re-derived here rather than only on `input`: loading a stored plan
     // (6089) and clearing after a save (6236/6250) set `objective.value` programmatically, which
     // fires no input event, so a listener-only counter would keep showing the previous text's
@@ -5236,6 +5275,11 @@ export async function renderDesignAssistant(target: HTMLElement): Promise<void> 
     referenceList.replaceChildren(...(references.length
       ? references.map((reference) => el('li', { class: 'list-item as-ref' },
           el('span', { class: 'tag neutral' }, kindLabel(reference.kind)),
+          // An unresolved reference keeps no caption node at all: an empty flex child would still
+          // claim its basis and push the row apart while saying nothing.
+          ...(captionOf(reference.kind, reference.id)
+            ? [el('span', { class: 'as-ref-caption' }, captionOf(reference.kind, reference.id))]
+            : []),
           el('span', { class: 'value-mono' }, reference.id),
           el('span', { class: 'tag '
             + (known.has(`${reference.kind}:${reference.id}`) ? 'neutral' : 'warn') },
@@ -8686,19 +8730,12 @@ function renderReferencePanel(id: string): HTMLElement {
     const rights = a.rights === 'NOT_REVIEWED'
       ? el('span', { class: 'tag warn' }, '权利未审查')
       : el('span', { class: 'tag info' }, a.rights);
-    // NOTE (measured, not assumed): the live /assets payload carries
-    // id, version_id, sha256, byte_size, rights, width, height, media_type -- it does NOT
-    // carry `kind` or `version_no`, even though contracts.ts declares them on AssetRecord.
-    // Rendering the declared fields blindly printed "undefined · 版本 undefined" in the row.
-    // So: build the line from what is actually present, and prefer version_id (which does
-    // exist) over version_no. Nothing here may ever render the string "undefined".
-    const headline = [a.width !== undefined && a.height !== undefined ? `${a.width} × ${a.height}` : null,
-      a.media_type, a.kind].filter(Boolean).join(' · ');
-    const provenance = [a.id,
-      a.version_no !== undefined ? `版本 ${a.version_no}` : null,
-      a.version_id ? `version_id ${a.version_id.slice(0, 12)}…` : null,
-      a.sha256 ? `sha256 ${String(a.sha256).replace(/^sha256:/, '').slice(0, 16)}…` : null,
-    ].filter(Boolean).join(' · ');
+    // Key set measured against the live route (see AssetRecord in contracts.ts): the row carries
+    // media_type, width, height and byte_size, and no kind and no version number -- version_id is
+    // the identity that exists here. Nothing on this line may ever render the string "undefined".
+    const headline = `${a.media_type} · ${a.width} × ${a.height} · ${formatByteSize(a.byte_size)}`;
+    const provenance = [`版本记录 ${a.version_id.slice(0, 12)}…`,
+      `sha256 ${a.sha256.replace(/^sha256:/, '').slice(0, 16)}…`, a.id].join(' · ');
     return el('li', { class: 'list-item' },
       el('div', {}, el('strong', {}, headline), el('small', {}, provenance)),
       el('div', { class: 'actions' },
@@ -11053,7 +11090,8 @@ function referencePickerForProject(projectId: string): HTMLElement {
         el('label', { class: 'intake-check' },
           el('input', { type: 'checkbox', name: 'intake-reference-asset', value: asset.id }),
           el('span', {}, `${asset.media_type} · ${asset.width}×${asset.height}`
-            + ` · ${asset.id.slice(-8)} · 权利 ${asset.rights} · v${asset.version_no}`
+            + ` · ${asset.id.slice(-8)} · 权利 ${asset.rights}`
+            + ` · 版本 ${asset.version_id.slice(0, 12)}…`
             + '；导入与读回不等于获得素材使用权。'))))));
     } catch (error) {
       host.replaceChildren(stateBlock({
@@ -12197,11 +12235,9 @@ function planComposer(projectId: string): HTMLElement {
       el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '底图 · 用户勾选，非推断'),
           el('small', {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height}`
-            // D04: the live /assets payload carries version_id, not version_no, so the
-            // declared field rendered the literal "vundefined". Same guard the asset row
-            // already uses: nothing here may ever print "undefined".
-            + ` · 权利 ${asset.rights} · ${asset.version_no !== undefined
-              ? `v${asset.version_no}` : `版本 ${asset.version_id.slice(0, 12)}…`}`))),
+            // D04: the live /assets payload carries version_id, not a version number, so the
+            // row names the version record it read back instead of printing "vundefined".
+            + ` · 权利 ${asset.rights} · 版本 ${asset.version_id.slice(0, 12)}…`))),
       el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '画布'),
           el('small', {}, `${String(composed.rir.canvas.width)}×${String(composed.rir.canvas.height)}`
