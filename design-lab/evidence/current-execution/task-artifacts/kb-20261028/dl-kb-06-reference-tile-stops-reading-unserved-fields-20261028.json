@@ -21,6 +21,6 @@
     "node_unit": "WORKBENCH SMOKE: all checks passed",
     "node_appshell": "APPSHELL REGRESSION: all checks passed",
     "browser_e2e_local": "Ran 2 tests in 12.583s OK",
-    "ci_at_subject": "see the ci_readback row for the exact PR run line"
+    "ci_at_subject": "NOT YET ATTESTED as a completed PR run: 40682327441 (head 766f48d2, the commit that carries this fix) was cancelled by a later push, and 40684908337 (head 737307f3) failed on no-undeclared-task-document. Individual jobs that finished success inside a cancelled run are not cited as a pass. The proof recorded here is the local real-Chromium run plus the node suites; the verbatim PR-run reading lands in the closeout receipt of the head that carries all of this round's bytes."
   }
 }

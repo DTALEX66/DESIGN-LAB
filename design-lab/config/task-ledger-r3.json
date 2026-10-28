@@ -12781,7 +12781,7 @@
         "observed_at": "2026-10-28T12:02:10Z",
         "subject_sha": "766f48d2c91724797854f562f0f6c252bb52df5a",
         "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261028/dl-kb-06-reference-tile-stops-reading-unserved-fields-20261028.json",
-        "artifact_sha256": "b4b3d793c8568b9c5e08e6122583befb2e144b8247a2e6ba93d7b642cf804e02",
+        "artifact_sha256": "56e5d472d46eacd5b6492481edc91287d2cd450cdc37ce03853f74348529b69b",
         "exit_code": 0,
         "command": "measure the served key set and the painted text in a real browser, then register and clean as owner 2026-10-28 instructed; readings are in the bound artefact"
       },
