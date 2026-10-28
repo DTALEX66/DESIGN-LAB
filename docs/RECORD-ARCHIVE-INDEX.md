@@ -405,6 +405,24 @@ SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一
   `evidence/relocation.json` 自写 `"physicalSecondComputerTested": false`。因此本项目在本包上的等级上限是
   **E1/E2**，不构成真实宿主 E3、真人 E4 或 release 证据。
 
+## 2026-10-28 新增：跨波次指针登记（只写关系，不动一个冻结字节）
+
+六份归档清单各自登记自己的成员，其中四波重复登记了同一批材料。`docs/history/**` 被
+`design-lab/config/task-document-states.json` 的 prefixRule 逐字节冻结（依据 HISTORY-FREEZE-RULES），
+所以"合并历史归档"在这里唯一可做的动作是**把指针与取代关系写清楚**，不是搬文件：
+
+- 登记件：`design-lab/config/record-archive-crosswave.json`
+  （`design-lab/record-archive-crosswave/v1`），由
+  `python design-lab/scripts/verify_record_archive_crosswave.py --check` 现数复算，`--write` 重写。
+- 现数：6 份清单 / 391 条成员行 / 340 个不同摘要 / **48 个被两个及以上波次同时声称**——
+  其中 **34 个**在 clone 里有唯一受跟踪副本（登记件逐条写出该路径与每一波自己指向的位置），
+  **14 个**在 clone 里没有字节（大对象按 `AGENTS.md` 留在 `.project-local/`，不随克隆；
+  登记件把这一半单独列节并写明它"不是不存在，也不是通过"，迁移时必须按摘要补齐）。
+- 每条 `canonicalPaths` 都被测试重新哈希过：登记件不能把某个路径记成一个它并不携带的摘要
+  （`design-lab/tests/test_record_archive_crosswave.py`，13 条，含 6 个植入方向）。
+- 本节只写在生成节之前：`scripts/generate_archive_record_register.py` 会重写它自己那节到文件末尾，
+  写在它后面会在下一次重算时被吃掉。
+
 ## 2026-10-19 新增：归档与移除波次的五份记录（owner 2026-10-19 指令）
 
 本节登记 2026-10-19 归档波次产出的**五份记录**本身。波次过程与逐条缺陷不在这里重述，读第 5 项那份交付报告；
@@ -451,7 +469,7 @@ SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一
 - 83 条 `sha256` 全是 `sha256:` + 64 位十六进制，`restoreAt` 同值一条；
 - 五份记录均可 UTF-8 解码且不含 `U+FFFD`（中文正文若被写成乱码字节，这里会先炸）。
 
-**本节测于哪个提交**：五个 blob 在 `f4ae9374` 上逐条重算；交付报告最后一次被改写于 `50792cba`。本节所在提交装不下自己的哈希，所以两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效；真正会变的情形只有「记录本身被改写」。四份在 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再编辑；第五份是 dated 交付报告，若以后确实要补它，就重跑 `python scripts/generate_archive_record_register.py` 让本节跟着更新，别留下和仓库不一致的哈希。
+**本节测于哪个提交**：五个 blob 在 `432cda58` 上逐条重算；交付报告最后一次被改写于 `50792cba`。本节所在提交装不下自己的哈希，所以两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效；真正会变的情形只有「记录本身被改写」。四份在 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再编辑；第五份是 dated 交付报告，若以后确实要补它，就重跑 `python scripts/generate_archive_record_register.py` 让本节跟着更新，别留下和仓库不一致的哈希。
 
 **定态**：五份都是**波次的登记件**，不是能力索引、不是派工入口，也不改变 `currentExecution` 34 项的 `FROZEN_DEFERRED`。真值仍读 `design-lab/config/capability-evidence-index.json`、`design-lab/config/capability-status.json` 与 `docs/current/NEXT-AGENT-PROMPT.md`。
 
