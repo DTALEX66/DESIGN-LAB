@@ -632,6 +632,12 @@ binary sidecars complete)`、`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=2
 回执 `dl-final-t04-pr-run-read-at-81c46439-20261028`，账本 `currentExecution.evidence` 335 → 336。
 `DOCUMENTED_COUNTS` / overflow / contrast 三处 CI 不单独打印判定行（它们跑在聚合里），
 回执里如实写 `ABSENT`，不拿本地读数冒充云上读数。
+**收口 head `67639cc9`（只含派生记录的那次重切）自己也过了全矩阵**：PR run 40755717217
+`conclusion=success`，12 作业 10 success / 2 skipped / 0 failed——本轮到此结清，下一轮不必再为
+这一刀重跑 CI。另记一次自己造的噪音：本地 union 里 `test_projection_freshness` 两条红
+（`test_it_writes_no_tracked_file`、`test_the_gate_passes_and_prints_its_verdict_last`），
+成因是我在 union 还在跑的时候并发跑了重生成脚本，读的一方看到写的一方留下的脏树；
+安静树上一条命令复跑 `Ran 25 tests OK` 证伪了"这是产品缺陷"那个读法——**归因要有复跑，不要有推断**。
 
 **下一轮按此顺序**：① LAYER 2 仓库内历史归档合并（`docs/audits` 842 个受跟踪文件是最大面），
 按"冻结原件原字节不动、只换指针与取代关系"执行并重绑登记件/权威链/投影；
